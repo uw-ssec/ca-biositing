@@ -1,0 +1,36 @@
+#                             VVVVVV  minimum `pixi` version
+"$schema" = "https://pixi.sh/v0.49.0/schema/manifest/schema.json"
+
+[workspace]
+requires-pixi = ">=0.49,<1.0"
+authors = ["SSEC Team"]
+channels = ["conda-forge"]
+name = "ca-biositing"
+platforms = ["osx-arm64", "osx-64", "linux-64"]
+version = "0.1.0"
+
+[tasks.qgis]
+depends-on = [
+    { task = "run-qgis", environment = "gis" }
+]
+
+
+[dependencies]
+python = "3.12.*"
+
+[environments]
+gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+
+[feature.qgis.dependencies]
+qgis = "*"
+
+[feature.qgis.tasks]
+run-qgis = { cmd = "qgis", description = "Run QGIS for geospatial analysis and visualization." }
+
+[feature.raster.dependencies]
+rasterio = "*"
+xarray = "*"
+
+[feature.vector.dependencies]
+shapely = "*"
+pyproj = "*"
