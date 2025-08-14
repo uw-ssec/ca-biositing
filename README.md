@@ -5,6 +5,7 @@ Discussion of general issues related to the project and protyping or research
 
 - eScience Slack channel: 🔒 [#ssec-ca-biositing](https://escience-institute.slack.com/archives/C098GJCTTFE)
 - SSEC Sharepoint (**INTERNAL SSEC ONLY**): 🔒 [Projects/GeospatialBioeconomy](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy?csf=1&web=1&e=VBUGQG)
+- Shared Sharepoint Directory: [SSEC CA Biositing Shared Folder](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy/SSEC%20CA%20Biositing%20Shared%20Folder?csf=1&web=1&e=p5wBel)
 
 ## QGIS
 
