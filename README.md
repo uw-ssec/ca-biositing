@@ -7,6 +7,17 @@ Discussion of general issues related to the project and protyping or research
 - SSEC Sharepoint (**INTERNAL SSEC ONLY**): 🔒 [Projects/GeospatialBioeconomy](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy?csf=1&web=1&e=VBUGQG)
 - Shared Sharepoint Directory: 🔒 [SSEC CA Biositing Shared Folder](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy/SSEC%20CA%20Biositing%20Shared%20Folder?csf=1&web=1&e=p5wBel)
 
+## General Discussions
+
+For general discussion, ideas, and resources please use the [Github Discussions](https://github.com/uw-ssec/ca-biositing/discussions).
+However, if there's an internal discussion that need to happen, please use the slack channel provided.
+
+- Meeting Notes in Github: [discussions/meetings](https://github.com/uw-ssec/ca-biositing/discussions/categories/meetings)
+
+## Questions
+
+If you have any questions about our process, or locations of SSEC resources, please ask [Anshul Tambay](https://github.com/atambay37).
+
 ## QGIS
 
 This project includes QGIS for geospatial analysis and visualization. You can run QGIS using pixi with the following command:
