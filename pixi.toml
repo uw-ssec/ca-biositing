@@ -17,6 +17,12 @@ depends-on = [
 
 [dependencies]
 python = "3.12.*"
+pre-commit = ">=4.2.0,<5"
+
+[tasks]
+pre-commit = "pre-commit run"
+pre-commit-all = "pre-commit run --all-files"
+pre-commit-install = "pre-commit install"
 
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
