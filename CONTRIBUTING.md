@@ -38,11 +38,10 @@ Your contributions make this project better—thank you for your support! 🚀
 ### General Workflow
 
 1. Set up your development environment with `pixi install`.
-2. Configure your `.env` file.
-3. Install pre-commit hooks with `pixi run pre-commit-install`.
-4. Create a feature branch.
-5. Make your changes and ensure tests and pre-commit checks pass.
-6. Submit a pull request.
+2. Install pre-commit hooks with `pixi run pre-commit-install`.
+3. Create a feature branch.
+4. Make your changes and ensure tests and pre-commit checks pass.
+5. Submit a pull request.
 
 ### Configuring Pre-commit
 
