@@ -40,8 +40,8 @@ Your contributions make this project better—thank you for your support! 🚀
 1. Set up your development environment with `pixi install`.
 2. Install pre-commit hooks with `pixi run pre-commit-install`.
 3. Create a feature branch.
-4. Make your changes and ensure tests and pre-commit checks pass.
-5. Submit a pull request.
+4. Make your changes and ensure tests and pre-commit checks pass. . Submit a
+   pull request.
 
 ### Configuring Pre-commit
 
@@ -97,3 +97,28 @@ To activate one of these environments, run the following command:
 ```bash
 pixi shell -e <environment>
 ```
+
+### Running Tests
+
+This project uses [pytest](https://pytest.org/) as its testing framework. You
+can execute the following command to run the full test suite:
+
+```bash
+pixi run test
+```
+
+This command executes `python -m pytest -ra --cov=ca_biositing`, which:
+
+- Runs all tests in the `tests/` directory.
+- Shows a short test summary (`-ra`).
+- Generates coverage reports for the `src/ca_biositing` package.
+
+#### Running Tests with Coverage
+
+To run tests with coverage, use the following command
+
+```bash
+pixi run test-cov
+```
+
+This will run tests with coverage and generate an html report of said coverage.
