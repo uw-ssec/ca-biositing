@@ -18,11 +18,21 @@ depends-on = [
 [dependencies]
 python = "3.12.*"
 pre-commit = ">=4.2.0,<5"
+pytest = ">=8.4.2,<9"
+pytest-cov = ">=7.0.0,<8"
 
 [tasks]
 pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
+
+[tasks.test]
+cmd = "python -m pytest tests/ --verbose"
+description = "Run all tests"
+
+[tasks.test-cov]
+cmd = "python -m pytest tests/ --cov=src/ca_biositing --cov-report=html --cov-report=term-missing"
+description = "Run all tests with coverage and HTML report"
 
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
