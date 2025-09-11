@@ -19,6 +19,7 @@ depends-on = [
 python = "3.12.*"
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
+pytest-cov = ">=7.0.0,<8"
 
 [tasks]
 pre-commit = "pre-commit run"
