@@ -1,0 +1,8 @@
+venv/
+.env
+alembic/.env
+*.pyc
+__pycache__/
+data/interim/
+data/processed/
+credentials.json
