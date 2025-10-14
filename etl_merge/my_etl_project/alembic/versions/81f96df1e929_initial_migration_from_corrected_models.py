@@ -1,7 +1,7 @@
 """Initial migration from corrected models
 
 Revision ID: 81f96df1e929
-Revises: 
+Revises:
 Create Date: 2025-09-19 20:49:23.494336
 
 """

@@ -30,6 +30,6 @@ def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
                 name = AnalysisType(analysis_name=analysis_type)
                 session.add(name)
                 existing_analysis_type_names.add(analysis_type)
-        
+
         session.commit()
         print("Successfully committed analysis names to the database.")

@@ -30,6 +30,6 @@ def transform_analysis_analysis_type(data_sources: Dict[str, pd.DataFrame]) -> O
     # Step 2: Get unique product names and create the final DataFrame
     analysis_names = raw_experiments_df['Analysis_type'].unique()
     transformed_df = pd.DataFrame(analysis_names, columns=["analysis_name"])
-    
+
     print(f"Successfully transformed data, found {len(transformed_df)} unique analysis_names.")
     return transformed_df
