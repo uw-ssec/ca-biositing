@@ -1,16 +1,17 @@
 # Google Cloud Platform (GCP) Setup for Gspread
 
-This guide explains how to set up a Google Cloud Platform project, create a service account, and generate the `credentials.json` file required for this ETL project to access Google Sheets.
+This guide explains how to set up a Google Cloud Platform project, create a service account, and generate the `credentials.json` file required to access the Google Sheets which contain the data which will be manipulated by the ETL pipeline.
 
 ---
 
 ### Overview
 
 To allow our application to read data from a Google Sheet programmatically, we need to:
-1.  Create a **Service Account**, which is a special type of non-human user account.
-2.  Enable the necessary APIs (Google Sheets and Google Drive).
-3.  Generate a JSON key (`credentials.json`) that the application can use to authenticate as the service account.
-4.  Share the target Google Sheet with the service account's email address.
+1.  Select or create a **Google Cloud Platform (GCP) project** which will house the operations of your service account.
+2.  Create a **Service Account** in your GCP project. A service account is a special type of non-human user account used to access data programmatically.
+3.  Enable the necessary APIs (Google Sheets and Google Drive) for your service account.
+4.  Generate a JSON key (credentials.json) that the ETL pipeline application can use to authenticate as the service account.
+5.  Share the target Google Sheet with the service account's email address.
 
 ---
 
@@ -19,7 +20,8 @@ To allow our application to read data from a Google Sheet programmatically, we n
 **Step 1: Create or Select a GCP Project**
 
 1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2.  If you don't have a project, create one. If you do, select the project you want to use from the project dropdown at the top of the page.
+2.  If you don't have a project that can host a service agent, create one. If you do, select the project you want to use from the project dropdown at the top of the page.
+    **NOTE FOR ORGANIZATION USERS** If you have an organization account (e.g. @LBL.gov) you may need to make a project within your organization's GCP folders structure. For LBL organization accounts, ask for editing permisions of the existing "BioCirV" project by selecting this project and then hitting "Request permissions" wherever you see notification of restricted permissions. If you do not request and recieve access, you will not be able to complete Step 2 or 3 of this guide.
 
 **Step 2: Enable the Required APIs**
 
