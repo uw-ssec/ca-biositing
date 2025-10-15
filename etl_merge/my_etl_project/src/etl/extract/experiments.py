@@ -13,7 +13,7 @@ def extract_experiments() -> Optional[pd.DataFrame]:
         A pandas DataFrame containing the raw data, or None if an error occurs.
     """
     print("Extracting raw data from '03-Experiments' worksheet...")
-    
+
     GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
     WORKSHEET_NAME = "03.0-Experiments"
     CREDENTIALS_PATH = "credentials.json"
@@ -23,6 +23,6 @@ def extract_experiments() -> Optional[pd.DataFrame]:
     if raw_experiments_df is None:
         print("Failed to extract data. Aborting.")
         return None
-    
+
     print("Successfully extracted raw data.")
     return raw_experiments_df

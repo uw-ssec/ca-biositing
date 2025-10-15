@@ -36,13 +36,13 @@ def gsheet_to_df(gsheet_name: str, worksheet_name: str, credentials_path: str) -
         all_values = worksheet.get_all_values(value_render_option='FORMATTED_VALUE')
         if not all_values:
             return pd.DataFrame() # Return empty DataFrame if sheet is empty
-        
+
         # Use the first row as header and the rest as data
         df = pd.DataFrame(all_values[1:], columns=all_values[0])
-        
+
         # De-duplicate columns, keeping the first occurrence
         df = df.loc[:, ~df.columns.duplicated()]
-        
+
         return df
 
     except APIError as e:

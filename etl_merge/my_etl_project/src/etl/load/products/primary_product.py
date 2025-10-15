@@ -30,6 +30,6 @@ def load_products_primary_product(primary_product_df: pd.DataFrame):
                 product = PrimaryProduct(primary_product_name=product_name)
                 session.add(product)
                 existing_product_names.add(product_name)  # Add to set to avoid re-adding in same batch
-        
+
         session.commit()
         print("Successfully committed products to the database.")

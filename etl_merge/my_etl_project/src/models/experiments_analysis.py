@@ -21,19 +21,19 @@ class Experiment(SQLModel, table=True):
     gsheet_exper_id: Optional[int] = Field(default=None, unique=True,
                                             description="e.g., Ex05")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id",)
+                                            # foreign_key="analysis_types.analysis_type_id")
     analysis_abbrev_id: Optional[int] = Field(default=None,
-                                              description="Reference to analysis_abbreviations.analysis_abbreviations_id",
-                                              foreign_key="analysis_abbreviations.analysis_abbreviations_id")
+                                              description="Reference to analysis_abbreviations.analysis_abbreviations_id",)
+                                              # foreign_key="analysis_abbreviations.analysis_abbreviations_id")
     exper_start_date: Optional[date] = Field(default=None)
     exper_duration: Optional[Decimal] = Field(default=None)
     exper_duration_unit_id: Optional[int] = Field(default=None,
-                                                  description="Reference to units.unit_id",
-                                                  foreign_key="units.unit_id")
+                                                  description="Reference to units.unit_id",)
+                                                  # foreign_key="units.unit_id")
     exper_location_id: Optional[int] = Field(default=None,
-                                             description="Reference to geographic_locations.location_id",
-                                             foreign_key="geographic_locations.location_id")
+                                             description="Reference to geographic_locations.location_id",)
+                                             # foreign_key="geographic_locations.location_id")
     exper_description: Optional[str] = Field(default=None)
 
     __table_args__ = (Index("idx_experiments_analysis_type_id", "analysis_type_id"),)
@@ -45,11 +45,11 @@ class ExperimentMethod(SQLModel, table=True):
 
     experiment_method_id: Optional[int] = Field(default=None, primary_key=True)
     experiment_id: Optional[int] = Field(default=None,
-                                         description="Reference to experiments.experiment_id",
-                                         foreign_key="experiments.experiment_id")
+                                         description="Reference to experiments.experiment_id",)
+                                         # foreign_key="experiments.experiment_id")
     method_id: Optional[int] = Field(default=None,
-                                      description="Reference to methods.method_id",
-                                      foreign_key="methods.method_id")
+                                      description="Reference to methods.method_id",)
+                                      # foreign_key="methods.method_id")
 
     __table_args__ = (
         Index("idx_experiment_methods_method_id", "method_id"),
@@ -81,35 +81,35 @@ class AnalysisResult(SQLModel, table=True):
 
     result_id: Optional[int] = Field(default=None, primary_key=True)
     anlaysis_sample: Optional[int] = Field(default=None,
-                                            description="Reference to preprocessed_samples.prepro_material_id",
-                                            foreign_key="preprocessed_samples.prepro_material_id")
+                                            description="Reference to preprocessed_samples.prepro_material_id",)
+                                            # foreign_key="preprocessed_samples.prepro_material_id")
     experiment_id: Optional[int] = Field(default=None,
-                                         description="Reference to experiments.experiment_id",
-                                         foreign_key="experiments.experiment_id")
+                                         description="Reference to experiments.experiment_id",)
+                                         # foreign_key="experiments.experiment_id")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id",)
+                                            # foreign_key="analysis_types.analysis_type_id")
     replicate_no: Optional[int] = Field(default=None)
     analysis_timestamp: Optional[datetime] = Field(default=None)
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id",)
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id",)
+                                    # foreign_key="units.unit_id")
     qc_result_id: Optional[int] = Field(default=None,
-                                         description="Reference to qc_results.qc_result_id",
-                                         foreign_key="qc_results.qc_result_id")
+                                         description="Reference to qc_results.qc_result_id",)
+                                         # foreign_key="qc_results.qc_result_id")
     measurement_equipment_id: Optional[int] = Field(default=None,
-                                                   description="Reference to equipment.equipment_id",
-                                                   foreign_key="equipment.equipment_id")
+                                                   description="Reference to equipment.equipment_id",)
+                                                   # foreign_key="equipment.equipment_id")
     raw_data_url_id: Optional[int] = Field(default=None,
-                                            description="Reference to url.url_id",
-                                            foreign_key="url.url_id")
+                                            description="Reference to url.url_id",)
+                                            # foreign_key="url.url_id")
     analyst_id: Optional[int] = Field(default=None,
-                                      description="Reference to analysts_contacts.analyst_id",
-                                      foreign_key="analysts_contacts.analyst_id")
+                                      description="Reference to analyst_contact.analyst_id",)
+                                      # foreign_key="analyst_contact.analyst_id")
     analysis_note: Optional[str] = Field(default=None)
 
     __table_args__ = (
@@ -143,11 +143,11 @@ class ParameterMethod(SQLModel, table=True):
 
     param_method_id: Optional[int] = Field(default=None, primary_key=True)
     parameter_id: Optional[int] = Field(default=None,
-                                         description="Reference to parameters.parameter_id",
-                                         foreign_key="parameters.parameter_id")
+                                         description="Reference to parameters.parameter_id",)
+                                         # foreign_key="parameters.parameter_id")
     method_id: Optional[int] = Field(default=None,
-                                      description="Reference to methods.method_id",
-                                      foreign_key="methods.method_id")
+                                      description="Reference to methods.method_id",)
+                                      # foreign_key="methods.method_id")
 
 
 class Method(SQLModel, table=True):
@@ -157,22 +157,22 @@ class Method(SQLModel, table=True):
     method_id: Optional[int] = Field(default=None, primary_key=True)
     method_name: Optional[str] = Field(default=None, unique=True)
     method_abbrev_id: Optional[int] = Field(default=None,
-                                            description="Reference to method_abbrevs.method_abbrev_id",
-                                            foreign_key="method_abbrevs.method_abbrev_id")
+                                            description="Reference to method_abbrevs.method_abbrev_id",)
+                                            # foreign_key="method_abbrevs.method_abbrev_id")
     method_category_id: Optional[int] = Field(default=None,
-                                              description="Reference to method_categories.method_category_id",
-                                              foreign_key="method_categories.method_category_id")
+                                              description="Reference to method_categories.method_category_id",)
+                                              # foreign_key="method_categories.method_category_id")
     method_standard_id: Optional[int] = Field(default=None,
-                                              description="Reference to method_standards.method_standard_id",
-                                              foreign_key="method_standards.method_standard_id")
+                                              description="Reference to method_standards.method_standard_id",)
+                                              # foreign_key="method_standards.method_standard_id")
     description: Optional[str] = Field(default=None)
     detection_limits: Optional[str] = Field(default=None)
     procedure_reference_id: Optional[int] = Field(default=None,
-                                                  description="Reference to references.reference_id",
-                                                  foreign_key="references.reference_id")
+                                                  description="Reference to references.reference_id",)
+                                                  # foreign_key="references.reference_id")
     method_url_id: Optional[int] = Field(default=None,
-                                         description="Reference to url.url_id",
-                                         foreign_key="url.url_id")
+                                         description="Reference to url.url_id",)
+                                         # foreign_key="url.url_id")
 
     __table_args__ = (Index("idx_methods_method_name", "method_name"),)
 
@@ -211,8 +211,8 @@ class Equipment(SQLModel, table=True):
     equipment_name: str = Field(..., unique=True,
                                 description="Not null")
     equipment_room_id: Optional[int] = Field(default=None,
-                                             description="Reference to rooms.room_id",
-                                             foreign_key="rooms.room_id")
+                                             description="Reference to rooms.room_id",)
+                                             # foreign_key="rooms.room_id")
     description: Optional[str] = Field(default=None)
 
 
@@ -222,11 +222,11 @@ class MethodEquipment(SQLModel, table=True):
 
     method_equipment_id: Optional[int] = Field(default=None, primary_key=True)
     method_id: Optional[int] = Field(default=None,
-                                      description="Reference to methods.method_id",
-                                      foreign_key="methods.method_id")
+                                      description="Reference to methods.method_id",)
+                                      # foreign_key="methods.method_id")
     equipment_id: Optional[int] = Field(default=None,
-                                        description="Reference to equipment.equipment_id",
-                                        foreign_key="equipment.equipment_id")
+                                        description="Reference to equipment.equipment_id",)
+                                        # foreign_key="equipment.equipment_id")
 
     __table_args__ = (
         Index("idx_method_equipment_method_id", "method_id"),
@@ -241,11 +241,11 @@ class Parameter(SQLModel, table=True):
     parameter_id: Optional[int] = Field(default=None, primary_key=True)
     parameter_name: Optional[str] = Field(default=None, unique=True)
     parameter_category_id: Optional[int] = Field(default=None,
-                                                 description="Reference to parameter_catagories.parameter_catagory_id",
-                                                 foreign_key="parameter_catagories.parameter_catagory_id")
+                                                 description="Reference to parameter_catagories.parameter_catagory_id",)
+                                                 # foreign_key="parameter_catagories.parameter_catagory_id")
     standard_unit_id: Optional[int] = Field(default=None,
-                                            description="Reference to units.unit_id",
-                                            foreign_key="units.unit_id")
+                                            description="Reference to units.unit_id",)
+                                            # foreign_key="units.unit_id")
     calculated: Optional[bool] = Field(default=None,
                                       description="If not calculated then it is measured directly. E.g. glucose vs glucan")
     description: Optional[str] = Field(default=None)
@@ -268,11 +268,11 @@ class ParameterUnit(SQLModel, table=True):
 
     parameter_unit_id: Optional[int] = Field(default=None, primary_key=True)
     parameter_id: Optional[int] = Field(default=None,
-                                         description="Reference to parameters.parameter_id",
-                                         foreign_key="parameters.parameter_id")
+                                         description="Reference to parameters.parameter_id",)
+                                         # foreign_key="parameters.parameter_id")
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id",)
+                                   # foreign_key="units.unit_id")
 
     __table_args__ = (
         Index("idx_parameter_units_parameter_id", "parameter_id"),

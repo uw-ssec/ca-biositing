@@ -18,15 +18,15 @@ class ProximateAnalysis(SQLModel, table=True):
 
     prox_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     notes: Optional[str] = Field(default=None)
 
 
@@ -36,18 +36,18 @@ class ICPAnalysis(SQLModel, table=True):
 
     icp_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     concentration_calculation_url_id: Optional[int] = Field(default=None,
-                                                          description="Reference to url.url_id",
-                                                          foreign_key="url.url_id")
+                                                          description="Reference to url.url_id")
+                                                          # foreign_key="url.url_id")
     result_wavelength: Optional[Decimal] = Field(default=None)
     raw_url: Optional[str] = Field(default=None)
     notes: Optional[str] = Field(default=None)
@@ -59,22 +59,22 @@ class CompositionalAnalysis(SQLModel, table=True):
 
     cmp_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     calculated_parameter_id: Optional[int] = Field(default=None,
-                                                  description="Reference to parameters.parameter_id",
-                                                  foreign_key="parameters.parameter_id")
+                                                  description="Reference to parameters.parameter_id")
+                                                  # foreign_key="parameters.parameter_id")
     calculated_parameter_value: Optional[Decimal] = Field(default=None)
     calculated_parameter_unit_id: Optional[int] = Field(default=None,
-                                                       description="Reference to units.unit_id",
-                                                       foreign_key="units.unit_id")
+                                                       description="Reference to units.unit_id")
+                                                       # foreign_key="units.unit_id")
     notes: Optional[str] = Field(default=None)
 
 
@@ -84,15 +84,15 @@ class XRFAnalysis(SQLModel, table=True):
 
     xrf_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     notes: Optional[str] = Field(default=None)
 
 
@@ -102,25 +102,25 @@ class FermentationProfile(SQLModel, table=True):
 
     fp_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     organism_id: Optional[int] = Field(default=None,
-                                       description="Reference to organisms.organism_id",
-                                       foreign_key="organisms.organism_id")
+                                       description="Reference to organisms.organism_id")
+                                       # foreign_key="organisms.organism_id")
     product_type_id: Optional[int] = Field(default=None,
-                                           description="Reference to product_type.product_type_id",
-                                           foreign_key="product_type.product_type_id")
+                                           description="Reference to product_type.product_type_id")
+                                           # foreign_key="product_type.product_type_id")
     product_value: Optional[Decimal] = Field(default=None)
     product_unit_id: Optional[int] = Field(default=None,
-                                           description="Reference to units.unit_id",
-                                           foreign_key="units.unit_id")
+                                           description="Reference to units.unit_id")
+                                           # foreign_key="units.unit_id")
     notes: Optional[str] = Field(default=None)
 
 
@@ -140,23 +140,23 @@ class GasificationProfile(SQLModel, table=True):
 
     gasification_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                    description="Reference to units.unit_id",
-                                    foreign_key="units.unit_id")
+                                    description="Reference to units.unit_id")
+                                    # foreign_key="units.unit_id")
     notes: Optional[str] = Field(default=None)
     product_type_id: Optional[int] = Field(default=None,
-                                           description="Reference to product_type.product_type_id",
-                                           foreign_key="product_type.product_type_id")
+                                           description="Reference to product_type.product_type_id")
+                                           # foreign_key="product_type.product_type_id")
     product_value: Optional[Decimal] = Field(default=None)
     product_unit_id: Optional[int] = Field(default=None,
-                                           description="Reference to units.unit_id",
-                                           foreign_key="units.unit_id")
+                                           description="Reference to units.unit_id")
+                                           # foreign_key="units.unit_id")
 
 
 class AutoclaveProfile(SQLModel, table=True):
@@ -165,15 +165,15 @@ class AutoclaveProfile(SQLModel, table=True):
 
     autoclave_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     product_type_id: Optional[int] = Field(default=None,
-                                           description="Reference to product_type.product_type_id",
-                                           foreign_key="product_type.product_type_id")
+                                           description="Reference to product_type.product_type_id")
+                                           # foreign_key="product_type.product_type_id")
     product_value: Optional[Decimal] = Field(default=None)
     product_unit_id: Optional[int] = Field(default=None,
-                                           description="Reference to units.unit_id",
-                                           foreign_key="units.unit_id")
+                                           description="Reference to units.unit_id")
+                                           # foreign_key="units.unit_id")
 
 
 class AnalysisReplicate(SQLModel, table=True):
@@ -182,11 +182,11 @@ class AnalysisReplicate(SQLModel, table=True):
 
     analysis_replicate_id: Optional[int] = Field(default=None, primary_key=True)
     result_id: Optional[int] = Field(default=None,
-                                     description="Reference to analysis_results.result_id",
-                                     foreign_key="analysis_results.result_id")
+                                     description="Reference to analysis_results.result_id")
+                                     # foreign_key="analysis_results.result_id")
     analysis_types_id: Optional[int] = Field(default=None,
-                                             description="Reference to analysis_types.analysis_type_id",
-                                             foreign_key="analysis_types.analysis_type_id")
+                                             description="Reference to analysis_types.analysis_type_id")
+                                             # foreign_key="analysis_types.analysis_type_id")
     analysis_replicate_uuid: Optional[str] = Field(default=None)
 
 

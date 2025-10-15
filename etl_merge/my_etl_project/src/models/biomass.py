@@ -9,7 +9,7 @@ from sqlalchemy import Index
 
 
 # ------------------------------------------------------------
-# SQLModel classes generated from the DBdiagram schema 
+# SQLModel classes generated from the DBdiagram schema
 # ------------------------------------------------------------
 
 
@@ -33,8 +33,8 @@ class FieldSample(SQLModel, table=True):
     biomass_id: int = Field(
         default=None,
         index=True,
-        description="Reference to biomass",
-        foreign_key="biomass.biomass_id"
+        description="Reference to biomass"
+        # foreign_key="biomass.biomass_id"
     )
     sample_name: str = Field(
         default=None,
@@ -47,18 +47,18 @@ class FieldSample(SQLModel, table=True):
     )
     data_source_id: Optional[int] = Field(
         default=None,
-        description="Reference to data source",
-        foreign_key="data_sources.source_id"
+        description="Reference to data source"
+        # foreign_key="data_sources.source_id"
     )
     location_id: Optional[int] = Field(
         default=None,
-        description="Reference to geographic location (may be null)",
-        foreign_key="geographic_locations.location_id"
+        description="Reference to geographic location (may be null)"
+        # foreign_key="geographic_locations.location_id"
     )
     field_storage_id: Optional[int] = Field(
         default=None,
-        description="Reference to field storage",
-        foreign_key="field_storage.field_storage_id"
+        description="Reference to field storage"
+        # foreign_key="field_storage.field_storage_id"
     )
     field_storage_duration_value: Optional[Decimal] = Field(
         default=None,
@@ -66,31 +66,31 @@ class FieldSample(SQLModel, table=True):
     )
     field_storage_duration_unit_id: Optional[int] = Field(
         default=None,
-        description="Reference to unit of storage duration",
-        foreign_key="units.unit_id"
+        description="Reference to unit of storage duration"
+        # foreign_key="units.unit_id"
     )
     collection_timestamp: Optional[datetime] = Field(default=None)
     collection_method_id: Optional[int] = Field(
         default=None,
-        description="Reference to collection method",
-        foreign_key="collection_methods.collection_method_id"
+        description="Reference to collection method"
+        # foreign_key="collection_methods.collection_method_id"
     )
     harvest_method_id: Optional[int] = Field(
         default=None,
-        description="Reference to harvest method",
-        foreign_key="harvest_methods.harvest_method_id"
+        description="Reference to harvest method"
+        # foreign_key="harvest_methods.harvest_method_id"
     )
     harvest_date: Optional[date] = Field(default=None)
     amount_collected_kg: Optional[Decimal] = Field(default=None)
     provider_id: Optional[int] = Field(
         default=None,
-        description="Reference to provider (anonymized)",
-        foreign_key="providers.provider_id"
+        description="Reference to provider (anonymized)"
+        # foreign_key="providers.provider_id"
     )
     collector_id: Optional[int] = Field(
         default=None,
-        description="Reference to collector",
-        foreign_key="collectors.collector_id"
+        description="Reference to collector"
+        # foreign_key="collectors.collector_id"
     )
     basic_sample_info_note: Optional[str] = Field(default=None)
     created_at: datetime = Field(
@@ -110,19 +110,19 @@ class Biomass(SQLModel, table=True):
     biomass_name: str = Field(default=None, index=True)
     primary_product_id: Optional[int] = Field(
         default=None,
-        description="Reference to primary product",
-        foreign_key="primary_product.primary_product_id"
+        description="Reference to primary product"
+        # foreign_key="primary_product.primary_product_id"
     )
     taxonomy_id: Optional[int] = Field(
         default=None,
-        description="Reference to taxonomy",
-        foreign_key="taxonomy.taxonomy_id"
+        description="Reference to taxonomy"
+        # foreign_key="taxonomy.taxonomy_id"
     )
     biomass_type_id: Optional[int] = Field(
         default=None,
         index=True,
-        description="Reference to biomass type",
-        foreign_key="biomass_type.biomass_type_id"
+        description="Reference to biomass type"
+        # foreign_key="biomass_type.biomass_type_id"
     )
     biomass_notes: Optional[str] = Field(default=None)
 
@@ -164,18 +164,18 @@ class BiomassAvailability(SQLModel, table=True):
     biomass_id: int = Field(
         default=None,
         index=True,
-        description="Reference to biomass",
-        foreign_key="biomass.biomass_id"
+        description="Reference to biomass"
+        # foreign_key="biomass.biomass_id"
     )
     location_id: Optional[int] = Field(
         default=None,
-        description="Reference to geographic location",
-        foreign_key="geographic_locations.location_id"
+        description="Reference to geographic location"
+        # foreign_key="geographic_locations.location_id"
     )
     primary_product_id: Optional[int] = Field(
         default=None,
-        description="Reference to primary product",
-        foreign_key="primary_product.primary_product_id"
+        description="Reference to primary product"
+        # foreign_key="primary_product.primary_product_id"
     )
     from_month: Optional[Decimal] = Field(
         default=None,
@@ -193,8 +193,8 @@ class BiomassAvailability(SQLModel, table=True):
     bdt_high: Optional[Decimal] = Field(default=None, description="Bone‑dry tons high estimate")
     data_source: Optional[int] = Field(
         default=None,
-        description="Reference to data source",
-        foreign_key="data_sources.source_id"
+        description="Reference to data source"
+        # foreign_key="data_sources.source_id"
     )
     availability_notes: Optional[str] = Field(default=None)
 
@@ -210,8 +210,8 @@ class BiomassQuality(SQLModel, table=True):
     biomass_id: int = Field(
         default=None,
         index=True,
-        description="Reference to biomass",
-        foreign_key="biomass.biomass_id"
+        description="Reference to biomass"
+        # foreign_key="biomass.biomass_id"
     )
     expected_quality: Optional[str] = Field(default=None)
     output_feedstocks: Optional[str] = Field(
@@ -231,8 +231,8 @@ class BiomassQuality(SQLModel, table=True):
     regulatory_issues: Optional[str] = Field(default=None)
     quality_data_sources: Optional[int] = Field(
         default=None,
-        description="Reference to data source",
-        foreign_key="data_sources.source_id"
+        description="Reference to data source"
+        # foreign_key="data_sources.source_id"
     )
     notes: Optional[str] = Field(default=None)
 
@@ -248,16 +248,16 @@ class BiomassPrice(SQLModel, table=True):
     biomass_id: int = Field(
         default=None,
         index=True,
-        description="Reference to biomass",
-        foreign_key="biomass.biomass_id"
+        description="Reference to biomass"
+        # foreign_key="biomass.biomass_id"
     )
     price_per_kg_low: Optional[Decimal] = Field(default=None)
     price_per_kg_avg: Optional[Decimal] = Field(default=None)
     price_per_kg_high: Optional[Decimal] = Field(default=None)
     price_data_sources: Optional[int] = Field(
         default=None,
-        description="Reference to data source",
-        foreign_key="data_sources.source_id"
+        description="Reference to data source"
+        # foreign_key="data_sources.source_id"
     )
     notes: Optional[str] = Field(default=None)
 

@@ -18,31 +18,31 @@ class ExternalDairyOne(SQLModel, table=True):
 
     dairy_one_id: Optional[int] = Field(default=None, primary_key=True)
     data_source_id: Optional[int] = Field(default=None,
-                                          description="Reference to data_sources.source_id",
-                                          foreign_key="data_sources.source_id")
+                                          description="Reference to data_sources.source_id")
+                                          # foreign_key="data_sources.source_id")
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id")
+                                            # foreign_key="analysis_types.analysis_type_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     parameter_method_id: Optional[int] = Field(default=None,
-                                               description="Reference to parameter_methods.param_method_id",
-                                               foreign_key="parameter_methods.param_method_id")
+                                               description="Reference to parameter_methods.param_method_id")
+                                               # foreign_key="parameter_methods.param_method_id")
     samples_count: Optional[int] = Field(default=None)
     mean_value: Optional[Decimal] = Field(default=None)
     std_dev: Optional[Decimal] = Field(default=None)
     min_value: Optional[Decimal] = Field(default=None)
     max_value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     methodology_reference_id: Optional[int] = Field(default=None,
-                                                   description="Reference to methods.method_id",
-                                                   foreign_key="methods.method_id")
+                                                   description="Reference to methods.method_id")
+                                                   # foreign_key="methods.method_id")
     accumulated_years_from: Optional[date] = Field(default=None)
     accumulated_years_to: Optional[date] = Field(default=None)
     import_date: Optional[date] = Field(default=None)
@@ -59,46 +59,46 @@ class ExternalINLBiofeedstockLibrary(SQLModel, table=True):
 
     bfl_id: Optional[int] = Field(default=None, primary_key=True)
     data_source_id: Optional[int] = Field(default=None,
-                                          description="Reference to data_sources.source_id",
-                                          foreign_key="data_sources.source_id")
+                                          description="Reference to data_sources.source_id")
+                                          # foreign_key="data_sources.source_id")
     sample_id: Optional[int] = Field(default=None,
-                                     description="Reference to field_samples.sample_id",
-                                     foreign_key="field_samples.sample_id")
+                                     description="Reference to field_samples.sample_id")
+                                     # foreign_key="field_samples.sample_id")
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id")
+                                            # foreign_key="analysis_types.analysis_type_id")
     state_id: Optional[int] = Field(default=None,
-                                    description="Reference to states.state_id",
-                                    foreign_key="states.state_id")
+                                    description="Reference to states.state_id")
+                                    # foreign_key="states.state_id")
     affiliations_id: Optional[int] = Field(default=None,
-                                          description="Reference to affiliations.affiliation_id",
-                                          foreign_key="affiliations.affiliation_id")
+                                          description="Reference to affiliations.affiliation_id")
+                                          # foreign_key="affiliations.affiliation_id")
     harvest_method_id: Optional[int] = Field(default=None,
-                                             description="Reference to harvest_methods.harvest_method_id",
-                                             foreign_key="harvest_methods.harvest_method_id")
+                                             description="Reference to harvest_methods.harvest_method_id")
+                                             # foreign_key="harvest_methods.harvest_method_id")
     collection_method_id: Optional[int] = Field(default=None,
-                                                description="Reference to collection_methods.collection_method_id",
-                                                foreign_key="collection_methods.collection_method_id")
+                                                description="Reference to collection_methods.collection_method_id")
+                                                # foreign_key="collection_methods.collection_method_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     parameter_method_id: Optional[int] = Field(default=None,
-                                               description="Reference to parameter_methods.param_method_id",
-                                               foreign_key="parameter_methods.param_method_id")
+                                               description="Reference to parameter_methods.param_method_id")
+                                               # foreign_key="parameter_methods.param_method_id")
     mean_value: Optional[Decimal] = Field(default=None)
     std_dev: Optional[Decimal] = Field(default=None)
     min_value: Optional[Decimal] = Field(default=None)
     max_value: Optional[Decimal] = Field(default=None)
     sample_count: Optional[int] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     methodology_reference_id: Optional[int] = Field(default=None,
-                                                   description="Reference to methods.method_id",
-                                                   foreign_key="methods.method_id")
+                                                   description="Reference to methods.method_id")
+                                                   # foreign_key="methods.method_id")
     accumulated_years_from: Optional[date] = Field(default=None)
     accumulated_years_to: Optional[date] = Field(default=None)
     import_date: Optional[date] = Field(default=None)
@@ -114,30 +114,30 @@ class ExternalPhyllis2(SQLModel, table=True):
 
     phyllis_id: Optional[int] = Field(default=None, primary_key=True)
     data_source_id: Optional[int] = Field(default=None,
-                                          description="Reference to data_sources.source_id",
-                                          foreign_key="data_sources.source_id")
+                                          description="Reference to data_sources.source_id")
+                                          # foreign_key="data_sources.source_id")
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id")
+                                            # foreign_key="analysis_types.analysis_type_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     parameter_method_id: Optional[int] = Field(default=None,
-                                               description="Reference to parameter_methods.param_method_id",
-                                               foreign_key="parameter_methods.param_method_id")
+                                               description="Reference to parameter_methods.param_method_id")
+                                               # foreign_key="parameter_methods.param_method_id")
     mean_value: Optional[Decimal] = Field(default=None)
     std_dev: Optional[Decimal] = Field(default=None)
     max_value: Optional[Decimal] = Field(default=None)
     sample_count: Optional[int] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     methodology_reference_id: Optional[int] = Field(default=None,
-                                                   description="Reference to methods.method_id",
-                                                   foreign_key="methods.method_id")
+                                                   description="Reference to methods.method_id")
+                                                   # foreign_key="methods.method_id")
     import_date: Optional[date] = Field(default=None)
 
     __table_args__ = (
@@ -152,28 +152,28 @@ class ExternalEBMUD(SQLModel, table=True):
 
     ebmud_id: Optional[int] = Field(default=None, primary_key=True)
     data_source_id: Optional[int] = Field(default=None,
-                                          description="Reference to data_sources.source_id",
-                                          foreign_key="data_sources.source_id")
+                                          description="Reference to data_sources.source_id")
+                                          # foreign_key="data_sources.source_id")
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     analysis_type_id: Optional[int] = Field(default=None,
-                                            description="Reference to analysis_types.analysis_type_id",
-                                            foreign_key="analysis_types.analysis_type_id")
+                                            description="Reference to analysis_types.analysis_type_id")
+                                            # foreign_key="analysis_types.analysis_type_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     parameter_method_id: Optional[int] = Field(default=None,
-                                               description="Reference to parameter_methods.param_method_id",
-                                               foreign_key="parameter_methods.param_method_id")
+                                               description="Reference to parameter_methods.param_method_id")
+                                               # foreign_key="parameter_methods.param_method_id")
     mean_value: Optional[Decimal] = Field(default=None)
     std_dev: Optional[Decimal] = Field(default=None)
     min_value: Optional[Decimal] = Field(default=None)
     max_value: Optional[Decimal] = Field(default=None)
     sample_count: Optional[int] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     import_date: Optional[date] = Field(default=None)
 
 
@@ -185,8 +185,8 @@ class VectorizedRasterPolygon(SQLModel, table=True):
     geometry: Optional[str] = Field(default=None,
                                     description="Polygon geometry (PostGIS), use appropriate SRID")
     raster_id: Optional[int] = Field(default=None,
-                                     description="Optional foreign key to raster_metadata.id",
-                                     foreign_key="raster_metadata.id")
+                                     description="Optional foreign key to raster_metadata.id")
+                                     # foreign_key="raster_metadata.id")
     class_: Optional[str] = Field(default=None,
                                   description="Classification label or category (e.g., land use type)",
                                   alias="class")
@@ -229,18 +229,18 @@ class ExternalATIP(SQLModel, table=True):
 
     atip_ID: Optional[int] = Field(default=None, primary_key=True)
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     location_id: Optional[int] = Field(default=None,
-                                       description="Reference to geographic_locations.location_id",
-                                       foreign_key="geographic_locations.location_id")
+                                       description="Reference to geographic_locations.location_id")
+                                       # foreign_key="geographic_locations.location_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     geometry_id: Optional[int] = Field(default=None)
     geometry: Optional[str] = Field(default=None,
                                     description="Geometry (PostGIS geom type)")
@@ -253,18 +253,18 @@ class ExternalLandIQ(SQLModel, table=True):
 
     land_id: Optional[int] = Field(default=None, primary_key=True)  # renamed from land_id_id
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     location_id: Optional[int] = Field(default=None,
-                                       description="Reference to geographic_locations.location_id",
-                                       foreign_key="geographic_locations.location_id")
+                                       description="Reference to geographic_locations.location_id")
+                                       # foreign_key="geographic_locations.location_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     geometry_id: Optional[int] = Field(default=None)
     geometry: Optional[str] = Field(default=None,
                                     description="Geometry (PostGIS geom type)")
@@ -277,18 +277,18 @@ class ExternalUSDA(SQLModel, table=True):
 
     usda_id: Optional[int] = Field(default=None, primary_key=True)
     biomass_id: Optional[int] = Field(default=None,
-                                      description="Reference to biomass.biomass_id",
-                                      foreign_key="biomass.biomass_id")
+                                      description="Reference to biomass.biomass_id")
+                                      # foreign_key="biomass.biomass_id")
     location_id: Optional[int] = Field(default=None,
-                                       description="Reference to geographic_locations.location_id",
-                                       foreign_key="geographic_locations.location_id")
+                                       description="Reference to geographic_locations.location_id")
+                                       # foreign_key="geographic_locations.location_id")
     parameter_id: Optional[int] = Field(default=None,
-                                        description="Reference to parameters.parameter_id",
-                                        foreign_key="parameters.parameter_id")
+                                        description="Reference to parameters.parameter_id")
+                                        # foreign_key="parameters.parameter_id")
     value: Optional[Decimal] = Field(default=None)
     unit_id: Optional[int] = Field(default=None,
-                                   description="Reference to units.unit_id",
-                                   foreign_key="units.unit_id")
+                                   description="Reference to units.unit_id")
+                                   # foreign_key="units.unit_id")
     geometry_id: Optional[int] = Field(default=None)
     geometry: Optional[str] = Field(default=None,
                                     description="Geometry (PostGIS geom type)")
