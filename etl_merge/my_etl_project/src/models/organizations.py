@@ -28,11 +28,11 @@ class Building(SQLModel, table=True):
     building_id: Optional[int] = Field(default=None, primary_key=True)
     building_name: Optional[str] = Field(default=None, unique=True)
     location_id: Optional[int] = Field(default=None,
-                                       description="Reference to geographic_locations.location_id",
-                                       foreign_key="geographic_locations.location_id")
+                                       description="Reference to geographic_locations.location_id")
+                                       # foreign_key="geographic_locations.location_id")
     affiliation_id: Optional[int] = Field(default=None,
-                                         description="Reference to affiliations.affiliation_id",
-                                         foreign_key="affiliations.affiliation_id")
+                                         description="Reference to affiliations.affiliation_id")
+                                         # foreign_key="affiliations.affiliation_id")
 
 
 class Room(SQLModel, table=True):
@@ -42,5 +42,5 @@ class Room(SQLModel, table=True):
     room_id: Optional[int] = Field(default=None, primary_key=True)
     room_number: Optional[str] = Field(default=None, unique=True)
     building_id: Optional[int] = Field(default=None,
-                                       description="Reference to buildings.building_id",
-                                       foreign_key="buildings.building_id")
+                                       description="Reference to buildings.building_id")
+                                       # foreign_key="buildings.building_id")
