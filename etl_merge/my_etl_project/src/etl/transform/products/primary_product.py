@@ -30,6 +30,6 @@ def transform_products_primary_product(data_sources: Dict[str, pd.DataFrame]) ->
     # Step 2: Get unique product names and create the final DataFrame
     primary_product_names = raw_df['Primary_crop'].unique()
     transformed_df = pd.DataFrame(primary_product_names, columns=["Primary_crop"])
-    
+
     print(f"Successfully transformed data, found {len(transformed_df)} unique primary products.")
     return transformed_df

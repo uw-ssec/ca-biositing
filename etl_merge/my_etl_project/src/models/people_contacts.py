@@ -14,7 +14,7 @@ from sqlalchemy import Index
 
 class AnalystContact(SQLModel, table=True):
     """Analyst or data‑entry contact."""
-    __tablename__ = "analysts_contacts"
+    __tablename__ = "analyst_contact"
 
     analyst_id: Optional[int] = Field(default=None, primary_key=True)
     analyst_first_name: Optional[str] = Field(default=None)

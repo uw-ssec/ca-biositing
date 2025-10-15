@@ -28,10 +28,10 @@ def run_etl_pipeline(
                 data_cache[source_name] = extract_func()
             else:
                 print(f"Cache hit for '{source_name}'. Using cached data.")
-            
+
             if data_cache[source_name] is None:
                 raise RuntimeError(f"Extraction failed for source: {source_name}")
-            
+
             data_sources[source_name] = data_cache[source_name]
     except RuntimeError as e:
         print(f"Pipeline '{pipeline_name}' finished with errors: {e}")
@@ -82,7 +82,7 @@ def discover_and_run_pipelines(pipeline_to_run: Optional[str] = None):
         sys.exit(1)
 
     print(f"Executing pipelines: {', '.join(pipelines_to_execute)}")
-    
+
     for name in pipelines_to_execute:
         run_single_pipeline(name, etl_base_path, data_cache)
 
@@ -94,12 +94,12 @@ def run_single_pipeline(pipeline_name: str, base_path: str, data_cache: Dict):
         # Construct module paths for dynamic import
         transform_module_path = f"{base_path}.transform.{pipeline_name}"
         load_module_path = f"{base_path}.load.{pipeline_name}"
-        
+
         transform_module = importlib.import_module(transform_module_path)
         load_module = importlib.import_module(load_module_path)
 
         extract_sources: List[str] = getattr(transform_module, 'EXTRACT_SOURCES')
-        
+
         extract_funcs = {}
         for source in extract_sources:
             extract_module = importlib.import_module(f"{base_path}.extract.{source}")

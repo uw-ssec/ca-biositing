@@ -9,7 +9,7 @@ from sqlalchemy import Index
 
 
 # ------------------------------------------------------------
-# SQLModel classes generated from the DBdiagram schema 
+# SQLModel classes generated from the DBdiagram schema
 # ------------------------------------------------------------
 
 
