@@ -1,8 +1,10 @@
 import pandas as pd
+from prefect import task
 from sqlmodel import Session
-from database import engine
-from models.biomass import PrimaryProduct
+from src.database import engine
+from src.models.biomass import PrimaryProduct
 
+@task
 def load_products_primary_product(primary_product_df: pd.DataFrame):
     """
     Loads the data from the primary products DataFrame into the database.

@@ -1,7 +1,7 @@
 # ETL Pipeline Workflow
 
 This guide explains the structure of the ETL (Extract, Transform, Load) pipeline
-and how to use the `run_pipeline.py` script to execute it.
+and how to use Prefect to execute it.
 
 ---
 
@@ -30,99 +30,169 @@ is built to be modular and extensible.
 
 ---
 
-### Running the Pipeline
+### Development Workflow: Ad-Hoc Runs
 
-The `run_pipeline.py` script is the entry point for executing all or part of the
-ETL process. All commands should be run from the `my_etl_project` directory.
+For quick, script-based execution, you can use `run_prefect_flow.py` directly.
+This is ideal for simple debugging or manual runs.
 
-**1. Running the Full Pipeline:**
+#### Running the Master Flow
 
-To run all ETL pipelines that the script discovers, execute the following
-command. The script will automatically find all valid pipelines and run them
-sequentially.
+To run all ETL pipelines, execute the script without arguments:
 
 ```bash
-docker-compose exec app python run_pipeline.py
+pixi run python run_prefect_flow.py
 ```
 
-**2. Running Specific Pipelines:**
+#### Running a Specific Flow
 
-You can also run one or more specific pipelines by passing their names as
-command-line arguments. The names are derived from their path within the `etl`
-directory (e.g., `products/primary_product.py` becomes
-`products.primary_product`).
+To run one or more specific flows, pass their names as arguments:
 
 ```bash
-# Run only the primary_product pipeline
-docker-compose exec app python run_pipeline.py products.primary_product
+# Run only the primary_product flow
+pixi run python run_prefect_flow.py primary_product
 
-# Run both the primary_product and analysis_type pipelines
-docker-compose exec app python run_pipeline.py products.primary_product analysis.analysis_type
+# Run both the primary_product and analysis_type flows
+pixi run python run_prefect_flow.py primary_product analysis_type
 ```
 
 ---
 
-### How to Add a New ETL Pipeline
+### Production Workflow: Using the Prefect Server and Docker
 
-To add a new pipeline for a new data type (e.g., "new_sample_type"), follow this
-pattern:
+For a robust, observable, and containerized experience, use the Prefect server
+in combination with the Docker environment.
 
-**Step 1: Create the Module Files:**
+> **Note on Directories:** All `docker-compose` and `pixi` commands in this
+> section should be run from the `my_etl_project` directory. From the project
+> root, you can navigate there with: `cd etl_merge/my_etl_project`
 
-Create the three necessary Python files in the appropriate subdirectories. For
-example:
+**Step 1: Start the Prefect Server**
+
+In one terminal, start the Prefect UI and server on your **host machine**. This
+process runs in the background.
+
+```bash
+pixi run prefect server start
+```
+
+You can access the dashboard at [http://127.0.0.1:4200](http://127.0.0.1:4200).
+
+**Step 2: Start the Docker Environment**
+
+In a **new terminal**, start the full Docker environment. This will start the
+database, the main app, and the containerized Prefect worker.
+
+```bash
+docker-compose up -d
+```
+
+The `prefect-worker` service is configured to automatically connect to the
+Prefect server running on your host.
+
+**Step 3: Deploy and Run a Flow**
+
+Deployments make your flows available to the Prefect server.
+
+1.  **Deploy the Flow (First time only):** The first time you create or update a
+    flow, you must deploy it from your **host machine**. This command creates a
+    `prefect.yaml` file that saves your deployment settings.
+
+    ```bash
+    pixi run prefect deploy run_prefect_flow.py:master_flow
+    ```
+
+2.  **Trigger a Flow Run:** To run a deployed flow, use the
+    `prefect deployment run` command from your **host machine**. The
+    containerized worker will automatically pick up and execute the run.
+
+    ```bash
+    pixi run prefect deployment run 'Master ETL Flow/biocirv_master_flow_test_deploy'
+    ```
+
+You can now monitor the run in real-time in the Prefect UI.
+
+---
+
+### How to Add a New ETL Flow
+
+To add a new pipeline (e.g., for "new_sample_type"), you must create the
+necessary task files, define a new flow for that pipeline, and then register it
+in the main `run_prefect_flow.py` script.
+
+**Step 1: Create the Task Files**
+
+Create the three Python files for your extract, transform, and load logic in the
+appropriate subdirectories. Decorate each function with `@task`.
 
 - `src/etl/extract/samples/new_sample_type.py`
 - `src/etl/transform/samples/new_sample_type.py`
 - `src/etl/load/samples/new_sample_type.py`
 
-**Step 2: Implement the Functions:**
+**Step 2: Create the Pipeline Flow**
 
-In each file, implement the required function (`extract()`, `transform()`,
-`load()`). Ensure they follow the same input/output pattern as the existing
-pipelines.
+Create a new file in the `src/flows/` directory to define the flow for your new
+pipeline. For example: `src/flows/new_sample_type.py`.
 
-**Step 3: Run the New Pipeline:**
+Inside this file, import your tasks and define a flow function that orchestrates
+them:
 
-The `run_pipeline.py` script will automatically discover your new
-`samples.new_sample_type` pipeline. You can run it by name or as part of the
-full pipeline run.
+```python
+# src/flows/new_sample_type.py
+from prefect import flow
+from src.etl.extract.samples.new_sample_type import extract
+from src.etl.transform.samples.new_sample_type import transform
+from src.etl.load.samples.new_sample_type import load
 
-This modular structure makes it simple and efficient to extend the ETL system
-with new data sources.
+@flow
+def new_sample_type_flow():
+    raw_data = extract()
+    transformed_data = transform(raw_data)
+    load(transformed_data)
+```
+
+**Step 3: Register the New Flow**
+
+Finally, open `run_prefect_flow.py` to make the new flow available to the
+runner. This is a **manual step** that ensures only explicitly registered flows
+are run.
+
+1.  **Import your new flow function** at the top of the script:
+    ```python
+    from src.flows.new_sample_type import new_sample_type_flow
+    ```
+2.  **Add the flow to the `AVAILABLE_FLOWS` dictionary**. This makes it runnable
+    from the command line and includes it in the master flow.
+    ```python
+    AVAILABLE_FLOWS = {
+        "primary_product": primary_product_flow,
+        "analysis_type": analysis_type_flow,
+        "new_sample_type": new_sample_type_flow,  # Add your new flow here
+    }
+    ```
+
+**Step 4: Run the Master Flow**
+
+The next time you run `python run_prefect_flow.py`, your new pipeline will be
+executed as part of the master flow.
 
 ---
 
-### How to Add a New ETL Pipeline Using Templates
+### How to Add a New ETL Flow Using Templates
 
-To accelerate development and ensure consistency, you can use the templates
-located in the `src/etl/templates/` directory.
+The process is the same as above, but you start by copying the templates.
 
-**Step 1: Copy the Template Files**
+**Step 1: Copy and Customize the Template Files**
 
-Copy the three template files into the appropriate new subdirectories for your
-pipeline. For example, to create a "new_sample_type" pipeline in a "samples"
-category:
+Copy the templates from `src/etl/templates/` to your new module directories and
+customize the `TODO` sections. The templates already include the `@task`
+decorator.
 
-- Copy `src/etl/templates/extract_template.py` to
-  `src/etl/extract/samples/new_sample_type.py`
-- Copy `src/etl/templates/transform_template.py` to
-  `src/etl/transform/samples/new_sample_type.py`
-- Copy `src/etl/templates/load_template.py` to
-  `src/etl/load/samples/new_sample_type.py`
+**Step 2: Create the Pipeline Flow**
 
-**Step 2: Customize the New Files**
+Create a new flow file in `src/flows/` that imports and orchestrates your new
+tasks.
 
-Open each of the new files and follow the `TODO` comments to customize the
-logic:
+**Step 3: Register the New Flow**
 
-- **In the extract file:** Update the `WORKSHEET_NAME`.
-- **In the transform file:** Implement the data cleaning and structuring logic.
-- **In the load file:** Import your specific SQLModel class and map the
-  DataFrame columns to your model's attributes.
-
-**Step 3: Run the New Pipeline**
-
-Once customized, the `run_pipeline.py` script will automatically discover your
-new `samples.new_sample_type` pipeline. You can run it by name or as part of the
-full pipeline run.
+Open `run_prefect_flow.py`, import your new flow, and add it to the
+`AVAILABLE_FLOWS` dictionary.

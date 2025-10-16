@@ -13,6 +13,7 @@ To use this template:
 
 from typing import Optional
 import pandas as pd
+from prefect import task
 from src.utils.gsheet_to_pandas import gsheet_to_df
 
 # --- CONFIGURATION ---
@@ -26,6 +27,7 @@ WORKSHEET_NAME = "Your-Worksheet-Name-Here"
 CREDENTIALS_PATH = "credentials.json"
 
 
+@task
 def extract() -> Optional[pd.DataFrame]:
     """
     Extracts raw data from the specified Google Sheet worksheet.

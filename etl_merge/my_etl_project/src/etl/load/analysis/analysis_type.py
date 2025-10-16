@@ -1,8 +1,10 @@
 import pandas as pd
+from prefect import task
 from sqlmodel import Session
-from database import engine
-from models.experiments_analysis import AnalysisType
+from src.database import engine
+from src.models.experiments_analysis import AnalysisType
 
+@task
 def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
     """
     Loads the data from the analysis_types DataFrame into the database.

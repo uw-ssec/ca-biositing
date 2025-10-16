@@ -12,6 +12,7 @@ To use this template:
 """
 
 import pandas as pd
+from prefect import task
 from sqlmodel import Session, select
 from src.database import engine
 
@@ -21,6 +22,7 @@ from src.database import engine
 from src.models.biomass import PrimaryProduct # Placeholder, replace with your model
 
 
+@task
 def load(df: pd.DataFrame):
     """
     Loads the transformed data into the corresponding database table.

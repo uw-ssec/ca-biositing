@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:13
-    container_name: my_etl_project_pg
+    container_name: BioCirV_ETL_db
     env_file:
       - .env
     ports:
@@ -15,16 +15,38 @@ services:
       retries: 5
 
   app:
-    build: .
-    container_name: my_etl_project_app
+    build:
+      context: ../..
+      dockerfile: etl_merge/my_etl_project/Dockerfile
+    container_name: BioCirV_ETL_app
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ../..:/app
+      - /app/.pixi
+    working_dir: /app/etl_merge/my_etl_project
     depends_on:
       db:
         condition: service_healthy
     command: tail -f /dev/null
+
+  prefect-worker:
+    build:
+      context: ../..
+      dockerfile: etl_merge/my_etl_project/Dockerfile
+    container_name: BioCirV_ETL_prefect_worker
+    env_file:
+      - .env
+    volumes:
+      - ../..:/app
+      - /app/.pixi
+    working_dir: /app/etl_merge/my_etl_project
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      - PREFECT_API_URL=http://host.docker.internal:4200/api
+    command: pixi run prefect worker start --pool 'biocirv_dev_work_pool'
 
 volumes:
   pgdata:

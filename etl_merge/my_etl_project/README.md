@@ -9,10 +9,10 @@ with Docker.
 
 ## Local Development Environment (Pixi)
 
-This project uses **Pixi** to manage a local development environment. This
-environment is **not** for running the application itself (that's what Docker is
-for), but for running code quality tools like `pre-commit` to ensure your code
-is formatted correctly before you commit it.
+This project uses **Pixi** to manage dependencies and run tasks for local
+development. This environment is used for both running the application locally
+and for code quality tools like `pre-commit`. The Docker container also uses
+Pixi to install dependencies.
 
 **1. Install Pixi:**
 
@@ -62,8 +62,8 @@ Follow these steps to set up and run the project for the first time.
 
 **3. Build the Docker Image:**
 
-- Build the Docker image, which will install all application dependencies from
-  `requirements.txt`.
+- Build the Docker image, which will install all application dependencies using
+  Pixi.
 
   ```bash
   docker-compose build
@@ -111,11 +111,14 @@ to the dedicated workflow guides.
   on your SQLModel changes.
 - **[See the full guide: ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)**
 
-### 3. ETL Pipeline Development
+### 3. ETL Pipeline Development (Prefect)
 
-- **Purpose:** Running the ETL pipeline and adding new data pipelines.
-- **Details:** How to execute the main pipeline script and how to use the
-  provided templates to create new ETL modules.
+- **Purpose:** Running the ETL pipeline and adding new data pipelines using
+  Prefect's "flow of flows" pattern.
+- **Details:** The `run_prefect_flow.py` script acts as a master orchestrator
+  that runs all individual pipeline flows defined in the `src/flows/` directory.
+  To add a new pipeline, you must create a new flow file and add it to the
+  master flow.
 - **[See the full guide: ETL_WORKFLOW.md](./ETL_WORKFLOW.md)**
 
 ### 4. Creating New Database Models
@@ -137,14 +140,15 @@ my_etl_project/
 ├── alembic/               # Database migration scripts
 ├── src/
 │   ├── etl/
-│   │   ├── extract/       # Modules for extracting data
-│   │   ├── transform/     # Modules for transforming data
-│   │   ├── load/          # Modules for loading data
+│   │   ├── extract/       # ETL Task: Modules for extracting data
+│   │   ├── transform/     # ETL Task: Modules for transforming data
+│   │   ├── load/          # ETL Task: Modules for loading data
 │   │   └── templates/     # Templates for new ETL modules
+│   ├── flows/             # Prefect Flows: Individual pipeline definitions
 │   ├── models/            # SQLModel class definitions (database tables)
 │   └── utils/             # Shared utility functions
 ├── .env                   # Local environment variables (you must create this)
 ├── docker-compose.yml     # Defines the project's services (app, db)
 ├── Dockerfile             # Instructions for building the app container
-└── run_pipeline.py        # The main script to execute the ETL pipeline
+└── run_prefect_flow.py    # The master script to execute all ETL flows
 ```
