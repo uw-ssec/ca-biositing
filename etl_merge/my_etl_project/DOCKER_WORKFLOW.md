@@ -5,87 +5,63 @@ workflows used in this project.
 
 ---
 
-### Daily Docker Workflow
+### Production Docker Workflow
 
-This is your day-to-day process for starting and stopping your development
-environment.
+This is the standard process for running the full, containerized ETL system,
+including the Prefect worker.
 
 **1. Starting Your Environment:**
 
-To start all the services defined in your `docker-compose.yml` file (`app` and
-`pg`) and run them in the background, use:
+To start all services (`db`, `app`, and `prefect-worker`) and run them in the
+background, use:
 
 ```bash
 # Make sure you are in the my_etl_project directory
 docker-compose up -d
 ```
 
+This command will:
+
+- Start the PostgreSQL database.
+- Start the main application container.
+- Start a dedicated Prefect worker container that automatically connects to your
+  Prefect server.
+
 **2. Stopping Your Environment:**
 
-At the end of the day, to stop the containers without deleting them (the "pause
-button"), use:
+To stop and remove all running containers, use:
 
 ```bash
 # Make sure you are in the my_etl_project directory
-docker-compose stop
+docker-compose down
 ```
-
-This is fast and allows you to quickly restart your work later with
-`docker-compose start` or `docker-compose up -d`.
 
 ---
 
 ### How to Add a New Python Package
 
 This is the process to follow whenever you need to add a new dependency (e.g.,
-`a-new-package`) to your project.
+`a-new-package`) to your project using Pixi.
 
-**Step 1: Activate Your Local Virtual Environment**
+**Step 1: Add the Dependency with Pixi**
 
-First, make sure your local `venv` is active so you can install and test the
-package locally.
-
-```bash
-# If you are in the my_etl_project directory
-source venv/bin/activate
-```
-
-**Step 2: Install the New Package**
-
-Install the package using `pip`.
+From the project root (`ca-biositing`), use the `pixi add` command. This will
+automatically update your `pixi.toml` and `pixi.lock` files.
 
 ```bash
-pip install a-new-package
+# Make sure you are in the ca-biositing directory
+pixi add a-new-package
 ```
 
-**Step 3: Update `requirements.txt`**
+**Step 2: Rebuild Your Docker Images**
 
-This is the most critical step. After installing the new package, you need to
-add it to your `requirements.txt` file. It's best to add it manually to the list
-to keep the file clean.
-
-Open `my_etl_project/requirements.txt` and add the name of the new package to
-the list.
-
-**Step 4: Rebuild Your Docker Image**
-
-Because you've changed the dependencies, you must rebuild your `app` image to
-include the new package.
+Because you've changed the project's dependencies, you must rebuild your Docker
+images to include the new package.
 
 ```bash
 # Make sure you are in the my_etl_project directory
-docker-compose build
+docker-compose up --build -d
 ```
 
-**Step 5: Restart Your Containers**
-
-Finally, bring your services down and then back up to ensure the new image is
-used.
-
-```bash
-# Make sure you are in the my_etl_project directory
-docker-compose down
-docker-compose up -d
-```
-
-Your `app` container will now have the new package installed and ready to use.
+Your `app` and `prefect-worker` containers will now have the new package
+installed and ready to use.

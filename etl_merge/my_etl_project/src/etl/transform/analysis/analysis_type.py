@@ -1,8 +1,10 @@
 from typing import Optional, Dict
 import pandas as pd
+from prefect import task
 
 EXTRACT_SOURCES = ["experiments"]
 
+@task
 def transform_analysis_analysis_type(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
     """
     Transforms the raw data to extract unique analysis names.

@@ -1,7 +1,9 @@
 from typing import Optional
 import pandas as pd
-from utils.gsheet_to_pandas import gsheet_to_df
+from prefect import task
+from src.utils.gsheet_to_pandas import gsheet_to_df
 
+@task
 def extract_basic_sample_info() -> Optional[pd.DataFrame]:
     """
     Extracts the raw data from the '01-BasicSampleInfo' worksheet in the Google Sheet.

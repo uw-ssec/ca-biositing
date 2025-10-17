@@ -1,8 +1,0 @@
-pandas
-sqlmodel
-gspread
-gspread-dataframe
-psycopg2-binary
-alembic
-pydantic-settings
-google-auth-oauthlib

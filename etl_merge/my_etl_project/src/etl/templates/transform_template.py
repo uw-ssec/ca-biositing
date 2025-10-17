@@ -15,6 +15,7 @@ To use this template:
 
 from typing import Optional, Dict, List
 import pandas as pd
+from prefect import task
 
 # --- CONFIGURATION ---
 # TODO: List the names of the extract modules this transform depends on.
@@ -23,6 +24,7 @@ import pandas as pd
 EXTRACT_SOURCES: List[str] = ["source_one", "source_two"]
 
 
+@task
 def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
     """
     Transforms raw data from multiple sources into a structured and clean format.

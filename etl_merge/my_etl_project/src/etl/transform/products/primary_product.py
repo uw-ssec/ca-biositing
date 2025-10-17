@@ -1,8 +1,10 @@
 from typing import Optional, Dict
 import pandas as pd
+from prefect import task
 
 EXTRACT_SOURCES = ["basic_sample_info"]
 
+@task
 def transform_products_primary_product(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
     """
     Transforms the raw data to extract unique primary products.
