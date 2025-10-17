@@ -30,6 +30,18 @@ Pixi to install dependencies.
   This will install the required local tools (like `pre-commit`) into a managed
   environment.
 
+  If you have issues with the install on Windows, you may need to command:
+
+  ```
+  pixi workspace platform add win-64
+  ```
+
+  Once pixi is installed, run the following command to set up pre-commit checks on every commit
+
+  ```bash
+  pixi run pre-commit-install
+  ```
+
 **3. Activate the Local Environment:**
 
 - To activate this environment in your shell, run:
