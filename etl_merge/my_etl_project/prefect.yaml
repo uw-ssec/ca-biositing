@@ -13,15 +13,13 @@ build: null
 push: null
 
 # pull section allows you to provide instructions for cloning this project in remote locations
-pull:
-  - prefect.deployments.steps.set_working_directory:
-      directory: /Users/pjsmitty301/ca-biositing/etl_merge/my_etl_project
+pull: null
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-  - name: biocirv_master_flow_test_deploy
+  - name: master-etl-deployment
     version: null
-    tags: []
+    tags: ["etl", "master"]
     concurrency_limit: null
     description: A master flow to orchestrate all ETL pipelines.
     entrypoint: run_prefect_flow.py:master_flow

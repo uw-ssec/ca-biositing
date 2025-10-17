@@ -21,6 +21,8 @@ services:
     container_name: BioCirV_ETL_app
     env_file:
       - .env
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
     volumes:
       - ../..:/app
       - /app/.pixi
@@ -29,6 +31,30 @@ services:
       db:
         condition: service_healthy
     command: tail -f /dev/null
+
+  prefect-server:
+    build:
+      context: ../..
+      dockerfile: etl_merge/my_etl_project/Dockerfile
+    container_name: BioCirV_ETL_prefect_server
+    env_file:
+      - .env
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../..:/app
+      - /app/.pixi
+      - prefectdata:/root/.prefect
+    working_dir: /app/etl_merge/my_etl_project
+    depends_on:
+      db:
+        condition: service_healthy
+    command: pixi run prefect server start --host 0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   prefect-worker:
     build:
@@ -42,11 +68,12 @@ services:
       - /app/.pixi
     working_dir: /app/etl_merge/my_etl_project
     depends_on:
-      app:
-        condition: service_started
+      prefect-server:
+        condition: service_healthy
     environment:
-      - PREFECT_API_URL=http://host.docker.internal:4200/api
+      - PREFECT_API_URL=http://prefect-server:4200/api
     command: pixi run prefect worker start --pool 'biocirv_dev_work_pool'
 
 volumes:
   pgdata:
+  prefectdata:

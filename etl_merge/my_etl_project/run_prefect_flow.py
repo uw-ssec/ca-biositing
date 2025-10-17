@@ -21,19 +21,10 @@ def master_flow():
     print("Master ETL flow completed.")
 
 if __name__ == "__main__":
-    # Get the flow names from the command-line arguments
-    flows_to_run = sys.argv[1:]
-
-    if not flows_to_run:
-        # If no arguments are provided, run the master flow
-        print("No specific flow requested, running the master flow...")
-        master_flow()
-    else:
-        # Otherwise, run the specified flows
-        for flow_name in flows_to_run:
-            if flow_name in AVAILABLE_FLOWS:
-                print(f"Running specified flow: {flow_name}")
-                AVAILABLE_FLOWS[flow_name]()
-            else:
-                print(f"Error: Flow '{flow_name}' not found.")
-                print("Available flows are:", ", ".join(AVAILABLE_FLOWS.keys()))
+    # This script is a placeholder for running flows directly.
+    # Deployments are now managed via the 'prefect.yaml' file and the 'prefect deploy' command.
+    print("This script is not intended for creating deployments.")
+    print("To deploy, run the following command from within the container:")
+    print("\n  prefect deploy\n")
+    print("To run the flow directly for testing (using a temporary server), run:")
+    print("\n  python -c 'from run_prefect_flow import master_flow; master_flow()'\n")

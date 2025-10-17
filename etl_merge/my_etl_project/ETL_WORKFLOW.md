@@ -30,86 +30,17 @@ is built to be modular and extensible.
 
 ---
 
-### Development Workflow: Ad-Hoc Runs
+### Running the ETL Pipelines
 
-For quick, script-based execution, you can use `run_prefect_flow.py` directly.
-This is ideal for simple debugging or manual runs.
+The method for running the ETL pipelines has been updated to use a fully
+containerized Prefect environment. The old methods of running flows via
+`run_prefect_flow.py` or a local Prefect server are now deprecated.
 
-#### Running the Master Flow
+For complete, up-to-date instructions on how to start the environment, deploy
+flows, and run the pipelines, please refer to the new official workflow
+document:
 
-To run all ETL pipelines, execute the script without arguments:
-
-```bash
-pixi run python run_prefect_flow.py
-```
-
-#### Running a Specific Flow
-
-To run one or more specific flows, pass their names as arguments:
-
-```bash
-# Run only the primary_product flow
-pixi run python run_prefect_flow.py primary_product
-
-# Run both the primary_product and analysis_type flows
-pixi run python run_prefect_flow.py primary_product analysis_type
-```
-
----
-
-### Production Workflow: Using the Prefect Server and Docker
-
-For a robust, observable, and containerized experience, use the Prefect server
-in combination with the Docker environment.
-
-> **Note on Directories:** All `docker-compose` and `pixi` commands in this
-> section should be run from the `my_etl_project` directory. From the project
-> root, you can navigate there with: `cd etl_merge/my_etl_project`
-
-**Step 1: Start the Prefect Server**
-
-In one terminal, start the Prefect UI and server on your **host machine**. This
-process runs in the background.
-
-```bash
-pixi run prefect server start
-```
-
-You can access the dashboard at [http://127.0.0.1:4200](http://127.0.0.1:4200).
-
-**Step 2: Start the Docker Environment**
-
-In a **new terminal**, start the full Docker environment. This will start the
-database, the main app, and the containerized Prefect worker.
-
-```bash
-docker-compose up -d
-```
-
-The `prefect-worker` service is configured to automatically connect to the
-Prefect server running on your host.
-
-**Step 3: Deploy and Run a Flow**
-
-Deployments make your flows available to the Prefect server.
-
-1.  **Deploy the Flow (First time only):** The first time you create or update a
-    flow, you must deploy it from your **host machine**. This command creates a
-    `prefect.yaml` file that saves your deployment settings.
-
-    ```bash
-    pixi run prefect deploy run_prefect_flow.py:master_flow
-    ```
-
-2.  **Trigger a Flow Run:** To run a deployed flow, use the
-    `prefect deployment run` command from your **host machine**. The
-    containerized worker will automatically pick up and execute the run.
-
-    ```bash
-    pixi run prefect deployment run 'Master ETL Flow/biocirv_master_flow_test_deploy'
-    ```
-
-You can now monitor the run in real-time in the Prefect UI.
+### [**`PREFECT_WORKFLOW.md`**](./PREFECT_WORKFLOW.md)
 
 ---
 
@@ -170,10 +101,22 @@ are run.
     }
     ```
 
-**Step 4: Run the Master Flow**
+**Step 4: Deploy and Run the Flow**
 
-The next time you run `python run_prefect_flow.py`, your new pipeline will be
-executed as part of the master flow.
+Since you have modified the `master_flow` by adding a new sub-flow, you must
+update the deployment on the Prefect server.
+
+1.  **Update the Deployment:** Run the `deploy` command. Prefect will
+    automatically use the existing `prefect.yaml` configuration.
+
+    ```bash
+    docker-compose exec app pixi run prefect deploy
+    ```
+
+2.  **Run the Master Flow:** You can now trigger a run of the updated master
+    flow.
+    `bash     docker-compose exec app pixi run prefect deployment run 'Master ETL Flow/master-etl-deployment'     `
+    Your new pipeline will be executed as part of the master flow.
 
 ---
 
