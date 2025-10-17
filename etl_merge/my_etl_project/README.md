@@ -36,7 +36,7 @@ Pixi to install dependencies.
   pixi workspace platform add win-64
   ```
 
-  Once pixi is installed, run the following command to set up pre-commit checks on every commit
+  Once pixi is installed, run the following command to set up pre-commit checks on every commit:
 
   ```bash
   pixi run pre-commit-install
@@ -58,7 +58,9 @@ Pixi to install dependencies.
 
 ## Getting Started
 
-Follow these steps to set up and run the project for the first time.
+Follow these steps to set up and run the project for the first time. **[SUGGESTION: CHANGE ORDER OF GETTING STARTED. At step 2 I create an environment set up .env file and it says to populate the .env file with specific database connection settings but does not explain how I get database connection settings like POSTGRES_USER=your_username
+POSTGRES_PASSWORD=your_secret_password
+POSTGRES_DB=your_db_name. If its okay I don't have one of those yet, let's make the note that we wont need one of those until we execute the ETL to the db.]**
 
 **1. Google Cloud Setup:**
 
@@ -70,7 +72,7 @@ Follow these steps to set up and run the project for the first time.
 
 - Create a `.env` file in the `my_etl_project` directory by copying the
   `.env.example` file.
-- Populate the `.env` file with your specific database connection settings.
+- Populate the `.env` file with your specific database connection settings. **[Add more instruction about where such connection specifications are found.]**
 
 **3. Build the Docker Image:**
 
