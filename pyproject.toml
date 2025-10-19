@@ -29,6 +29,8 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "pytest-mock",
+    "fastapi>=0.115.0,<1",
+    "uvicorn>=0.30.0,<1",
 ]
 docs = [
     "sphinx_rtd_theme",
