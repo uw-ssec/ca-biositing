@@ -31,6 +31,7 @@ dev = [
     "pytest-mock",
     "fastapi>=0.115.0,<1",
     "uvicorn>=0.30.0,<1",
+    "httpx>=0.27.0,<1"
 ]
 docs = [
     "sphinx_rtd_theme",
