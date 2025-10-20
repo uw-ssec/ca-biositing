@@ -70,13 +70,11 @@ command is idempotent and safe to run multiple times.
 ### Available Environments
 
 1. **`default`** (main development environment)
-
    - Standard development environment
    - Core packages: Python 3.12, pre-commit, pytest, pytest-cov
    - Use for: general development, running pre-commit checks, running tests
 
 2. **`gis`** (features: `qgis`, `raster`, `vector`)
-
    - Geospatial analysis environment
    - Includes: QGIS, rasterio, xarray, shapely, pyproj
    - Use for: geospatial analysis, QGIS workflows, working with raster/vector
