@@ -13,7 +13,7 @@ To use this template:
 
 from typing import Optional
 import pandas as pd
-from prefect import task
+from prefect import task, get_run_logger
 from src.utils.gsheet_to_pandas import gsheet_to_df
 
 # --- CONFIGURATION ---
@@ -38,14 +38,15 @@ def extract() -> Optional[pd.DataFrame]:
     Returns:
         A pandas DataFrame containing the raw data, or None if an error occurs.
     """
-    print(f"Extracting raw data from '{WORKSHEET_NAME}' in '{GSHEET_NAME}'...")
+    logger = get_run_logger()
+    logger.info(f"Extracting raw data from '{WORKSHEET_NAME}' in '{GSHEET_NAME}'...")
 
     # The gsheet_to_df function handles authentication, data fetching, and error handling.
     raw_df = gsheet_to_df(GSHEET_NAME, WORKSHEET_NAME, CREDENTIALS_PATH)
 
     if raw_df is None:
-        print("Failed to extract data. Aborting.")
+        logger.error("Failed to extract data. Aborting.")
         return None
 
-    print("Successfully extracted raw data.")
+    logger.info("Successfully extracted raw data.")
     return raw_df

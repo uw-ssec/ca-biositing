@@ -1,6 +1,6 @@
 import pandas as pd
-from prefect import task
-from sqlmodel import Session
+from prefect import task, get_run_logger
+from sqlmodel import Session, select
 from src.database import engine
 from src.models.experiments_analysis import AnalysisType
 
@@ -12,26 +12,33 @@ def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
     Iterates over a DataFrame and inserts each product name from the 'analysis_name' column
     into the PrimaryProduct table.
     """
+    logger = get_run_logger()
     if analysis_types_df is None or analysis_types_df.empty:
-        print("No data to load. Skipping database insertion.")
+        logger.info("No data to load. Skipping database insertion.")
         return
 
     column_name = 'analysis_name'
     if column_name not in analysis_types_df.columns:
-        print(f"Error: Column '{column_name}' not found in the DataFrame. Aborting load.")
+        logger.error(f"Column '{column_name}' not found in the DataFrame. Aborting load.")
         return
 
-    print(f"Attempting to load {len(analysis_types_df)} analysis names into the database...")
+    logger.info(f"Attempting to load {len(analysis_types_df)} analysis names into the database...")
 
     with Session(engine) as session:
-        existing_analysis_types = session.query(AnalysisType.analysis_name).all()
-        existing_analysis_type_names = {a[0] for a in existing_analysis_types}
+        statement = select(AnalysisType.analysis_name)
+        existing_analysis_types = session.exec(statement).all()
+        existing_analysis_type_names = set(existing_analysis_types)
 
+        records_to_add = []
         for analysis_type in analysis_types_df[column_name]:
             if analysis_type not in existing_analysis_type_names:
                 name = AnalysisType(analysis_name=analysis_type)
-                session.add(name)
+                records_to_add.append(name)
                 existing_analysis_type_names.add(analysis_type)
 
-        session.commit()
-        print("Successfully committed analysis names to the database.")
+        if records_to_add:
+            session.add_all(records_to_add)
+            session.commit()
+            logger.info(f"Successfully committed {len(records_to_add)} new analysis names to the database.")
+        else:
+            logger.info("No new analysis names to add. All records already exist in the database.")

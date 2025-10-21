@@ -12,7 +12,7 @@ To use this template:
 """
 
 import pandas as pd
-from prefect import task
+from prefect import task, get_run_logger
 from sqlmodel import Session, select
 from src.database import engine
 
@@ -32,6 +32,8 @@ def load(df: pd.DataFrame):
     Args:
         df (pd.DataFrame): The transformed data ready for database insertion.
     """
+    logger = get_run_logger()
+
     # --- CONFIGURATION ---
     # TODO: Replace `YourModelClass` with the actual name of your imported model.
     YourModelClass = PrimaryProduct # Placeholder, replace with your model
@@ -45,14 +47,14 @@ def load(df: pd.DataFrame):
 
     # --- 1. Input Validation ---
     if df is None or df.empty:
-        print("No data to load. Skipping database insertion.")
+        logger.info("No data to load. Skipping database insertion.")
         return
 
     if df_column_name not in df.columns:
-        print(f"Error: Column '{df_column_name}' not found in the DataFrame. Aborting load.")
+        logger.error(f"Column '{df_column_name}' not found in the DataFrame. Aborting load.")
         return
 
-    print(f"Attempting to load {len(df)} records into the database...")
+    logger.info(f"Attempting to load {len(df)} records into the database...")
 
     # --- 2. Database Loading ---
     with Session(engine) as session:
@@ -79,6 +81,6 @@ def load(df: pd.DataFrame):
         if records_to_add:
             session.add_all(records_to_add)
             session.commit()
-            print(f"Successfully committed {len(records_to_add)} new records to the database.")
+            logger.info(f"Successfully committed {len(records_to_add)} new records to the database.")
         else:
-            print("No new records to add. All records already exist in the database.")
+            logger.info("No new records to add. All records already exist in the database.")
