@@ -12,8 +12,8 @@ including the Prefect worker.
 
 **1. Starting Your Environment:**
 
-To start all services (`db`, `app`, and `prefect-worker`) and run them in the
-background, use:
+To start all services (`db`, `app`, 'prefect-server' and `prefect-worker`) and
+run them in the background, use:
 
 ```bash
 # Make sure you are in the my_etl_project directory
@@ -24,6 +24,7 @@ This command will:
 
 - Start the PostgreSQL database.
 - Start the main application container.
+- Start the Prefect server
 - Start a dedicated Prefect worker container that automatically connects to your
   Prefect server.
 

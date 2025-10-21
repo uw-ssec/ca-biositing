@@ -21,11 +21,11 @@ from prefect import task, get_run_logger
 # TODO: List the names of the extract modules this transform depends on.
 # The pipeline runner will provide the output of these extract functions
 # in the `data_sources` dictionary.
-EXTRACT_SOURCES: List[str] = ["source_one", "source_two"]
+EXTRACT_SOURCES: List[str] = ["basic_sample_info"]
 
 
 @task
-def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
+def transform_biomass(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
     """
     Transforms raw data from multiple sources into a structured and clean format.
 
@@ -41,7 +41,7 @@ def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
         loading, or None if validation fails.
     """
     logger = get_run_logger()
-    logger.info("Transforming raw data from multiple sources...")
+    logger.info("Transforming raw data into biomass...")
 
     # --- 1. Input Validation ---
     # Check if all required data sources are present
@@ -52,8 +52,7 @@ def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
 
     # TODO: Define the columns required from each data source.
     required_columns = {
-        "source_one": ["column_a", "column_b"],
-        "source_two": ["column_c", "column_d"],
+        "basic_sample_info": ["Material_type", "Primary_crop"]
     }
 
     # Check if all required columns exist in their respective DataFrames

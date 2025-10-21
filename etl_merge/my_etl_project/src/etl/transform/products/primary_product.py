@@ -1,6 +1,6 @@
 from typing import Optional, Dict
 import pandas as pd
-from prefect import task
+from prefect import task, get_run_logger
 
 EXTRACT_SOURCES = ["basic_sample_info"]
 
@@ -20,18 +20,19 @@ def transform_products_primary_product(data_sources: Dict[str, pd.DataFrame]) ->
         A transformed DataFrame with a single 'Primary_crop' column containing
         unique product names, or None if an error occurs.
     """
-    print("Transforming raw data for primary products...")
+    logger = get_run_logger()
+    logger.info("Transforming raw data for primary products...")
 
     raw_df = data_sources["basic_sample_info"]
 
     # Step 1: Check if the required column exists
     if 'Primary_crop' not in raw_df.columns:
-        print("Error: 'Primary_crop' column not found in the raw data.")
+        logger.error("'Primary_crop' column not found in the raw data.")
         return None
 
     # Step 2: Get unique product names and create the final DataFrame
     primary_product_names = raw_df['Primary_crop'].unique()
     transformed_df = pd.DataFrame(primary_product_names, columns=["Primary_crop"])
 
-    print(f"Successfully transformed data, found {len(transformed_df)} unique primary products.")
+    logger.info(f"Successfully transformed data, found {len(transformed_df)} unique primary products.")
     return transformed_df
