@@ -7,109 +7,11 @@ with Docker.
 
 ---
 
-## Local Development Environment (Pixi)
-
-This project uses **Pixi** to manage dependencies and run tasks for local
-development. This environment is used for both running the application locally
-and for code quality tools like `pre-commit`. The Docker container also uses
-Pixi to install dependencies.
-
-**1. Install Pixi:**
-
-- Follow the official instructions to
-  [install Pixi](https://pixi.sh/latest/installation/) on your system.
-
-**2. Install Local Dependencies:**
-
-- Once Pixi is installed, navigate to the `ca-biositing` root directory and run:
-
-  ```bash
-  pixi install
-  ```
-
-  This will install the required local tools (like `pre-commit`) into a managed
-  environment.
-
-  If you have issues with the install on Windows, you may need to command:
-
-  ```
-  pixi workspace platform add win-64
-  ```
-
-  Once pixi is installed, run the following command to set up pre-commit checks on every commit:
-
-  ```bash
-  pixi run pre-commit-install
-  ```
-
-**3. Activate the Local Environment:**
-
-- To activate this environment in your shell, run:
-
-  ```bash
-  pixi shell
-  ```
-
-  This command is the equivalent of a traditional `source venv/bin/activate`.
-  You will see a prefix in your shell prompt indicating that the environment is
-  active. You can now run commands like `pre-commit` directly.
-
----
-
-## Getting Started
-
-Follow these steps to set up and run the project for the first time. **[SUGGESTION: CHANGE ORDER OF GETTING STARTED. At step 2 I create an environment set up .env file and it says to populate the .env file with specific database connection settings but does not explain how I get database connection settings like POSTGRES_USER=your_username
-POSTGRES_PASSWORD=your_secret_password
-POSTGRES_DB=your_db_name. If its okay I don't have one of those yet, let's make the note that we wont need one of those until we execute the ETL to the db.]**
-
-**1. Google Cloud Setup:**
-
-- To allow the application to access Google Sheets, you must first create a
-  service account and generate a `credentials.json` file.
-- **[Follow the full guide here: GCP_SETUP.md](./GCP_SETUP.md)**
-
-**2. Environment Setup:**
-
-- Create a `.env` file in the `my_etl_project` directory by copying the
-  `.env.example` file.
-- Populate the `.env` file with your specific database connection settings. **[Add more instruction about where such connection specifications are found.]**
-
-**3. Build the Docker Image:**
-
-- Build the Docker image, which will install all application dependencies using
-  Pixi. **[EXPLAIN HOW TO OPEN/ACTIVATE PIXI, OR POINT TO ABOVE INSTRUCTIONS. Do I need to make sure I am in the ca-biositing directory? Is it a problem if I run docker-compose build without activating the pixi shell?]**
-
-  ```bash
-  docker-compose build
-  ```
-
-**4. Start the Services:**
-
-- Start the application and database containers in detached mode.
-
-  ```bash
-  docker-compose up -d
-  ```
-
-**5. Apply Database Migrations:**
-
-- The first time you start the project, you need to apply the database
-  migrations to create the tables.
-
-  ```bash
-  docker-compose exec app alembic upgrade head
-  ```
-
-**[Do I need Alembic set up before this? Should there be a direction towards the alembic workflow before this point or does alembic workflow guide only needed for when youre running the ETL? I think it would be good to clarify that here.]**
-The environment is now fully set up and running.
-
----
-
 ## Core Workflows
 
-This project has three key development workflows. The README provides a
-high-level overview, but for detailed, step-by-step instructions, please refer
-to the dedicated workflow guides. **[I like this high level overview for conceptual understanding, and think it might be good to move it up so that the Getting Started steps make more sense. Otherwise, maybe adding another section that's a even broader explanation of all the components you'll need for set up might be good ("Here are the 7 installations you'll need across 4 core worfklows."; "Here is a graphical breakdown of how the ETL tools work together"). Only after I read this Core Workflows section did some of my confusions from the Getting Started section reduce, which makes me think some of this high level understanding of the workflows would help coming in earlier. ]**
+This project has three key development workflows. For detailed, step-by-step
+instructions, please refer to the dedicated workflow guides. A high-level
+overview is provided here to give conceptual understanding before you begin.
 
 ### 1. Docker Environment Management
 
@@ -146,11 +48,113 @@ to the dedicated workflow guides. **[I like this high level overview for concept
 
 ---
 
+## Local Development Environment (Pixi)
+
+This project uses **Pixi** to manage dependencies and run tasks for local
+development. This environment is used for both running the application locally
+and for code quality tools like `pre-commit`. The Docker container also uses
+Pixi to install dependencies.
+
+**1. Install Pixi:**
+
+- Follow the official instructions to
+  [install Pixi](https://pixi.sh/latest/installation/) on your system.
+
+**2. Install Local Dependencies:**
+
+- Once Pixi is installed, navigate to the `ca-biositing` root directory and run:
+
+  ```bash
+  pixi install
+  ```
+
+  This will install the required local tools (like `pre-commit`) into a managed
+  environment.
+
+  If you have issues with the install on Windows, you may need to command:
+
+  ```
+  pixi workspace platform add win-64
+  ```
+
+  Once pixi is installed, run the following command to set up pre-commit checks
+  on every commit:
+
+  ```bash
+  pixi run pre-commit-install
+  ```
+
+**3. Activate the Local Environment:**
+
+- To activate this environment in your shell, run:
+
+  ```bash
+  pixi shell
+  ```
+
+  This command is the equivalent of a traditional `source venv/bin/activate`.
+  You will see a prefix in your shell prompt indicating that the environment is
+  active. You can now run commands like `pre-commit` directly.
+
+---
+
+## Getting Started
+
+Follow these steps to set up and run the project for the first time.
+
+**1. Google Cloud Setup:**
+
+- To allow the application to access Google Sheets, you must first create a
+  service account and generate a `credentials.json` file.
+- **[Follow the full guide here: GCP_SETUP.md](./GCP_SETUP.md)**
+
+**2. Environment Setup:**
+
+- Create a `.env` file in the `my_etl_project` directory by copying the
+  `.env.example` file.
+- The database connection settings (e.g., `POSTGRES_USER`) are used to connect
+  to the PostgreSQL container. The default values in `.env.example` are
+  sufficient for local development. You do not need to change them unless you
+  have a custom setup.
+
+**3. Build the Docker Image:**
+
+- From the `my_etl_project` directory, build the Docker image. You do not need
+  to activate the `pixi shell` for this, as the container manages its own
+  environment.
+
+  ```bash
+  docker-compose build
+  ```
+
+**4. Start the Services:**
+
+- Start the application and database containers in detached mode.
+
+  ```bash
+  docker-compose up -d
+  ```
+
+**5. Apply Database Migrations:**
+
+- The first time you start the project, you need to apply the database
+  migrations to create the tables. This command applies existing migrations; you
+  only need to consult the Alembic workflow guide when creating _new_
+  migrations.
+
+  ```bash
+  docker-compose exec app alembic upgrade head
+  ```
+
+The environment is now fully set up and running.
+
+---
+
 ## Project Structure
 
-Here is a brief overview of the key directories in this project:
-
-**[Edit to reflect/explain details relevant to the fact we are now working in a folder in a larger directory.]**
+This `my_etl_project` directory is a self-contained ETL project located within
+the larger `ca-biositing` repository. Here is a brief overview of its key
+directories:
 
 ```
 my_etl_project/
