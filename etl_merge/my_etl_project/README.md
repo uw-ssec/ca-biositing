@@ -30,6 +30,18 @@ Pixi to install dependencies.
   This will install the required local tools (like `pre-commit`) into a managed
   environment.
 
+  If you have issues with the install on Windows, you may need to command:
+
+  ```
+  pixi workspace platform add win-64
+  ```
+
+  Once pixi is installed, run the following command to set up pre-commit checks on every commit:
+
+  ```bash
+  pixi run pre-commit-install
+  ```
+
 **3. Activate the Local Environment:**
 
 - To activate this environment in your shell, run:
@@ -46,7 +58,9 @@ Pixi to install dependencies.
 
 ## Getting Started
 
-Follow these steps to set up and run the project for the first time.
+Follow these steps to set up and run the project for the first time. **[SUGGESTION: CHANGE ORDER OF GETTING STARTED. At step 2 I create an environment set up .env file and it says to populate the .env file with specific database connection settings but does not explain how I get database connection settings like POSTGRES_USER=your_username
+POSTGRES_PASSWORD=your_secret_password
+POSTGRES_DB=your_db_name. If its okay I don't have one of those yet, let's make the note that we wont need one of those until we execute the ETL to the db.]**
 
 **1. Google Cloud Setup:**
 
@@ -58,12 +72,12 @@ Follow these steps to set up and run the project for the first time.
 
 - Create a `.env` file in the `my_etl_project` directory by copying the
   `.env.example` file.
-- Populate the `.env` file with your specific database connection settings.
+- Populate the `.env` file with your specific database connection settings. **[Add more instruction about where such connection specifications are found.]**
 
 **3. Build the Docker Image:**
 
 - Build the Docker image, which will install all application dependencies using
-  Pixi.
+  Pixi. **[EXPLAIN HOW TO OPEN/ACTIVATE PIXI, OR POINT TO ABOVE INSTRUCTIONS. Do I need to make sure I am in the ca-biositing directory? Is it a problem if I run docker-compose build without activating the pixi shell?]**
 
   ```bash
   docker-compose build
@@ -86,6 +100,7 @@ Follow these steps to set up and run the project for the first time.
   docker-compose exec app alembic upgrade head
   ```
 
+**[Do I need Alembic set up before this? Should there be a direction towards the alembic workflow before this point or does alembic workflow guide only needed for when youre running the ETL? I think it would be good to clarify that here.]**
 The environment is now fully set up and running.
 
 ---
@@ -94,7 +109,7 @@ The environment is now fully set up and running.
 
 This project has three key development workflows. The README provides a
 high-level overview, but for detailed, step-by-step instructions, please refer
-to the dedicated workflow guides.
+to the dedicated workflow guides. **[I like this high level overview for conceptual understanding, and think it might be good to move it up so that the Getting Started steps make more sense. Otherwise, maybe adding another section that's a even broader explanation of all the components you'll need for set up might be good ("Here are the 7 installations you'll need across 4 core worfklows."; "Here is a graphical breakdown of how the ETL tools work together"). Only after I read this Core Workflows section did some of my confusions from the Getting Started section reduce, which makes me think some of this high level understanding of the workflows would help coming in earlier. ]**
 
 ### 1. Docker Environment Management
 
@@ -134,6 +149,8 @@ to the dedicated workflow guides.
 ## Project Structure
 
 Here is a brief overview of the key directories in this project:
+
+**[Edit to reflect/explain details relevant to the fact we are now working in a folder in a larger directory.]**
 
 ```
 my_etl_project/
