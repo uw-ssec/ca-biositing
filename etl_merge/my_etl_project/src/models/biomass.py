@@ -128,6 +128,20 @@ class Biomass(SQLModel, table=True):
 
 
 # ----------------------------------------------------------------------
+# Table: biomass_test
+# ----------------------------------------------------------------------
+
+class BiomassTest(SQLModel, table=True):
+    """Testing Table"""
+    __tablename__ = "biomass_test"
+
+    biomass_test_id: Optional[int] = Field(default=None, primary_key=True)
+    biomass_test_name: str = Field(default=None, index=True)
+    biomass_test_notes: Optional[str] = Field(default=None)
+
+
+
+# ----------------------------------------------------------------------
 # Table: biomass_type
 # ----------------------------------------------------------------------
 class BiomassType(SQLModel, table=True):
