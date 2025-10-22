@@ -1,7 +1,8 @@
 # Docker Development Workflow
 
 This guide provides a quick reference for the common Docker commands and
-workflows used in this project.
+workflows used in this project. This guide provides a quick reference for the
+common Docker commands and workflows used in this project.
 
 ---
 

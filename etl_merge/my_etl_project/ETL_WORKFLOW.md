@@ -9,7 +9,9 @@ and how to use Prefect to execute it.
 
 The ETL pipeline is designed to extract data from Google Sheets, transform it
 into a structured format, and load it into the PostgreSQL database. The system
-is built to be modular and extensible.
+is built to be modular and extensible. The ETL pipeline is designed to extract
+data from Google Sheets, transform it into a structured format, and load it into
+the PostgreSQL database. The system is built to be modular and extensible.
 
 - **Structure:** The core logic is organized into three main packages within
   `src/etl/`:
@@ -20,6 +22,22 @@ is built to be modular and extensible.
     data.
   - `load`: Contains functions to insert the transformed data into the database.
 
+- **Structure:** The core logic is organized into three main packages within
+  `src/etl/`:
+
+  - `extract`: Contains functions to pull raw data from sources (e.g., Google
+    Sheets).
+  - `transform`: Contains functions to clean, process, and structure the raw
+    data.
+  - `load`: Contains functions to insert the transformed data into the database.
+
+- **Hierarchical Pipelines:** To keep the project organized, individual
+  pipelines are nested within subdirectories that reflect the data they handle
+  (e.g., `products`, `analysis`). A complete pipeline for a single data type,
+  like `primary_product`, consists of three corresponding files:
+  - `src/etl/extract/products/primary_product.py`
+  - `src/etl/transform/products/primary_product.py`
+  - `src/etl/load/products/primary_product.py`
 - **Hierarchical Pipelines:** To keep the project organized, individual
   pipelines are nested within subdirectories that reflect the data they handle
   (e.g., `products`, `analysis`). A complete pipeline for a single data type,
