@@ -46,13 +46,13 @@ to inspect your models, compare them to the database schema, and generate a new
 migration script in the `alembic/versions` directory.
 
 ```bash
-docker exec -it my_etl_project_app alembic revision --autogenerate -m "A descriptive message about your changes"
+docker-compose -f etl_merge/my_etl_project/docker-compose.yml exec app pixi run alembic revision --autogenerate -m "A descriptive message about your changes"
 ```
 
-- `docker exec -it my_etl_project_app`: Executes the command inside the `app`
-  container.
-- `alembic revision --autogenerate`: Tells Alembic to create a new revision file
-  based on model changes.
+- `docker-compose ... exec app`: Executes the command inside the `app` container
+  as defined in your `docker-compose.yml` file.
+- `pixi run alembic ...`: Ensures the command is run with the correct Python
+  environment managed by Pixi.
 - `-m "..."`: A required message describing what the migration does (e.g., "Add
   user_email column to users table").
 
@@ -63,7 +63,7 @@ This is the step that actually runs the `ALTER TABLE` commands and changes the
 database schema.
 
 ```bash
-docker exec -it my_etl_project_app alembic upgrade head
+docker-compose -f etl_merge/my_etl_project/docker-compose.yml exec app pixi run alembic upgrade head
 ```
 
 - `alembic upgrade head`: Applies all migrations up to the latest version
@@ -73,14 +73,48 @@ Your database schema now matches your SQLModel definitions. You can verify the
 changes by connecting to the database or by inspecting the `alembic_version`
 table, which tracks the applied migrations.
 
+---
+
+### Collaborative Workflows and Resetting the Database
+
+When working in a team, you may pull new migration files from your colleagues.
+The standard workflow is to run `alembic upgrade head` after pulling the latest
+code.
+
+However, if you have created a local migration _before_ pulling, you may run
+into a "multiple heads" conflict. While there are advanced ways to fix this, the
+simplest and most reliable solution for a local development environment is to
+reset the database.
+
+**The `reset_db.sh` Script**
+
+A script named `reset_db.sh` is included in this directory to automate the
+process. It provides a one-command solution to wipe the database and rebuild it
+from the latest migration history.
+
+**When to Use It:**
+
+- When you encounter a "multiple heads" error.
+- When your database gets into an inconsistent state.
+- Any time you want a fresh, clean slate for testing.
+
+**How to Use It:** From the project root directory (`ca-biositing`), run:
+
+```bash
+./etl_merge/my_etl_project/reset_db.sh
+```
+
+This command will stop the containers, remove the database volume, restart the
+containers, and apply all migrations, guaranteeing a clean and correct schema.
+
 ### How to Downgrade a Migration (Optional)
 
 If you need to undo a migration, you can downgrade it.
 
 ```bash
 # Downgrade by one version
-docker exec -it my_etl_project_app alembic downgrade -1
+docker-compose -f etl_merge/my_etl_project/docker-compose.yml exec app pixi run alembic downgrade -1
 
 # Downgrade to a specific version
-docker exec -it my_etl_project_app alembic downgrade <version_number>
+docker-compose -f etl_merge/my_etl_project/docker-compose.yml exec app pixi run alembic downgrade <version_number>
 ```
