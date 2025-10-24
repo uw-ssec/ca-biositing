@@ -19,18 +19,18 @@ class DataSource(SQLModel, table=True):
 
     source_id: Optional[int] = Field(default=None, primary_key=True)
     source_name_id: Optional[int] = Field(default=None,
-                                          description="Reference to source_names.source_name_id",
-                                          foreign_key="source_names.source_name_id")
+                                          description="Reference to source_names.source_name_id")
+                                          # foreign_key="source_names.source_name_id")
     source_type_id: Optional[int] = Field(default=None,
-                                          description="Reference to source_types.source_type_id",
-                                          foreign_key="source_types.source_type_id")
+                                          description="Reference to source_types.source_type_id")
+                                          # foreign_key="source_types.source_type_id")
     data_resolution_id: Optional[int] = Field(default=None,
-                                             description="Reference to location_resolutions.location_resolution_id",
-                                             foreign_key="location_resolutions.location_resolution_id")
+                                             description="Reference to location_resolutions.location_resolution_id")
+                                             # foreign_key="location_resolutions.location_resolution_id")
     description: Optional[str] = Field(default=None)
     url_id: Optional[int] = Field(default=None,
-                                  description="Reference to url.url_id",
-                                  foreign_key="url.url_id")
+                                  description="Reference to url.url_id")
+                                  # foreign_key="url.url_id")
     import_timestamp: Optional[datetime] = Field(default=None)
 
     __table_args__ = (Index("idx_data_sources_source_name_id", "source_name_id"),)
@@ -62,11 +62,11 @@ class Reference(SQLModel, table=True):
     reference_publication: Optional[str] = Field(default=None)
     reference_date: Optional[date] = Field(default=None)
     reference_doi_id: Optional[int] = Field(default=None,
-                                            description="Reference to DOI.doi_id",
-                                            foreign_key="doi.doi_id")
+                                            description="Reference to DOI.doi_id")
+                                            # foreign_key="doi.doi_id")
     url_id: Optional[int] = Field(default=None,
-                                   description="Reference to url.url_id",
-                                   foreign_key="url.url_id")
+                                   description="Reference to url.url_id")
+                                   # foreign_key="url.url_id")
 
 
 class DOI(SQLModel, table=True):

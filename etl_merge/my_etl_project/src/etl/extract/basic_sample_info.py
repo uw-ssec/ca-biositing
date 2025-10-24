@@ -1,7 +1,9 @@
 from typing import Optional
 import pandas as pd
-from utils.gsheet_to_pandas import gsheet_to_df
+from prefect import task, get_run_logger
+from src.utils.gsheet_to_pandas import gsheet_to_df
 
+@task
 def extract_basic_sample_info() -> Optional[pd.DataFrame]:
     """
     Extracts the raw data from the '01-BasicSampleInfo' worksheet in the Google Sheet.
@@ -12,7 +14,8 @@ def extract_basic_sample_info() -> Optional[pd.DataFrame]:
     Returns:
         A pandas DataFrame containing the raw data, or None if an error occurs.
     """
-    print("Extracting raw data from '01-BasicSampleInfo' worksheet...")
+    logger = get_run_logger()
+    logger.info("Extracting raw data from '01-BasicSampleInfo' worksheet...")
 
     GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
     WORKSHEET_NAME = "01-BasicSampleInfo"
@@ -21,8 +24,8 @@ def extract_basic_sample_info() -> Optional[pd.DataFrame]:
     raw_df = gsheet_to_df(GSHEET_NAME, WORKSHEET_NAME, CREDENTIALS_PATH)
 
     if raw_df is None:
-        print("Failed to extract data. Aborting.")
+        logger.error("Failed to extract data. Aborting.")
         return None
 
-    print("Successfully extracted raw data.")
+    logger.info("Successfully extracted raw data.")
     return raw_df

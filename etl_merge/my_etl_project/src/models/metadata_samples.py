@@ -14,18 +14,18 @@ class Metadata(SQLModel, table=True):
 
     metadata_id: Optional[int] = Field(default=None, primary_key=True)
     sample_id: Optional[int] = Field(default=None,
-                                     description="Reference to field_samples.sample_id",
-                                     foreign_key="field_samples.sample_id")
+                                     description="Reference to field_samples.sample_id")
+                                     # foreign_key="field_samples.sample_id")
     ag_treatment_id: Optional[int] = Field(default=None,
-                                           description="Reference to ag_treatments.ag_treatment_id",
-                                           foreign_key="ag_treatments.ag_treatment_id")
+                                           description="Reference to ag_treatments.ag_treatment_id")
+                                           # foreign_key="ag_treatments.ag_treatment_id")
     last_application_date: Optional[date] = Field(default=None,
                                                   description="if applicable")
     treatment_amount_per_acre: Optional[Decimal] = Field(default=None,
                                                         description="if applicable")
     soil_type: Optional[int] = Field(default=None,
-                                     description="Reference to soil_type.soil_type_id",
-                                     foreign_key="soil_type.soil_type_id")
+                                     description="Reference to soil_type.soil_type_id")
+                                     # foreign_key="soil_type.soil_type_id")
 
 
 class ParticleSize(SQLModel, table=True):
@@ -34,14 +34,14 @@ class ParticleSize(SQLModel, table=True):
 
     particle_size_id: Optional[int] = Field(default=None, primary_key=True)
     sample_id: Optional[int] = Field(default=None,
-                                     description="Reference to field_samples.sample_id",
-                                     foreign_key="field_samples.sample_id")
+                                     description="Reference to field_samples.sample_id")
+                                     # foreign_key="field_samples.sample_id")
     particle_length: Optional[int] = Field(default=None)
     particle_width: Optional[int] = Field(default=None)
     particle_height: Optional[int] = Field(default=None)
     particle_units: Optional[int] = Field(default=None,
-                                          description="Reference to units.unit_id",
-                                          foreign_key="units.unit_id")
+                                          description="Reference to units.unit_id")
+                                          # foreign_key="units.unit_id")
 
 
 class SoilType(SQLModel, table=True):
@@ -51,8 +51,8 @@ class SoilType(SQLModel, table=True):
     soil_type_id: Optional[int] = Field(default=None, primary_key=True)
     soil_type: Optional[str] = Field(default=None, unique=True)
     soil_location: Optional[int] = Field(default=None,
-                                         description="Reference to geographic_locations.location_id",
-                                         foreign_key="geographic_locations.location_id")
+                                         description="Reference to geographic_locations.location_id")
+                                         # foreign_key="geographic_locations.location_id")
 
 
 class AgTreatment(SQLModel, table=True):

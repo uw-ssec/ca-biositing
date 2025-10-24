@@ -18,33 +18,33 @@ class GeographicLocation(SQLModel, table=True):
 
     location_id: Optional[int] = Field(default=None, primary_key=True)
     street_address_id: Optional[int] = Field(default=None,
-                                             description="Reference to street_addresses.street_address_id",
-                                             foreign_key="street_addresses.street_address_id")
+                                             description="Reference to street_addresses.street_address_id")
+                                             # foreign_key="street_addresses.street_address_id")
     city_id: Optional[int] = Field(default=None,
-                                    description="Reference to cities.city_id",
-                                    foreign_key="cities.city_id")
+                                    description="Reference to cities.city_id")
+                                    # foreign_key="cities.city_id")
     zip_id: Optional[int] = Field(default=None,
-                                   description="Reference to zips.zip_id",
-                                   foreign_key="zips.zip_id")
+                                   description="Reference to zips.zip_id")
+                                   # foreign_key="zips.zip_id")
     county_id: Optional[int] = Field(default=None,
-                                     description="Reference to counties.county_id",
-                                     foreign_key="counties.county_id")
+                                     description="Reference to counties.county_id")
+                                     # foreign_key="counties.county_id")
     state_id: Optional[int] = Field(default=None,
-                                    description="Reference to states.state_id",
-                                    foreign_key="states.state_id")
+                                    description="Reference to states.state_id")
+                                    # foreign_key="states.state_id")
     region_id: Optional[int] = Field(default=None,
-                                     description="Reference to regions.region_id",
-                                     foreign_key="regions.region_id")
+                                     description="Reference to regions.region_id")
+                                     # foreign_key="regions.region_id")
     fips_id: Optional[int] = Field(default=None,
-                                    description="Reference to fips.fips_id",
-                                    foreign_key="fips.fips_id")
+                                    description="Reference to fips.fips_id")
+                                    # foreign_key="fips.fips_id")
     latitude: Optional[Decimal] = Field(default=None,
                                          description="Can be null or generalized")
     longitude: Optional[Decimal] = Field(default=None,
                                           description="Can be null or generalized")
     location_resolution_id: Optional[int] = Field(default=None,
-                                                 description="Reference to location_resolutions.location_resolution_id",
-                                                 foreign_key="location_resolutions.location_resolution_id")
+                                                 description="Reference to location_resolutions.location_resolution_id")
+                                                 # foreign_key="location_resolutions.location_resolution_id")
     is_anonymous: Optional[bool] = Field(default=None)
 
 
