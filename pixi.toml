@@ -52,7 +52,6 @@ xarray = "*"
 shapely = "*"
 pyproj = "*"
 
-
 [feature.etl.dependencies]
 pandas = "*"
 sqlmodel = "*"
