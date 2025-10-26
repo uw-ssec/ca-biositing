@@ -53,7 +53,7 @@ shapely = "*"
 pyproj = "*"
 
 
-[feature.etl.pypi-dependencies]
+[feature.etl.dependencies]
 pandas = "*"
 sqlmodel = "*"
 gspread = "*"
