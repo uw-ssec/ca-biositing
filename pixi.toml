@@ -27,7 +27,10 @@ fastapi = ">=0.115.0,<1"
 pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
-start-api = "PYTHONPATH=src uvicorn ca_biositing.api.main:app --reload"
+
+[tasks.start-api]
+cwd = "src"
+cmd = "uvicorn ca_biositing.api.main:app --reload"
 
 [tasks.test]
 cmd = "python -m pytest tests/ --verbose"
