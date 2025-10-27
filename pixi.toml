@@ -54,6 +54,7 @@ description = "Run all tests with coverage and HTML report"
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
 etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
+frontend = { features = ["frontend"], solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -78,3 +79,10 @@ psycopg2-binary = "*"
 alembic = "*"
 pydantic-settings = "*"
 google-auth-oauthlib = "*"
+[feature.frontend.dependencies]
+nodejs = ">=18,<21"
+
+[feature.frontend.tasks]
+frontend-install = { cmd = "cd frontend && npm install", description = "Install frontend dependencies." }
+frontend-dev = { cmd = "cd frontend && npm run dev", description = "Run frontend in development mode." }
+frontend-build = { cmd = "cd frontend && npm run build", description = "Build the production frontend bundle." }
