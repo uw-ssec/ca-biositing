@@ -36,6 +36,7 @@ description = "Run all tests with coverage and HTML report"
 
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -50,3 +51,13 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+
+[feature.etl.dependencies]
+pandas = "*"
+sqlmodel = "*"
+gspread = "*"
+gspread-dataframe = "*"
+psycopg2-binary = "*"
+alembic = "*"
+pydantic-settings = "*"
+google-auth-oauthlib = "*"
