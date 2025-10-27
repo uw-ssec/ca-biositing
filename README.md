@@ -40,3 +40,15 @@ installed.
 
 For MacOS, there will be a Python error about faulthandler, which is expected
 and can be ignored, see https://github.com/qgis/QGIS/issues/52987.
+
+## Frontend Integration
+
+This repository now includes the **Cal Bioscape Frontend** as a Git submodule located in the `frontend/` directory.
+
+### Initializing the Submodule
+
+When you first clone this repository, initialize and pull the submodule with:
+
+```bash
+git submodule update --init --recursive
+
