@@ -15,7 +15,6 @@ the PostgreSQL database. The system is built to be modular and extensible.
 
 - **Structure:** The core logic is organized into three main packages within
   `src/etl/`:
-
   - `extract`: Contains functions to pull raw data from sources (e.g., Google
     Sheets).
   - `transform`: Contains functions to clean, process, and structure the raw
@@ -24,7 +23,6 @@ the PostgreSQL database. The system is built to be modular and extensible.
 
 - **Structure:** The core logic is organized into three main packages within
   `src/etl/`:
-
   - `extract`: Contains functions to pull raw data from sources (e.g., Google
     Sheets).
   - `transform`: Contains functions to clean, process, and structure the raw
