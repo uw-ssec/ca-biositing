@@ -31,11 +31,17 @@ gspread-dataframe = "*"
 pydantic-settings = "*"
 google-auth-oauthlib = "*"
 prefect = "*"
+uvicorn = ">=0.30.0,<1"
+fastapi = ">=0.115.0,<1"
 
 [tasks]
 pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
+
+[tasks.start-api]
+cwd = "src"
+cmd = "uvicorn ca_biositing.api.main:app --reload"
 
 [tasks.test]
 cmd = "python -m pytest tests/ --verbose"
@@ -47,6 +53,7 @@ description = "Run all tests with coverage and HTML report"
 
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -61,3 +68,13 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+
+[feature.etl.dependencies]
+pandas = "*"
+sqlmodel = "*"
+gspread = "*"
+gspread-dataframe = "*"
+psycopg2-binary = "*"
+alembic = "*"
+pydantic-settings = "*"
+google-auth-oauthlib = "*"
