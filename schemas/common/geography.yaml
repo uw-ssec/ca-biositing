@@ -1,0 +1,61 @@
+id: geography
+name: Geography
+description: >
+  Common geographic identifiers used across multiple datasets. Includes states,
+  counties, FIPS codes, and optional regions.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  usda: https://schema.myorg.org/usda/
+  agrovoc: https://agrovoc.fao.org/agrontology/en/page/
+
+default_prefix: usda
+imports:
+  - linkml:types
+
+classes:
+  Geography:
+    description: Reference table for U.S. geographic identifiers.
+    slots:
+      - state_name
+      - state_fips
+      - county_name
+      - county_fips
+      - geoid
+      - region_name
+      - agg_level_desc
+
+slots:
+  state_name:
+    range: string
+    description: U.S. state name.
+    exact_mappings: [] # TODO: map to AGROVOC/state concept
+
+  state_fips:
+    range: string
+    pattern: "^[0-9]{2}$"
+    description: Two-digit FIPS code for the state.
+
+  county_name:
+    range: string
+    description: U.S. county name.
+    exact_mappings: [] # TODO: map to AGROVOC/county concept
+
+  county_fips:
+    range: string
+    pattern: "^[0-9]{3}$"
+    description: Three-digit county FIPS code.
+
+  geoid:
+    range: string
+    pattern: "^[0-9]{5}$"
+    description: Combined state + county FIPS (e.g., 06019).
+
+  region_name:
+    range: string
+    description:
+      Optional higher-level region grouping (e.g., San Joaquin Valley).
+
+  agg_level_desc:
+    range: string
+    description: Aggregation level (e.g., COUNTY, STATE, NATIONAL).
