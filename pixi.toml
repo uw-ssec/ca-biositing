@@ -51,9 +51,14 @@ description = "Run all tests"
 cmd = "python -m pytest tests/ --cov=src/ca_biositing --cov-report=html --cov-report=term-missing"
 description = "Run all tests with coverage and HTML report"
 
+[tasks.submodule-frontend-init]
+cmd = "git submodule update --init frontend"
+description = "Initialize only the frontend submodule."
+
 [environments]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
 etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
+frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -78,3 +83,10 @@ psycopg2-binary = "*"
 alembic = "*"
 pydantic-settings = "*"
 google-auth-oauthlib = "*"
+[feature.frontend.dependencies]
+nodejs = ">=18,<21"
+
+[feature.frontend.tasks]
+frontend-install = { cmd = "npm install", cwd = "frontend", description = "Install frontend dependencies." }
+frontend-dev     = { cmd = "npm run dev", cwd = "frontend", description = "Run frontend in development mode." }
+frontend-build   = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
