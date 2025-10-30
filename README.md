@@ -48,8 +48,9 @@ located in the `frontend/` directory.
 
 ### Initializing the Submodule
 
-When you first clone this repository, initialize and pull the submodule with:
+When you first clone this repository, you can initialize and pull only the
+`frontend` submodule with:
 
 ```bash
-git submodule update --init --recursive
+pixi run submodule-frontend-init
 ```
