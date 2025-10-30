@@ -16,6 +16,8 @@ imports:
 classes:
   Geography:
     description: Reference table for U.S. geographic identifiers.
+    annotations:
+      __tablename__: geography
     slots:
       - state_name
       - state_fips

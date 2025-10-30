@@ -1,0 +1,45 @@
+id: new_schema
+name: NewSchema
+description: >
+  A template for creating new LinkML schemas.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  schema: https://schema.org/
+  skos: http://www.w3.org/2004/02/skos/core#
+
+default_prefix: schema
+imports:
+  - linkml:types
+
+classes:
+  MyClass:
+    description: "A description of my class."
+    annotations:
+      __tablename__: my_class
+    slots:
+      - id
+      - name
+      - description
+
+slots:
+  id:
+    identifier: true
+    range: string
+    description: "A unique identifier for the instance."
+
+  name:
+    range: string
+    description: "A human-readable name for the instance."
+
+  description:
+    range: string
+    description: "A description of the instance."
+
+enums:
+  MyEnum:
+    permissible_values:
+      VALUE_1:
+        description: "The first value."
+      VALUE_2:
+        description: "The second value."
