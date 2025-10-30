@@ -1,9 +1,9 @@
 import pandas as pd
 from sqlmodel import Session, select
 
-from pipeline.database import engine
-from pipeline.models.biomass import Biomass, BiomassType
-from pipeline.utils.lookup_utils import replace_id_with_name_df, replace_name_with_id_df
+from ca_biositing.datamodels.database import engine
+from ca_biositing.datamodels.biomass import Biomass, BiomassType
+from ca_biositing.pipeline.utils.lookup_utils import replace_id_with_name_df, replace_name_with_id_df
 
 
 def test_lookup_functions():
