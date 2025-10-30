@@ -13,11 +13,13 @@ prefixes:
 default_prefix: usda
 imports:
   - linkml:types
-  - ../common/geography.yaml
+  - ../common/geography
 
 classes:
   USDARecord:
     description: Base class for USDA agricultural data records.
+    annotations:
+      __tablename__: usda_record
     slots:
       - year
       - geography
@@ -45,10 +47,14 @@ classes:
   CensusRecord:
     is_a: USDARecord
     description: A USDA Census of Agriculture record (every 5 years).
+    annotations:
+      __tablename__: census_record
 
   SurveyRecord:
     is_a: USDARecord
     description: A USDA Survey record (annual, seasonal, or periodic).
+    annotations:
+      __tablename__: survey_record
     slots:
       - period_desc
       - freq_desc
@@ -64,22 +70,18 @@ slots:
     range: Geography
     description: Geographic information (state, county, FIPS).
 
-  agg_level_desc:
-    range: string
-    description: Aggregation level (e.g., COUNTY, STATE, NATIONAL).
-
   crop:
     description: Commodity or crop name.
-    exact_mappings: [] # TODO: map to AGROVOC crop concepts
+    exact_mappings: # TODO: map to AGROVOC crop concepts
 
   variable:
     description:
       Census or survey variable measured (e.g., Acreage, Yield, Production).
-    exact_mappings: [] # TODO: map to AGROVOC variable concepts
+    exact_mappings: # TODO: map to AGROVOC variable concepts
 
   unit:
     description: Unit of measure (e.g., acres, tons, tons per acre).
-    exact_mappings: [] # TODO: map to UCUM or AGROVOC unit concepts
+    exact_mappings: # TODO: map to AGROVOC unit concepts
 
   value:
     range: float
@@ -122,32 +124,45 @@ enums:
   CropEnum:
     permissible_values:
       Almond:
-        exact_mappings: [] # TODO: AGROVOC c_330
+        description: "TODO: AGROVOC c_330"
       Pistachio:
-        exact_mappings: [] # TODO: AGROVOC c_5733
+        description: "TODO: AGROVOC c_5733"
       Tomato:
-        exact_mappings: [] # TODO: AGROVOC c_7824
+        description: "TODO: AGROVOC c_7824"
       Olive:
-        exact_mappings: [] # TODO: AGROVOC c_5681
+        description: "TODO: AGROVOC c_5681"
 
   VariableEnum:
     permissible_values:
-      ACREAGE_TOTAL: [] # TODO: AGROVOC mapping
-      ACREAGE_BEARING: [] # TODO: AGROVOC mapping
-      ACREAGE_NONBEARING: [] # TODO: AGROVOC mapping
-      YIELD: [] # TODO: AGROVOC mapping
-      PRODUCTION: [] # TODO: AGROVOC mapping
-      OPERATIONS: [] # TODO: AGROVOC mapping
+      ACREAGE_TOTAL:
+        description: "TODO: AGROVOC mapping"
+      ACREAGE_BEARING:
+        description: "TODO: AGROVOC mapping"
+      ACREAGE_NONBEARING:
+        description: "TODO: AGROVOC mapping"
+      YIELD:
+        description: "TODO: AGROVOC mapping"
+      PRODUCTION:
+        description: "TODO: AGROVOC mapping"
+      OPERATIONS:
+        description: "TODO: AGROVOC mapping"
 
   UnitEnum:
     permissible_values:
-      ACRES: [] # TODO: UCUM mapping
-      TONS: [] # TODO: UCUM mapping
-      TONS_PER_ACRE: [] # TODO: UCUM mapping
-      OPERATIONS: [] # TODO: AGROVOC or UCUM mapping
+      ACRES:
+        description: "TODO: UCUM mapping"
+      TONS:
+        description: "TODO: UCUM mapping"
+      TONS_PER_ACRE:
+        description: "TODO: UCUM mapping"
+      OPERATIONS:
+        description: "TODO: AGROVOC or UCUM mapping"
 
   BearingStatusEnum:
     permissible_values:
-      BEARING: [] # TODO: AGROVOC mapping
-      NONBEARING: [] # TODO: AGROVOC mapping
-      NA: [] # TODO: not applicable
+      BEARING:
+        description: "TODO: AGROVOC mapping"
+      NONBEARING:
+        description: "TODO: AGROVOC mapping"
+      NA:
+        description: "TODO: not applicable"

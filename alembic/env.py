@@ -25,6 +25,27 @@ from ca_biositing.datamodels.sample_preprocessing import *
 from ca_biositing.datamodels.specific_aalysis_results import *
 from ca_biositing.datamodels.user import *
 from sqlmodel import SQLModel
+import importlib.util
+from pathlib import Path
+
+# --- Import generated models ---
+# You can explicitly import your generated models here, or uncomment the
+# code below to dynamically import them.
+from schemas.generated.census_survey import *
+from schemas.generated.geography import *
+
+# # --- Dynamically import generated models ---
+# # This code will dynamically import all Python files from the
+# # schemas/generated directory. This is a convenience so that you don't have
+# # to add a new import statement every time you generate a new model from a
+# # LinkML schema.
+# generated_path = Path(__file__).resolve().parents[1] / "schemas" / "generated"
+# for file in os.listdir(generated_path):
+#     if file.endswith(".py") and file != "__init__.py":
+#         module_name = file[:-3]
+#         spec = importlib.util.spec_from_file_location(module_name, generated_path / file)
+#         module = importlib.util.module_from_spec(spec)
+#         spec.loader.exec_module(module)
 
 # --- Alembic Config object, provides access to alembic.ini values ---
 config = context.config
@@ -41,6 +62,11 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # --- Metadata from your models for autogenerate ---
+# Combine metadata from all models
+# See: https://alembic.sqlalchemy.org/en/latest/autogenerate.html#affecting-the-autogenerate-process
+for table in SQLModel.metadata.tables.values():
+    table.tometadata(SQLModel.metadata)
+
 target_metadata = SQLModel.metadata
 
 
