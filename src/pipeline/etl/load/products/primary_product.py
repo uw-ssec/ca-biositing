@@ -1,8 +1,8 @@
 import pandas as pd
 from prefect import task, get_run_logger
 from sqlmodel import Session, select
-from src.pipeline.database import engine
-from src.pipeline.models.biomass import PrimaryProduct
+from ca_biositing.datamodels.database import engine
+from ca_biositing.datamodels.biomass import PrimaryProduct
 
 @task
 def load_products_primary_product(primary_product_df: pd.DataFrame):

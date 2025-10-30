@@ -14,17 +14,17 @@ from dotenv import load_dotenv
 load_dotenv()  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
-from src.pipeline.etl.models.biomass import *
-from src.pipeline.etl.models.data_and_references import *
-from src.pipeline.etl.models.experiments_analysis import *
-from src.pipeline.etl.models.external_datasets import *
-from src.pipeline.etl.models.geographic_locations import *
-from src.pipeline.etl.models.metadata_samples import *
-from src.pipeline.etl.models.organizations import *
-from src.pipeline.etl.models.people_contacts import *
-from src.pipeline.etl.models.sample_preprocessing import *
-from src.pipeline.etl.models.specific_aalysis_results import *
-from src.pipeline.etl.models.user import *
+from ca_biositing.datamodels.biomass import *
+from ca_biositing.datamodels.data_and_references import *
+from ca_biositing.datamodels.experiments_analysis import *
+from ca_biositing.datamodels.external_datasets import *
+from ca_biositing.datamodels.geographic_locations import *
+from ca_biositing.datamodels.metadata_samples import *
+from ca_biositing.datamodels.organizations import *
+from ca_biositing.datamodels.people_contacts import *
+from ca_biositing.datamodels.sample_preprocessing import *
+from ca_biositing.datamodels.specific_aalysis_results import *
+from ca_biositing.datamodels.user import *
 from sqlmodel import SQLModel
 
 # --- Alembic Config object, provides access to alembic.ini values ---

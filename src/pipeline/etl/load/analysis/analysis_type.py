@@ -1,8 +1,8 @@
 import pandas as pd
 from prefect import task, get_run_logger
 from sqlmodel import Session, select
-from src.pipeline.database import engine
-from src.pipeline.models.experiments_analysis import AnalysisType
+from ca_biositing.datamodels.database import engine
+from ca_biositing.datamodels.experiments_analysis import AnalysisType
 
 @task
 def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
