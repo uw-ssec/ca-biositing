@@ -2,6 +2,16 @@
 
 Discussion of general issues related to the project and protyping or research
 
+## Project Structure
+
+This project uses a PEP 420 namespace package structure with the following components:
+
+- **`ca_biositing.datamodels`**: Shared SQLModel database models
+- **`ca_biositing.pipeline`**: ETL pipelines and Prefect workflows
+- **`ca_biositing.api`**: FastAPI application
+
+For details on the namespace package structure, see [NAMESPACE_MIGRATION_GUIDE.md](NAMESPACE_MIGRATION_GUIDE.md).
+
 ## Relevant Links for project documentations and context
 
 - eScience Slack channel: 🔒
