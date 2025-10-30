@@ -1,0 +1,158 @@
+"""use snake_case table names
+
+Revision ID: 490235da5633
+Revises: 99af25a3b574
+Create Date: 2025-10-30 16:42:11.402363
+
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+# revision identifiers, used by Alembic.
+revision: str = '490235da5633'
+down_revision: Union[str, Sequence[str], None] = '99af25a3b574'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    """Upgrade schema."""
+    op.drop_table('USDARecord')
+    op.drop_table('SurveyRecord')
+    op.drop_table('CensusRecord')
+    op.drop_table('Geography')
+    op.create_table('geography',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('state_name', sa.Text(), nullable=True),
+    sa.Column('state_fips', sa.Text(), nullable=True),
+    sa.Column('county_name', sa.Text(), nullable=True),
+    sa.Column('county_fips', sa.Text(), nullable=True),
+    sa.Column('geoid', sa.Text(), nullable=True),
+    sa.Column('region_name', sa.Text(), nullable=True),
+    sa.Column('agg_level_desc', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('usda_record',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('census_record',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('survey_record',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('period_desc', sa.Text(), nullable=True),
+    sa.Column('freq_desc', sa.Text(), nullable=True),
+    sa.Column('program_desc', sa.Text(), nullable=True),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+
+
+def downgrade() -> None:
+    """Downgrade schema."""
+    op.drop_table('survey_record')
+    op.drop_table('census_record')
+    op.drop_table('usda_record')
+    op.drop_table('geography')
+    op.create_table('USDARecord',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['Geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('SurveyRecord',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('period_desc', sa.Text(), nullable=True),
+    sa.Column('freq_desc', sa.Text(), nullable=True),
+    sa.Column('program_desc', sa.Text(), nullable=True),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['Geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('CensusRecord',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('year', sa.Integer(), nullable=False),
+    sa.Column('crop', sa.Enum('Almond', 'Pistachio', 'Tomato', 'Olive', name='CropEnum'), nullable=True),
+    sa.Column('variable', sa.Enum('ACREAGE_TOTAL', 'ACREAGE_BEARING', 'ACREAGE_NONBEARING', 'YIELD', 'PRODUCTION', 'OPERATIONS', name='VariableEnum'), nullable=True),
+    sa.Column('unit', sa.Enum('ACRES', 'TONS', 'TONS_PER_ACRE', 'OPERATIONS', name='UnitEnum'), nullable=True),
+    sa.Column('value', sa.Float(), nullable=True),
+    sa.Column('bearing_status', sa.Enum('BEARING', 'NONBEARING', 'NA', name='BearingStatusEnum'), nullable=True),
+    sa.Column('class_desc', sa.Text(), nullable=True),
+    sa.Column('domain_desc', sa.Text(), nullable=True),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('notes', sa.Text(), nullable=True),
+    sa.Column('geography_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['geography_id'], ['Geography.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('Geography',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('state_name', sa.Text(), nullable=True),
+    sa.Column('state_fips', sa.Text(), nullable=True),
+    sa.Column('county_name', sa.Text(), nullable=True),
+    sa.Column('county_fips', sa.Text(), nullable=True),
+    sa.Column('geoid', sa.Text(), nullable=True),
+    sa.Column('region_name', sa.Text(), nullable=True),
+    sa.Column('agg_level_desc', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
