@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ca_biositing"
 dynamic = ["version"]
-description = "Python project repository template for developing python package."
+description = "CA Biositing - Geospatial bioeconomy project for biositing analysis in California"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -19,7 +19,12 @@ classifiers = [
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["requests", "pandas"]
+dependencies = [
+    "requests",
+    "pandas",
+    "ca-biositing-datamodels",
+    "ca-biositing-pipeline",
+]
 
 [project.optional-dependencies]
 dev = [

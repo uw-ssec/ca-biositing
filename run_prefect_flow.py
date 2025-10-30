@@ -1,7 +1,7 @@
 import sys
 from prefect import flow
-from src.pipeline.flows.primary_product import primary_product_flow
-from src.pipeline.flows.analysis_type import analysis_type_flow
+from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+from ca_biositing.pipeline.flows.analysis_type import analysis_type_flow
 
 # A dictionary mapping flow names to their function objects
 AVAILABLE_FLOWS = {

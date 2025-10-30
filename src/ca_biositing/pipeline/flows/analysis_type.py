@@ -1,7 +1,7 @@
 from prefect import flow
-from src.pipeline.etl.extract.experiments import extract_experiments
-from src.pipeline.etl.transform.analysis.analysis_type import transform_analysis_analysis_type
-from src.pipeline.etl.load.analysis.analysis_type import load_analysis_analysis_type
+from ca_biositing.pipeline.etl.extract.experiments import extract_experiments
+from ca_biositing.pipeline.etl.transform.analysis.analysis_type import transform_analysis_analysis_type
+from ca_biositing.pipeline.etl.load.analysis.analysis_type import load_analysis_analysis_type
 
 @flow(name="Analysis Type ETL", log_prints=True)
 def analysis_type_flow():

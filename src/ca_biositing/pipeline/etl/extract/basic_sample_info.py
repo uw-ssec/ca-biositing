@@ -1,7 +1,7 @@
 from typing import Optional
 import pandas as pd
 from prefect import task, get_run_logger
-from src.pipeline.utils.gsheet_to_pandas import gsheet_to_df
+from ca_biositing.pipeline.utils.gsheet_to_pandas import gsheet_to_df
 
 @task
 def extract_basic_sample_info() -> Optional[pd.DataFrame]:

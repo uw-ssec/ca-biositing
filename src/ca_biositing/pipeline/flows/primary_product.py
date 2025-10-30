@@ -1,7 +1,7 @@
 from prefect import flow
-from src.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
-from src.pipeline.etl.transform.products.primary_product import transform_products_primary_product
-from src.pipeline.etl.load.products.primary_product import load_products_primary_product
+from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
+from ca_biositing.pipeline.etl.transform.products.primary_product import transform_products_primary_product
+from ca_biositing.pipeline.etl.load.products.primary_product import load_products_primary_product
 
 @flow(name="Primary Product ETL", log_prints=True)
 def primary_product_flow():

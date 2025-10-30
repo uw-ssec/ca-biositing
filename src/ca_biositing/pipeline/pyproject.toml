@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ca-biositing-pipeline"
+version = "0.1.0"
+description = "ETL pipeline for CA Biositing project"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "../../../LICENSE"}
+authors = [
+    {name = "SSEC Team"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "ca-biositing-datamodels>=0.1.0",
+    "pandas>=2.2.0,<3",
+    "prefect",
+    "gspread",
+    "gspread-dataframe",
+    "pyjanitor",
+    "google-auth-oauthlib",
+    "python-dotenv>=1.0.1,<2",
+]
+
+[project.urls]
+Homepage = "https://github.com/uw-ssec/ca-biositing"
+Repository = "https://github.com/uw-ssec/ca-biositing.git"
+Issues = "https://github.com/uw-ssec/ca-biositing/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ca_biositing/pipeline"]
