@@ -6,7 +6,7 @@ requires-pixi = ">=0.55,<1.0"
 authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
-platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
 version = "0.1.0"
 
 [environments]
