@@ -1,22 +1,30 @@
 #                             VVVVVV  minimum `pixi` version
-"$schema" = "https://pixi.sh/v0.49.0/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.55.0/schema/manifest/schema.json"
 
 [workspace]
-requires-pixi = ">=0.49,<1.0"
+requires-pixi = ">=0.55,<1.0"
 authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
 platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
 version = "0.1.0"
 
+[environments]
+default = ["datamodels", "pipeline", "webservice"]
+py312 = ["py312", "datamodels", "pipeline", "webservice"]
+py313 = ["py313", "datamodels", "pipeline", "webservice"]
+gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
+frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+
+
 [tasks.qgis]
 depends-on = [
     { task = "run-qgis", environment = "gis" }
 ]
 
-
 [dependencies]
-python = "3.12.*"
+python = ">=3.12"
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
 pytest-cov = ">=7.0.0,<8"
@@ -33,15 +41,16 @@ google-auth-oauthlib = "*"
 prefect = "*"
 uvicorn = ">=0.30.0,<1"
 fastapi = ">=0.115.0,<1"
+pip = ">=25.2,<26"
+ipython = ">=9.6.0,<10"
 
 [tasks]
-pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
 
-[tasks.start-api]
+[tasks.start-webservice]
 cwd = "src"
-cmd = "uvicorn ca_biositing.api.main:app --reload"
+cmd = "uvicorn ca_biositing.webservice.main:app --reload"
 
 [tasks.test]
 cmd = "python -m pytest tests/ --verbose"
@@ -54,11 +63,6 @@ description = "Run all tests with coverage and HTML report"
 [tasks.submodule-frontend-init]
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
-
-[environments]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
-etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
-frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -83,6 +87,13 @@ psycopg2-binary = "*"
 alembic = "*"
 pydantic-settings = "*"
 google-auth-oauthlib = "*"
+
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py313.dependencies]
+python = "3.13.*"
+
 [feature.frontend.dependencies]
 nodejs = ">=18,<21"
 
@@ -90,3 +101,12 @@ nodejs = ">=18,<21"
 frontend-install = { cmd = "npm install", cwd = "frontend", description = "Install frontend dependencies." }
 frontend-dev     = { cmd = "npm run dev", cwd = "frontend", description = "Run frontend in development mode." }
 frontend-build   = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
+
+[feature.datamodels.pypi-dependencies]
+ca-biositing-datamodels = {path = "./src/ca_biositing/datamodels", editable = true }
+
+[feature.pipeline.pypi-dependencies]
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
+
+[feature.webservice.pypi-dependencies]
+ca-biositing-webservice = { path = "./src/ca_biositing/webservice", editable = true }
