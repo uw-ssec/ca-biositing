@@ -19,7 +19,7 @@ engine = create_engine(
 
 def get_session() -> Generator[Session, None, None]:
     """Get a database session.
-    
+
     Yields:
         Session: SQLModel database session
     """

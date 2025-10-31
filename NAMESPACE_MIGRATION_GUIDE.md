@@ -2,11 +2,13 @@
 
 ## Overview
 
-This guide explains the namespace package restructuring completed in Phase 1 and provides instructions for developers working with the new structure.
+This guide explains the namespace package restructuring completed in Phase 1 and
+provides instructions for developers working with the new structure.
 
 ## What Changed
 
 ### Before (Old Structure)
+
 ```
 src/
 ├── ca_biositing/
@@ -22,6 +24,7 @@ src/
 ```
 
 ### After (New Structure - PEP 420 Namespace)
+
 ```
 src/
 └── ca_biositing/            # PEP 420 implicit namespace (no __init__.py)
@@ -45,14 +48,18 @@ src/
 
 ## Key Changes
 
-1. **Implicit Namespace**: `ca_biositing` is now a PEP 420 implicit namespace package (no `__init__.py`)
-2. **Consolidated Models**: All database models moved to `ca_biositing.datamodels`
+1. **Implicit Namespace**: `ca_biositing` is now a PEP 420 implicit namespace
+   package (no `__init__.py`)
+2. **Consolidated Models**: All database models moved to
+   `ca_biositing.datamodels`
 3. **Removed Duplicates**: Eliminated duplicate model directories
-4. **Separate Packages**: Both `datamodels` and `pipeline` are independently installable
+4. **Separate Packages**: Both `datamodels` and `pipeline` are independently
+   installable
 
 ## Import Changes
 
 ### Old Imports
+
 ```python
 # Models
 from src.pipeline.models.biomass import FieldSample
@@ -66,6 +73,7 @@ from src.pipeline.flows.primary_product import primary_product_flow
 ```
 
 ### New Imports
+
 ```python
 # Models
 from ca_biositing.datamodels.biomass import FieldSample, PrimaryProduct
@@ -80,6 +88,7 @@ from ca_biositing.pipeline.flows.primary_product import primary_product_flow
 ## Installation
 
 ### Option 1: Editable Install (Development)
+
 ```bash
 # Install datamodels package
 pip install -e src/ca_biositing/datamodels
@@ -89,6 +98,7 @@ pip install -e src/ca_biositing/pipeline
 ```
 
 ### Option 2: Using Pixi (Recommended)
+
 ```bash
 # Install all dependencies
 pixi install
@@ -98,6 +108,7 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 ```
 
 ### Option 3: Full Project Install
+
 ```bash
 # This will install both packages as dependencies
 pip install -e .
@@ -106,6 +117,7 @@ pip install -e .
 ## Testing
 
 ### Run Namespace Verification
+
 ```bash
 PYTHONPATH=src python3 -c "
 from ca_biositing import datamodels
@@ -116,6 +128,7 @@ print(f'✓ pipeline {pipeline.__version__}')
 ```
 
 ### Run Test Suite
+
 ```bash
 # With pixi
 pixi run test
@@ -126,7 +139,8 @@ PYTHONPATH=src pytest tests/ -v
 
 ## Database Configuration
 
-The database configuration has been consolidated in `ca_biositing.datamodels.config`:
+The database configuration has been consolidated in
+`ca_biositing.datamodels.config`:
 
 ```python
 from ca_biositing.datamodels.config import config
@@ -154,17 +168,21 @@ python generate_migration.py
 ## Common Issues and Solutions
 
 ### Issue 1: ModuleNotFoundError
+
 **Problem**: `ModuleNotFoundError: No module named 'ca_biositing.datamodels'`
 
 **Solution**: Ensure PYTHONPATH includes the src directory:
+
 ```bash
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 ```
 
 ### Issue 2: Import Errors in Tests
+
 **Problem**: Tests failing with import errors
 
 **Solution**: Update test imports to use new namespace:
+
 ```python
 # Old
 from pipeline.models.biomass import Biomass
@@ -176,9 +194,11 @@ from ca_biositing.datamodels.database import engine
 ```
 
 ### Issue 3: Alembic Can't Find Models
+
 **Problem**: Alembic can't generate migrations
 
-**Solution**: The `alembic/env.py` file has been updated. Ensure you're using the latest version that imports from `ca_biositing.datamodels.*`
+**Solution**: The `alembic/env.py` file has been updated. Ensure you're using
+the latest version that imports from `ca_biositing.datamodels.*`
 
 ## Docker Usage
 
@@ -204,6 +224,7 @@ ENV PYTHONPATH=/app/src
 ## Files Changed
 
 ### Created
+
 - `src/ca_biositing/datamodels/__init__.py`
 - `src/ca_biositing/datamodels/pyproject.toml`
 - `src/ca_biositing/datamodels/README.md`
@@ -214,16 +235,19 @@ ENV PYTHONPATH=/app/src
 - `tests/test_namespace_imports.py`
 
 ### Moved
+
 - All model files from `src/pipeline/models/` → `src/ca_biositing/datamodels/`
 - All pipeline files from `src/pipeline/` → `src/ca_biositing/pipeline/`
 
 ### Deleted
+
 - `src/ca_biositing/__init__.py` (to create implicit namespace)
 - `src/pipeline/models/` (duplicate)
 - `src/pipeline/etl/models/` (duplicate)
 - `src/pipeline/etl/database.py` (duplicate)
 
 ### Updated
+
 - `alembic/env.py` - imports from `ca_biositing.datamodels`
 - `generate_migration.py` - imports from `ca_biositing.datamodels`
 - `run_prefect_flow.py` - imports from `ca_biositing.pipeline`
@@ -243,6 +267,7 @@ ENV PYTHONPATH=/app/src
 ## Questions?
 
 If you have questions about this migration, please refer to:
+
 - [PEP 420 - Implicit Namespace Packages](https://www.python.org/dev/peps/pep-0420/)
 - [Scientific Python Development Guide](https://learn.scientific-python.org/development/)
 - Project issue #54 for context
