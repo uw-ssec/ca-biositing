@@ -11,9 +11,6 @@ components:
 - **`ca_biositing.pipeline`**: ETL pipelines and Prefect workflows
 - **`ca_biositing.webservice`**: FastAPI application
 
-For details on the namespace package structure, see
-[NAMESPACE_MIGRATION_GUIDE.md](NAMESPACE_MIGRATION_GUIDE.md).
-
 ## Relevant Links for project documentations and context
 
 - eScience Slack channel: 🔒
