@@ -1,6 +1,7 @@
 # CA Biositing Web Service Tests
 
-This directory contains tests for the `ca-biositing-webservice` namespace package.
+This directory contains tests for the `ca-biositing-webservice` namespace
+package.
 
 ## Test Structure
 

@@ -1,10 +1,13 @@
 # AGENTS.md
 
-This file provides guidance to AI assistants when working with the ca-biositing-webservice namespace package.
+This file provides guidance to AI assistants when working with the
+ca-biositing-webservice namespace package.
 
 ## Package Overview
 
-The **ca-biositing-webservice** package is a FastAPI-based REST API for the CA Biositing project. It provides HTTP endpoints for accessing bioeconomy site selection data and analysis results.
+The **ca-biositing-webservice** package is a FastAPI-based REST API for the CA
+Biositing project. It provides HTTP endpoints for accessing bioeconomy site
+selection data and analysis results.
 
 **Package Stats:**
 
@@ -133,13 +136,13 @@ def test_read_item(client):
     """Test reading a single item."""
     # Make request
     response = client.get("/items/1")
-    
+
     # Check status code
     assert response.status_code == status.HTTP_200_OK
-    
+
     # Parse JSON response
     data = response.json()
-    
+
     # Validate response structure
     assert "id" in data
     assert "name" in data
@@ -156,13 +159,13 @@ def test_create_item(client):
         "name": "Test Item",
         "description": "A test item",
     }
-    
+
     # Make POST request
     response = client.post("/items", json=item_data)
-    
+
     # Check status code
     assert response.status_code == status.HTTP_201_CREATED
-    
+
     # Validate response
     data = response.json()
     assert data["name"] == item_data["name"]
@@ -331,7 +334,7 @@ app = FastAPI(
    ```python
    class ItemCreate(BaseModel):
        name: str
-   
+
    class ItemResponse(BaseModel):
        id: int
        name: str
@@ -398,7 +401,7 @@ app = FastAPI(
        session = Session(engine)
        yield session
        session.close()
-   
+
    def test_read_biomass(client, db_session):
        # Test implementation
        pass
@@ -605,8 +608,8 @@ GET    /items/{id}/details  # Get item details (sub-resource)
 
 ```json
 [
-  {"id": 1, "name": "Item 1"},
-  {"id": 2, "name": "Item 2"}
+  { "id": 1, "name": "Item 1" },
+  { "id": 2, "name": "Item 2" }
 ]
 ```
 
@@ -667,13 +670,17 @@ async def read_data(param: str):
 
 ## Trust These Instructions
 
-These instructions were created specifically for the ca-biositing-webservice namespace package following FastAPI best practices. Commands and patterns have been validated against the project structure. **Only perform additional searches if:**
+These instructions were created specifically for the ca-biositing-webservice
+namespace package following FastAPI best practices. Commands and patterns have
+been validated against the project structure. **Only perform additional searches
+if:**
 
 - You need information about integrating with external services
 - Instructions produce unexpected errors
 - You're implementing advanced features (WebSockets, background tasks, etc.)
 
-For routine API development (adding endpoints, testing, documentation), follow these instructions directly.
+For routine API development (adding endpoints, testing, documentation), follow
+these instructions directly.
 
 For more information on SSEC best practices, see:
 <https://rse-guidelines.readthedocs.io/en/latest/llms-full.txt>
