@@ -1,170 +1,331 @@
-# ETL Pipeline Project
+# CA Biositing Pipeline
 
-This project implements a modular ETL (Extract, Transform, Load) pipeline that
-extracts data from Google Sheets (or other sources), transforms it using Python,
-and loads it into a PostgreSQL database. The entire environment is containerized
-with Docker.
+This package contains the ETL (Extract, Transform, Load) pipeline and workflows
+for the CA Biositing project. It is implemented as a PEP 420 namespace package
+that depends on the shared `ca-biositing-datamodels` package.
 
----
+The pipeline extracts data from Google Sheets (or other sources), transforms it
+using pandas and Python, and loads it into a PostgreSQL database using Prefect
+for workflow orchestration.
+
+## Overview
+
+The `ca_biositing.pipeline` package provides:
+
+- **ETL Tasks**: Prefect tasks for extracting, transforming, and loading data
+- **Prefect Flows**: Workflow orchestration for data pipelines
+- **Utility Functions**: Helpers for data transformation and database operations
+- **Database Integration**: Uses shared datamodels from
+  `ca-biositing-datamodels`
+- **Google Sheets Integration**: Extract data from Google Sheets
+
+## Structure
+
+```text
+src/ca_biositing/pipeline/
+├── ca_biositing/
+│   └── pipeline/
+│       ├── __init__.py              # Package initialization and version
+│       ├── etl/
+│       │   ├── extract/             # Data extraction tasks
+│       │   │   ├── __init__.py
+│       │   │   ├── basic_sample_info.py
+│       │   │   └── experiments.py
+│       │   ├── transform/           # Data transformation tasks
+│       │   │   └── products/
+│       │   │       └── primary_product.py
+│       │   ├── load/                # Data loading tasks
+│       │   │   ├── analysis/
+│       │   │   └── products/
+│       │   │       └── primary_product.py
+│       │   └── templates/           # ETL module templates
+│       ├── flows/                   # Prefect flow definitions
+│       │   ├── analysis_type.py
+│       │   └── primary_product.py
+│       └── utils/                   # Utility functions
+│           ├── __init__.py
+│           ├── gsheet_to_pandas.py
+│           ├── lookup_utils.py
+│           └── run_pipeline.py
+├── tests/                           # Test suite
+│   ├── __init__.py
+│   ├── conftest.py                  # Pytest fixtures
+│   ├── test_etl_extract.py          # Tests for extract tasks
+│   ├── test_flows.py                # Tests for Prefect flows
+│   ├── test_lookup_utils.py         # Tests for utility functions
+│   ├── test_package.py              # Package metadata tests
+│   └── README.md                    # Test documentation
+├── docs/                            # Documentation
+│   ├── ALEMBIC_WORKFLOW.md
+│   ├── DOCKER_WORKFLOW.md
+│   ├── ETL_WORKFLOW.md
+│   ├── GCP_SETUP.md
+│   └── PREFECT_WORKFLOW.md
+├── LICENSE                          # BSD License
+├── README.md                        # This file
+├── pyproject.toml                   # Package metadata and dependencies
+├── alembic.ini                      # Alembic configuration
+├── .env.example                     # Environment variables template
+└── .dockerignore                    # Docker ignore patterns
+```
 
 ## Core Workflows
 
-This project has three key development workflows. For detailed, step-by-step
-instructions, please refer to the dedicated workflow guides. A high-level
-overview is provided here to give conceptual understanding before you begin.
+This package has several key development workflows. For detailed, step-by-step
+instructions, please refer to the dedicated workflow guides in the `docs/`
+directory:
 
 ### 1. Docker Environment Management
 
 - **Purpose:** Managing the lifecycle of your development containers (app and
-  database).
-- **Details:** For starting, stopping, and rebuilding your environment.
-- **[See the full guide: DOCKER_WORKFLOW.md](./DOCKER_WORKFLOW.md)**
+  database)
+- **Details:** Starting, stopping, and rebuilding your environment
+- **[See: docs/DOCKER_WORKFLOW.md](./docs/DOCKER_WORKFLOW.md)**
 
 ### 2. Database Schema Migrations (Alembic)
 
-- **Purpose:** Making and applying changes to the database schema (e.g., adding
-  tables or columns).
+- **Purpose:** Making and applying changes to the database schema
 - **Details:** How to automatically generate and apply migration scripts based
-  on your SQLModel changes.
-- **[See the full guide: ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)**
+  on SQLModel changes
+- **Note:** Database models are now in the shared `ca-biositing-datamodels`
+  package
+- **[See: docs/ALEMBIC_WORKFLOW.md](./docs/ALEMBIC_WORKFLOW.md)**
 
 ### 3. ETL Pipeline Development (Prefect)
 
-- **Purpose:** Running the ETL pipeline and adding new data pipelines using
-  Prefect's "flow of flows" pattern.
-- **Details:** The `run_prefect_flow.py` script acts as a master orchestrator
-  that runs all individual pipeline flows defined in the `src/flows/` directory.
-  To add a new pipeline, you must create a new flow file and add it to the
-  master flow.
-- **[See the full guide: ETL_WORKFLOW.md](./ETL_WORKFLOW.md)**
+- **Purpose:** Running the ETL pipeline and adding new data pipelines
+- **Details:** Using Prefect's flow orchestration with extract, transform, and
+  load tasks
+- **[See: docs/ETL_WORKFLOW.md](./docs/ETL_WORKFLOW.md)**
+- **[See: docs/PREFECT_WORKFLOW.md](./docs/PREFECT_WORKFLOW.md)**
 
-### 4. Creating New Database Models
+### 4. Google Cloud Setup
 
-- **Purpose:** Adding a new table to the database schema.
-- **Details:** Use the `model_template.py` to define your new table, then follow
-  the Alembic workflow to generate and apply the migration.
-- **[See the model template: src/models/templates/model_template.py](./src/models/templates/model_template.py)**
-- **[See the migration guide: ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)**
+- **Purpose:** Setting up Google Sheets API access
+- **Details:** Creating service account and credentials for data extraction
+- **[See: docs/GCP_SETUP.md](./docs/GCP_SETUP.md)**
 
----
+## Installation
 
-## Local Development Environment (Pixi)
+This package is part of the CA Biositing namespace package structure and depends
+on the shared `ca-biositing-datamodels` package.
 
-This project uses **Pixi** to manage dependencies and run tasks for local
-development. This environment is used for both running the application locally
-and for code quality tools like `pre-commit`. The Docker container also uses
-Pixi to install dependencies.
+### As part of the full project
 
-**1. Install Pixi:**
+The recommended way to install is using Pixi (which manages all dependencies):
 
-- Follow the official instructions to
-  [install Pixi](https://pixi.sh/latest/installation/) on your system.
+```bash
+# From the main project root
+pixi install
+```
 
-**2. Install Local Dependencies:**
+### Standalone installation (development)
 
-- Once Pixi is installed, navigate to the `ca-biositing` root directory and run:
+For development of just the pipeline package:
 
-  ```bash
-  pixi install
-  ```
+```bash
+cd src/ca_biositing/pipeline
+pip install -e .
+```
 
-  This will install the required local tools (like `pre-commit`) into a managed
-  environment.
+**Note:** This package requires the `ca-biositing-datamodels` package to be
+installed as well.
 
-  If you have issues with the install on Windows, you may need to command:
+## Testing
 
-  ```
-  pixi workspace platform add win-64
-  ```
+The package includes a test suite covering ETL functions, Prefect flows, and
+utility functions.
 
-  Once pixi is installed, run the following command to set up pre-commit checks
-  on every commit:
+### Run all tests
 
-  ```bash
-  pixi run pre-commit-install
-  ```
+```bash
+pixi run pytest src/ca_biositing/pipeline -v
+```
 
-**3. Activate the Local Environment:**
+### Run specific test files
 
-- To activate this environment in your shell, run:
+```bash
+pixi run pytest src/ca_biositing/pipeline/tests/test_lookup_utils.py -v
+```
 
-  ```bash
-  pixi shell
-  ```
+### Run with coverage
 
-  This command is the equivalent of a traditional `source venv/bin/activate`.
-  You will see a prefix in your shell prompt indicating that the environment is
-  active. You can now run commands like `pre-commit` directly.
+```bash
+pixi run pytest src/ca_biositing/pipeline --cov=ca_biositing.pipeline --cov-report=html
+```
 
----
+See `tests/README.md` for detailed information about the test suite.
 
-## Getting Started
+## Usage
 
-Follow these steps to set up and run the project for the first time.
+### Importing Pipeline Components
+
+```python
+from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
+from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
+
+# Use in your code
+# ...
+```
+
+### Running Prefect Flows
+
+```python
+from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+
+# Run the flow
+primary_product_flow()
+```
+
+### Using Utility Functions
+
+```python
+import pandas as pd
+from sqlmodel import Session
+from ca_biositing.datamodels.biomass import BiomassType
+from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
+
+# Example: Replace biomass type names with IDs
+df = pd.DataFrame({
+    "sample_name": ["Sample1", "Sample2"],
+    "biomass_type": ["Crop by-product", "Wood residue"]
+})
+
+with Session(engine) as session:
+    df_with_ids = replace_name_with_id_df(
+        db=session,
+        df=df,
+        ref_model=BiomassType,
+        name_column_name="biomass_type",
+        id_column_name="biomass_type_id"
+    )
+```
+
+## Getting Started (Docker Environment)
+
+For production-like development using Docker containers:
 
 **1. Google Cloud Setup:**
 
-- To allow the application to access Google Sheets, you must first create a
-  service account and generate a `credentials.json` file.
-- **[Follow the full guide here: GCP_SETUP.md](./GCP_SETUP.md)**
+- Set up Google Sheets API access
+- **[See: docs/GCP_SETUP.md](./docs/GCP_SETUP.md)**
 
 **2. Environment Setup:**
 
-- Create a `.env` file in the project root directory by copying the
-  `.env.example` file.
-- The database connection settings (e.g., `POSTGRES_USER`) are used to connect
-  to the PostgreSQL container. The default values in `.env.example` are
-  sufficient for local development. You do not need to change them unless you
-  have a custom setup.
+- Create a `.env` file from `.env.example`
+- Configure database connection settings
 
-**3. Build the Docker Image:**
+**3. Build and Start Services:**
 
-- From the project root directory, build the Docker image. You do not need to
-  activate the `pixi shell` for this, as the container manages its own
-  environment.
-
-  ```bash
-  docker-compose build
-  ```
-
-**4. Start the Services:**
-
-- Start the application and database containers in detached mode.
-
-  ```bash
-  docker-compose up -d
-  ```
-
-**5. Apply Database Migrations:**
-
-- The first time you start the project, you need to apply the database
-  migrations to create the tables. This command applies existing migrations; you
-  only need to consult the Alembic workflow guide when creating _new_
-  migrations.
-
-  ```bash
-  docker-compose exec app alembic upgrade head
-  ```
-
-The environment is now fully set up and running.
-
----
-
-## Project Structure
-
-This `pipeline` directory is a self-contained ETL project located within the
-larger `ca-biositing` repository. Here is a brief overview of its key
-directories:
-
+```bash
+docker-compose build
+docker-compose up -d
 ```
-pipeline/
-├── alembic/               # Database migration scripts
-├── etl/
-│   ├── extract/       # ETL Task: Modules for extracting data
-│   ├── transform/     # ETL Task: Modules for transforming data
-│   ├── load/          # ETL Task: Modules for loading data
-│   └── templates/     # Templates for new ETL modules
-├── flows/             # Prefect Flows: Individual pipeline definitions
-├── models/            # SQLModel class definitions (database tables)
-└── utils/             # Shared utility functions
+
+**4. Apply Database Migrations:**
+
+```bash
+docker-compose exec app alembic upgrade head
 ```
+
+**5. Run ETL Pipeline:**
+
+```bash
+docker-compose exec app python utils/run_pipeline.py
+```
+
+See `docs/DOCKER_WORKFLOW.md` and `docs/ETL_WORKFLOW.md` for detailed
+instructions.
+
+## Key Components
+
+### ETL Tasks
+
+**Extract:** Data extraction from Google Sheets or other sources
+
+- `extract/basic_sample_info.py`: Extract basic sample information
+- `extract/experiments.py`: Extract experiment data
+
+**Transform:** Data cleaning and transformation using pandas
+
+- `transform/products/primary_product.py`: Transform primary product data
+
+**Load:** Load transformed data into PostgreSQL
+
+- `load/products/primary_product.py`: Load primary products into database
+
+### Prefect Flows
+
+Orchestrated workflows that combine ETL tasks:
+
+- `flows/primary_product.py`: Primary product ETL flow
+- `flows/analysis_type.py`: Analysis type ETL flow
+
+### Utility Functions
+
+**`lookup_utils.py`**: Helper functions for foreign key relationships
+
+- `replace_id_with_name_df()`: Replace ID columns with names
+- `replace_name_with_id_df()`: Replace name columns with IDs (get or create)
+
+**`gsheet_to_pandas.py`**: Google Sheets to pandas DataFrame conversion
+
+**`run_pipeline.py`**: Master script to run all ETL flows
+
+## Dependencies
+
+Core dependencies (defined in `pyproject.toml`):
+
+- **ca-biositing-datamodels** >= 0.1.0: Shared database models
+- **pandas** >= 2.2.0: Data manipulation
+- **Prefect**: Workflow orchestration
+- **gspread** & **gspread-dataframe**: Google Sheets integration
+- **pyjanitor**: Data cleaning utilities
+- **google-auth-oauthlib**: Google authentication
+- **python-dotenv** >= 1.0.1: Environment variable management
+
+## Development
+
+### Code Quality
+
+Before committing changes, run pre-commit checks:
+
+```bash
+pixi run pre-commit run --files src/ca_biositing/pipeline/**/*
+```
+
+### Adding New ETL Pipelines
+
+1. **Extract:** Create extraction task in `etl/extract/`
+2. **Transform:** Create transformation task in `etl/transform/`
+3. **Load:** Create loading task in `etl/load/`
+4. **Flow:** Create Prefect flow in `flows/` that combines the tasks
+5. **Tests:** Add tests in `tests/`
+6. **Run:** Execute the flow
+
+See `etl/templates/` for template files and `docs/ETL_WORKFLOW.md` for detailed
+instructions.
+
+### Adding Database Models
+
+Database models are managed in the separate `ca-biositing-datamodels` package.
+See that package's documentation for adding new models.
+
+### Templates
+
+Template files are available in `etl/templates/` to help create new ETL modules
+following the project conventions.
+
+## Package Information
+
+- **Package Name**: `ca-biositing-pipeline`
+- **Version**: 0.1.0
+- **Python**: >= 3.12
+- **License**: BSD License
+- **Repository**: <https://github.com/uw-ssec/ca-biositing>
+
+## Contributing
+
+See the main project's `CONTRIBUTING.md` for guidelines on contributing to this
+package.

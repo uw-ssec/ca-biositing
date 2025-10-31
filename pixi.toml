@@ -10,7 +10,7 @@ platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
 version = "0.1.0"
 
 [environments]
-default = { features = ["datamodels"], solve-group = "default"}
+default = { features = ["datamodels", "pipeline"], solve-group = "default"}
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
 etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
 frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
@@ -44,7 +44,6 @@ pip = ">=25.2,<26"
 ipython = ">=9.6.0,<10"
 
 [tasks]
-pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
 
@@ -97,3 +96,6 @@ frontend-build   = { cmd = "npm run build", cwd = "frontend", description = "Bui
 
 [feature.datamodels.pypi-dependencies]
 ca-biositing-datamodels = {path = "./src/ca_biositing/datamodels", editable = true }
+
+[feature.pipeline.pypi-dependencies]
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }

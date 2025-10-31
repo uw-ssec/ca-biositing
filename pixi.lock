@@ -314,6 +314,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstandard-0.25.0-py312h5253ce2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: ./src/ca_biositing/datamodels
+      - pypi: ./src/ca_biositing/pipeline
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-2_gnu.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-49.0-unix_0.conda
@@ -621,6 +622,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/zstandard-0.25.0-py312hd41f8a7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/zstd-1.5.7-hbcf94c1_2.conda
       - pypi: ./src/ca_biositing/datamodels
+      - pypi: ./src/ca_biositing/pipeline
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-49.0-unix_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/aiohappyeyeballs-2.6.1-pyhd8ed1ab_0.conda
@@ -885,6 +887,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/zstandard-0.25.0-py312h01f6755_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/zstd-1.5.7-h8210216_2.conda
       - pypi: ./src/ca_biositing/datamodels
+      - pypi: ./src/ca_biositing/pipeline
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/adwaita-icon-theme-49.0-unix_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/aiohappyeyeballs-2.6.1-pyhd8ed1ab_0.conda
@@ -1149,6 +1152,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstandard-0.25.0-py312h37e1c23_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-h6491c7d_2.conda
       - pypi: ./src/ca_biositing/datamodels
+      - pypi: ./src/ca_biositing/pipeline
   etl:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
@@ -5404,6 +5408,21 @@ packages:
   - psycopg2>=2.9.9,<3
   - pydantic>=2.0.0
   - pydantic-settings>=2.0.0
+  requires_python: '>=3.12'
+  editable: true
+- pypi: ./src/ca_biositing/pipeline
+  name: ca-biositing-pipeline
+  version: 0.1.0
+  sha256: 2c5b46e66c8e7328375b49651f4a704e4dd00a1044ed8d1b80c8bdd815854e03
+  requires_dist:
+  - ca-biositing-datamodels>=0.1.0
+  - pandas>=2.2.0,<3
+  - prefect
+  - gspread
+  - gspread-dataframe
+  - pyjanitor
+  - google-auth-oauthlib
+  - python-dotenv>=1.0.1,<2
   requires_python: '>=3.12'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.10.5-hbd8a1cb_0.conda
