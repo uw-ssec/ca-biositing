@@ -4,11 +4,6 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# --- Add project root to python path ---
-# This allows alembic to find the 'src' package
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
 # --- Load environment variables from .env ---
 from dotenv import load_dotenv
 load_dotenv()  # Looks for .env in the project root by default

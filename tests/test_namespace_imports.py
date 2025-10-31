@@ -23,7 +23,7 @@ def test_model_imports():
     from ca_biositing.datamodels.experiments_analysis import AnalysisType
 
     assert FieldSample.__tablename__ == "field_samples"
-    assert PrimaryProduct.__tablename__ == "primary_products"
+    assert PrimaryProduct.__tablename__ == "primary_product"
     assert AnalysisType.__tablename__ == "analysis_types"
 
 

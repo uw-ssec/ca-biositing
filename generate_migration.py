@@ -4,9 +4,6 @@ import re
 import sys
 from collections import defaultdict
 
-# Add the src directory to the Python path for namespace packages
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-
 from ca_biositing.datamodels import biomass
 from ca_biositing.datamodels import data_and_references
 from ca_biositing.datamodels import experiments_analysis
