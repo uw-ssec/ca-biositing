@@ -37,7 +37,7 @@ jobs:
         with:
           pixi-version: v0.59.0
           environments: ${{ matrix.python-version }}
-          
+
       - name: Print pixi version
         run: pixi --version
 
