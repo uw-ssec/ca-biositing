@@ -9,7 +9,7 @@ components:
 
 - **`ca_biositing.datamodels`**: Shared SQLModel database models
 - **`ca_biositing.pipeline`**: ETL pipelines and Prefect workflows
-- **`ca_biositing.api`**: FastAPI application
+- **`ca_biositing.webservice`**: FastAPI application
 
 For details on the namespace package structure, see
 [NAMESPACE_MIGRATION_GUIDE.md](NAMESPACE_MIGRATION_GUIDE.md).
