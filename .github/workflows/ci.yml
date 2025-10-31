@@ -43,11 +43,11 @@ jobs:
 
       - name: Test ca_biositing.datamodels
         run: |
-          uv run pytest src/ca_biositing/datamodels --cov=ca_biositing.datamodels --cov-report=xml --cov-append --cov-report=term-missing
+          pixi run pytest src/ca_biositing/datamodels --cov=ca_biositing.datamodels --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Test ca_biositing.pipeline
         run: |
-          uv run pytest src/ca_biositing/pipeline --cov=ca_biositing.pipeline --cov-report=xml --cov-append --cov-report=term-missing
+          pixi run pytest src/ca_biositing/pipeline --cov=ca_biositing.pipeline --cov-report=xml --cov-append --cov-report=term-missing
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v5.5.1
