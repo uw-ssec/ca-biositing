@@ -9,6 +9,13 @@ name = "ca-biositing"
 platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
 version = "0.1.0"
 
+[environments]
+default = { features = ["datamodels"], solve-group = "default"}
+gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
+frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+
+
 [tasks.qgis]
 depends-on = [
     { task = "run-qgis", environment = "gis" }
@@ -33,6 +40,8 @@ google-auth-oauthlib = "*"
 prefect = "*"
 uvicorn = ">=0.30.0,<1"
 fastapi = ">=0.115.0,<1"
+pip = ">=25.2,<26"
+ipython = ">=9.6.0,<10"
 
 [tasks]
 pre-commit = "pre-commit run"
@@ -54,11 +63,6 @@ description = "Run all tests with coverage and HTML report"
 [tasks.submodule-frontend-init]
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
-
-[environments]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
-etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
-frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -90,3 +94,6 @@ nodejs = ">=18,<21"
 frontend-install = { cmd = "npm install", cwd = "frontend", description = "Install frontend dependencies." }
 frontend-dev     = { cmd = "npm run dev", cwd = "frontend", description = "Run frontend in development mode." }
 frontend-build   = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
+
+[feature.datamodels.pypi-dependencies]
+ca-biositing-datamodels = {path = "./src/ca_biositing/datamodels", editable = true }

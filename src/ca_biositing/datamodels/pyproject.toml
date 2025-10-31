@@ -7,8 +7,8 @@ name = "ca-biositing-datamodels"
 version = "0.1.0"
 description = "Data models for CA Biositing project"
 readme = "README.md"
-requires-python = ">=3.11"
-license = {file = "../../../LICENSE"}
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
 authors = [
     {name = "SSEC Team"},
 ]
@@ -35,4 +35,10 @@ Repository = "https://github.com/uw-ssec/ca-biositing.git"
 Issues = "https://github.com/uw-ssec/ca-biositing/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ca_biositing/datamodels"]
+only-include = ["ca_biositing"]
+
+[tool.hatch.version]
+path = "ca_biositing/datamodels/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["tests/"]
