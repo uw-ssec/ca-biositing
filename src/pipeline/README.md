@@ -119,9 +119,7 @@ Follow these steps to set up and run the project for the first time.
 
 **3. Build the Docker Image:**
 
-- From the project root directory, build the Docker image. You do not need to
-  activate the `pixi shell` for this, as the container manages its own
-  environment.
+- From the project root directory, build the Docker image.
 
   ```bash
   docker-compose build
@@ -143,7 +141,7 @@ Follow these steps to set up and run the project for the first time.
   migrations.
 
   ```bash
-  docker-compose exec app alembic upgrade head
+  docker-compose exec app pixi run alembic upgrade head
   ```
 
 The environment is now fully set up and running.
