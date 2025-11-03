@@ -9,6 +9,7 @@ docker-compose.yml
 
 # Python
 __pycache__/
+.pytest_cache/
 *.pyc
 *.pyo
 *.pyd
@@ -21,3 +22,11 @@ venv/
 # Other
 .idea/
 .vscode/
+.pixi/
+.ipynb_checkpoints/
+credentials.json
+frontend/
+.github/
+.devcontainer/
+alembic*
+*.ipynb

@@ -3,10 +3,14 @@ import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from pathlib import Path
+from dotenv import load_dotenv
+
+HERE = Path(__file__).parent.resolve()
+PROJECT_ROOT = HERE.parent.resolve()
 
 # --- Load environment variables from .env ---
-from dotenv import load_dotenv
-load_dotenv()  # Looks for .env in the project root by default
+load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
 from ca_biositing.datamodels.biomass import *

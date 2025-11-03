@@ -24,7 +24,7 @@ dynamic = ["version"]
 dependencies = [
     "sqlmodel>=0.0.19,<0.1",
     "alembic>=1.13.2,<2",
-    "psycopg2>=2.9.9,<3",
+    "psycopg2-binary>=2.9.6,<3",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
 ]
