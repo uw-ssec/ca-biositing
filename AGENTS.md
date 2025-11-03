@@ -89,23 +89,27 @@ command is idempotent and safe to run multiple times.
 ### Available Environments
 
 1. **`default`** (main development environment)
+
    - Standard development environment
    - Core packages: Python 3.12, pre-commit, pytest, pytest-cov, docker-compose
    - Use for: general development, running pre-commit checks, running tests,
      Docker orchestration
 
 2. **`gis`** (features: `qgis`, `raster`, `vector`)
+
    - Geospatial analysis environment
    - Includes: QGIS, rasterio, xarray, shapely, pyproj
    - Use for: geospatial analysis, QGIS workflows, working with raster/vector
      data
 
 3. **`etl`** (features: `datamodels`, `pipeline`)
+
    - ETL pipeline environment (used in Docker containers)
    - Includes: Prefect, SQLModel, pandas, Google Sheets API clients
    - Use for: running ETL workflows in Docker
 
 4. **`webservice`** (features: `datamodels`, `webservice`)
+
    - Web service environment
    - Includes: FastAPI, uvicorn, SQLModel
    - Use for: running the REST API
@@ -202,10 +206,10 @@ For detailed workflows, see:
 
 - **Resources Overview**: `resources/README.md`
 - **Resources AI Guide**: `resources/AGENTS.md`
-- **Docker Workflow**: `src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md`
-- **Prefect Workflow**: `src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md`
-- **ETL Development**: `src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md`
-- **Database Migrations**: `src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`
+- **Docker Workflow**: `docs/pipeline/DOCKER_WORKFLOW.md`
+- **Prefect Workflow**: `docs/pipeline/PREFECT_WORKFLOW.md`
+- **ETL Development**: `docs/pipeline/ETL_WORKFLOW.md`
+- **Database Migrations**: `docs/pipeline/ALEMBIC_WORKFLOW.md`
 
 ## Validated Commands & Workflows
 
@@ -262,6 +266,11 @@ pixi run qgis
 by Pixi tasks.**
 
 **Key concepts:**
+
+- **ETL Development Guide:** `docs/pipeline/ETL_WORKFLOW.md`
+- **Database Migrations Guide:** `docs/pipeline/ALEMBIC_WORKFLOW.md`
+- **Docker Guide:** `docs/pipeline/DOCKER_WORKFLOW.md`
+- **Google Cloud Setup:** `docs/pipeline/GCP_SETUP.md`
 
 - **Prefect Flows**: Orchestrate ETL pipelines with dependencies and retries
 - **Prefect Tasks**: Individual units of work (extract, transform, load)
@@ -361,6 +370,13 @@ ca-biositing/
 │       ├── prefect.yaml             # Deployment configuration
 │       ├── deploy.py                # Deployment script
 │       └── run_prefect_flow.py      # Master flow orchestration
+├── docs/
+│   └── pipeline/                 # This file - AI assistant guide
+│       ├── DOCKER_WORKFLOW.md       # Docker environment management guide
+│       ├── ALEMBIC_WORKFLOW.md      # Database migration guide
+│       ├── ETL_WORKFLOW.md          # ETL development guide
+│       ├── PREFECT_WORKFLOW.md
+│       └── GCP_SETUP.md             # Google Cloud setup for Sheets
 ├── src/
 │   └── ca_biositing/                # **NAMESPACE PACKAGE ROOT**
 │       ├── datamodels/              # **DATA MODELS PACKAGE**
@@ -396,12 +412,6 @@ ca-biositing/
 │       │   │       │   ├── analysis_type.py
 │       │   │       │   └── ...
 │       │   │       └── utils/               # Utilities
-│       │   ├── docs/                # Detailed guides
-│       │   │   ├── DOCKER_WORKFLOW.md
-│       │   │   ├── PREFECT_WORKFLOW.md
-│       │   │   ├── ETL_WORKFLOW.md
-│       │   │   ├── ALEMBIC_WORKFLOW.md
-│       │   │   └── GCP_SETUP.md
 │       │   └── tests/               # Pipeline tests
 │       └── webservice/              # **WEB SERVICE PACKAGE**
 │           ├── README.md            # API documentation
@@ -606,7 +616,7 @@ pixi run qgis
 **Solution:**
 
 1. Ensure `credentials.json` is in the correct location (project root)
-2. Follow the complete setup: `src/ca_biositing/pipeline/docs/GCP_SETUP.md`
+2. Follow the complete setup: `docs/pipeline/GCP_SETUP.md`
 3. Check `resources/docker/.env` file has correct configuration
 4. Verify service account has access to the Google Sheets
 

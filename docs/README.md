@@ -314,6 +314,24 @@ pixi run service-logs
 pixi run rebuild-services
 ```
 
+## 📘 Documentation
+
+This project uses [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) for documentation.
+
+### Local Preview
+
+You can preview the documentation locally using [Pixi](https://pixi.sh/):
+
+```bash
+pixi install -e docs
+pixi run -e docs docs-serve
+```
+
+Then open your browser and go to:
+```
+http://127.0.0.1:8000
+```
+
 ### Database Issues
 
 ```bash

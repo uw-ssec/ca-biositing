@@ -189,7 +189,11 @@ description = "Run all tests with coverage and HTML report"
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
 
-# GIS Dependencies
+[environments]
+gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
+frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -252,3 +256,16 @@ depends-on = [{ task = "start-services" }]
 # Webservice Dependencies
 [feature.webservice.pypi-dependencies]
 ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
+
+[feature.docs.dependencies]
+mkdocs = "*"
+mkdocs-material = "*"
+mkdocs-git-revision-date-localized-plugin = "*"
+pip = "*"
+
+[feature.docs.pypi-dependencies]
+mkdocs-awesome-pages-plugin = "*"
+
+[feature.docs.tasks]
+docs-serve = { cmd = "mkdocs serve", description = "Run MkDocs locally for previewing documentation." }
+docs-build = { cmd = "mkdocs build", description = "Build static documentation site." }
