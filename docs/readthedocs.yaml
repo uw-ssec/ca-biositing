@@ -5,7 +5,8 @@ build:
   tools:
     python: "3.10"
   commands:
-    - pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-awesome-pages-plugin
+    - pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+      mkdocs-awesome-pages-plugin
     - mkdocs build
 
 mkdocs:
