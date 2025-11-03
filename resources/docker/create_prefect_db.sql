@@ -1,5 +1,5 @@
 -- Create Prefect database for workflow orchestration
--- This database is used by Prefect server to store workflow metadata, 
+-- This database is used by Prefect server to store workflow metadata,
 -- run history, and task state information.
 --
 -- Usage:

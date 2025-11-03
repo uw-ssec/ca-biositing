@@ -28,30 +28,30 @@ def main():
         help="Path to the .env file (default: .env in the script's directory)",
     )
     args = parser.parse_args()
-    
+
     # Load .env file from the specified path
     env_path = args.env_file
-    
+
     if not env_path.exists():
         print(f"Error: .env file not found at {env_path}")
         return 1
-    
+
     # Load environment variables from .env file
     load_dotenv(env_path)
-    
+
     # Display deployment name
     print(f"Deployment name: {args.deployment_name}")
-    
+
     # Get PREFECT_API_URL from environment
     prefect_api_url = os.getenv("PREFECT_API_URL")
-    
+
     if prefect_api_url:
         print(f"PREFECT_API_URL from .env file: {prefect_api_url}")
     else:
         print("PREFECT_API_URL not found in environment variables")
-    
+
     return_code = -1
-    
+
     while return_code != 0:
         # Also run the shell command to echo $PREFECT_API_URL
         print("\nDeploying with Prefect...")
@@ -62,7 +62,7 @@ def main():
             text=True,
             env=os.environ.copy()
         )
-        
+
         stdout_result = result.stdout.strip()
         return_code = result.returncode
         if return_code == 0:
@@ -74,7 +74,7 @@ def main():
             print(stdout_result)
             print("Waiting for 5 seconds before retrying...")
             time.sleep(5)
-    
+
     return 0
 
 
