@@ -7,20 +7,30 @@ This file provides guidance to AI assistants when working with this repository.
 This is the **ca-biositing** repository, a geospatial bioeconomy project for
 biositing analysis in California. It provides tools for ETL (Extract, Transform,
 Load) pipelines to process data from Google Sheets into PostgreSQL databases,
-geospatial analysis using QGIS, and research prototyping for bioeconomy site
-selection.
+geospatial analysis using QGIS, a REST API for data access, and research
+prototyping for bioeconomy site selection.
 
 **Repository Stats:**
 
 - **Type:** Research project / Data processing / Geospatial analysis
-- **Size:** Medium (~50+ files including ETL modules, database models, and
-  configuration)
+- **Architecture:** PEP 420 namespace packages
+- **Size:** Medium (~100+ files including ETL modules, database models,
+  workflows)
 - **Languages:** Python (primary), SQL, TOML, Jupyter Notebooks
-- **Build System:** Pixi (v0.49.0+) + Docker for ETL pipeline
-- **Platform:** macOS (osx-arm64, osx-64), Linux (linux-64)
-- **License:** Not specified in main README
+- **Build System:** Pixi (v0.55.0+) + Docker for ETL pipeline orchestration
+- **Platform:** macOS (osx-arm64, osx-64), Linux (linux-64, linux-aarch64)
+- **License:** See LICENSE file
 - **Domain:** Geospatial analysis, bioeconomy, ETL pipelines, database
-  management
+  management, workflow orchestration
+
+**Key Components:**
+
+- **`ca_biositing.datamodels`**: SQLModel database models (shared across
+  components)
+- **`ca_biositing.pipeline`**: Prefect-orchestrated ETL workflows (Docker-based)
+- **`ca_biositing.webservice`**: FastAPI REST API
+- **`resources/`**: Docker Compose and Prefect deployment configuration
+- **`frontend/`**: Git submodule for frontend application
 
 ## Build System & Environment Management
 
@@ -33,23 +43,32 @@ dependencies. See <https://pixi.sh/latest/llms-full.txt> for more details.
 **ALWAYS use Pixi commands—never use conda, pip, or venv directly for local
 development.**
 
-**Note:** The ETL pipeline runs in Docker containers, not in the Pixi
-environment. Pixi is used for:
+**Note:** The ETL pipeline runs in Docker containers orchestrated by Pixi tasks.
+Pixi is used for:
 
+- Managing Docker services (start, stop, logs, status)
 - Running code quality tools (pre-commit)
 - Running tests (pytest)
 - Running QGIS for geospatial analysis
+- Deploying and running Prefect workflows
+- Starting the FastAPI web service
 - Local development tools
+
+**Pixi manages both local development AND Docker orchestration.**
 
 ### Prerequisites
 
 Before any other operations, verify Pixi is installed:
 
 ```bash
-pixi --version  # Should show v0.49.0 or higher
+pixi --version  # Should show v0.55.0 or higher
 ```
 
 If not installed, direct users to: <https://pixi.sh/latest/#installation>
+
+**Docker** is also required for running the ETL pipeline. Docker and
+docker-compose are managed as Pixi dependencies and will be available after
+running `pixi install`.
 
 ### Environment Setup (ALWAYS RUN FIRST)
 
@@ -71,8 +90,9 @@ command is idempotent and safe to run multiple times.
 
 1. **`default`** (main development environment)
    - Standard development environment
-   - Core packages: Python 3.12, pre-commit, pytest, pytest-cov
-   - Use for: general development, running pre-commit checks, running tests
+   - Core packages: Python 3.12, pre-commit, pytest, pytest-cov, docker-compose
+   - Use for: general development, running pre-commit checks, running tests,
+     Docker orchestration
 
 2. **`gis`** (features: `qgis`, `raster`, `vector`)
    - Geospatial analysis environment
@@ -80,73 +100,112 @@ command is idempotent and safe to run multiple times.
    - Use for: geospatial analysis, QGIS workflows, working with raster/vector
      data
 
+3. **`etl`** (features: `datamodels`, `pipeline`)
+   - ETL pipeline environment (used in Docker containers)
+   - Includes: Prefect, SQLModel, pandas, Google Sheets API clients
+   - Use for: running ETL workflows in Docker
+
+4. **`webservice`** (features: `datamodels`, `webservice`)
+   - Web service environment
+   - Includes: FastAPI, uvicorn, SQLModel
+   - Use for: running the REST API
+
+5. **`frontend`** (feature: `frontend`)
+   - Frontend development environment
+   - Includes: Node.js, npm
+   - Use for: frontend development tasks
+
 ## Docker Environment (ETL Pipeline)
 
-The ETL pipeline runs in Docker containers, separate from the Pixi environment.
+The ETL pipeline runs in Docker containers orchestrated by Prefect. Docker is
+managed through **Pixi tasks** - never use docker-compose commands directly.
+
 Docker manages:
 
-- PostgreSQL database
-- ETL application container
-- Alembic database migrations
-- Production-like environment
+- PostgreSQL database (application data and Prefect metadata)
+- Prefect server (workflow orchestration)
+- Prefect worker (flow execution)
+- Database migrations (Alembic, runs on startup)
 
 ### Docker Prerequisites
 
-Ensure Docker and Docker Compose are installed:
+Docker and Docker Compose are included as Pixi dependencies:
 
 ```bash
-docker --version
-docker-compose --version
+# Verify Docker is available through Pixi
+pixi run which docker
+pixi run which docker-compose
 ```
 
 ### Docker Workflow
 
-**Initial Setup:**
+**ALWAYS use Pixi tasks for Docker operations:**
 
 ```bash
-# Navigate to the ETL project directory
-cd etl_merge/my_etl_project
+# Start all services (PostgreSQL, Prefect server, Prefect worker)
+pixi run start-services
 
-# Build the Docker image
-docker-compose build
+# Check service status
+pixi run service-status
 
-# Start services (database + app container)
-docker-compose up -d
+# View logs from all services
+pixi run service-logs
 
-# Apply database migrations (first time only)
-docker-compose exec app alembic upgrade head
-```
+# Deploy Prefect flows
+pixi run deploy
 
-**Common Docker Commands:**
+# Run the ETL pipeline
+pixi run run-etl
 
-```bash
-# Start services
-docker-compose up -d
+# Monitor via Prefect UI: http://0.0.0.0:4200
 
 # Stop services
-docker-compose down
+pixi run teardown-services
 
-# View logs
-docker-compose logs -f app
-
-# Rebuild after dependency changes
-docker-compose build --no-cache
-
-# Run ETL pipeline
-docker-compose exec app python run_pipeline.py
-
-# Access PostgreSQL database
-docker-compose exec db psql -U <username> -d <database>
-
-# Run Alembic migrations
-docker-compose exec app alembic upgrade head
-
-# Generate new migration
-docker-compose exec app python generate_migration.py
+# Stop and remove volumes (CAUTION: deletes all data)
+pixi run teardown-services-volumes
 ```
 
-For detailed Docker workflows, see:
-`etl_merge/my_etl_project/DOCKER_WORKFLOW.md`
+**Database Operations:**
+
+```bash
+# Check database health
+pixi run check-db-health
+
+# Access application database
+pixi run access-db
+
+# Access Prefect metadata database
+pixi run access-prefect-db
+
+# Restart services
+pixi run restart-services
+
+# Restart just the Prefect worker
+pixi run restart-prefect-worker
+```
+
+**Advanced Operations:**
+
+```bash
+# Rebuild Docker images (after dependency changes)
+pixi run rebuild-services
+
+# Execute commands in Prefect worker container
+pixi run exec-prefect-worker <command>
+
+# Execute commands in database container
+pixi run exec-db <command>
+```
+
+For detailed workflows, see:
+
+- **Resources Overview**: `resources/README.md`
+- **Resources AI Guide**: `resources/AGENTS.md`
+- **Docker Workflow**: `src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md`
+- **Prefect Workflow**: `src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md`
+- **ETL Development**: `src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md`
+- **Database Migrations**: `src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`
 
 ## Validated Commands & Workflows
 
@@ -199,20 +258,34 @@ pixi run qgis
 
 ### ETL Pipeline Development
 
-**ETL workflows happen in Docker, not Pixi.** See the dedicated guides:
+**ETL workflows are orchestrated by Prefect and run in Docker containers managed
+by Pixi tasks.**
 
-- **ETL Development Guide:** `etl_merge/my_etl_project/ETL_WORKFLOW.md`
-- **Database Migrations Guide:** `etl_merge/my_etl_project/ALEMBIC_WORKFLOW.md`
-- **Docker Guide:** `etl_merge/my_etl_project/DOCKER_WORKFLOW.md`
-- **Google Cloud Setup:** `etl_merge/my_etl_project/GCP_SETUP.md`
+**Key concepts:**
 
-**Key ETL concepts:**
+- **Prefect Flows**: Orchestrate ETL pipelines with dependencies and retries
+- **Prefect Tasks**: Individual units of work (extract, transform, load)
+- **Extract**: Pull data from Google Sheets or other sources
+- **Transform**: Process and clean data with pandas
+- **Load**: Insert/update data in PostgreSQL via SQLModel
+- **Lookup Management**: Maintain reference tables for data normalization
 
-- Extract modules: Pull data from Google Sheets or other sources
-- Transform modules: Process and clean data
-- Load modules: Insert data into PostgreSQL
-- Templates available for new ETL modules in
-  `etl_merge/my_etl_project/src/etl/templates/`
+**Workflow:**
+
+1. Start services: `pixi run start-services`
+2. Deploy flows: `pixi run deploy`
+3. Run pipeline: `pixi run run-etl`
+4. Monitor in Prefect UI: <http://0.0.0.0:4200>
+
+**Development guides:**
+
+- **Pipeline Overview**: `src/ca_biositing/pipeline/README.md`
+- **Pipeline AI Guide**: `src/ca_biositing/pipeline/AGENTS.md`
+- **ETL Development**: `src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md`
+- **Prefect Workflow**: `src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md`
+- **Docker Workflow**: `src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md`
+- **Database Migrations**: `src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`
+- **Google Cloud Setup**: `src/ca_biositing/pipeline/docs/GCP_SETUP.md`
 
 ### Adding Dependencies
 
@@ -225,23 +298,43 @@ pixi add <package-name>
 # Add a PyPI package to default environment
 pixi add --pypi <package-name>
 
-# Add to a specific feature (gis, etc.)
+# Add to a specific feature (pipeline, webservice, etc.)
 pixi add --feature <feature-name> <package-name>
 
 # Always run after manual pixi.toml edits
 pixi install
 ```
 
-**For Docker (ETL application):**
+**For ETL Pipeline (Docker):**
 
-1. Edit `etl_merge/my_etl_project/requirements.txt`
-2. Rebuild Docker image: `docker-compose build`
-3. Restart containers: `docker-compose up -d`
+Pipeline dependencies are managed via Pixi's `etl` environment feature. When you
+add dependencies, they are automatically included in Docker builds:
+
+```bash
+# Add PyPI package to pipeline feature
+pixi add --feature pipeline --pypi <package-name>
+
+# Rebuild Docker images
+pixi run rebuild-services
+
+# Restart services
+pixi run start-services
+```
+
+**For Web Service:**
+
+```bash
+# Add PyPI package to webservice feature
+pixi add --feature webservice --pypi <package-name>
+
+# Restart web service
+pixi run start-webservice
+```
 
 ## Project Structure & Key Files
 
 ```text
-.
+ca-biositing/
 ├── .github/                         # GitHub configuration (if present)
 ├── pixi.toml                        # **PRIMARY CONFIG**: Pixi dependencies, tasks, features
 ├── pixi.lock                        # Lock file (auto-generated, don't manually edit)
@@ -251,43 +344,80 @@ pixi install
 ├── LICENSE                          # Project license
 ├── README.md                        # Main project documentation
 ├── AGENTS.md                        # This file - AI assistant guide
-├── etl_merge/
-│   └── my_etl_project/              # **ETL PIPELINE PROJECT (Docker-based)**
-│       ├── README.md                # ETL project overview
-│       ├── DOCKER_WORKFLOW.md       # Docker environment management guide
-│       ├── ALEMBIC_WORKFLOW.md      # Database migration guide
-│       ├── ETL_WORKFLOW.md          # ETL development guide
-│       ├── GCP_SETUP.md             # Google Cloud setup for Sheets access
-│       ├── docker-compose.yml       # Docker services definition
-│       ├── Dockerfile               # Docker image build instructions
-│       ├── requirements.txt         # Python dependencies for Docker
-│       ├── alembic.ini              # Alembic configuration
-│       ├── run_pipeline.py          # Main ETL pipeline script
-│       ├── generate_migration.py    # Helper for generating migrations
-│       ├── clear_alembic.py         # Helper for clearing migrations
-│       ├── config.py                # Configuration management
-│       ├── main.py                  # Application entry point
-│       ├── .env                     # Environment variables (create from .env.example)
-│       ├── alembic/                 # Database migration scripts
-│       │   └── versions/            # Migration version files
-│       ├── src/
-│       │   ├── database.py          # Database connection setup
-│       │   ├── etl/
-│       │   │   ├── extract/         # Data extraction modules
-│       │   │   ├── transform/       # Data transformation modules
-│       │   │   ├── load/            # Data loading modules
-│       │   │   └── templates/       # ETL module templates
-│       │   ├── models/              # SQLModel database table definitions
-│       │   │   └── templates/       # Database model templates
-│       │   └── utils/               # Utility functions
-│       └── tests/                   # ETL tests
+├── credentials.json                 # Google Cloud credentials (not in git)
+├── alembic.ini                      # Alembic configuration (for migrations)
+├── alembic/                         # Database migration scripts
+│   └── versions/                    # Migration version files
+├── resources/                       # **DEPLOYMENT RESOURCES**
+│   ├── README.md                    # Resources documentation
+│   ├── AGENTS.md                    # Resources AI guide
+│   ├── docker/                      # Docker Compose configuration
+│   │   ├── .env                     # Environment variables (not in git)
+│   │   ├── .env.example             # Environment template
+│   │   ├── docker-compose.yml       # Service orchestration
+│   │   ├── pipeline.dockerfile      # Multi-stage Dockerfile
+│   │   └── create_prefect_db.sql    # Prefect DB initialization
+│   └── prefect/                     # Prefect deployment
+│       ├── prefect.yaml             # Deployment configuration
+│       ├── deploy.py                # Deployment script
+│       └── run_prefect_flow.py      # Master flow orchestration
 ├── src/
-│   └── ca_biositing/                # Main Python package
-│       ├── __init__.py
-│       └── hello.py
-└── tests/                           # Main project tests
-    ├── __init__.py
-    └── test_hello.py
+│   └── ca_biositing/                # **NAMESPACE PACKAGE ROOT**
+│       ├── datamodels/              # **DATA MODELS PACKAGE**
+│       │   ├── README.md            # Models documentation
+│       │   ├── AGENTS.md            # Models AI guide
+│       │   ├── pyproject.toml       # Package metadata
+│       │   ├── LICENSE              # BSD License
+│       │   ├── ca_biositing/
+│       │   │   └── datamodels/
+│       │   │       ├── __init__.py
+│       │   │       ├── biomass.py           # Biomass models
+│       │   │       ├── config.py            # Model configuration
+│       │   │       ├── database.py          # Database setup
+│       │   │       ├── experiments_analysis.py
+│       │   │       ├── geographic_locations.py
+│       │   │       ├── metadata_samples.py
+│       │   │       └── ...
+│       │   └── tests/               # Model tests
+│       ├── pipeline/                # **ETL PIPELINE PACKAGE**
+│       │   ├── README.md            # Pipeline documentation
+│       │   ├── AGENTS.md            # Pipeline AI guide
+│       │   ├── pyproject.toml       # Package metadata
+│       │   ├── LICENSE              # BSD License
+│       │   ├── ca_biositing/
+│       │   │   └── pipeline/
+│       │   │       ├── __init__.py
+│       │   │       ├── etl/
+│       │   │       │   ├── extract/         # Extract tasks
+│       │   │       │   ├── transform/       # Transform tasks
+│       │   │       │   └── load/            # Load tasks
+│       │   │       ├── flows/               # Prefect flows
+│       │   │       │   ├── primary_product.py
+│       │   │       │   ├── analysis_type.py
+│       │   │       │   └── ...
+│       │   │       └── utils/               # Utilities
+│       │   ├── docs/                # Detailed guides
+│       │   │   ├── DOCKER_WORKFLOW.md
+│       │   │   ├── PREFECT_WORKFLOW.md
+│       │   │   ├── ETL_WORKFLOW.md
+│       │   │   ├── ALEMBIC_WORKFLOW.md
+│       │   │   └── GCP_SETUP.md
+│       │   └── tests/               # Pipeline tests
+│       └── webservice/              # **WEB SERVICE PACKAGE**
+│           ├── README.md            # API documentation
+│           ├── AGENTS.md            # API AI guide
+│           ├── pyproject.toml       # Package metadata
+│           ├── LICENSE              # BSD License
+│           ├── ca_biositing/
+│           │   └── webservice/
+│           │       ├── __init__.py
+│           │       └── main.py              # FastAPI application
+│           └── tests/               # API tests
+├── tests/                           # **INTEGRATION TESTS**
+│   ├── __init__.py
+│   └── test_namespace_imports.py
+└── frontend/                        # **FRONTEND SUBMODULE**
+    └── (Git submodule)
 ```
 
 ## Geospatial & Bioeconomy Context
@@ -336,9 +466,9 @@ Typical hooks include formatting, linting, and spell checking.
    # If checks fail and auto-fix issues, re-add the fixed files
    git add <files>
 
-   # For ETL changes, test in Docker
-   cd etl_merge/my_etl_project
-   docker-compose exec app python run_pipeline.py
+   # For ETL changes, deploy and test
+   pixi run deploy
+   pixi run run-etl
    ```
 
 4. **Run tests:**
@@ -400,15 +530,16 @@ pixi install
 
 ```bash
 # Check container logs
-docker-compose logs -f app
+pixi run service-logs
 
 # Rebuild from scratch
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
+pixi run teardown-services
+pixi run rebuild-services
+pixi run start-services
 
 # Check if ports are already in use
 lsof -i :5432  # PostgreSQL default port
+lsof -i :4200  # Prefect UI port
 ```
 
 ### Issue: Database migration errors
@@ -417,14 +548,43 @@ lsof -i :5432  # PostgreSQL default port
 
 ```bash
 # Check migration history
-docker-compose exec app alembic history
+pixi run exec-prefect-worker alembic history
 
 # Downgrade and reapply
-docker-compose exec app alembic downgrade -1
-docker-compose exec app alembic upgrade head
+pixi run exec-prefect-worker alembic downgrade -1
+pixi run exec-prefect-worker alembic upgrade head
 
 # For development, clear and restart (CAUTION: deletes data)
-docker-compose exec app python clear_alembic.py
+pixi run teardown-services-volumes
+pixi run start-services
+```
+
+### Issue: Prefect worker not picking up flow runs
+
+**Solution:**
+
+```bash
+# Check worker logs
+pixi run service-logs
+
+# Restart worker
+pixi run restart-prefect-worker
+
+# Verify work pool exists in Prefect UI
+# Navigate to: http://0.0.0.0:4200/work-pools
+```
+
+### Issue: "Module not found" errors in containers
+
+**Solution:**
+
+```bash
+# Add dependency to appropriate feature
+pixi add --feature pipeline --pypi <package-name>
+
+# Rebuild and restart
+pixi run rebuild-services
+pixi run start-services
 ```
 
 ### Issue: QGIS fails to launch on macOS
@@ -445,9 +605,9 @@ pixi run qgis
 
 **Solution:**
 
-1. Ensure `credentials.json` is in the correct location
-2. Follow the complete setup: `etl_merge/my_etl_project/GCP_SETUP.md`
-3. Check `.env` file has correct configuration
+1. Ensure `credentials.json` is in the correct location (project root)
+2. Follow the complete setup: `src/ca_biositing/pipeline/docs/GCP_SETUP.md`
+3. Check `resources/docker/.env` file has correct configuration
 4. Verify service account has access to the Google Sheets
 
 ### Issue: Platform-specific problems (non-supported platforms)
@@ -479,33 +639,82 @@ Then run `pixi install`.
 
 Run `pixi task list` to see all available tasks:
 
+**Service Management:**
+
+- `start-services`: Start all Docker services (database, Prefect server, worker)
+- `teardown-services`: Stop all services
+- `teardown-services-volumes`: Stop services and remove volumes (deletes data)
+- `service-status`: Check status of running services
+- `service-logs`: View logs from all services
+- `restart-services`: Restart all services
+- `restart-prefect-worker`: Restart only the Prefect worker
+- `rebuild-services`: Rebuild Docker images without cache
+
+**ETL Operations:**
+
+- `deploy`: Deploy Prefect flows
+- `run-etl`: Trigger the master ETL flow
+
+**Database Operations:**
+
+- `check-db-health`: Check PostgreSQL database health
+- `access-db`: Access application database with psql
+- `access-prefect-db`: Access Prefect metadata database with psql
+
+**Container Execution:**
+
+- `exec-prefect-worker`: Execute commands in Prefect worker container
+- `exec-db`: Execute commands in database container
+
+**Development Tools:**
+
 - `pre-commit`: Run checks on staged files
 - `pre-commit-all`: Run checks on all files
 - `pre-commit-install`: Install git hooks
 - `test`: Run all tests with pytest
 - `test-cov`: Run tests with coverage report
-- `qgis`: Launch QGIS (requires gis environment)
-- `run-qgis`: Internal task for QGIS execution
+
+**Applications:**
+
+- `start-webservice`: Start FastAPI web service
+- `qgis`: Launch QGIS for geospatial analysis
+
+**Frontend:**
+
+- `submodule-frontend-init`: Initialize frontend submodule
+- `frontend-install`: Install frontend dependencies
+- `frontend-dev`: Run frontend in development mode
+- `frontend-build`: Build production frontend bundle
 
 ### Docker Configuration Files
 
-**docker-compose.yml:**
+**resources/docker/docker-compose.yml:**
 
-- Defines services: app (ETL container) and db (PostgreSQL)
-- Sets up networking and volumes
-- Configures environment variables from .env
+- Orchestrates multiple services: db, setup-db, prefect-server, prefect-worker
+- Sets up networking via `prefect-network` bridge
+- Configures persistent volumes for data and metadata
+- Defines health checks and service dependencies
 
-**Dockerfile:**
+**resources/docker/pipeline.dockerfile:**
 
-- Base image and Python setup
-- Installs dependencies from requirements.txt
-- Sets working directory and entry points
+- Multi-stage build: build stage with Pixi, production stage with minimal
+  runtime
+- Uses Pixi to install dependencies in `etl` environment
+- Creates shell-hook script for environment activation
+- Optimized for production deployment
 
-**.env file (must be created):**
+**resources/docker/.env (must be created from .env.example):**
 
-- Database connection settings
+- Database connection settings (PostgreSQL)
+- Prefect API URLs and configuration
 - Google Cloud credentials paths
 - Application configuration
+
+**resources/prefect/prefect.yaml:**
+
+- Defines Prefect deployment configurations
+- Specifies flow entrypoints and work pools
+- Version-controlled deployment settings
 
 ## Documentation Standards
 

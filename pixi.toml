@@ -50,6 +50,108 @@ teardown-services = { cmd = [
     "resources/docker/docker-compose.yml",
     "down",
 ], description = "Teardown services started by Docker Compose." }
+teardown-services-volumes = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "down",
+    "-v",
+], description = "Teardown services and remove volumes (deletes all data)." }
+service-status = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "ps",
+], description = "Check status of running services." }
+service-logs = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "logs",
+    "-f",
+], description = "View logs from all services." }
+rebuild-services = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "build",
+    "--no-cache",
+], description = "Rebuild Docker images without cache." }
+exec-prefect-worker = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+], description = "Execute commands in the Prefect worker container. Usage: pixi run exec-prefect-worker <command>" }
+exec-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+], description = "Execute commands in the database container. Usage: pixi run exec-db <command>" }
+run-etl = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+    "/bin/bash",
+    "-c",
+    "source /shell-hook.sh && prefect deployment run 'Master ETL Flow/master-etl-deployment'",
+], description = "Trigger the master ETL flow deployment.", depends-on = [
+    "start-services",
+] }
+check-db-health = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "pg_isready",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "biocirv_db",
+], description = "Check PostgreSQL database health." }
+access-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "psql",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "biocirv_db",
+], description = "Access the application database with psql." }
+access-prefect-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "psql",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "prefect_db",
+], description = "Access the Prefect metadata database with psql." }
+restart-services = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "restart",
+], description = "Restart all services." }
+restart-prefect-worker = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "restart",
+    "prefect-worker",
+], description = "Restart the Prefect worker service." }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
