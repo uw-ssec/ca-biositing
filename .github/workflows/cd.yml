@@ -21,7 +21,7 @@ env:
 
 jobs:
   dist:
-    name: Distribution build {{ matrix.package }}
+    name: Distribution build (${{ matrix.package }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,8 +33,8 @@ jobs:
       - name: Check datamodels build
         uses: hynek/build-and-inspect-python-package@v2
         with:
-          path: src/ca_biositing/{{ matrix.package }}
-          upload-name-suffix: -{{ matrix.package }}
+          path: src/ca_biositing/${{ matrix.package }}
+          upload-name-suffix: -${{ matrix.package }}
 # Uncomment to enable PyPI publishing on release
 #   publish:
 #     needs: [dist]
