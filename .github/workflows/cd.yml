@@ -21,9 +21,11 @@ env:
 
 jobs:
   dist:
-    name: Distribution build
+    name: Distribution build {{ matrix.package }}
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        package: [datamodels, pipeline, webservice]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -31,37 +33,26 @@ jobs:
       - name: Check datamodels build
         uses: hynek/build-and-inspect-python-package@v2
         with:
-          path: src/ca_biositing/datamodels
-          upload-name-suffix: -datamodels
+          path: src/ca_biositing/{{ matrix.package }}
+          upload-name-suffix: -{{ matrix.package }}
+# Uncomment to enable PyPI publishing on release
+#   publish:
+#     needs: [dist]
+#     name: Publish to PyPI
+#     environment: pypi
+#     permissions:
+#       id-token: write
+#     runs-on: ubuntu-latest
+#     if: github.event_name == 'release' && github.event.action == 'published'
 
-      - name: Check pipeline build
-        uses: hynek/build-and-inspect-python-package@v2
-        with:
-          path: src/ca_biositing/pipeline
-          upload-name-suffix: -pipeline
-      - name: Check webservice build
-        uses: hynek/build-and-inspect-python-package@v2
-        with:
-          path: src/ca_biositing/webservice
-          upload-name-suffix: -webservice
+#     steps:
+#       - uses: actions/download-artifact@v6
+#         with:
+#           name: Packages
+#           path: dist
 
-  publish:
-    needs: [dist]
-    name: Publish to PyPI
-    environment: pypi
-    permissions:
-      id-token: write
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
-
-    steps:
-      - uses: actions/download-artifact@v6
-        with:
-          name: Packages
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          # Remember to tell (test-)pypi about this repo before publishing
-          # Remove this line to publish to PyPI
-          repository-url: https://test.pypi.org/legacy/
+#       - uses: pypa/gh-action-pypi-publish@release/v1
+#         with:
+#           # Remember to tell (test-)pypi about this repo before publishing
+#           # Remove this line to publish to PyPI
+#           repository-url: https://test.pypi.org/legacy/
