@@ -18,13 +18,60 @@ systematic and version-controlled way.
 
 ---
 
+### Generating an Initial Migration
+
+If you need to generate a completely new initial migration (e.g., starting fresh
+or after major model changes), follow this procedure using the `setup-db` service:
+
+**Step 1: Reset the Environment**
+
+Completely tear down services and remove all data:
+
+```bash
+pixi run teardown-services-volumes
+```
+
+**Step 2: Remove Old Migration Files**
+
+Clear the existing migration history:
+
+```bash
+rm alembic/versions/*.py
+```
+
+**Step 3: Generate the Initial Migration**
+
+Use the `setup-db` service to generate the migration. This service has the
+proper environment and file access needed for Alembic:
+
+```bash
+docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic revision --autogenerate -m "Initial migration"
+```
+
+**Note:** The `setup-db` service is specifically designed for database
+initialization and migrations. It has access to all model files and the
+correct Python path configuration.
+
+**Step 4: Apply the Migration**
+
+Start the services. The `setup-db` service will automatically apply the newly
+created migration upon startup:
+
+```bash
+pixi run start-services
+```
+
+The database schema is now initialized with your current models.
+
+---
+
 ### The Migration Workflow
 
 This is the standard process to follow whenever you make a change to your
-database models (the files in `src/models/`).
+database models (the files in `ca_biositing/datamodels/`).
 
-**Important:** All Alembic commands must be run _inside_ the `app` container to
-ensure they have access to the database and the correct Python environment.
+**Important:** All Alembic commands should be run using the `setup-db` service
+to ensure they have access to the database and the correct Python environment.
 
 **Step 1: Modify Your SQLModel Classes**
 
@@ -46,28 +93,33 @@ to inspect your models, compare them to the database schema, and generate a new
 migration script in the `alembic/versions` directory.
 
 ```bash
-docker-compose exec app pixi run alembic revision --autogenerate -m "A descriptive message about your changes"
+docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic revision --autogenerate -m "A descriptive message about your changes"
 ```
 
-- `docker-compose ... exec app`: Executes the command inside the `app` container
-  as defined in your `docker-compose.yml` file.
-- `pixi run alembic ...`: Ensures the command is run with the correct Python
-  environment managed by Pixi.
+- `docker-compose ... run --rm setup-db`: Executes the command inside the
+  `setup-db` service which has proper access to model files and database
+- `--rm`: Removes the container after the command completes
 - `-m "..."`: A required message describing what the migration does (e.g., "Add
-  user_email column to users table").
+  user_email column to users table")
 
 **Step 3: Apply the Migration**
 
 After the migration script is generated, you need to apply it to the database.
-This is the step that actually runs the `ALTER TABLE` commands and changes the
-database schema.
+The easiest way is to restart services, which will automatically apply migrations:
 
 ```bash
-docker-compose exec app pixi run alembic upgrade head
+pixi run teardown-services
+pixi run start-services
+```
+
+Alternatively, you can manually apply migrations:
+
+```bash
+docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic upgrade head
 ```
 
 - `alembic upgrade head`: Applies all migrations up to the latest version
-  (`head`).
+  (`head`)
 
 Your database schema now matches your SQLModel definitions. You can verify the
 changes by connecting to the database or by inspecting the `alembic_version`
@@ -113,8 +165,8 @@ If you need to undo a migration, you can downgrade it.
 
 ```bash
 # Downgrade by one version
-docker-compose exec app pixi run alembic downgrade -1
+docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic downgrade -1
 
 # Downgrade to a specific version
-docker-compose exec app pixi run alembic downgrade <version_number>
+docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic downgrade <version_number>
 ```

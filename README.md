@@ -59,6 +59,15 @@ pixi run pre-commit-install
 
 #### ETL Pipeline (Prefect + Docker)
 
+**Note**: Before starting the services for the first time, create the required
+environment file from the template:
+
+```bash
+cp resources/docker/.env.example resources/docker/.env
+```
+
+Then start and use the services:
+
 ```bash
 # Start services (PostgreSQL, Prefect server, worker)
 pixi run start-services
@@ -69,7 +78,7 @@ pixi run deploy
 # Run the ETL pipeline
 pixi run run-etl
 
-# Monitor via Prefect UI: http://0.0.0.0:4200
+# Monitor via Prefect UI: http://localhost:4200
 
 # Stop services
 pixi run teardown-services

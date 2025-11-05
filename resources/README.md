@@ -85,7 +85,7 @@ pixi run run-etl
 
 ### Monitoring
 
-Access the Prefect UI at: [http://0.0.0.0:4200](http://0.0.0.0:4200)
+Access the Prefect UI at: [http://localhost:4200](http://localhost:4200)
 
 ### Stopping the Environment
 
@@ -140,10 +140,17 @@ DATABASE_URL=postgresql+psycopg2://...
 PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://...
 
 # Prefect Settings
-PREFECT_API_URL=http://0.0.0.0:4200/api
+PREFECT_API_URL=http://localhost:4200/api
 PREFECT_SERVER_API_HOST=0.0.0.0
-PREFECT_UI_API_URL=http://0.0.0.0:4200/api
+PREFECT_UI_API_URL=http://localhost:4200/api
 ```
+
+**Important Note on Prefect URLs:**
+- Use `http://localhost:4200/api` when running flows from your **host machine**
+  (e.g., via `pixi run run-etl`)
+- Use `http://prefect-server:4200/api` or `http://0.0.0.0:4200/api` when running
+  from **within containers**
+- The `.env.example` file is configured for host machine access by default
 
 ### Network Configuration
 
@@ -176,9 +183,39 @@ pixi run rebuild-services
 # Verify database is healthy
 pixi run check-db-health
 
-# Access database directly
+# Access database directly (interactive psql session)
 pixi run access-db
 ```
+
+### Accessing and Inspecting the Database
+
+For debugging and data inspection, you can connect to the PostgreSQL database
+directly using `psql`. The database credentials are defined in
+`resources/docker/.env`.
+
+**List all tables:**
+
+```bash
+pixi run exec-db psql -U biocirv_user -d biocirv_db -c "\dt"
+```
+
+**Query specific data:**
+
+```bash
+pixi run exec-db psql -U biocirv_user -d biocirv_db -c "SELECT * FROM your_table_name LIMIT 10;"
+```
+
+**Access interactive psql session:**
+
+```bash
+pixi run access-db
+```
+
+Once in the interactive session, you can use standard PostgreSQL commands:
+- `\dt` - List all tables
+- `\d table_name` - Describe table structure
+- `\l` - List all databases
+- `\q` - Exit psql
 
 ### Prefect Worker Not Picking Up Runs
 
@@ -190,7 +227,7 @@ pixi run service-logs
 pixi run restart-prefect-worker
 
 # Verify work pool exists in Prefect UI
-# Navigate to: http://0.0.0.0:4200/work-pools
+# Navigate to: http://localhost:4200/work-pools
 ```
 
 ## Related Documentation
