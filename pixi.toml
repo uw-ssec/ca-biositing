@@ -37,13 +37,30 @@ python-dotenv = ">=1.2.1,<2"
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
+initial-migration = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "run",
+    "--rm",
+    "setup-db",
+    "alembic",
+    "revision",
+    "--autogenerate",
+    "-m",
+    "Initial migration",
+], description = "Create the initial database migration script.", outputs = [
+    "alembic/versions/*_initial_migration.py",
+] }
 start-services = { cmd = [
     "docker-compose",
     "--file",
     "resources/docker/docker-compose.yml",
     "up",
     "-d",
-], description = "Start required services using Docker Compose." }
+], description = "Start required services using Docker Compose.", depends-on = [
+    "initial-migration",
+] }
 teardown-services = { cmd = [
     "docker-compose",
     "-f",
