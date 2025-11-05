@@ -21,7 +21,8 @@ systematic and version-controlled way.
 ### Generating an Initial Migration
 
 If you need to generate a completely new initial migration (e.g., starting fresh
-or after major model changes), follow this procedure using the `setup-db` service:
+or after major model changes), follow this procedure using the `setup-db`
+service:
 
 **Step 1: Reset the Environment**
 
@@ -49,8 +50,8 @@ docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic 
 ```
 
 **Note:** The `setup-db` service is specifically designed for database
-initialization and migrations. It has access to all model files and the
-correct Python path configuration.
+initialization and migrations. It has access to all model files and the correct
+Python path configuration.
 
 **Step 4: Apply the Migration**
 
@@ -105,7 +106,8 @@ docker-compose -f resources/docker/docker-compose.yml run --rm setup-db alembic 
 **Step 3: Apply the Migration**
 
 After the migration script is generated, you need to apply it to the database.
-The easiest way is to restart services, which will automatically apply migrations:
+The easiest way is to restart services, which will automatically apply
+migrations:
 
 ```bash
 pixi run teardown-services

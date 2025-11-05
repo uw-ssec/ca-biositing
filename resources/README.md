@@ -146,6 +146,7 @@ PREFECT_UI_API_URL=http://localhost:4200/api
 ```
 
 **Important Note on Prefect URLs:**
+
 - Use `http://localhost:4200/api` when running flows from your **host machine**
   (e.g., via `pixi run run-etl`)
 - Use `http://prefect-server:4200/api` or `http://0.0.0.0:4200/api` when running
@@ -212,6 +213,7 @@ pixi run access-db
 ```
 
 Once in the interactive session, you can use standard PostgreSQL commands:
+
 - `\dt` - List all tables
 - `\d table_name` - Describe table structure
 - `\l` - List all databases
