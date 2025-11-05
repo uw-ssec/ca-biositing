@@ -4,20 +4,17 @@ import re
 import sys
 from collections import defaultdict
 
-# Add the models directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/pipeline')))
-
-from models import biomass
-from models import data_and_references
-from models import experiments_analysis
-from models import external_datasets
-from models import geographic_locations
-from models import metadata_samples
-from models import organizations
-from models import people_contacts
-from models import sample_preprocessing
-from models import specific_aalysis_results
-from models import user
+from ca_biositing.datamodels import biomass
+from ca_biositing.datamodels import data_and_references
+from ca_biositing.datamodels import experiments_analysis
+from ca_biositing.datamodels import external_datasets
+from ca_biositing.datamodels import geographic_locations
+from ca_biositing.datamodels import metadata_samples
+from ca_biositing.datamodels import organizations
+from ca_biositing.datamodels import people_contacts
+from ca_biositing.datamodels import sample_preprocessing
+from ca_biositing.datamodels import specific_aalysis_results
+from ca_biositing.datamodels import user
 
 def get_table_dependencies():
     """

@@ -21,33 +21,38 @@ env:
 
 jobs:
   dist:
-    name: Distribution build
+    name: Distribution build (${{ matrix.package }})
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        package: [datamodels, pipeline, webservice]
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - uses: hynek/build-and-inspect-python-package@v2
-
-  publish:
-    needs: [dist]
-    name: Publish to PyPI
-    environment: pypi
-    permissions:
-      id-token: write
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
-
-    steps:
-      - uses: actions/download-artifact@v6
+      - name: Check datamodels build
+        uses: hynek/build-and-inspect-python-package@v2
         with:
-          name: Packages
-          path: dist
+          path: src/ca_biositing/${{ matrix.package }}
+          upload-name-suffix: -${{ matrix.package }}
+# Uncomment to enable PyPI publishing on release
+#   publish:
+#     needs: [dist]
+#     name: Publish to PyPI
+#     environment: pypi
+#     permissions:
+#       id-token: write
+#     runs-on: ubuntu-latest
+#     if: github.event_name == 'release' && github.event.action == 'published'
 
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          # Remember to tell (test-)pypi about this repo before publishing
-          # Remove this line to publish to PyPI
-          repository-url: https://test.pypi.org/legacy/
+#     steps:
+#       - uses: actions/download-artifact@v6
+#         with:
+#           name: Packages
+#           path: dist
+
+#       - uses: pypa/gh-action-pypi-publish@release/v1
+#         with:
+#           # Remember to tell (test-)pypi about this repo before publishing
+#           # Remove this line to publish to PyPI
+#           repository-url: https://test.pypi.org/legacy/

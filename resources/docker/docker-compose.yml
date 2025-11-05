@@ -1,0 +1,92 @@
+services:
+  db:
+    image: postgres:13
+    container_name: BioCirV_ETL_db
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./create_prefect_db.sql:/docker-entrypoint-initdb.d/create_prefect_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - prefect-network
+
+  setup-db:
+    build:
+      context: ../..
+      dockerfile: resources/docker/pipeline.dockerfile
+    container_name: BioCirV_ETL_setup_db
+    env_file:
+      - .env
+    volumes:
+      # Adding the flow code to the worker
+      - ../../alembic:/app/alembic
+      - ../../alembic.ini:/app/alembic.ini
+      - ./.env:/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
+    networks:
+      - prefect-network
+
+  prefect-server:
+    build:
+      context: ../..
+      dockerfile: resources/docker/pipeline.dockerfile
+    container_name: BioCirV_ETL_prefect_server
+    env_file:
+      - .env
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefectdata:/root/.prefect
+    depends_on:
+      db:
+        condition: service_healthy
+    command: prefect server start --host 0.0.0.0 --port 4200
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${PREFECT_API_URL}/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - prefect-network
+
+  prefect-worker:
+    build:
+      context: ../..
+      dockerfile: resources/docker/pipeline.dockerfile
+    container_name: BioCirV_ETL_prefect_worker
+    env_file:
+      - .env
+    volumes:
+      # Adding the flow code to the worker
+      - ../prefect/run_prefect_flow.py:/app/run_prefect_flow.py
+      - ../../credentials.json:/app/credentials.json
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    command: prefect worker start --type process --pool biocirv_dev_work_pool
+    # healthcheck:
+    #   test: ["CMD-SHELL", "prefect work-pool inspect $WORK_POOL"]
+    #   timeout: 10s
+    #   retries: 2
+    networks:
+      - prefect-network
+
+volumes:
+  pgdata:
+  prefectdata:
+
+networks:
+  prefect-network:
+    driver: bridge

@@ -3,28 +3,27 @@ import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from pathlib import Path
+from dotenv import load_dotenv
 
-# --- Add project root to python path ---
-# This allows alembic to find the 'src' package
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+HERE = Path(__file__).parent.resolve()
+PROJECT_ROOT = HERE.parent.resolve()
 
 # --- Load environment variables from .env ---
-from dotenv import load_dotenv
-load_dotenv()  # Looks for .env in the project root by default
+load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
-from src.pipeline.etl.models.biomass import *
-from src.pipeline.etl.models.data_and_references import *
-from src.pipeline.etl.models.experiments_analysis import *
-from src.pipeline.etl.models.external_datasets import *
-from src.pipeline.etl.models.geographic_locations import *
-from src.pipeline.etl.models.metadata_samples import *
-from src.pipeline.etl.models.organizations import *
-from src.pipeline.etl.models.people_contacts import *
-from src.pipeline.etl.models.sample_preprocessing import *
-from src.pipeline.etl.models.specific_aalysis_results import *
-from src.pipeline.etl.models.user import *
+from ca_biositing.datamodels.biomass import *
+from ca_biositing.datamodels.data_and_references import *
+from ca_biositing.datamodels.experiments_analysis import *
+from ca_biositing.datamodels.external_datasets import *
+from ca_biositing.datamodels.geographic_locations import *
+from ca_biositing.datamodels.metadata_samples import *
+from ca_biositing.datamodels.organizations import *
+from ca_biositing.datamodels.people_contacts import *
+from ca_biositing.datamodels.sample_preprocessing import *
+from ca_biositing.datamodels.specific_aalysis_results import *
+from ca_biositing.datamodels.user import *
 from sqlmodel import SQLModel
 
 # --- Alembic Config object, provides access to alembic.ini values ---
@@ -45,6 +44,14 @@ if config.config_file_name is not None:
 target_metadata = SQLModel.metadata
 
 
+def render_item(type_, obj, autogen_context):
+    """Add custom imports to the migration template."""
+    if type_ == "type" and hasattr(obj, "__module__"):
+        if obj.__module__.startswith("sqlmodel"):
+            autogen_context.imports.add("import sqlmodel")
+    return False
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
@@ -53,6 +60,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_item=render_item,
     )
 
     with context.begin_transaction():
@@ -71,6 +79,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            render_item=render_item,
         )
 
         with context.begin_transaction():

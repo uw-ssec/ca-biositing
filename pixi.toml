@@ -1,47 +1,181 @@
 #                             VVVVVV  minimum `pixi` version
-"$schema" = "https://pixi.sh/v0.49.0/schema/manifest/schema.json"
+"$schema" = "https://pixi.sh/v0.55.0/schema/manifest/schema.json"
 
 [workspace]
-requires-pixi = ">=0.49,<1.0"
+requires-pixi = ">=0.55,<1.0"
 authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
 platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
 version = "0.1.0"
 
-[tasks.qgis]
-depends-on = [
-    { task = "run-qgis", environment = "gis" }
-]
-
+[environments]
+default = ["datamodels", "pipeline", "webservice", "kernel"]
+py312 = ["py312", "datamodels", "pipeline", "webservice"]
+py313 = ["py313", "datamodels", "pipeline", "webservice"]
+gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
+webservice = { features = [
+    "datamodels",
+    "webservice",
+], solve-group = "default" }
+frontend = { features = [
+    "frontend",
+], no-default-feature = true, solve-group = "default" }
 
 [dependencies]
-python = "3.12.*"
+python = "~=3.12"
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
 pytest-cov = ">=7.0.0,<8"
-sqlmodel = ">=0.0.19,<0.1"
-alembic = ">=1.13.2,<2"
-psycopg2 = ">=2.9.9,<3"
-python-dotenv = ">=1.0.1,<2"
-pandas = ">=2.2.0,<3"
-pyjanitor = "*"
-gspread = "*"
-gspread-dataframe = "*"
-pydantic-settings = "*"
-google-auth-oauthlib = "*"
-prefect = "*"
-uvicorn = ">=0.30.0,<1"
-fastapi = ">=0.115.0,<1"
+pip = ">=25.2,<26"
+docker-compose = ">=2.39.2,<3"
+docker-cli = ">=28.3.1,<29"
+testcontainers = ">=4.13.2,<5"
+python-dotenv = ">=1.2.1,<2"
 
 [tasks]
-pre-commit = "pre-commit run"
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
+initial-migration = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "run",
+    "--rm",
+    "setup-db",
+    "alembic",
+    "revision",
+    "--autogenerate",
+    "-m",
+    "Initial migration",
+], description = "Create the initial database migration script.", outputs = [
+    "alembic/versions/*_initial_migration.py",
+] }
+start-services = { cmd = [
+    "docker-compose",
+    "--file",
+    "resources/docker/docker-compose.yml",
+    "up",
+    "-d",
+], description = "Start required services using Docker Compose.", depends-on = [
+    "initial-migration",
+] }
+teardown-services = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "down",
+], description = "Teardown services started by Docker Compose." }
+teardown-services-volumes = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "down",
+    "-v",
+], description = "Teardown services and remove volumes (deletes all data)." }
+service-status = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "ps",
+], description = "Check status of running services." }
+service-logs = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "logs",
+    "-f",
+], description = "View logs from all services." }
+rebuild-services = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "build",
+    "--no-cache",
+], description = "Rebuild Docker images without cache." }
+exec-prefect-worker = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+], description = "Execute commands in the Prefect worker container. Usage: pixi run exec-prefect-worker <command>" }
+exec-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+], description = "Execute commands in the database container. Usage: pixi run exec-db <command>" }
+run-etl = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+    "/bin/bash",
+    "-c",
+    "source /shell-hook.sh && prefect deployment run 'Master ETL Flow/master-etl-deployment'",
+], description = "Trigger the master ETL flow deployment.", depends-on = [
+    "start-services",
+] }
+check-db-health = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "pg_isready",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "biocirv_db",
+], description = "Check PostgreSQL database health." }
+access-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "psql",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "biocirv_db",
+], description = "Access the application database with psql." }
+access-prefect-db = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "db",
+    "psql",
+    "-U",
+    "biocirv_user",
+    "-d",
+    "prefect_db",
+], description = "Access the Prefect metadata database with psql." }
+restart-services = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "restart",
+], description = "Restart all services." }
+restart-prefect-worker = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "restart",
+    "prefect-worker",
+], description = "Restart the Prefect worker service." }
 
-[tasks.start-api]
+[tasks.qgis]
+depends-on = [{ task = "run-qgis", environment = "gis" }]
+
+[tasks.start-webservice]
 cwd = "src"
-cmd = "uvicorn ca_biositing.api.main:app --reload"
+cmd = "uvicorn ca_biositing.webservice.main:app --reload"
 
 [tasks.test]
 cmd = "python -m pytest tests/ --verbose"
@@ -55,10 +189,7 @@ description = "Run all tests with coverage and HTML report"
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
 
-[environments]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
-etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
-frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+# GIS Dependencies
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -74,19 +205,50 @@ xarray = "*"
 shapely = "*"
 pyproj = "*"
 
-[feature.etl.dependencies]
-pandas = "*"
-sqlmodel = "*"
-gspread = "*"
-gspread-dataframe = "*"
-psycopg2-binary = "*"
-alembic = "*"
-pydantic-settings = "*"
-google-auth-oauthlib = "*"
+# Python Dependencies for specific versions
+
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py313.dependencies]
+python = "3.13.*"
+
+# Frontend Dependencies
+# This feature manages the frontend environment using Node.js and npm.
+# The actual package dependencies are defined in the frontend repository.
 [feature.frontend.dependencies]
 nodejs = ">=18,<21"
 
 [feature.frontend.tasks]
 frontend-install = { cmd = "npm install", cwd = "frontend", description = "Install frontend dependencies." }
-frontend-dev     = { cmd = "npm run dev", cwd = "frontend", description = "Run frontend in development mode." }
-frontend-build   = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
+frontend-dev = { cmd = "npm run dev", cwd = "frontend", description = "Run frontend in development mode." }
+frontend-build = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
+
+# Kernel Dependencies
+# This is to enable Jupyter Notebooks with IPython kernel
+[feature.kernel.dependencies]
+ipykernel = ">=7.1.0,<8"
+ipython = ">=9.0.0,<10"
+
+# Datamodels Dependencies
+[feature.datamodels.pypi-dependencies]
+ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels" }
+
+# Pipeline Dependencies
+[feature.pipeline.pypi-dependencies]
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline" }
+
+[feature.pipeline.tasks.deploy]
+args = [
+    { "arg" = "deployment_name", "default" = "master-etl-deployment" },
+    { "arg" = "env_file", "default" = "../docker/.env" },
+]
+cwd = "resources/prefect"
+cmd = "./deploy.py --env-file {{ env_file }} {{ deployment_name }}"
+description = "Deploy the ETL pipeline to Prefect."
+depends-on = [{ task = "start-services" }]
+
+
+# Webservice Dependencies
+[feature.webservice.pypi-dependencies]
+ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
