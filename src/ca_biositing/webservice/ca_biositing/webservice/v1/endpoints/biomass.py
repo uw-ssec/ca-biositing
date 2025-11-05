@@ -37,18 +37,18 @@ def list_biomass(
     pagination: PaginationDep,
 ) -> PaginatedResponse[BiomassResponse]:
     """Get a paginated list of biomass entries.
-    
+
     Args:
         session: Database session
         pagination: Pagination parameters
-        
+
     Returns:
         Paginated response with biomass entries
     """
     biomass_list, total = biomass_service.get_biomass_list(
         session, skip=pagination.skip, limit=pagination.limit
     )
-    
+
     return PaginatedResponse(
         items=[BiomassResponse.model_validate(b) for b in biomass_list],
         pagination=PaginationInfo(
@@ -69,14 +69,14 @@ def list_biomass(
 )
 def get_biomass(biomass_id: int, session: SessionDep) -> BiomassResponse:
     """Get a specific biomass entry by ID.
-    
+
     Args:
         biomass_id: ID of the biomass to retrieve
         session: Database session
-        
+
     Returns:
         Biomass entry
-        
+
     Raises:
         HTTPException: If biomass not found
     """
@@ -101,11 +101,11 @@ def create_biomass(
     session: SessionDep,
 ) -> BiomassResponse:
     """Create a new biomass entry.
-    
+
     Args:
         biomass_data: Biomass data to create
         session: Database session
-        
+
     Returns:
         Created biomass entry
     """
@@ -126,15 +126,15 @@ def update_biomass(
     session: SessionDep,
 ) -> BiomassResponse:
     """Update an existing biomass entry.
-    
+
     Args:
         biomass_id: ID of the biomass to update
         biomass_data: Updated biomass data
         session: Database session
-        
+
     Returns:
         Updated biomass entry
-        
+
     Raises:
         HTTPException: If biomass not found
     """
@@ -156,14 +156,14 @@ def update_biomass(
 )
 def delete_biomass(biomass_id: int, session: SessionDep) -> MessageResponse:
     """Delete a biomass entry.
-    
+
     Args:
         biomass_id: ID of the biomass to delete
         session: Database session
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If biomass not found
     """

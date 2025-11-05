@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 class ExperimentBase(BaseModel):
     """Base schema for experiment data.
-    
+
     Attributes:
         exper_uuid: Unique UUID for the experiment
         gsheet_exper_id: Google Sheet experiment ID
@@ -45,7 +45,7 @@ class ExperimentCreate(ExperimentBase):
 
 class ExperimentUpdate(BaseModel):
     """Schema for updating an existing experiment.
-    
+
     All fields are optional to support partial updates.
     """
 
@@ -62,7 +62,7 @@ class ExperimentUpdate(BaseModel):
 
 class ExperimentResponse(ExperimentBase):
     """Schema for experiment response data.
-    
+
     Attributes:
         experiment_id: Unique identifier for the experiment
     """

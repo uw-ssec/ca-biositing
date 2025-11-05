@@ -36,22 +36,22 @@ def list_samples(
     pagination: PaginationDep,
 ) -> PaginatedResponse[FieldSampleResponse]:
     """Get a paginated list of field samples.
-    
+
     Args:
         session: Database session
         pagination: Pagination parameters
-        
+
     Returns:
         Paginated response with field samples
     """
     # Get total count
     count_statement = select(FieldSample)
     total = len(session.exec(count_statement).all())
-    
+
     # Get paginated results
     statement = select(FieldSample).offset(pagination.skip).limit(pagination.limit)
     samples = session.exec(statement).all()
-    
+
     return PaginatedResponse(
         items=[FieldSampleResponse.model_validate(s) for s in samples],
         pagination=PaginationInfo(
@@ -72,14 +72,14 @@ def list_samples(
 )
 def get_sample(sample_id: int, session: SessionDep) -> FieldSampleResponse:
     """Get a specific field sample by ID.
-    
+
     Args:
         sample_id: ID of the sample to retrieve
         session: Database session
-        
+
     Returns:
         Field sample entry
-        
+
     Raises:
         HTTPException: If sample not found
     """
@@ -104,11 +104,11 @@ def create_sample(
     session: SessionDep,
 ) -> FieldSampleResponse:
     """Create a new field sample.
-    
+
     Args:
         sample_data: Sample data to create
         session: Database session
-        
+
     Returns:
         Created field sample
     """
@@ -132,15 +132,15 @@ def update_sample(
     session: SessionDep,
 ) -> FieldSampleResponse:
     """Update an existing field sample.
-    
+
     Args:
         sample_id: ID of the sample to update
         sample_data: Updated sample data
         session: Database session
-        
+
     Returns:
         Updated field sample
-        
+
     Raises:
         HTTPException: If sample not found
     """
@@ -150,12 +150,12 @@ def update_sample(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Sample with ID {sample_id} not found",
         )
-    
+
     # Update only provided fields
     update_data = sample_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(sample, key, value)
-    
+
     session.add(sample)
     session.commit()
     session.refresh(sample)
@@ -171,14 +171,14 @@ def update_sample(
 )
 def delete_sample(sample_id: int, session: SessionDep) -> MessageResponse:
     """Delete a field sample.
-    
+
     Args:
         sample_id: ID of the sample to delete
         session: Database session
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If sample not found
     """
@@ -188,7 +188,7 @@ def delete_sample(sample_id: int, session: SessionDep) -> MessageResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Sample with ID {sample_id} not found",
         )
-    
+
     session.delete(sample)
     session.commit()
     return MessageResponse(message=f"Sample {sample_id} deleted successfully")

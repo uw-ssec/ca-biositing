@@ -20,7 +20,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 class PaginationParams:
     """Common pagination parameters for list endpoints.
-    
+
     Attributes:
         skip: Number of records to skip (offset)
         limit: Maximum number of records to return

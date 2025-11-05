@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 class GeographicLocationBase(BaseModel):
     """Base schema for geographic location data.
-    
+
     Attributes:
         street_address_id: Reference to street address
         city_id: Reference to city
@@ -48,7 +48,7 @@ class GeographicLocationCreate(GeographicLocationBase):
 
 class GeographicLocationUpdate(BaseModel):
     """Schema for updating an existing geographic location.
-    
+
     All fields are optional to support partial updates.
     """
 
@@ -67,7 +67,7 @@ class GeographicLocationUpdate(BaseModel):
 
 class GeographicLocationResponse(GeographicLocationBase):
     """Schema for geographic location response data.
-    
+
     Attributes:
         location_id: Unique identifier for the location
     """

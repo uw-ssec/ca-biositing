@@ -8,7 +8,7 @@ def test_all_endpoints_available(client):
     # Health endpoint
     response = client.get("/v1/health")
     assert response.status_code in [status.HTTP_200_OK, status.HTTP_500_INTERNAL_SERVER_ERROR]
-    
+
     # List endpoints should all return 200 or 500 (if DB not available)
     endpoints = [
         "/v1/biomass",
@@ -17,7 +17,7 @@ def test_all_endpoints_available(client):
         "/v1/locations",
         "/v1/products",
     ]
-    
+
     for endpoint in endpoints:
         response = client.get(endpoint)
         # Should not return 404 - endpoint exists
@@ -28,10 +28,10 @@ def test_openapi_schema_includes_all_routes(client):
     """Test that OpenAPI schema includes all endpoints."""
     response = client.get("/openapi.json")
     assert response.status_code == status.HTTP_200_OK
-    
+
     schema = response.json()
     paths = schema["paths"]
-    
+
     # Check that main endpoints are in the schema
     assert "/v1/health" in paths
     assert "/v1/biomass" in paths
@@ -53,7 +53,7 @@ def test_pagination_parameters_work(client):
     # Should not return 422 validation error
     response = client.get("/v1/biomass?skip=0&limit=10")
     assert response.status_code != status.HTTP_422_UNPROCESSABLE_ENTITY
-    
+
     response = client.get("/v1/experiments?skip=5&limit=20")
     assert response.status_code != status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -63,11 +63,11 @@ def test_pagination_parameters_validation(client):
     # Invalid skip (negative)
     response = client.get("/v1/biomass?skip=-1")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    
+
     # Invalid limit (too large)
     response = client.get("/v1/biomass?limit=200")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    
+
     # Invalid limit (zero or negative)
     response = client.get("/v1/biomass?limit=0")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -84,7 +84,7 @@ def test_404_for_invalid_resource_id(client):
         "/v1/locations/99999",
         "/v1/products/99999",
     ]
-    
+
     for endpoint in endpoints_with_id:
         response = client.get(endpoint)
         assert response.status_code in [
@@ -102,7 +102,7 @@ def test_create_endpoints_require_data(client):
         "/v1/locations",
         "/v1/products",
     ]
-    
+
     for endpoint in endpoints:
         # Empty body should return 422 validation error
         response = client.post(endpoint, json={})

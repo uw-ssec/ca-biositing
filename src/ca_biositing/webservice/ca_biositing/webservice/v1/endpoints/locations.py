@@ -36,22 +36,22 @@ def list_locations(
     pagination: PaginationDep,
 ) -> PaginatedResponse[GeographicLocationResponse]:
     """Get a paginated list of geographic locations.
-    
+
     Args:
         session: Database session
         pagination: Pagination parameters
-        
+
     Returns:
         Paginated response with locations
     """
     # Get total count
     count_statement = select(GeographicLocation)
     total = len(session.exec(count_statement).all())
-    
+
     # Get paginated results
     statement = select(GeographicLocation).offset(pagination.skip).limit(pagination.limit)
     locations = session.exec(statement).all()
-    
+
     return PaginatedResponse(
         items=[GeographicLocationResponse.model_validate(l) for l in locations],
         pagination=PaginationInfo(
@@ -72,14 +72,14 @@ def list_locations(
 )
 def get_location(location_id: int, session: SessionDep) -> GeographicLocationResponse:
     """Get a specific geographic location by ID.
-    
+
     Args:
         location_id: ID of the location to retrieve
         session: Database session
-        
+
     Returns:
         Geographic location entry
-        
+
     Raises:
         HTTPException: If location not found
     """
@@ -104,11 +104,11 @@ def create_location(
     session: SessionDep,
 ) -> GeographicLocationResponse:
     """Create a new geographic location.
-    
+
     Args:
         location_data: Location data to create
         session: Database session
-        
+
     Returns:
         Created geographic location
     """
@@ -132,15 +132,15 @@ def update_location(
     session: SessionDep,
 ) -> GeographicLocationResponse:
     """Update an existing geographic location.
-    
+
     Args:
         location_id: ID of the location to update
         location_data: Updated location data
         session: Database session
-        
+
     Returns:
         Updated geographic location
-        
+
     Raises:
         HTTPException: If location not found
     """
@@ -150,12 +150,12 @@ def update_location(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Location with ID {location_id} not found",
         )
-    
+
     # Update only provided fields
     update_data = location_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(location, key, value)
-    
+
     session.add(location)
     session.commit()
     session.refresh(location)
@@ -171,14 +171,14 @@ def update_location(
 )
 def delete_location(location_id: int, session: SessionDep) -> MessageResponse:
     """Delete a geographic location.
-    
+
     Args:
         location_id: ID of the location to delete
         session: Database session
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If location not found
     """
@@ -188,7 +188,7 @@ def delete_location(location_id: int, session: SessionDep) -> MessageResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Location with ID {location_id} not found",
         )
-    
+
     session.delete(location)
     session.commit()
     return MessageResponse(message=f"Location {location_id} deleted successfully")

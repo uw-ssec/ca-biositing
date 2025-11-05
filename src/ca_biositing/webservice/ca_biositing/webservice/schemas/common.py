@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 class HealthResponse(BaseModel):
     """Response model for health check endpoint.
-    
+
     Attributes:
         status: Status of the service (healthy/unhealthy)
         version: API version
@@ -27,7 +27,7 @@ class HealthResponse(BaseModel):
 
 class PaginationInfo(BaseModel):
     """Pagination metadata.
-    
+
     Attributes:
         total: Total number of items available
         skip: Number of items skipped
@@ -46,7 +46,7 @@ T = TypeVar("T")
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """Generic paginated response wrapper.
-    
+
     Attributes:
         items: List of items
         pagination: Pagination metadata
@@ -58,7 +58,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 class ErrorResponse(BaseModel):
     """Standard error response.
-    
+
     Attributes:
         detail: Error message
         error_code: Optional error code for programmatic handling
@@ -70,7 +70,7 @@ class ErrorResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     """Simple message response.
-    
+
     Attributes:
         message: The message text
     """

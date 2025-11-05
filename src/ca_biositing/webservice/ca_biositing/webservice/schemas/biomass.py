@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 # Base schemas
 class BiomassBase(BaseModel):
     """Base schema for biomass data.
-    
+
     Attributes:
         biomass_name: Name of the biomass
         primary_product_id: Reference to primary product
@@ -36,7 +36,7 @@ class BiomassCreate(BiomassBase):
 
 class BiomassUpdate(BaseModel):
     """Schema for updating an existing biomass entry.
-    
+
     All fields are optional to support partial updates.
     """
 
@@ -49,7 +49,7 @@ class BiomassUpdate(BaseModel):
 
 class BiomassResponse(BiomassBase):
     """Schema for biomass response data.
-    
+
     Attributes:
         biomass_id: Unique identifier for the biomass
     """

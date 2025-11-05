@@ -37,18 +37,18 @@ def list_experiments(
     pagination: PaginationDep,
 ) -> PaginatedResponse[ExperimentResponse]:
     """Get a paginated list of experiments.
-    
+
     Args:
         session: Database session
         pagination: Pagination parameters
-        
+
     Returns:
         Paginated response with experiments
     """
     experiments, total = experiment_service.get_experiment_list(
         session, skip=pagination.skip, limit=pagination.limit
     )
-    
+
     return PaginatedResponse(
         items=[ExperimentResponse.model_validate(e) for e in experiments],
         pagination=PaginationInfo(
@@ -69,14 +69,14 @@ def list_experiments(
 )
 def get_experiment(experiment_id: int, session: SessionDep) -> ExperimentResponse:
     """Get a specific experiment by ID.
-    
+
     Args:
         experiment_id: ID of the experiment to retrieve
         session: Database session
-        
+
     Returns:
         Experiment entry
-        
+
     Raises:
         HTTPException: If experiment not found
     """
@@ -101,11 +101,11 @@ def create_experiment(
     session: SessionDep,
 ) -> ExperimentResponse:
     """Create a new experiment.
-    
+
     Args:
         experiment_data: Experiment data to create
         session: Database session
-        
+
     Returns:
         Created experiment
     """
@@ -126,15 +126,15 @@ def update_experiment(
     session: SessionDep,
 ) -> ExperimentResponse:
     """Update an existing experiment.
-    
+
     Args:
         experiment_id: ID of the experiment to update
         experiment_data: Updated experiment data
         session: Database session
-        
+
     Returns:
         Updated experiment
-        
+
     Raises:
         HTTPException: If experiment not found
     """
@@ -158,14 +158,14 @@ def update_experiment(
 )
 def delete_experiment(experiment_id: int, session: SessionDep) -> MessageResponse:
     """Delete an experiment.
-    
+
     Args:
         experiment_id: ID of the experiment to delete
         session: Database session
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If experiment not found
     """

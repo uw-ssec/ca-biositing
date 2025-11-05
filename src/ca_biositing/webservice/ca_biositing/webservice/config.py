@@ -34,7 +34,7 @@ class WebServiceConfig(BaseSettings):
     api_title: str = "CA Biositing API"
     api_description: str = "REST API for CA Biositing bioeconomy data"
     api_version: str = "0.1.0"
-    
+
     # CORS configuration
     cors_origins: List[str] = [
         "http://localhost:3000",  # React default

@@ -39,11 +39,11 @@ async def validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
     """Handle validation errors with detailed messages.
-    
+
     Args:
         request: The incoming request
         exc: The validation error
-        
+
     Returns:
         JSONResponse with error details
     """
@@ -59,11 +59,11 @@ async def validation_exception_handler(
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle general exceptions.
-    
+
     Args:
         request: The incoming request
         exc: The exception
-        
+
     Returns:
         JSONResponse with error message
     """
@@ -80,7 +80,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 @app.get("/", tags=["root"])
 def read_root() -> dict[str, str]:
     """Root endpoint providing API information.
-    
+
     Returns:
         Dictionary with API message and version
     """
@@ -96,7 +96,7 @@ def read_root() -> dict[str, str]:
 @app.get("/hello", tags=["root"])
 def read_hello() -> dict[str, str]:
     """Hello endpoint for testing.
-    
+
     Returns:
         Dictionary with hello message
     """

@@ -24,10 +24,10 @@ router = APIRouter(tags=["health"])
 )
 def health_check(session: SessionDep) -> HealthResponse:
     """Check the health of the API and database connection.
-    
+
     Args:
         session: Database session dependency
-        
+
     Returns:
         HealthResponse with status information
     """
@@ -38,10 +38,10 @@ def health_check(session: SessionDep) -> HealthResponse:
         db_status = "connected"
     except Exception as e:
         db_status = f"error: {str(e)}"
-    
+
     # Determine overall status
     overall_status = "healthy" if db_status == "connected" else "unhealthy"
-    
+
     return HealthResponse(
         status=overall_status,
         version="0.1.0",

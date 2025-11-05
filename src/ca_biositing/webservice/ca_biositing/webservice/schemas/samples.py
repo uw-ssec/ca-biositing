@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 class FieldSampleBase(BaseModel):
     """Base schema for field sample data.
-    
+
     Attributes:
         biomass_id: Reference to biomass
         sample_name: Name of the sample
@@ -59,7 +59,7 @@ class FieldSampleCreate(FieldSampleBase):
 
 class FieldSampleUpdate(BaseModel):
     """Schema for updating an existing field sample.
-    
+
     All fields are optional to support partial updates.
     """
 
@@ -83,7 +83,7 @@ class FieldSampleUpdate(BaseModel):
 
 class FieldSampleResponse(FieldSampleBase):
     """Schema for field sample response data.
-    
+
     Attributes:
         sample_id: Unique identifier for the sample
         created_at: Timestamp when the record was created

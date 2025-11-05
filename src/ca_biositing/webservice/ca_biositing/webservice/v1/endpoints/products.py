@@ -36,22 +36,22 @@ def list_products(
     pagination: PaginationDep,
 ) -> PaginatedResponse[PrimaryProductResponse]:
     """Get a paginated list of primary products.
-    
+
     Args:
         session: Database session
         pagination: Pagination parameters
-        
+
     Returns:
         Paginated response with products
     """
     # Get total count
     count_statement = select(PrimaryProduct)
     total = len(session.exec(count_statement).all())
-    
+
     # Get paginated results
     statement = select(PrimaryProduct).offset(pagination.skip).limit(pagination.limit)
     products = session.exec(statement).all()
-    
+
     return PaginatedResponse(
         items=[PrimaryProductResponse.model_validate(p) for p in products],
         pagination=PaginationInfo(
@@ -72,14 +72,14 @@ def list_products(
 )
 def get_product(product_id: int, session: SessionDep) -> PrimaryProductResponse:
     """Get a specific primary product by ID.
-    
+
     Args:
         product_id: ID of the product to retrieve
         session: Database session
-        
+
     Returns:
         Primary product entry
-        
+
     Raises:
         HTTPException: If product not found
     """
@@ -104,11 +104,11 @@ def create_product(
     session: SessionDep,
 ) -> PrimaryProductResponse:
     """Create a new primary product.
-    
+
     Args:
         product_data: Product data to create
         session: Database session
-        
+
     Returns:
         Created primary product
     """
@@ -132,15 +132,15 @@ def update_product(
     session: SessionDep,
 ) -> PrimaryProductResponse:
     """Update an existing primary product.
-    
+
     Args:
         product_id: ID of the product to update
         product_data: Updated product data
         session: Database session
-        
+
     Returns:
         Updated primary product
-        
+
     Raises:
         HTTPException: If product not found
     """
@@ -150,12 +150,12 @@ def update_product(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Product with ID {product_id} not found",
         )
-    
+
     # Update only provided fields
     update_data = product_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(product, key, value)
-    
+
     session.add(product)
     session.commit()
     session.refresh(product)
@@ -171,14 +171,14 @@ def update_product(
 )
 def delete_product(product_id: int, session: SessionDep) -> MessageResponse:
     """Delete a primary product.
-    
+
     Args:
         product_id: ID of the product to delete
         session: Database session
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If product not found
     """
@@ -188,7 +188,7 @@ def delete_product(product_id: int, session: SessionDep) -> MessageResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Product with ID {product_id} not found",
         )
-    
+
     session.delete(product)
     session.commit()
     return MessageResponse(message=f"Product {product_id} deleted successfully")

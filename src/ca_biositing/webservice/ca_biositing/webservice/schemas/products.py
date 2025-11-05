@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 class PrimaryProductBase(BaseModel):
     """Base schema for primary product data.
-    
+
     Attributes:
         primary_product_name: Name of the primary product
     """
@@ -27,7 +27,7 @@ class PrimaryProductCreate(PrimaryProductBase):
 
 class PrimaryProductUpdate(BaseModel):
     """Schema for updating an existing primary product.
-    
+
     All fields are optional to support partial updates.
     """
 
@@ -36,7 +36,7 @@ class PrimaryProductUpdate(BaseModel):
 
 class PrimaryProductResponse(PrimaryProductBase):
     """Schema for primary product response data.
-    
+
     Attributes:
         primary_product_id: Unique identifier for the product
     """
