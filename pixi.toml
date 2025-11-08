@@ -15,13 +15,9 @@ py312 = ["py312", "datamodels", "pipeline", "webservice"]
 py313 = ["py313", "datamodels", "pipeline", "webservice"]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
 etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
-webservice = { features = [
-    "datamodels",
-    "webservice",
-], solve-group = "default" }
-frontend = { features = [
-    "frontend",
-], no-default-feature = true, solve-group = "default" }
+webservice = { features = ["datamodels", "webservice"], solve-group = "default" }
+frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 
 [dependencies]
 python = "~=3.12"
@@ -188,12 +184,6 @@ description = "Run all tests with coverage and HTML report"
 [tasks.submodule-frontend-init]
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
-
-[environments]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
-etl = { features = ["etl"], no-default-feature = true, solve-group = "default" }
-frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
-docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 
 [feature.qgis.dependencies]
 qgis = "*"
