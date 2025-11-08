@@ -89,27 +89,23 @@ command is idempotent and safe to run multiple times.
 ### Available Environments
 
 1. **`default`** (main development environment)
-
    - Standard development environment
    - Core packages: Python 3.12, pre-commit, pytest, pytest-cov, docker-compose
    - Use for: general development, running pre-commit checks, running tests,
      Docker orchestration
 
 2. **`gis`** (features: `qgis`, `raster`, `vector`)
-
    - Geospatial analysis environment
    - Includes: QGIS, rasterio, xarray, shapely, pyproj
    - Use for: geospatial analysis, QGIS workflows, working with raster/vector
      data
 
 3. **`etl`** (features: `datamodels`, `pipeline`)
-
    - ETL pipeline environment (used in Docker containers)
    - Includes: Prefect, SQLModel, pandas, Google Sheets API clients
    - Use for: running ETL workflows in Docker
 
 4. **`webservice`** (features: `datamodels`, `webservice`)
-
    - Web service environment
    - Includes: FastAPI, uvicorn, SQLModel
    - Use for: running the REST API

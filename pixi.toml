@@ -263,4 +263,3 @@ docs-build = { cmd = "mkdocs build", description = "Build static documentation s
 [tasks.rtd-publish]
 cmd = "pixi run -e docs docs-build"
 description = "Build documentation for ReadTheDocs"
-
