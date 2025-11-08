@@ -1,11 +1,14 @@
-site_name: CA-BioSiting Documentation
+# mkdocs.yml
+site_name: CA-BioSiting
 repo_url: https://github.com/uw-ssec/ca-biositing
+
 theme:
   name: material
   features:
     - navigation.expand
     - navigation.sections
     - content.code.copy
+
 plugins:
   - search
   - git-revision-date-localized:

@@ -84,7 +84,7 @@ pixi run run-etl
 pixi run teardown-services
 ```
 
-See [`resources/README.md`](resources/README.md) for detailed pipeline
+See [`../resources/README.md`](../resources/README.md) for detailed pipeline
 documentation.
 
 #### Web Service (FastAPI)
@@ -210,10 +210,10 @@ Prefect-orchestrated workflows for:
 
 **Guides**:
 
-- [Docker Workflow](src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md)
-- [ETL Development](src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md)
-- [Database Migrations](src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md)
+- [Docker Workflow](pipeline/DOCKER_WORKFLOW.md)
+- [Prefect Workflow](pipeline/PREFECT_WORKFLOW.md)
+- [ETL Development](pipeline/ETL_WORKFLOW.md)
+- [Database Migrations](pipeline/ALEMBIC_WORKFLOW.md)
 
 ### 3. Web Service (`ca_biositing.webservice`)
 
@@ -367,15 +367,15 @@ Pre-commit hooks may auto-fix files. If this happens:
 ### Workflow Guides
 
 - **Docker Workflow**:
-  [`src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md`](src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md)
+  [`src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md`](pipeline/DOCKER_WORKFLOW.md)
 - **Prefect Workflow**:
-  [`src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md`](src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md)
+  [`src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md`](pipeline/PREFECT_WORKFLOW.md)
 - **ETL Development**:
-  [`src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md`](src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md)
+  [`src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md`](pipeline/ETL_WORKFLOW.md)
 - **Database Migrations**:
-  [`src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`](src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md)
+  [`src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`](pipeline/ALEMBIC_WORKFLOW.md)
 - **Google Cloud Setup**:
-  [`src/ca_biositing/pipeline/docs/GCP_SETUP.md`](src/ca_biositing/pipeline/docs/GCP_SETUP.md)
+  [`src/ca_biositing/pipeline/docs/GCP_SETUP.md`](pipeline/GCP_SETUP.md)
 
 ### AI Assistant Guidance
 
