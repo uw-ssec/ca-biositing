@@ -248,6 +248,7 @@ depends-on = [{ task = "start-services" }]
 ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
 
 [feature.docs.dependencies]
+python = ">=3.11,<3.14"
 mkdocs = "*"
 mkdocs-material = "*"
 mkdocs-git-revision-date-localized-plugin = "*"
@@ -261,5 +262,5 @@ docs-serve = { cmd = "mkdocs serve", description = "Run MkDocs locally for previ
 docs-build = { cmd = "mkdocs build", description = "Build static documentation site." }
 
 [tasks.rtd-publish]
-cmd = "pixi run -e docs docs-build"
+cmd = "pixi run -e docs python -m mkdocs build --clean --site-dir $READTHEDOCS_OUTPUT/html --config-file mkdocs.yml"
 description = "Build documentation for ReadTheDocs"
