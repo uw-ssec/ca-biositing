@@ -2,7 +2,12 @@
 
 ## Overview
 
-CA-Biositing is a comprehensive geospatial bioeconomy platform for biodiversity data management and analysis, specifically focused on California biositing activities. The project combines ETL data pipelines, REST APIs, geospatial analysis tools, and web interfaces to support biodiversity research and conservation efforts. It processes data from Google Sheets into PostgreSQL databases and provides both programmatic and visual access to the data.
+CA-Biositing is a comprehensive geospatial bioeconomy platform for biodiversity
+data management and analysis, specifically focused on California biositing
+activities. The project combines ETL data pipelines, REST APIs, geospatial
+analysis tools, and web interfaces to support biodiversity research and
+conservation efforts. It processes data from Google Sheets into PostgreSQL
+databases and provides both programmatic and visual access to the data.
 
 ## System Architecture Diagram
 
@@ -86,13 +91,15 @@ CA-Biositing is a comprehensive geospatial bioeconomy platform for biodiversity 
 
 ### Frontend & Visualization
 
-- **Frontend Framework**: React/Next.js (separate repository: `cal-bioscape-frontend`)
+- **Frontend Framework**: React/Next.js (separate repository:
+  `cal-bioscape-frontend`)
 - **Geospatial Analysis**: QGIS integration for advanced spatial analysis
 - **Package Management**: Node.js/npm for frontend dependencies
 
 ### Development & Deployment
 
-- **Package Management**: Pixi for Python dependency management and task automation
+- **Package Management**: Pixi for Python dependency management and task
+  automation
 - **Development Environment**: VS Code with dev containers
 - **Code Quality**: Pre-commit hooks, pytest for testing
 - **Version Control**: Git with submodules for frontend integration
@@ -103,7 +110,8 @@ CA-Biositing is a comprehensive geospatial bioeconomy platform for biodiversity 
   - Google Sheets API for data ingestion
   - Google Cloud credentials management
   - Potential cloud deployment target
-- **Database Hosting**: Containerized PostgreSQL (development), cloud SQL (production)
+- **Database Hosting**: Containerized PostgreSQL (development), cloud SQL
+  (production)
 - **Container Registry**: For Docker image distribution
 
 ## Detailed Project Structure
@@ -152,11 +160,11 @@ ca-biositing/
 │       ├── deploy.py                    # Automated deployment script
 │       └── run_prefect_flow.py          # Master flow orchestration
 │
-├── docs/         
+├── docs/
 │   ├── README.md                        # Main ReadMe file
 │   ├── Architecture.md                  # Project architecture [This file]
 │   ├── api/                             # Folder for api docs
-│   └── pipeline/  
+│   └── pipeline/
 │       ├── DOCKER_WORKFLOW.md           # Docker deployment guide
 │       ├── PREFECT_WORKFLOW.md          # Prefect orchestration guide
 │       ├── ETL_WORKFLOW.md              # ETL development guide
@@ -223,7 +231,6 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
 ### Development Environment Services
 
 1. **PostgreSQL Database** (`db`)
-
    - **Image**: PostgreSQL 13+
    - **Purpose**: Primary data storage for application and Prefect metadata
    - **Databases**:
@@ -234,14 +241,12 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
    - **Persistence**: Docker volumes for data durability
 
 2. **Database Migration** (`setup-db`)
-
    - **Purpose**: One-time schema initialization and upgrades
    - **Tool**: Alembic for version-controlled migrations
    - **Dependency**: Waits for database health check
    - **Execution**: Runs on service startup
 
 3. **Prefect Server** (`prefect-server`)
-
    - **Purpose**: Workflow orchestration and monitoring
    - **Port**: 4200 (Web UI and API)
    - **Features**:
@@ -490,4 +495,6 @@ Environments:
 - **Real-time Processing**: Stream processing for live data
 - **Data Lake**: Large-scale data storage and processing
 
-This architecture supports the project's mission of providing a robust, scalable platform for California biodiversity data management while maintaining flexibility for future enhancements and cloud deployment.
+This architecture supports the project's mission of providing a robust, scalable
+platform for California biodiversity data management while maintaining
+flexibility for future enhancements and cloud deployment.
