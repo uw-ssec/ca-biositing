@@ -252,6 +252,7 @@ python = ">=3.11,<3.14"
 mkdocs = "*"
 mkdocs-material = "*"
 mkdocs-git-revision-date-localized-plugin = "*"
+pymdown-extensions = "*"
 pip = "*"
 
 [feature.docs.pypi-dependencies]

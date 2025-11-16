@@ -11,64 +11,81 @@ databases and provides both programmatic and visual access to the data.
 
 ## System Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            EXTERNAL DATA SOURCES                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  Google Sheets API  │  External Datasets  │  Field Data Collection          │
-└─────────────────────┬───────────────────────┬───────────────────────────────┘
-                      │                       │
-                      ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                               ETL PIPELINE                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐      │
-│  │   EXTRACT   │──▶│ TRANSFORM   │──▶│   VALIDATE  │──▶│    LOAD     │      │
-│  │ Google      │   │ pandas      │   │ SQLModel    │   │ PostgreSQL  │      │
-│  │ Sheets API  │   │ Processing  │   │ Validation  │   │ via Alembic │      │
-│  └─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘      │
-│                                                                             │
-│  Orchestrated by: Prefect + Docker                                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            DATA PERSISTENCE                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    PostgreSQL Database                              │    │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐      │    │
-│  │  │   Application   │  │    Prefect      │  │   Geospatial    │      │    │
-│  │  │    Database     │  │   Metadata      │  │     Data        │      │    │
-│  │  │   (biocirv_db)  │  │ (prefect_db)    │  │  (PostGIS ext)  │      │    │
-│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘      │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              API LAYER                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        FastAPI REST API                             │    │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐     │    │
-│  │  │   Data Access   │  │   Geospatial    │  │   Interactive    │     │    │
-│  │  │   Endpoints     │  │    Queries      │  │  Documentation   │     │    │
-│  │  │                 │  │                 │  │ (Swagger/OpenAPI)│     │    │
-│  │  └─────────────────┘  └─────────────────┘  └──────────────────┘     │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            CLIENT INTERFACES                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌────────┐  │
-│  │  Frontend Web   │  │      QGIS       │  │   Direct API    │  │ Custom │  │
-│  │  Application    │  │   Geospatial    │  │   Integration   │  │ Clients│  │
-│  │ (React/Next.js) │  │    Analysis     │  │                 │  │        │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  └────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+
+
+%% =====================================
+%% 1. EXTERNAL DATA SOURCES (TOP)
+%% =====================================
+
+subgraph EXT["EXTERNAL DATA SOURCES"]
+direction TB
+    EX1["Google Sheets API"]
+    EX2["External Datasets"]
+    EX3["Field Data Collection"]
+end
+
+EXT --> ETL
+
+
+%% =====================================
+%% 2. ETL PIPELINE
+%% =====================================
+
+subgraph ETL["ETL PIPELINE"]
+direction LR
+    EXTRACT["EXTRACT<br/>Google Sheets API"]
+    TRANSFORM["TRANSFORM<br/>Pandas Processing"]
+    VALIDATE["VALIDATE<br/>SQLModel Validation"]
+    LOAD["LOAD<br/>PostgreSQL via Alembic"]
+    ORCH["Orchestrated by:<br/>Prefect + Docker"]
+
+    EXTRACT --> TRANSFORM --> VALIDATE --> LOAD --> ORCH
+end
+
+ETL --> DATA
+
+
+%% =====================================
+%% 3. DATA PERSISTENCE
+%% =====================================
+
+subgraph DATA["DATA PERSISTENCE"]
+direction LR
+    APPDB["Application Database<br/>(biocirv_db)"]
+    PREFECTDB["Prefect Metadata<br/>(prefect_db)"]
+    GEO["Geospatial Data<br/>(PostGIS Extension)"]
+end
+
+DATA --> API_LAYER
+
+
+%% =====================================
+%% 4. API LAYER
+%% =====================================
+
+subgraph API_LAYER["API LAYER"]
+direction LR
+    ENDPTS["Data Access Endpoints"]
+    GEOQ["Geospatial Queries"]
+    DOCS["Interactive Documentation<br/>(Swagger/OpenAPI)"]
+end
+
+API_LAYER --> CLIENTS
+
+
+%% =====================================
+%% 5. CLIENT INTERFACES (BOTTOM)
+%% =====================================
+
+subgraph CLIENTS["CLIENT INTERFACES"]
+direction LR
+    FE["Frontend Web Application<br/>(React / Next.js)"]
+    QGIS["QGIS Geospatial Analysis"]
+    DIRECT["Direct API Integration"]
+    CUSTOM["Custom Clients"]
+end
 ```
 
 ## Core Technology Stack
@@ -231,6 +248,7 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
 ### Development Environment Services
 
 1. **PostgreSQL Database** (`db`)
+
    - **Image**: PostgreSQL 13+
    - **Purpose**: Primary data storage for application and Prefect metadata
    - **Databases**:
@@ -241,12 +259,14 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
    - **Persistence**: Docker volumes for data durability
 
 2. **Database Migration** (`setup-db`)
+
    - **Purpose**: One-time schema initialization and upgrades
    - **Tool**: Alembic for version-controlled migrations
    - **Dependency**: Waits for database health check
    - **Execution**: Runs on service startup
 
 3. **Prefect Server** (`prefect-server`)
+
    - **Purpose**: Workflow orchestration and monitoring
    - **Port**: 4200 (Web UI and API)
    - **Features**:
