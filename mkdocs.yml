@@ -31,9 +31,16 @@ nav:
   - Home: README.md
   - Architecture: architecture.md
   - Pipeline:
+      - Overview: pipeline/README.md
       - ETL Workflow: pipeline/ETL_WORKFLOW.md
       - Alembic Workflow: pipeline/ALEMBIC_WORKFLOW.md
       - Docker Workflow: pipeline/DOCKER_WORKFLOW.md
       - Prefect Workflow: pipeline/PREFECT_WORKFLOW.md
       - GCP Setup: pipeline/GCP_SETUP.md
+  - Datamodels:
+      - Overview: datamodels/README.md
+  - Webservice:
+      - Overview: webservice/README.md
+  - Resources:
+      - Overview: resources/README.md
   - API: api/index.md
