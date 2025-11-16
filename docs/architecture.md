@@ -248,7 +248,6 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
 ### Development Environment Services
 
 1. **PostgreSQL Database** (`db`)
-
    - **Image**: PostgreSQL 13+
    - **Purpose**: Primary data storage for application and Prefect metadata
    - **Databases**:
@@ -259,14 +258,12 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
    - **Persistence**: Docker volumes for data durability
 
 2. **Database Migration** (`setup-db`)
-
    - **Purpose**: One-time schema initialization and upgrades
    - **Tool**: Alembic for version-controlled migrations
    - **Dependency**: Waits for database health check
    - **Execution**: Runs on service startup
 
 3. **Prefect Server** (`prefect-server`)
-
    - **Purpose**: Workflow orchestration and monitoring
    - **Port**: 4200 (Web UI and API)
    - **Features**:
