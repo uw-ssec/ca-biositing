@@ -137,67 +137,72 @@ end
 
 ```
 ca-biositing/
-├── src/ca_biositing/                    # PEP 420 namespace package root
-│   ├── datamodels/                      # Database models & configuration
-│   │   ├── ca_biositing/datamodels/     # SQLModel definitions
-│   │   │   ├── biomass.py               # Biomass entities & field samples
-│   │   │   ├── geographic_locations.py  # Location data (GPS, addresses)
-│   │   │   ├── experiments_analysis.py  # Experimental data models
-│   │   │   ├── organizations.py         # Organization entities
-│   │   │   ├── people_contacts.py       # People & contact information
-│   │   │   ├── metadata_samples.py      # Sample metadata
-│   │   │   ├── external_datasets.py     # External data integration
-│   │   │   ├── config.py                # Model configuration
-│   │   │   └── database.py              # Database connection setup
-│   │   ├── tests/                       # Comprehensive test suite
-│   │   └── pyproject.toml               # Independent package config
+├── src/ca_biositing/                    # PEP 420 namespace package root for all submodules
+│   ├── datamodels/                      # Database models, schema definitions, and ORM setup
+│   │   ├── ca_biositing/datamodels/     # Actual SQLModel-based data models
+│   │   │   ├── biomass.py               # Biomass and related entities
+│   │   │   ├── experiments_analysis.py  # Experiment and analysis result models
+│   │   │   ├── geographic_locations.py  # Geographic and location-based entities
+│   │   │   ├── metadata_samples.py      # Metadata and sample definitions
+│   │   │   ├── organizations.py         # Organization entity definitions
+│   │   │   ├── people_contacts.py       # Contact and personnel information
+│   │   │   ├── external_datasets.py     # External dataset integration definitions
+│   │   │   ├── config.py                # SQLModel and database configuration
+│   │   │   └── database.py              # Database engine setup and connection logic
+│   │   ├── tests/                       # Unit tests for datamodels package
+│   │   └── pyproject.toml               # Independent packaging and dependencies for datamodels
 │   │
-│   ├── pipeline/                        # ETL pipeline components
-│   │   ├── flows/                       # Prefect flow definitions
-│   │   ├── tasks/                       # Individual ETL tasks
-│   │   └── pyproject.toml               # Pipeline-specific dependencies
+│   ├── pipeline/                        # ETL and workflow orchestration components
+│   │   ├── ca_biositing/pipeline/       # Main ETL logic for data ingestion and transformation
+│   │   │   ├── etl/                     # Extract, Transform, Load core logic
+│   │   │   ├── load/                    # Data loading processes into PostgreSQL
+│   │   │   ├── transform/               # Data transformation utilities using pandas
+│   │   │   ├── flows/                   # Prefect flow definitions for orchestrating pipelines
+│   │   │   └── utils/                   # Helper scripts and utility functions for ETL tasks
+│   │   ├── tests/                       # Pipeline-specific tests
+│   │   └── pyproject.toml               # Pipeline-specific dependencies and build info
 │   │
-│   └── webservice/                      # FastAPI REST API
-│       ├── main.py                      # FastAPI application entry point
-│       ├── routers/                     # API route definitions
-│       ├── models/                      # API response models
-│       └── pyproject.toml               # Web service dependencies
+│   └── webservice/                      # FastAPI backend service for REST API access
+│       ├── ca_biositing/webservice/     # Web service source files
+│       │   ├── main.py                  # FastAPI entry point (app startup)
+│       │   └── __init__.py              # Package initialization
+│       ├── tests/                       # Tests for webservice routes and API endpoints
+│       └── pyproject.toml               # Dependencies for webservice package
 │
-├── frontend/                            # Git submodule (separate repo)
-│   └── (cal-bioscape-frontend)          # React/Next.js application
+├── resources/                           # Infrastructure, Docker, and Prefect configuration
+│   ├── docker/                          # Docker setup for local and production environments
+│   │   ├── docker-compose.yml           # Multi-container setup for development
+│   │   ├── pipeline.dockerfile          # Dockerfile for ETL pipeline container
+│   │   ├── .env.example                 # Environment variable template for local setup
+│   │   └── create_prefect_db.sql        # SQL script for Prefect metadata DB initialization
+│   └── prefect/                         # Prefect deployment and orchestration setup
+│       ├── prefect.yaml                 # Prefect deployment configuration
+│       ├── deploy.py                    # Script to automate Prefect flow deployment
+│       └── run_prefect_flow.py          # Script to run master ETL Prefect flow
 │
-├── resources/                           # Deployment & infrastructure
-│   ├── docker/                          # Docker configuration
-│   │   ├── docker-compose.yml           # Service orchestration
-│   │   ├── pipeline.dockerfile          # Multi-stage pipeline build
-│   │   ├── .env.example                 # Environment template
-│   │   └── create_prefect_db.sql        # Database initialization
-│   └── prefect/                         # Prefect deployment config
-│       ├── prefect.yaml                 # Deployment definitions
-│       ├── deploy.py                    # Automated deployment script
-│       └── run_prefect_flow.py          # Master flow orchestration
+├── docs/                                # MkDocs documentation folder
+│   ├── architecture.md                  # Main architecture document (this file)
+│   ├── api/                             # REST API documentation
+│   ├── pipeline/                        # Pipeline workflow documentation (ETL, Docker, Prefect, GCP)
+│   ├── datamodels/                      # Datamodel documentation overview
+│   ├── webservice/                      # FastAPI and API overview documentation
+│   └── resources/                       # Deployment and infra docs (Docker/Prefect)
 │
-├── docs/
-│   ├── README.md                        # Main ReadMe file
-│   ├── Architecture.md                  # Project architecture [This file]
-│   ├── api/                             # Folder for api docs
-│   └── pipeline/
-│       ├── DOCKER_WORKFLOW.md           # Docker deployment guide
-│       ├── PREFECT_WORKFLOW.md          # Prefect orchestration guide
-│       ├── ETL_WORKFLOW.md              # ETL development guide
-│       ├── ALEMBIC_WORKFLOW.md          # Database migration guide
-│       └── GCP_SETUP.md                 # Google Cloud setup
+├── alembic/                             # Database migration management (Alembic)
+│   ├── env.py                           # Alembic environment configuration
+│   └── versions/                        # Versioned migration scripts
 │
-├── alembic/                             # Database migration management
-│   ├── versions/                        # Migration scripts
-│   └── env.py                           # Alembic environment config
-│
-├── tests/                               # Integration tests
-├── .devcontainer/                       # Development container setup
-├── .github/                             # CI/CD workflows
-├── .vscode/                             # IDE configuration
-├── pixi.toml                            # Project dependencies & tasks
-└── pixi.lock                            # Dependency lock file
+├── tests/                               # Integration and namespace import tests
+├── frontend/ (submodule: cal-bioscape-frontend)  # React/Next.js frontend repo as Git submodule
+├── .devcontainer/                       # VS Code dev container configuration for reproducible dev env
+├── .github/                             # CI/CD workflows, issue templates, PR templates
+├── .vscode/                             # Editor settings and recommended extensions
+├── pixi.toml                            # Pixi project config for dependency & task management
+├── pixi.lock                            # Dependency lock file for reproducibility
+├── readthedocs.yaml                     # ReadTheDocs build configuration
+├── .pre-commit-config.yaml              # Code linting and formatting pre-commit hooks
+├── config.py                            # Global configuration and environment variables
+└── README.md                            # Root project overview and instructions
 ```
 
 ## Data Flow Architecture
