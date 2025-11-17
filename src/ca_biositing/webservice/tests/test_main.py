@@ -10,6 +10,8 @@ def test_read_root(client):
     data = response.json()
     assert "message" in data
     assert "version" in data
+    assert "docs" in data
+    assert "health" in data
     assert data["message"] == "CA Biositing API"
 
 
