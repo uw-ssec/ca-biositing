@@ -80,7 +80,7 @@ directory:
 - **Purpose:** Managing the lifecycle of your development containers (app and
   database)
 - **Details:** Starting, stopping, and rebuilding your environment
-- **[See: docs/DOCKER_WORKFLOW.md](./docs/DOCKER_WORKFLOW.md)**
+- **[See: docs/DOCKER_WORKFLOW.md](./DOCKER_WORKFLOW.md)**
 
 ### 2. Database Schema Migrations (Alembic)
 
@@ -89,21 +89,21 @@ directory:
   on SQLModel changes
 - **Note:** Database models are now in the shared `ca-biositing-datamodels`
   package
-- **[See: docs/ALEMBIC_WORKFLOW.md](./docs/ALEMBIC_WORKFLOW.md)**
+- **[See: docs/ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)**
 
 ### 3. ETL Pipeline Development (Prefect)
 
 - **Purpose:** Running the ETL pipeline and adding new data pipelines
 - **Details:** Using Prefect's flow orchestration with extract, transform, and
   load tasks
-- **[See: docs/ETL_WORKFLOW.md](./docs/ETL_WORKFLOW.md)**
-- **[See: docs/PREFECT_WORKFLOW.md](./docs/PREFECT_WORKFLOW.md)**
+- **[See: docs/ETL_WORKFLOW.md](./ETL_WORKFLOW.md)**
+- **[See: docs/PREFECT_WORKFLOW.md](./PREFECT_WORKFLOW.md)**
 
 ### 4. Google Cloud Setup
 
 - **Purpose:** Setting up Google Sheets API access
 - **Details:** Creating service account and credentials for data extraction
-- **[See: docs/GCP_SETUP.md](./docs/GCP_SETUP.md)**
+- **[See: docs/GCP_SETUP.md](./GCP_SETUP.md)**
 
 ## Installation
 
@@ -209,7 +209,7 @@ For production-like development using Docker containers:
 **1. Google Cloud Setup:**
 
 - Set up Google Sheets API access
-- **[See: docs/GCP_SETUP.md](./docs/GCP_SETUP.md)**
+- **[See: docs/GCP_SETUP.md](./GCP_SETUP.md)**
 
 **2. Environment Setup:**
 
