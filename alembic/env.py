@@ -28,9 +28,9 @@ from sqlmodel import SQLModel
 import importlib.util
 from pathlib import Path
 
-# --- Import generated models ---
-from ca_biositing.datamodels.schemas.generated.census_survey import *
-from ca_biositing.datamodels.schemas.generated.geography import *
+# --- Import generated models and their metadata ---
+# from ca_biositing.datamodels.schemas.generated.census_survey import metadata as census_metadata
+# from ca_biositing.datamodels.schemas.generated.geography import metadata as geography_metadata
 
 # --- Alembic Config object, provides access to alembic.ini values ---
 config = context.config
@@ -49,10 +49,16 @@ if config.config_file_name is not None:
 # --- Metadata from your models for autogenerate ---
 # Combine metadata from all models
 # See: https://alembic.sqlalchemy.org/en/latest/autogenerate.html#affecting-the-autogenerate-process
-for table in SQLModel.metadata.tables.values():
-    table.tometadata(SQLModel.metadata)
 
+# Start with the default SQLModel metadata
 target_metadata = SQLModel.metadata
+
+# Manually merge metadata from generated modules
+# for table in census_metadata.tables.values():
+#     table.tometadata(target_metadata)
+#
+# for table in geography_metadata.tables.values():
+#     table.tometadata(target_metadata)
 
 
 def render_item(type_, obj, autogen_context):
