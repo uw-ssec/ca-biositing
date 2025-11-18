@@ -68,9 +68,7 @@ start-services = { cmd = [
     "resources/docker/docker-compose.yml",
     "up",
     "-d",
-], description = "Start required services using Docker Compose.", depends-on = [
-    "initial-migration",
-] }
+], description = "Start required services using Docker Compose." }
 teardown-services = { cmd = [
     "docker-compose",
     "-f",
@@ -179,6 +177,19 @@ restart-prefect-worker = { cmd = [
     "restart",
     "prefect-worker",
 ], description = "Restart the Prefect worker service." }
+
+migrate = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+    "/bin/bash",
+    "-c",
+    "source /shell-hook.sh && alembic upgrade head",
+], description = "Apply database migrations.", depends-on = [
+    "start-services",
+] }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
