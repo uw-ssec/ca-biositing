@@ -67,6 +67,13 @@ def include_object(obj, name, type_, reflected, compare_to):
 
     return True
 
+# Manually merge metadata from generated modules
+# for table in census_metadata.tables.values():
+#     table.tometadata(target_metadata)
+#
+# for table in geography_metadata.tables.values():
+#     table.tometadata(target_metadata)
+
 
 def render_item(type_, obj, autogen_context):
     """
