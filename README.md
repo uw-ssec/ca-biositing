@@ -1,35 +1,110 @@
 # ca-biositing
 
-Discussion of general issues related to the project and protyping or research
+A geospatial bioeconomy project for biositing analysis in California. This
+repository provides tools for ETL pipelines to process data from Google Sheets
+into PostgreSQL databases, geospatial analysis using QGIS, and a REST API for
+data access.
 
-## Relevant Links for project documentations and context
+## Project Structure
 
-- eScience Slack channel: 🔒
-  [#ssec-ca-biositing](https://escience-institute.slack.com/archives/C098GJCTTFE)
-- SSEC Sharepoint (**INTERNAL SSEC ONLY**): 🔒
-  [Projects/GeospatialBioeconomy](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy?csf=1&web=1&e=VBUGQG)
-- Shared Sharepoint Directory: 🔒
-  [SSEC CA Biositing Shared Folder](https://uwnetid.sharepoint.com/:f:/r/sites/og_ssec_escience/Shared%20Documents/Projects/GeospatialBioeconomy/SSEC%20CA%20Biositing%20Shared%20Folder?csf=1&web=1&e=p5wBel)
+This project uses a **PEP 420 namespace package** structure with three main
+components:
 
-## General Discussions
+- **`ca_biositing.datamodels`**: Shared SQLModel database models and database
+  configuration
+- **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
+  via Docker
+- **`ca_biositing.webservice`**: FastAPI REST API for data access
 
-For general discussion, ideas, and resources please use the
-[GitHub Discussions](https://github.com/uw-ssec/ca-biositing/discussions).
-However, if there's an internal discussion that need to happen, please use the
-slack channel provided.
+### Directory Layout
 
-- Meeting Notes in GitHub:
-  [discussions/meetings](https://github.com/uw-ssec/ca-biositing/discussions/categories/meetings)
+```text
+ca-biositing/
+├── src/ca_biositing/           # Namespace package root
+│   ├── datamodels/             # Database models (SQLModel)
+│   ├── pipeline/               # ETL pipelines (Prefect)
+│   └── webservice/             # REST API (FastAPI)
+├── resources/                  # Deployment resources
+│   ├── docker/                 # Docker Compose configuration
+│   └── prefect/                # Prefect deployment files
+├── tests/                      # Integration tests
+├── pixi.toml                   # Pixi dependencies and tasks
+└── pixi.lock                   # Dependency lock file
+```
 
-## Questions
+## Quick Start
 
-If you have any questions about our process, or locations of SSEC resources,
-please ask [Anshul Tambay](https://github.com/atambay37).
+### Prerequisites
 
-## QGIS
+- **Pixi** (v0.55.0+):
+  [Installation Guide](https://pixi.sh/latest/#installation)
+- **Docker**: For running the ETL pipeline
+- **Google Cloud credentials**: For Google Sheets access (optional)
 
-This project includes QGIS for geospatial analysis and visualization. You can
-run QGIS using pixi with the following command:
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/uw-ssec/ca-biositing.git
+cd ca-biositing
+
+# Install dependencies with Pixi
+pixi install
+
+# Install pre-commit hooks
+pixi run pre-commit-install
+```
+
+### Running Components
+
+#### ETL Pipeline (Prefect + Docker)
+
+**Note**: Before starting the services for the first time, create the required
+environment file from the template:
+
+```bash
+cp resources/docker/.env.example resources/docker/.env
+```
+
+Then start and use the services:
+
+```bash
+# 1. Create the initial database migration script
+# (This is only needed once for a new database)
+pixi run initial-migration
+
+# 2. Start all services (PostgreSQL, Prefect server, worker)
+# This will also automatically apply any pending database migrations.
+pixi run start-services
+
+# 3. Deploy flows to Prefect
+pixi run deploy
+
+# Run the ETL pipeline
+pixi run run-etl
+
+# Monitor via Prefect UI: http://localhost:4200
+
+# To apply new migrations after the initial setup
+pixi run migrate
+
+# Stop services
+pixi run teardown-services
+```
+
+See [`resources/README.md`](resources/README.md) for detailed pipeline
+documentation.
+
+#### Web Service (FastAPI)
+
+```bash
+# Start the web service
+pixi run start-webservice
+
+# Access API docs: http://localhost:8000/docs
+```
+
+#### QGIS (Geospatial Analysis)
 
 ```bash
 pixi run qgis
