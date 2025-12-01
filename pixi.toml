@@ -18,6 +18,7 @@ etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
 webservice = { features = ["datamodels", "webservice"], solve-group = "default" }
 frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
 docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
+deployment = { features = ["cloud"], solve-group = "default" }
 
 [dependencies]
 python = "~=3.12"
@@ -185,6 +186,7 @@ description = "Run all tests with coverage and HTML report"
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
 
+
 [feature.qgis.dependencies]
 qgis = "*"
 
@@ -265,3 +267,28 @@ docs-build = { cmd = "mkdocs build", description = "Build static documentation s
 [tasks.rtd-publish]
 cmd = "pixi run -e docs python -m mkdocs build --clean --site-dir $READTHEDOCS_OUTPUT/html --config-file mkdocs.yml"
 description = "Build documentation for ReadTheDocs"
+
+
+# ==== Deployment environment ====
+[feature.cloud.dependencies]
+opentofu = ">1.10.6"
+
+[feature.cloud.tasks]
+# empty for now
+
+# OpenTofu tasks
+[feature.cloud.tasks.cloud-deploy]
+cmd = "tofu fmt -recursive && tofu apply"
+cwd = "deployment/cloud/gcp/infrastructure"
+
+[feature.cloud.tasks.cloud-init]
+cmd = "tofu init"
+cwd = "deployment/cloud/gcp/infrastructure"
+
+[feature.cloud.tasks.cloud-plan]
+cmd = "tofu fmt -recursive && tofu plan"
+cwd = "deployment/cloud/gcp/infrastructure"
+
+[feature.cloud.tasks.cloud-destroy]
+cmd = "tofu destroy"
+cwd = "deployment/cloud/gcp/infrastructure"

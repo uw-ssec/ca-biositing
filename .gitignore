@@ -39,3 +39,7 @@ credentials.json
 
 # macOS
 .DS_Store
+
+# OpenTofu
+.terraform/
+*.tfstate*
