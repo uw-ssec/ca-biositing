@@ -46,15 +46,15 @@ def list_biomass(
         Paginated response with biomass entries
     """
     biomass_list, total = biomass_service.get_biomass_list(
-        session, skip=pagination.skip, limit=pagination.limit
+        session, skip=pagination["skip"], limit=pagination["limit"]
     )
 
     return PaginatedResponse(
         items=[BiomassResponse.model_validate(b) for b in biomass_list],
         pagination=PaginationInfo(
             total=total,
-            skip=pagination.skip,
-            limit=pagination.limit,
+            skip=pagination["skip"],
+            limit=pagination["limit"],
             returned=len(biomass_list),
         ),
     )

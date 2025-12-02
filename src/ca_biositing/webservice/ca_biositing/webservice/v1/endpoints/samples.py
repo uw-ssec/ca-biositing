@@ -49,15 +49,15 @@ def list_samples(
     total = len(session.exec(count_statement).all())
 
     # Get paginated results
-    statement = select(FieldSample).offset(pagination.skip).limit(pagination.limit)
+    statement = select(FieldSample).offset(pagination["skip"]).limit(pagination["limit"])
     samples = session.exec(statement).all()
 
     return PaginatedResponse(
         items=[FieldSampleResponse.model_validate(s) for s in samples],
         pagination=PaginationInfo(
             total=total,
-            skip=pagination.skip,
-            limit=pagination.limit,
+            skip=pagination["skip"],
+            limit=pagination["limit"],
             returned=len(samples),
         ),
     )

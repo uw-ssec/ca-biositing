@@ -49,15 +49,15 @@ def list_locations(
     total = len(session.exec(count_statement).all())
 
     # Get paginated results
-    statement = select(GeographicLocation).offset(pagination.skip).limit(pagination.limit)
+    statement = select(GeographicLocation).offset(pagination["skip"]).limit(pagination["limit"])
     locations = session.exec(statement).all()
 
     return PaginatedResponse(
         items=[GeographicLocationResponse.model_validate(l) for l in locations],
         pagination=PaginationInfo(
             total=total,
-            skip=pagination.skip,
-            limit=pagination.limit,
+            skip=pagination["skip"],
+            limit=pagination["limit"],
             returned=len(locations),
         ),
     )

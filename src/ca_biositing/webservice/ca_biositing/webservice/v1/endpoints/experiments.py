@@ -46,15 +46,15 @@ def list_experiments(
         Paginated response with experiments
     """
     experiments, total = experiment_service.get_experiment_list(
-        session, skip=pagination.skip, limit=pagination.limit
+        session, skip=pagination["skip"], limit=pagination["limit"]
     )
 
     return PaginatedResponse(
         items=[ExperimentResponse.model_validate(e) for e in experiments],
         pagination=PaginationInfo(
             total=total,
-            skip=pagination.skip,
-            limit=pagination.limit,
+            skip=pagination["skip"],
+            limit=pagination["limit"],
             returned=len(experiments),
         ),
     )

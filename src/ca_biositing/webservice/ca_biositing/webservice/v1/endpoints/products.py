@@ -49,15 +49,15 @@ def list_products(
     total = len(session.exec(count_statement).all())
 
     # Get paginated results
-    statement = select(PrimaryProduct).offset(pagination.skip).limit(pagination.limit)
+    statement = select(PrimaryProduct).offset(pagination["skip"]).limit(pagination["limit"])
     products = session.exec(statement).all()
 
     return PaginatedResponse(
         items=[PrimaryProductResponse.model_validate(p) for p in products],
         pagination=PaginationInfo(
             total=total,
-            skip=pagination.skip,
-            limit=pagination.limit,
+            skip=pagination["skip"],
+            limit=pagination["limit"],
             returned=len(products),
         ),
     )

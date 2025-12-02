@@ -1,10 +1,14 @@
 # CA Biositing API Documentation
 
-This document provides an overview of the CA Biositing REST API endpoints and their usage.
+This document provides an overview of the CA Biositing REST API endpoints and
+their usage.
 
 ## Overview
 
-The CA Biositing API is a FastAPI-based REST API that provides access to bioeconomy data including biomass, experiments, samples, locations, and products. The API follows RESTful conventions and provides automatic OpenAPI documentation.
+The CA Biositing API is a FastAPI-based REST API that provides access to
+bioeconomy data including biomass, experiments, samples, locations, and
+products. The API follows RESTful conventions and provides automatic OpenAPI
+documentation.
 
 ## Base URL
 
@@ -21,11 +25,13 @@ Once the server is running, interactive documentation is available at:
 
 ## Authentication
 
-Currently, the API does not require authentication. Authentication can be added in the future using the prepared middleware structure.
+Currently, the API does not require authentication. Authentication can be added
+in the future using the prepared middleware structure.
 
 ## CORS Configuration
 
 CORS is configured to allow requests from common frontend development ports:
+
 - `http://localhost:3000` (React default)
 - `http://localhost:5173` (Vite default)
 - `http://localhost:8080` (Alternative port)
@@ -41,10 +47,12 @@ GET /v1/biomass?skip=0&limit=50
 ```
 
 **Parameters**:
+
 - `skip` (integer, min: 0, default: 0): Number of records to skip
 - `limit` (integer, min: 1, max: 100, default: 50): Maximum records to return
 
 **Response Format**:
+
 ```json
 {
   "items": [...],
@@ -59,9 +67,11 @@ GET /v1/biomass?skip=0&limit=50
 
 ### Error Responses
 
-The API uses standard HTTP status codes and returns errors in a consistent format:
+The API uses standard HTTP status codes and returns errors in a consistent
+format:
 
 **404 Not Found**:
+
 ```json
 {
   "detail": "Biomass with ID 999 not found"
@@ -69,6 +79,7 @@ The API uses standard HTTP status codes and returns errors in a consistent forma
 ```
 
 **422 Validation Error**:
+
 ```json
 {
   "detail": "Validation error",
@@ -77,6 +88,7 @@ The API uses standard HTTP status codes and returns errors in a consistent forma
 ```
 
 **500 Internal Server Error**:
+
 ```json
 {
   "detail": "Internal server error",
@@ -89,6 +101,7 @@ The API uses standard HTTP status codes and returns errors in a consistent forma
 ### Root Endpoints
 
 #### Get API Information
+
 ```
 GET /
 ```
@@ -96,6 +109,7 @@ GET /
 Returns basic API information including version and links to documentation.
 
 **Response**:
+
 ```json
 {
   "message": "CA Biositing API",
@@ -106,6 +120,7 @@ Returns basic API information including version and links to documentation.
 ```
 
 #### Health Check (Legacy)
+
 ```
 GET /hello
 ```
@@ -115,6 +130,7 @@ Simple hello world endpoint for testing.
 ### Health Check
 
 #### Check API Health
+
 ```
 GET /v1/health
 ```
@@ -122,6 +138,7 @@ GET /v1/health
 Returns the health status of the API and its dependencies.
 
 **Response**:
+
 ```json
 {
   "status": "healthy",
@@ -133,6 +150,7 @@ Returns the health status of the API and its dependencies.
 ### Biomass Endpoints
 
 #### List Biomass Entries
+
 ```
 GET /v1/biomass
 ```
@@ -144,6 +162,7 @@ Get a paginated list of all biomass entries.
 **Response**: Paginated list of biomass entries
 
 #### Get Biomass by ID
+
 ```
 GET /v1/biomass/{biomass_id}
 ```
@@ -151,6 +170,7 @@ GET /v1/biomass/{biomass_id}
 Get a specific biomass entry by ID.
 
 **Response**:
+
 ```json
 {
   "biomass_id": 1,
@@ -163,6 +183,7 @@ Get a specific biomass entry by ID.
 ```
 
 #### Create Biomass
+
 ```
 POST /v1/biomass
 ```
@@ -170,6 +191,7 @@ POST /v1/biomass
 Create a new biomass entry.
 
 **Request Body**:
+
 ```json
 {
   "biomass_name": "Corn Stover",
@@ -183,6 +205,7 @@ Create a new biomass entry.
 **Response**: Created biomass entry (201 Created)
 
 #### Update Biomass
+
 ```
 PUT /v1/biomass/{biomass_id}
 ```
@@ -190,6 +213,7 @@ PUT /v1/biomass/{biomass_id}
 Update an existing biomass entry. All fields are optional for partial updates.
 
 **Request Body**:
+
 ```json
 {
   "biomass_name": "Updated Name",
@@ -200,6 +224,7 @@ Update an existing biomass entry. All fields are optional for partial updates.
 **Response**: Updated biomass entry
 
 #### Delete Biomass
+
 ```
 DELETE /v1/biomass/{biomass_id}
 ```
@@ -207,6 +232,7 @@ DELETE /v1/biomass/{biomass_id}
 Delete a biomass entry.
 
 **Response**:
+
 ```json
 {
   "message": "Biomass 1 deleted successfully"
@@ -216,6 +242,7 @@ Delete a biomass entry.
 ### Experiment Endpoints
 
 #### List Experiments
+
 ```
 GET /v1/experiments
 ```
@@ -225,6 +252,7 @@ Get a paginated list of all experiments.
 **Query Parameters**: `skip`, `limit` (see Pagination)
 
 #### Get Experiment by ID
+
 ```
 GET /v1/experiments/{experiment_id}
 ```
@@ -232,6 +260,7 @@ GET /v1/experiments/{experiment_id}
 Get a specific experiment by ID.
 
 #### Create Experiment
+
 ```
 POST /v1/experiments
 ```
@@ -239,6 +268,7 @@ POST /v1/experiments
 Create a new experiment.
 
 **Request Body**:
+
 ```json
 {
   "exper_uuid": "unique-id",
@@ -251,6 +281,7 @@ Create a new experiment.
 ```
 
 #### Update Experiment
+
 ```
 PUT /v1/experiments/{experiment_id}
 ```
@@ -258,6 +289,7 @@ PUT /v1/experiments/{experiment_id}
 Update an existing experiment.
 
 #### Delete Experiment
+
 ```
 DELETE /v1/experiments/{experiment_id}
 ```
@@ -267,6 +299,7 @@ Delete an experiment.
 ### Field Sample Endpoints
 
 #### List Samples
+
 ```
 GET /v1/samples
 ```
@@ -274,6 +307,7 @@ GET /v1/samples
 Get a paginated list of all field samples.
 
 #### Get Sample by ID
+
 ```
 GET /v1/samples/{sample_id}
 ```
@@ -281,6 +315,7 @@ GET /v1/samples/{sample_id}
 Get a specific field sample by ID.
 
 #### Create Sample
+
 ```
 POST /v1/samples
 ```
@@ -288,10 +323,12 @@ POST /v1/samples
 Create a new field sample.
 
 **Required Fields**:
+
 - `biomass_id`: Reference to biomass
 - `sample_name`: Name of the sample
 
 #### Update Sample
+
 ```
 PUT /v1/samples/{sample_id}
 ```
@@ -299,6 +336,7 @@ PUT /v1/samples/{sample_id}
 Update an existing field sample.
 
 #### Delete Sample
+
 ```
 DELETE /v1/samples/{sample_id}
 ```
@@ -308,6 +346,7 @@ Delete a field sample.
 ### Location Endpoints
 
 #### List Locations
+
 ```
 GET /v1/locations
 ```
@@ -315,6 +354,7 @@ GET /v1/locations
 Get a paginated list of all geographic locations.
 
 #### Get Location by ID
+
 ```
 GET /v1/locations/{location_id}
 ```
@@ -322,6 +362,7 @@ GET /v1/locations/{location_id}
 Get a specific location by ID.
 
 #### Create Location
+
 ```
 POST /v1/locations
 ```
@@ -329,6 +370,7 @@ POST /v1/locations
 Create a new geographic location.
 
 #### Update Location
+
 ```
 PUT /v1/locations/{location_id}
 ```
@@ -336,6 +378,7 @@ PUT /v1/locations/{location_id}
 Update an existing location.
 
 #### Delete Location
+
 ```
 DELETE /v1/locations/{location_id}
 ```
@@ -345,6 +388,7 @@ Delete a location.
 ### Product Endpoints
 
 #### List Products
+
 ```
 GET /v1/products
 ```
@@ -352,6 +396,7 @@ GET /v1/products
 Get a paginated list of all primary products.
 
 #### Get Product by ID
+
 ```
 GET /v1/products/{product_id}
 ```
@@ -359,6 +404,7 @@ GET /v1/products/{product_id}
 Get a specific product by ID.
 
 #### Create Product
+
 ```
 POST /v1/products
 ```
@@ -366,6 +412,7 @@ POST /v1/products
 Create a new primary product.
 
 **Request Body**:
+
 ```json
 {
   "primary_product_name": "Biochar"
@@ -373,6 +420,7 @@ Create a new primary product.
 ```
 
 #### Update Product
+
 ```
 PUT /v1/products/{product_id}
 ```
@@ -380,6 +428,7 @@ PUT /v1/products/{product_id}
 Update an existing product.
 
 #### Delete Product
+
 ```
 DELETE /v1/products/{product_id}
 ```
@@ -391,11 +440,13 @@ Delete a product.
 ### Running the API
 
 Using Pixi (recommended):
+
 ```bash
 pixi run start-webservice
 ```
 
 Using uvicorn directly:
+
 ```bash
 cd src
 uvicorn ca_biositing.webservice.main:app --reload
@@ -416,6 +467,7 @@ The API can be configured using environment variables with the `API_` prefix:
 - `ECHO_SQL`: Enable SQL query logging (from datamodels package)
 
 Example `.env` file:
+
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/ca_biositing
 ECHO_SQL=false
@@ -433,6 +485,7 @@ The webservice follows a layered architecture:
 5. **Config** (`config.py`): Application configuration
 
 This separation ensures:
+
 - Clean code organization
 - Easy testing with mocks
 - Reusable business logic
@@ -456,5 +509,6 @@ Potential improvements for future development:
 ## Support
 
 For issues, questions, or contributions, please visit:
+
 - **Repository**: https://github.com/uw-ssec/ca-biositing
 - **Issues**: https://github.com/uw-ssec/ca-biositing/issues
