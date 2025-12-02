@@ -1,0 +1,46 @@
+site_name: CA-BioSiting
+repo_url: https://github.com/uw-ssec/ca-biositing
+
+theme:
+  name: material
+  features:
+    - navigation.expand
+    - navigation.sections
+    - content.code.copy
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      fallback_to_build_date: true
+  - awesome-pages
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.inlinehilite
+  - pymdownx.emoji
+
+nav:
+  - Home: README.md
+  - Architecture: architecture.md
+  - Pipeline:
+      - Overview: pipeline/README.md
+      - ETL Workflow: pipeline/ETL_WORKFLOW.md
+      - Alembic Workflow: pipeline/ALEMBIC_WORKFLOW.md
+      - Docker Workflow: pipeline/DOCKER_WORKFLOW.md
+      - Prefect Workflow: pipeline/PREFECT_WORKFLOW.md
+      - GCP Setup: pipeline/GCP_SETUP.md
+  - Datamodels:
+      - Overview: datamodels/README.md
+  - Webservice:
+      - Overview: webservice/README.md
+  - Resources:
+      - Overview: resources/README.md
+  - API: api/index.md
