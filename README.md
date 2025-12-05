@@ -75,3 +75,28 @@ Then open your browser and go to:
 ```
 http://127.0.0.1:8000
 ```
+
+### Contributing Documentation
+
+Most documentation should live in the relevant directories within the `docs`
+folder.
+
+When adding new pages to the documentation, make sure you update the
+[`mkdocs.yml` file](https://github.com/uw-ssec/ca-biositing/blob/main/mkdocs.yml)
+so they can be rendered on the website.
+
+If you need to add documentation referencing a file that lives elsewhere in the
+repository, you'll need to do the following (this is an example, run from the
+package root directory)
+
+```bash
+# symlink the file to its destination
+# Be sure to use relative paths here, otherwise it won't work!
+ln -s ../../deployment/README.md docs/deployment/README.md
+
+# stage your new file
+git add docs/deployment/README.md
+```
+
+Be sure to preview the documentation to make sure it's accurate before
+submitting a PR.
