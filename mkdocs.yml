@@ -44,3 +44,4 @@ nav:
   - Resources:
       - Overview: resources/README.md
   - API: api/index.md
+  - Deployment: deployment/README.md
