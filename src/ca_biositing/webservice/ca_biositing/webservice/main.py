@@ -3,22 +3,105 @@
 This module provides the main FastAPI application with REST API endpoints.
 """
 
-from fastapi import FastAPI
+from __future__ import annotations
 
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from ca_biositing.webservice.config import config
+from ca_biositing.webservice.v1 import router as v1_router
+
+# Create FastAPI application with metadata
 app = FastAPI(
-    title="CA Biositing API",
-    description="REST API for CA Biositing bioeconomy data",
-    version="0.1.0"
+    title=config.api_title,
+    description=config.api_description,
+    version=config.api_version,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+# Configure CORS middleware for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config.cors_origins,
+    allow_credentials=config.cors_allow_credentials,
+    allow_methods=config.cors_allow_methods,
+    allow_headers=config.cors_allow_headers,
 )
 
 
-@app.get("/")
-def read_root():
-    """Root endpoint."""
-    return {"message": "CA Biositing API", "version": "0.1.0"}
+# Exception handlers
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Handle validation errors with detailed messages.
+
+    Args:
+        request: The incoming request
+        exc: The validation error
+
+    Returns:
+        JSONResponse with error details
+    """
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Validation error",
+            "errors": exc.errors(),
+        },
+    )
 
 
-@app.get("/hello")
-def read_hello():
-    """Hello endpoint."""
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle general exceptions.
+
+    Args:
+        request: The incoming request
+        exc: The exception
+
+    Returns:
+        JSONResponse with error message
+    """
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Internal server error",
+            "error": str(exc),
+        },
+    )
+
+
+# Root endpoint
+@app.get("/", tags=["root"])
+def read_root() -> dict[str, str]:
+    """Root endpoint providing API information.
+
+    Returns:
+        Dictionary with API message and version
+    """
+    return {
+        "message": config.api_title,
+        "version": config.api_version,
+        "docs": "/docs",
+        "health": "/v1/health",
+    }
+
+
+# Legacy hello endpoint for backward compatibility
+@app.get("/hello", tags=["root"])
+def read_hello() -> dict[str, str]:
+    """Hello endpoint for testing.
+
+    Returns:
+        Dictionary with hello message
+    """
     return {"message": "Hello, world"}
+
+
+# Mount v1 router
+app.include_router(v1_router.router)
