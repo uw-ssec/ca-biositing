@@ -227,3 +227,7 @@ slots:
   gas_flow_rate:
     range: decimal
     description: Gas flow rate.
+
+  sample_id:
+    range: integer
+    description: Reference to Sample.

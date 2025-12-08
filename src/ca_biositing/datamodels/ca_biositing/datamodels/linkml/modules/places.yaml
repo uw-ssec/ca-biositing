@@ -17,13 +17,15 @@ imports:
 
 classes:
   Geography:
-    is_a: BaseEntity
     description: Geographic location.
     slots:
       - geoid
-      - name
-      - type
-      - geometry
+      - state_name
+      - state_fips
+      - county_name
+      - county_fips
+      - region_name
+      - agg_level_desc
     slot_usage:
       geoid:
         identifier: true
@@ -32,42 +34,72 @@ classes:
     is_a: BaseEntity
     description: Physical address.
     slots:
-      - street_address
+      - geography_id
+      - address_line1
+      - address_line2
       - city
-      - state
-      - zip_code
-      - country
-      - geoid
+      - zip
+      - lat
+      - lon
+      - is_anonymous
 
 slots:
   geoid:
     range: string
     description: Unique identifier for geography.
 
-  type:
+  state_name:
     range: string
-    description: Type of geography (e.g. county, state).
+    description: State name.
 
-  geometry:
+  state_fips:
     range: string
-    description: WKT geometry.
+    description: State FIPS code.
 
-  street_address:
+  county_name:
     range: string
-    description: Street address.
+    description: County name.
+
+  county_fips:
+    range: string
+    description: County FIPS code.
+
+  region_name:
+    range: string
+    description: Region name.
+
+  agg_level_desc:
+    range: string
+    description: Aggregation level description.
+
+  geography_id:
+    range: string
+    description: Reference to Geography.
+
+  address_line1:
+    range: string
+    description: Address line 1.
+
+  address_line2:
+    range: string
+    description: Address line 2.
 
   city:
     range: string
     description: City.
 
-  state:
-    range: string
-    description: State.
-
-  zip_code:
+  zip:
     range: string
     description: ZIP code.
 
-  country:
-    range: string
-    description: Country.
+  lat:
+    range: float
+    description: Latitude.
+
+  lon:
+    range: float
+    description: Longitude.
+
+  is_anonymous:
+    range: boolean
+    description: Whether the location is anonymous.
