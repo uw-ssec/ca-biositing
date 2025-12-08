@@ -1,0 +1,123 @@
+id: https://w3id.org/ca_biositing/aim1_records
+name: aim1_records
+title: Aim 1 Records
+description: Records for Aim 1 analysis.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - general_analysis
+  - experiment_equipment
+  - resource_information
+  - sample_preparation
+  - methods_parameters_units
+  - data_sources_metadata
+
+classes:
+  Aim1RecordBase:
+    is_a: BaseEntity
+    abstract: true
+    slots:
+      - dataset_id
+      - experiment_id
+      - resource_id
+      - sample_id
+      - technical_replicate_no
+      - technical_replicate_total
+      - method_id
+      - raw_data_id
+      - qc_pass
+      - note
+
+  ProximateRecord:
+    is_a: Aim1RecordBase
+    description: Proximate analysis record.
+
+  UltimateRecord:
+    is_a: Aim1RecordBase
+    description: Ultimate analysis record.
+
+  CompositionalRecord:
+    is_a: Aim1RecordBase
+    description: Compositional analysis record.
+
+  IcpRecord:
+    is_a: Aim1RecordBase
+    description: ICP analysis record.
+
+  XrfRecord:
+    is_a: Aim1RecordBase
+    description: XRF analysis record.
+    slots:
+      - maybe_wavelength_nm
+      - maybe_intensity
+      - maybe_energy_slope
+      - maybe_energy_offset
+
+  XrdRecord:
+    is_a: Aim1RecordBase
+    description: XRD analysis record.
+    slots:
+      - maybe_scan_low_nm
+      - maybe_scan_high_nm
+
+  CalorimetryRecord:
+    is_a: Aim1RecordBase
+    description: Calorimetry analysis record.
+
+  FtnirRecord:
+    is_a: Aim1RecordBase
+    description: FT-NIR analysis record.
+
+  RgbRecord:
+    is_a: Aim1RecordBase
+    description: RGB analysis record.
+
+slots:
+  technical_replicate_no:
+    range: integer
+    description: Replicate number.
+
+  technical_replicate_total:
+    range: integer
+    description: Total number of replicates.
+
+  raw_data_id:
+    range: integer
+    description: Reference to FileObjectMetadata.
+
+  qc_pass:
+    range: boolean
+    description: Whether the record passed QC.
+
+  maybe_wavelength_nm:
+    range: decimal
+    description: Wavelength in nm.
+
+  maybe_intensity:
+    range: decimal
+    description: Intensity.
+
+  maybe_energy_slope:
+    range: decimal
+    description: Energy slope.
+
+  maybe_energy_offset:
+    range: decimal
+    description: Energy offset.
+
+  maybe_scan_low_nm:
+    range: integer
+    description: Low scan range in nm.
+
+  maybe_scan_high_nm:
+    range: integer
+    description: High scan range in nm.
