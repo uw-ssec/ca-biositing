@@ -311,3 +311,7 @@ cwd = "deployment/cloud/gcp/infrastructure"
 [feature.cloud.tasks.cloud-destroy]
 cmd = "tofu destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+
+[pypi-dependencies]
+linkml = ">=1.9.3, <2"
+sqlalchemy = ">=2.0.44, <3"

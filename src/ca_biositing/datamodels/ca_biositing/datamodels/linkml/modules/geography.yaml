@@ -1,0 +1,120 @@
+id: https://w3id.org/ca_biositing/geography
+name: geography
+title: Geography Definitions
+description: Geospatial entities and locations.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+
+classes:
+  Geography:
+    description: Geographic region definition (e.g. county, state).
+    slots:
+      - geoid
+      - state_name
+      - state_fips
+      - county_name
+      - county_fips
+      - region_name
+      - agg_level_desc
+    slot_usage:
+      geoid:
+        identifier: true
+
+  LocationAddress:
+    is_a: BaseEntity
+    description: Specific physical location.
+    slots:
+      - geography_id
+      - address_line1
+      - address_line2
+      - city
+      - zip
+      - lat
+      - lon
+      - is_anonymous
+
+  Polygon:
+    description: Geospatial polygon definition.
+    slots:
+      - id
+      - geoid
+      - geom
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  geoid:
+    range: string
+    description: Geographic identifier.
+
+  state_name:
+    range: string
+    description: Name of the state.
+
+  state_fips:
+    range: string
+    description: FIPS code of the state.
+
+  county_name:
+    range: string
+    description: Name of the county.
+
+  county_fips:
+    range: string
+    description: FIPS code of the county.
+
+  region_name:
+    range: string
+    description: Name of the region.
+
+  agg_level_desc:
+    range: string
+    description: Description of the aggregation level.
+
+  geography_id:
+    range: string
+    description: Reference to Geography geoid.
+
+  address_line1:
+    range: string
+    description: Address line 1.
+
+  address_line2:
+    range: string
+    description: Address line 2.
+
+  city:
+    range: string
+    description: City name.
+
+  zip:
+    range: string
+    description: ZIP code.
+
+  lat:
+    range: float
+    description: Latitude.
+
+  lon:
+    range: float
+    description: Longitude.
+
+  is_anonymous:
+    range: boolean
+    description: Whether the location is anonymous.
+
+  geom:
+    range: string # TODO: Define geometry type properly, maybe using a custom type or string for WKT
+    description: Geometry of the polygon.

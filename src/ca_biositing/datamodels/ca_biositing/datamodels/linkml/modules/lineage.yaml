@@ -1,0 +1,84 @@
+id: https://w3id.org/ca_biositing/lineage
+name: lineage
+title: Lineage Definitions
+description: Data lineage and ETL tracking.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+
+classes:
+  LineageGroup:
+    is_a: BaseEntity
+    description: Grouping of lineage entities.
+    slots:
+      - name
+      - description
+
+  EntityLineage:
+    description: Lineage relationship between entities.
+    slots:
+      - id
+      - parent_entity_id
+      - child_entity_id
+      - lineage_group_id
+      - relationship_type
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+  EtlRun:
+    is_a: BaseEntity
+    description: ETL run information.
+    slots:
+      - run_id
+      - start_time
+      - end_time
+      - status
+      - log_uri
+
+slots:
+  parent_entity_id:
+    range: integer
+    description: ID of the parent entity.
+
+  child_entity_id:
+    range: integer
+    description: ID of the child entity.
+
+  lineage_group_id:
+    range: integer
+    description: Reference to LineageGroup.
+
+  relationship_type:
+    range: string
+    description: Type of relationship.
+
+  run_id:
+    range: string
+    description: Unique identifier for the ETL run.
+
+  start_time:
+    range: datetime
+    description: Start time of the run.
+
+  end_time:
+    range: datetime
+    description: End time of the run.
+
+  status:
+    range: string
+    description: Status of the run.
+
+  log_uri:
+    range: string
+    description: URI to the run logs.
