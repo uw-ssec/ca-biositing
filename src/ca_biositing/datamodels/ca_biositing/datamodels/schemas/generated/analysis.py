@@ -13,7 +13,7 @@ class Dataset(Base):
     """
     Dataset definition.
     """
-    __tablename__ = 'Dataset'
+    __tablename__ = 'dataset'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -36,7 +36,7 @@ class Observation(Base):
     """
     Observation data.
     """
-    __tablename__ = 'Observation'
+    __tablename__ = 'observation'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     dataset_id = Column(Integer())
@@ -63,7 +63,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -84,7 +84,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -104,7 +104,7 @@ class ParameterCategoryParameter(Base):
     """
     Link between parameter and category.
     """
-    __tablename__ = 'ParameterCategoryParameter'
+    __tablename__ = 'parameter_category_parameter'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer())
@@ -123,7 +123,7 @@ class ParameterUnit(Base):
     """
     Link between parameter and alternate units.
     """
-    __tablename__ = 'ParameterUnit'
+    __tablename__ = 'parameter_unit'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer())
@@ -142,7 +142,7 @@ class DimensionType(LookupBase):
     """
     Type of dimension (e.g. timepoint, wavelength).
     """
-    __tablename__ = 'DimensionType'
+    __tablename__ = 'dimension_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -167,7 +167,7 @@ class AnalysisType(LookupBase):
     """
     Type of analysis.
     """
-    __tablename__ = 'AnalysisType'
+    __tablename__ = 'analysis_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -192,7 +192,7 @@ class Unit(LookupBase):
     """
     Unit of measurement.
     """
-    __tablename__ = 'Unit'
+    __tablename__ = 'unit'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -217,7 +217,7 @@ class Method(BaseEntity):
     """
     Analytical method.
     """
-    __tablename__ = 'Method'
+    __tablename__ = 'method'
 
     name = Column(Text())
     method_abbrev_id = Column(Integer())
@@ -250,7 +250,7 @@ class MethodAbbrev(LookupBase):
     """
     Abbreviation for a method.
     """
-    __tablename__ = 'MethodAbbrev'
+    __tablename__ = 'method_abbrev'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -275,7 +275,7 @@ class MethodCategory(LookupBase):
     """
     Category of a method.
     """
-    __tablename__ = 'MethodCategory'
+    __tablename__ = 'method_category'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -300,7 +300,7 @@ class MethodStandard(LookupBase):
     """
     Standard associated with a method.
     """
-    __tablename__ = 'MethodStandard'
+    __tablename__ = 'method_standard'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -325,7 +325,7 @@ class Parameter(BaseEntity):
     """
     Parameter measured.
     """
-    __tablename__ = 'Parameter'
+    __tablename__ = 'parameter'
 
     name = Column(Text())
     standard_unit_id = Column(Integer())
@@ -355,7 +355,7 @@ class ParameterCategory(LookupBase):
     """
     Category of a parameter.
     """
-    __tablename__ = 'ParameterCategory'
+    __tablename__ = 'parameter_category'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())

@@ -10,8 +10,8 @@ data access.
 This project uses a **PEP 420 namespace package** structure with three main
 components:
 
-- **`ca_biositing.datamodels`**: Shared SQLModel database models and database
-  configuration
+- **`ca_biositing.datamodels`**: Shared LinkML/SQLModel database models and
+  database configuration
 - **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
   via Docker
 - **`ca_biositing.webservice`**: FastAPI REST API for data access
@@ -152,6 +152,7 @@ Key tasks:
 - **Development**: `test`, `test-cov`, `pre-commit`, `pre-commit-all`
 - **Applications**: `start-webservice`, `qgis`
 - **Database**: `access-db`, `check-db-health`
+- **Datamodels**: `update-schema`, `migrate`
 
 ## Architecture
 
@@ -180,6 +181,15 @@ Pipeline architecture:
 3. **Load**: Insert/update records in PostgreSQL via SQLModel
 
 ### Database Models
+
+We use a **LinkML-first approach** for defining our data schema. The workflow
+is:
+
+1.  **LinkML Schema**: The schema is defined in YAML files (source of truth).
+2.  **SQLAlchemy Generation**: Python classes are automatically generated from
+    LinkML.
+3.  **Alembic Migrations**: Database migrations are generated from the Python
+    classes.
 
 SQLModel-based models provide:
 
