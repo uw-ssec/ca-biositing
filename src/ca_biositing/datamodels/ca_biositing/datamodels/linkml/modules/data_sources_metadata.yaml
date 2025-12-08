@@ -14,6 +14,7 @@ default_range: string
 imports:
   - linkml:types
   - core
+  - field_sampling
 
 classes:
   DataSource:
@@ -22,136 +23,49 @@ classes:
     slots:
       - name
       - description
-      - data_source_type_id
-      - full_title
-      - creator
-      - subject
-      - publisher
-      - contributor
-      - date
-      - type
-      - biocirv
-      - format
-      - language
-      - relation
-      - temporal_coverage
-      - location_coverage_id
-      - rights
       - uri
+      - publication_date
+      - version
+      - publisher
+      - author
+      - license
+      - note
 
-  DataSourceType:
-    is_a: LookupBase
-    description: Type of data source.
-    slots:
-      - source_type_id
-
-  SourceType:
-    is_a: LookupBase
-    description: General source type.
-
-  FileObjectMetadata:
+  MetadataSample:
     is_a: BaseEntity
-    description: Metadata for file objects.
+    description: Metadata for a field sample.
     slots:
-      - data_source_id
-      - bucket_path
-      - file_format
-      - file_size
-      - checksum_md5
-      - checksum_sha256
-
-  LocationResolution:
-    is_a: LookupBase
-    description: Resolution of location data.
+      - field_sample_id
+      - metadata_key
+      - metadata_value
+      - metadata_type
+      - note
 
 slots:
-  data_source_type_id:
-    range: integer
-    description: Reference to DataSourceType.
+  publication_date:
+    range: date
+    description: Date of publication.
 
-  source_type_id:
-    range: integer
-    description: Reference to SourceType.
-
-  full_title:
+  version:
     range: string
-    description: Full title of the data source.
+    description: Version of the data source.
 
-  creator:
+  author:
     range: string
-    description: Creator of the data source.
+    description: Author of the data source.
 
-  subject:
+  license:
     range: string
-    description: Subject of the data source.
+    description: License of the data source.
 
-  publisher:
+  metadata_key:
     range: string
-    description: Publisher of the data source.
+    description: Key for the metadata.
 
-  contributor:
+  metadata_value:
     range: string
-    description: Contributor to the data source.
+    description: Value for the metadata.
 
-  date:
-    range: datetime
-    description: Date of the data source.
-
-  type:
+  metadata_type:
     range: string
-    description: Type of the data source.
-
-  biocirv:
-    range: boolean
-    description: Whether the data source is internal (BioCirV).
-
-  format:
-    range: string
-    description: Format of the data source.
-
-  language:
-    range: string
-    description: Language of the data source.
-
-  relation:
-    range: string
-    description: Relation of the data source.
-
-  temporal_coverage:
-    range: string
-    description: Temporal coverage of the data source.
-
-  location_coverage_id:
-    range: integer
-    description: Reference to LocationResolution.
-
-  rights:
-    range: string
-    description: Rights of the data source.
-
-  uri:
-    range: string
-    description: URI of the resource.
-
-  data_source_id:
-    range: integer
-    description: Reference to DataSource.
-
-  bucket_path:
-    range: string
-    description: Path to the file in the bucket.
-
-  file_format:
-    range: string
-    description: Format of the file.
-
-  file_size:
-    range: integer
-    description: Size of the file in bytes.
-
-  checksum_md5:
-    range: string
-    description: MD5 checksum of the file.
-
-  checksum_sha256:
-    range: string
+    description: Type of the metadata value (e.g. string, int, float).
