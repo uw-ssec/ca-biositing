@@ -121,3 +121,7 @@ slots:
   maybe_scan_high_nm:
     range: integer
     description: High scan range in nm.
+
+  sample_id:
+    range: integer
+    description: Reference to PreparedSample.

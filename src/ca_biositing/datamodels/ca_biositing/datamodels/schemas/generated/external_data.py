@@ -9,6 +9,25 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
+class Polygon(Base):
+    """
+    Geospatial polygon.
+    """
+    __tablename__ = 'Polygon'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    geoid = Column(Text())
+    geom = Column(Text())
+
+
+    def __repr__(self):
+        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
+
+
+
+
+
+
 class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
@@ -44,29 +63,6 @@ class LookupBase(Base):
 
     def __repr__(self):
         return f"LookupBase(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-
-
-class Geography(Base):
-    """
-    Geographic location.
-    """
-    __tablename__ = 'Geography'
-
-    geoid = Column(Text(), primary_key=True, nullable=False )
-    state_name = Column(Text())
-    state_fips = Column(Text())
-    county_name = Column(Text())
-    county_fips = Column(Text())
-    region_name = Column(Text())
-    agg_level_desc = Column(Text())
-
-
-    def __repr__(self):
-        return f"Geography(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
 
 
 
@@ -111,76 +107,23 @@ class ParameterUnit(Base):
 
 
 
-class ExperimentMethod(Base):
+class Geography(Base):
     """
-    Link between Experiment and Method.
+    Geographic location.
     """
-    __tablename__ = 'ExperimentMethod'
+    __tablename__ = 'Geography'
 
-    id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer())
-    method_id = Column(Integer())
+    geoid = Column(Text(), primary_key=True, nullable=False )
+    state_name = Column(Text())
+    state_fips = Column(Text())
+    county_name = Column(Text())
+    county_fips = Column(Text())
+    region_name = Column(Text())
+    agg_level_desc = Column(Text())
 
 
     def __repr__(self):
-        return f"ExperimentMethod(id={self.id},experiment_id={self.experiment_id},method_id={self.method_id},)"
-
-
-
-
-
-
-class ExperimentEquipment(Base):
-    """
-    Link between Experiment and Equipment.
-    """
-    __tablename__ = 'ExperimentEquipment'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer())
-    equipment_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ExperimentEquipment(id={self.id},experiment_id={self.experiment_id},equipment_id={self.equipment_id},)"
-
-
-
-
-
-
-class ExperimentAnalysis(Base):
-    """
-    Link between Experiment and AnalysisType.
-    """
-    __tablename__ = 'ExperimentAnalysis'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer())
-    analysis_type_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ExperimentAnalysis(id={self.id},experiment_id={self.experiment_id},analysis_type_id={self.analysis_type_id},)"
-
-
-
-
-
-
-class ExperimentPreparedSample(Base):
-    """
-    Link between Experiment and PreparedSample.
-    """
-    __tablename__ = 'ExperimentPreparedSample'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer())
-    prepared_sample_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ExperimentPreparedSample(id={self.id},experiment_id={self.experiment_id},prepared_sample_id={self.prepared_sample_id},)"
+        return f"Geography(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
 
 
 
@@ -245,22 +188,152 @@ class Provider(Base):
 
 
 
-class Aim2RecordBase(BaseEntity):
+class UsdaDomain(LookupBase):
     """
-
+    USDA domain.
     """
-    __tablename__ = 'Aim2RecordBase'
+    __tablename__ = 'UsdaDomain'
 
-    dataset_id = Column(Integer())
-    experiment_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"UsdaDomain(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaStatisticCategory(LookupBase):
+    """
+    USDA statistic category.
+    """
+    __tablename__ = 'UsdaStatisticCategory'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"UsdaStatisticCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaSurveyProgram(LookupBase):
+    """
+    USDA survey program.
+    """
+    __tablename__ = 'UsdaSurveyProgram'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"UsdaSurveyProgram(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaCommodity(LookupBase):
+    """
+    USDA commodity.
+    """
+    __tablename__ = 'UsdaCommodity'
+
+    usda_source = Column(Text())
+    usda_code = Column(Text())
+    parent_commodity_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"UsdaCommodity(usda_source={self.usda_source},usda_code={self.usda_code},parent_commodity_id={self.parent_commodity_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaTermMap(BaseEntity):
+    """
+    Mapping of raw terms to USDA commodities.
+    """
+    __tablename__ = 'UsdaTermMap'
+
+    source_system = Column(Text())
+    source_context = Column(Text())
+    raw_term = Column(Text())
+    usda_commodity_id = Column(Integer())
+    is_verified = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"UsdaTermMap(source_system={self.source_system},source_context={self.source_context},raw_term={self.raw_term},usda_commodity_id={self.usda_commodity_id},is_verified={self.is_verified},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ResourceUsdaCommodityMap(BaseEntity):
+    """
+    Mapping between resources/crops and USDA commodities.
+    """
+    __tablename__ = 'ResourceUsdaCommodityMap'
+
     resource_id = Column(Integer())
-    sample_id = Column(Integer())
-    analyst_id = Column(Integer())
-    raw_data_id = Column(Integer())
-    qc_pass = Column(Boolean())
+    primary_crop_id = Column(Integer())
+    usda_commodity_id = Column(Integer())
+    match_tier = Column(Text())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -269,7 +342,7 @@ class Aim2RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ResourceUsdaCommodityMap(resource_id={self.resource_id},primary_crop_id={self.primary_crop_id},usda_commodity_id={self.usda_commodity_id},match_tier={self.match_tier},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -281,129 +354,17 @@ class Aim2RecordBase(BaseEntity):
 
 
 
-class Strain(LookupBase):
+class UsdaCensusRecord(BaseEntity):
     """
-    Strain used in fermentation.
+    USDA census record.
     """
-    __tablename__ = 'Strain'
-
-    parent_strain_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"Strain(parent_strain_id={self.parent_strain_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class AnalysisType(LookupBase):
-    """
-    Type of analysis.
-    """
-    __tablename__ = 'AnalysisType'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"AnalysisType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Dataset(BaseEntity):
-    """
-    Dataset definition.
-    """
-    __tablename__ = 'Dataset'
-
-    name = Column(Text())
-    record_type = Column(Text())
-    source_id = Column(Integer())
-    start_date = Column(Date())
-    end_date = Column(Date())
-    description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"Dataset(name={self.name},record_type={self.record_type},source_id={self.source_id},start_date={self.start_date},end_date={self.end_date},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class DimensionType(LookupBase):
-    """
-    Type of dimension.
-    """
-    __tablename__ = 'DimensionType'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"DimensionType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Observation(BaseEntity):
-    """
-    Observation data.
-    """
-    __tablename__ = 'Observation'
+    __tablename__ = 'UsdaCensusRecord'
 
     dataset_id = Column(Integer())
-    record_type = Column(Text())
-    record_id = Column(Integer())
-    parameter_id = Column(Integer())
-    value = Column(Numeric())
-    unit_id = Column(Integer())
-    dimension_type_id = Column(Integer())
-    dimension_value = Column(Numeric())
-    dimension_unit_id = Column(Integer())
+    geoid = Column(Text())
+    commodity_code = Column(Integer())
+    year = Column(Integer())
+    source_reference = Column(Text())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -413,7 +374,7 @@ class Observation(BaseEntity):
 
 
     def __repr__(self):
-        return f"Observation(dataset_id={self.dataset_id},record_type={self.record_type},record_id={self.record_id},parameter_id={self.parameter_id},value={self.value},unit_id={self.unit_id},dimension_type_id={self.dimension_type_id},dimension_value={self.dimension_value},dimension_unit_id={self.dimension_unit_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UsdaCensusRecord(dataset_id={self.dataset_id},geoid={self.geoid},commodity_code={self.commodity_code},year={self.year},source_reference={self.source_reference},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -425,20 +386,21 @@ class Observation(BaseEntity):
 
 
 
-class LocationAddress(BaseEntity):
+class UsdaSurveyRecord(BaseEntity):
     """
-    Physical address.
+    USDA survey record.
     """
-    __tablename__ = 'LocationAddress'
+    __tablename__ = 'UsdaSurveyRecord'
 
-    geography_id = Column(Text())
-    address_line1 = Column(Text())
-    address_line2 = Column(Text())
-    city = Column(Text())
-    zip = Column(Text())
-    lat = Column(Float())
-    lon = Column(Float())
-    is_anonymous = Column(Boolean())
+    dataset_id = Column(Integer())
+    geoid = Column(Text())
+    commodity_code = Column(Integer())
+    year = Column(Integer())
+    survey_program_id = Column(Integer())
+    survey_period = Column(Text())
+    reference_month = Column(Text())
+    seasonal_flag = Column(Boolean())
+    note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -447,7 +409,308 @@ class LocationAddress(BaseEntity):
 
 
     def __repr__(self):
-        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UsdaSurveyRecord(dataset_id={self.dataset_id},geoid={self.geoid},commodity_code={self.commodity_code},year={self.year},survey_program_id={self.survey_program_id},survey_period={self.survey_period},reference_month={self.reference_month},seasonal_flag={self.seasonal_flag},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaMarketReport(BaseEntity):
+    """
+    USDA market report.
+    """
+    __tablename__ = 'UsdaMarketReport'
+
+    slug_id = Column(Integer())
+    slug_name = Column(Text())
+    report_series_title = Column(Text())
+    frequency = Column(Text())
+    office_name = Column(Text())
+    office_city_id = Column(Integer())
+    office_state_fips = Column(Text())
+    source_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"UsdaMarketReport(slug_id={self.slug_id},slug_name={self.slug_name},report_series_title={self.report_series_title},frequency={self.frequency},office_name={self.office_name},office_city_id={self.office_city_id},office_state_fips={self.office_state_fips},source_id={self.source_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class UsdaMarketRecord(BaseEntity):
+    """
+    USDA market record.
+    """
+    __tablename__ = 'UsdaMarketRecord'
+
+    report_id = Column(Integer())
+    dataset_id = Column(Integer())
+    report_begin_date = Column(DateTime())
+    report_end_date = Column(DateTime())
+    report_date = Column(DateTime())
+    commodity_id = Column(Integer())
+    market_type_id = Column(Integer())
+    market_type_catagory = Column(Text())
+    grp = Column(Text())
+    market_catagory_id = Column(Integer())
+    class_ = Column(Text())
+    grade = Column(Text())
+    variety = Column(Text())
+    protein_pct = Column(Numeric())
+    application = Column(Text())
+    pkg = Column(Text())
+    sale_type = Column(Text())
+    price_unit_id = Column(Integer())
+    freight = Column(Text())
+    trans_mode = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"UsdaMarketRecord(report_id={self.report_id},dataset_id={self.dataset_id},report_begin_date={self.report_begin_date},report_end_date={self.report_end_date},report_date={self.report_date},commodity_id={self.commodity_id},market_type_id={self.market_type_id},market_type_catagory={self.market_type_catagory},grp={self.grp},market_catagory_id={self.market_catagory_id},class_={self.class_},grade={self.grade},variety={self.variety},protein_pct={self.protein_pct},application={self.application},pkg={self.pkg},sale_type={self.sale_type},price_unit_id={self.price_unit_id},freight={self.freight},trans_mode={self.trans_mode},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class LandiqRecord(BaseEntity):
+    """
+    LandIQ record.
+    """
+    __tablename__ = 'LandiqRecord'
+
+    dataset_id = Column(Integer())
+    polygon_id = Column(Integer())
+    main_crop = Column(Integer())
+    secondary_crop = Column(Integer())
+    tertiary_crop = Column(Integer())
+    quaternary_crop = Column(Integer())
+    confidence = Column(Integer())
+    irrigated = Column(Boolean())
+    acres = Column(Float())
+    version = Column(Text())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LandiqRecord(dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class BillionTon2023Record(BaseEntity):
+    """
+    Billion Ton 2023 record.
+    """
+    __tablename__ = 'BillionTon2023Record'
+
+    subclass_id = Column(Integer())
+    resource_id = Column(Integer())
+    geoid = Column(Text())
+    county_square_miles = Column(Float())
+    model_name = Column(Text())
+    scenario_name = Column(Text())
+    price_offered_usd = Column(Numeric())
+    production = Column(Integer())
+    production_unit_id = Column(Integer())
+    btu_ton = Column(Integer())
+    production_energy_content = Column(Integer())
+    energy_content_unit_id = Column(Integer())
+    product_density_dtpersqmi = Column(Numeric())
+    land_source = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class DataSource(BaseEntity):
+    """
+    Source of data.
+    """
+    __tablename__ = 'DataSource'
+
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+    publication_date = Column(Date())
+    version = Column(Text())
+    publisher = Column(Text())
+    author = Column(Text())
+    license = Column(Text())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"DataSource(name={self.name},description={self.description},uri={self.uri},publication_date={self.publication_date},version={self.version},publisher={self.publisher},author={self.author},license={self.license},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class FileObjectMetadata(BaseEntity):
+    """
+    Metadata for a file object.
+    """
+    __tablename__ = 'FileObjectMetadata'
+
+    data_source_id = Column(Integer())
+    bucket_path = Column(Text())
+    file_format = Column(Text())
+    file_size = Column(Integer())
+    checksum_md5 = Column(Text())
+    checksum_sha256 = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FileObjectMetadata(data_source_id={self.data_source_id},bucket_path={self.bucket_path},file_format={self.file_format},file_size={self.file_size},checksum_md5={self.checksum_md5},checksum_sha256={self.checksum_sha256},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class DataSourceType(BaseEntity):
+    """
+    Type of data source.
+    """
+    __tablename__ = 'DataSourceType'
+
+    source_type_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"DataSourceType(source_type_id={self.source_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class LocationResolution(LookupBase):
+    """
+    Resolution of the location (e.g. nation, state, county).
+    """
+    __tablename__ = 'LocationResolution'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"LocationResolution(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class SourceType(LookupBase):
+    """
+    Type of source (e.g. database, literature).
+    """
+    __tablename__ = 'SourceType'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"SourceType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
@@ -647,18 +910,43 @@ class ParameterCategory(LookupBase):
 
 
 
-class PreparationMethod(BaseEntity):
+class AnalysisType(LookupBase):
     """
-    Method of sample preparation.
+    Type of analysis.
     """
-    __tablename__ = 'PreparationMethod'
+    __tablename__ = 'AnalysisType'
 
+    id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
-    prep_method_abbrev_id = Column(Integer())
-    prep_temp_c = Column(Numeric())
     uri = Column(Text())
-    drying_step = Column(Boolean())
+
+
+    def __repr__(self):
+        return f"AnalysisType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Dataset(BaseEntity):
+    """
+    Dataset definition.
+    """
+    __tablename__ = 'Dataset'
+
+    name = Column(Text())
+    record_type = Column(Text())
+    source_id = Column(Integer())
+    start_date = Column(Date())
+    end_date = Column(Date())
+    description = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -667,7 +955,7 @@ class PreparationMethod(BaseEntity):
 
 
     def __repr__(self):
-        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Dataset(name={self.name},record_type={self.record_type},source_id={self.source_id},start_date={self.start_date},end_date={self.end_date},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -679,11 +967,11 @@ class PreparationMethod(BaseEntity):
 
 
 
-class PreparationMethodAbbreviation(LookupBase):
+class DimensionType(LookupBase):
     """
-    Abbreviation for preparation method.
+    Type of dimension.
     """
-    __tablename__ = 'PreparationMethodAbbreviation'
+    __tablename__ = 'DimensionType'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -692,7 +980,7 @@ class PreparationMethodAbbreviation(LookupBase):
 
 
     def __repr__(self):
-        return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"DimensionType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
@@ -704,17 +992,21 @@ class PreparationMethodAbbreviation(LookupBase):
 
 
 
-class PreparedSample(BaseEntity):
+class Observation(BaseEntity):
     """
-    Sample that has been prepared.
+    Observation data.
     """
-    __tablename__ = 'PreparedSample'
+    __tablename__ = 'Observation'
 
-    name = Column(Text())
-    field_sample_id = Column(Integer())
-    prep_method_id = Column(Integer())
-    prep_date = Column(Date())
-    preparer_id = Column(Integer())
+    dataset_id = Column(Integer())
+    record_type = Column(Text())
+    record_id = Column(Integer())
+    parameter_id = Column(Integer())
+    value = Column(Numeric())
+    unit_id = Column(Integer())
+    dimension_type_id = Column(Integer())
+    dimension_value = Column(Numeric())
+    dimension_unit_id = Column(Integer())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -724,7 +1016,7 @@ class PreparedSample(BaseEntity):
 
 
     def __repr__(self):
-        return f"PreparedSample(name={self.name},field_sample_id={self.field_sample_id},prep_method_id={self.prep_method_id},prep_date={self.prep_date},preparer_id={self.preparer_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Observation(dataset_id={self.dataset_id},record_type={self.record_type},record_id={self.record_id},parameter_id={self.parameter_id},value={self.value},unit_id={self.unit_id},dimension_type_id={self.dimension_type_id},dimension_value={self.dimension_value},dimension_unit_id={self.dimension_unit_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -736,21 +1028,20 @@ class PreparedSample(BaseEntity):
 
 
 
-class DataSource(BaseEntity):
+class LocationAddress(BaseEntity):
     """
-    Source of data.
+    Physical address.
     """
-    __tablename__ = 'DataSource'
+    __tablename__ = 'LocationAddress'
 
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-    publication_date = Column(Date())
-    version = Column(Text())
-    publisher = Column(Text())
-    author = Column(Text())
-    license = Column(Text())
-    note = Column(Text())
+    geography_id = Column(Text())
+    address_line1 = Column(Text())
+    address_line2 = Column(Text())
+    city = Column(Text())
+    zip = Column(Text())
+    lat = Column(Float())
+    lon = Column(Float())
+    is_anonymous = Column(Boolean())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -759,174 +1050,7 @@ class DataSource(BaseEntity):
 
 
     def __repr__(self):
-        return f"DataSource(name={self.name},description={self.description},uri={self.uri},publication_date={self.publication_date},version={self.version},publisher={self.publisher},author={self.author},license={self.license},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class FileObjectMetadata(BaseEntity):
-    """
-    Metadata for a file object.
-    """
-    __tablename__ = 'FileObjectMetadata'
-
-    data_source_id = Column(Integer())
-    bucket_path = Column(Text())
-    file_format = Column(Text())
-    file_size = Column(Integer())
-    checksum_md5 = Column(Text())
-    checksum_sha256 = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FileObjectMetadata(data_source_id={self.data_source_id},bucket_path={self.bucket_path},file_format={self.file_format},file_size={self.file_size},checksum_md5={self.checksum_md5},checksum_sha256={self.checksum_sha256},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class DataSourceType(BaseEntity):
-    """
-    Type of data source.
-    """
-    __tablename__ = 'DataSourceType'
-
-    source_type_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"DataSourceType(source_type_id={self.source_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class LocationResolution(LookupBase):
-    """
-    Resolution of the location (e.g. nation, state, county).
-    """
-    __tablename__ = 'LocationResolution'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"LocationResolution(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class SourceType(LookupBase):
-    """
-    Type of source (e.g. database, literature).
-    """
-    __tablename__ = 'SourceType'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"SourceType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Experiment(BaseEntity):
-    """
-    Experiment definition.
-    """
-    __tablename__ = 'Experiment'
-
-    analyst_id = Column(Integer())
-    exper_start_date = Column(Date())
-    exper_duration = Column(Numeric())
-    exper_duration_unit_id = Column(Integer())
-    exper_location_id = Column(Integer())
-    description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"Experiment(analyst_id={self.analyst_id},exper_start_date={self.exper_start_date},exper_duration={self.exper_duration},exper_duration_unit_id={self.exper_duration_unit_id},exper_location_id={self.exper_location_id},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Equipment(LookupBase):
-    """
-    Equipment used in experiments.
-    """
-    __tablename__ = 'Equipment'
-
-    equipment_location_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"Equipment(equipment_location_id={self.equipment_location_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1393,168 +1517,6 @@ class LocationSoilType(BaseEntity):
 
     def __repr__(self):
         return f"LocationSoilType(location_id={self.location_id},soil_type_id={self.soil_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class PretreatmentRecord(Aim2RecordBase):
-    """
-    Pretreatment record.
-    """
-    __tablename__ = 'PretreatmentRecord'
-
-    pretreatment_method_id = Column(Integer())
-    eh_method_id = Column(Integer())
-    reaction_block_id = Column(Integer())
-    block_position = Column(Text())
-    temperature = Column(Numeric())
-    replicate_no = Column(Integer())
-    dataset_id = Column(Integer())
-    experiment_id = Column(Integer())
-    resource_id = Column(Integer())
-    sample_id = Column(Integer())
-    analyst_id = Column(Integer())
-    raw_data_id = Column(Integer())
-    qc_pass = Column(Boolean())
-    note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class FermentationRecord(Aim2RecordBase):
-    """
-    Fermentation record.
-    """
-    __tablename__ = 'FermentationRecord'
-
-    strain_id = Column(Integer())
-    pretreatment_method_id = Column(Integer())
-    eh_method_id = Column(Integer())
-    replicate_no = Column(Integer())
-    well_position = Column(Text())
-    temperature = Column(Numeric())
-    agitation_rpm = Column(Numeric())
-    vessel_id = Column(Integer())
-    analyte_detection_equipment_id = Column(Integer())
-    dataset_id = Column(Integer())
-    experiment_id = Column(Integer())
-    resource_id = Column(Integer())
-    sample_id = Column(Integer())
-    analyst_id = Column(Integer())
-    raw_data_id = Column(Integer())
-    qc_pass = Column(Boolean())
-    note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},replicate_no={self.replicate_no},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class GasificationRecord(Aim2RecordBase):
-    """
-    Gasification record.
-    """
-    __tablename__ = 'GasificationRecord'
-
-    feedstock_mass = Column(Numeric())
-    bed_temperature = Column(Numeric())
-    gas_flow_rate = Column(Numeric())
-    dataset_id = Column(Integer())
-    experiment_id = Column(Integer())
-    resource_id = Column(Integer())
-    sample_id = Column(Integer())
-    analyst_id = Column(Integer())
-    raw_data_id = Column(Integer())
-    qc_pass = Column(Boolean())
-    note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class AutoclaveRecord(Aim2RecordBase):
-    """
-    Autoclave record.
-    """
-    __tablename__ = 'AutoclaveRecord'
-
-    dataset_id = Column(Integer())
-    experiment_id = Column(Integer())
-    resource_id = Column(Integer())
-    sample_id = Column(Integer())
-    analyst_id = Column(Integer())
-    raw_data_id = Column(Integer())
-    qc_pass = Column(Boolean())
-    note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

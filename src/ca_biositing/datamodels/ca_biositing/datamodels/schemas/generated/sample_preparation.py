@@ -169,6 +169,311 @@ class ParameterUnit(Base):
 
 
 
+class PreparationMethod(BaseEntity):
+    """
+    Method of sample preparation.
+    """
+    __tablename__ = 'PreparationMethod'
+
+    name = Column(Text())
+    description = Column(Text())
+    prep_method_abbrev_id = Column(Integer())
+    prep_temp_c = Column(Numeric())
+    uri = Column(Text())
+    drying_step = Column(Boolean())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class PreparationMethodAbbreviation(LookupBase):
+    """
+    Abbreviation for preparation method.
+    """
+    __tablename__ = 'PreparationMethodAbbreviation'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class PreparedSample(BaseEntity):
+    """
+    Sample that has been prepared.
+    """
+    __tablename__ = 'PreparedSample'
+
+    name = Column(Text())
+    field_sample_id = Column(Integer())
+    prep_method_id = Column(Integer())
+    prep_date = Column(Date())
+    preparer_id = Column(Integer())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PreparedSample(name={self.name},field_sample_id={self.field_sample_id},prep_method_id={self.prep_method_id},prep_date={self.prep_date},preparer_id={self.preparer_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class LocationAddress(BaseEntity):
+    """
+    Physical address.
+    """
+    __tablename__ = 'LocationAddress'
+
+    geography_id = Column(Text())
+    address_line1 = Column(Text())
+    address_line2 = Column(Text())
+    city = Column(Text())
+    zip = Column(Text())
+    lat = Column(Float())
+    lon = Column(Float())
+    is_anonymous = Column(Boolean())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Resource(BaseEntity):
+    """
+    Biomass resource definition.
+    """
+    __tablename__ = 'Resource'
+
+    name = Column(Text())
+    primary_crop_id = Column(Integer())
+    resource_class_id = Column(Integer())
+    resource_subclass_id = Column(Integer())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Resource(name={self.name},primary_crop_id={self.primary_crop_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ResourceClass(LookupBase):
+    """
+    Classification of resources.
+    """
+    __tablename__ = 'ResourceClass'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"ResourceClass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ResourceSubclass(LookupBase):
+    """
+    Sub-classification of resources.
+    """
+    __tablename__ = 'ResourceSubclass'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"ResourceSubclass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class PrimaryCrop(LookupBase):
+    """
+    Primary crop definition.
+    """
+    __tablename__ = 'PrimaryCrop'
+
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"PrimaryCrop(note={self.note},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ResourceAvailability(BaseEntity):
+    """
+    Availability of a resource in a location.
+    """
+    __tablename__ = 'ResourceAvailability'
+
+    resource_id = Column(Integer())
+    geoid = Column(Text())
+    from_month = Column(Integer())
+    to_month = Column(Integer())
+    year_round = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ResourceCounterfactual(BaseEntity):
+    """
+    Counterfactual uses of a resource.
+    """
+    __tablename__ = 'ResourceCounterfactual'
+
+    geoid = Column(Text())
+    resource_id = Column(Integer())
+    counterfactual_description = Column(Text())
+    animal_bedding_percent = Column(Numeric())
+    animal_bedding_source_id = Column(Integer())
+    animal_feed_percent = Column(Numeric())
+    animal_feed_source_id = Column(Integer())
+    bioelectricty_percent = Column(Numeric())
+    bioelectricty_source_id = Column(Integer())
+    burn_percent = Column(Numeric())
+    burn_source_id = Column(Integer())
+    compost_percent = Column(Numeric())
+    compost_source_id = Column(Integer())
+    landfill_percent = Column(Numeric())
+    landfill_source_id = Column(Integer())
+    counterfactual_date = Column(Date())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"ResourceCounterfactual(geoid={self.geoid},resource_id={self.resource_id},counterfactual_description={self.counterfactual_description},animal_bedding_percent={self.animal_bedding_percent},animal_bedding_source_id={self.animal_bedding_source_id},animal_feed_percent={self.animal_feed_percent},animal_feed_source_id={self.animal_feed_source_id},bioelectricty_percent={self.bioelectricty_percent},bioelectricty_source_id={self.bioelectricty_source_id},burn_percent={self.burn_percent},burn_source_id={self.burn_source_id},compost_percent={self.compost_percent},compost_source_id={self.compost_source_id},landfill_percent={self.landfill_percent},landfill_source_id={self.landfill_source_id},counterfactual_date={self.counterfactual_date},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class FieldSample(BaseEntity):
     """
     Sample collected from the field.
@@ -442,222 +747,6 @@ class LocationSoilType(BaseEntity):
 
     def __repr__(self):
         return f"LocationSoilType(location_id={self.location_id},soil_type_id={self.soil_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class LocationAddress(BaseEntity):
-    """
-    Physical address.
-    """
-    __tablename__ = 'LocationAddress'
-
-    geography_id = Column(Text())
-    address_line1 = Column(Text())
-    address_line2 = Column(Text())
-    city = Column(Text())
-    zip = Column(Text())
-    lat = Column(Float())
-    lon = Column(Float())
-    is_anonymous = Column(Boolean())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Resource(BaseEntity):
-    """
-    Biomass resource definition.
-    """
-    __tablename__ = 'Resource'
-
-    name = Column(Text())
-    primary_crop_id = Column(Integer())
-    resource_class_id = Column(Integer())
-    resource_subclass_id = Column(Integer())
-    note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"Resource(name={self.name},primary_crop_id={self.primary_crop_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class ResourceClass(LookupBase):
-    """
-    Classification of resources.
-    """
-    __tablename__ = 'ResourceClass'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"ResourceClass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class ResourceSubclass(LookupBase):
-    """
-    Sub-classification of resources.
-    """
-    __tablename__ = 'ResourceSubclass'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"ResourceSubclass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class PrimaryCrop(LookupBase):
-    """
-    Primary crop definition.
-    """
-    __tablename__ = 'PrimaryCrop'
-
-    note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"PrimaryCrop(note={self.note},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class ResourceAvailability(BaseEntity):
-    """
-    Availability of a resource in a location.
-    """
-    __tablename__ = 'ResourceAvailability'
-
-    resource_id = Column(Integer())
-    geoid = Column(Text())
-    from_month = Column(Integer())
-    to_month = Column(Integer())
-    year_round = Column(Boolean())
-    note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class ResourceCounterfactual(BaseEntity):
-    """
-    Counterfactual uses of a resource.
-    """
-    __tablename__ = 'ResourceCounterfactual'
-
-    geoid = Column(Text())
-    resource_id = Column(Integer())
-    counterfactual_description = Column(Text())
-    animal_bedding_percent = Column(Numeric())
-    animal_bedding_source_id = Column(Integer())
-    animal_feed_percent = Column(Numeric())
-    animal_feed_source_id = Column(Integer())
-    bioelectricty_percent = Column(Numeric())
-    bioelectricty_source_id = Column(Integer())
-    burn_percent = Column(Numeric())
-    burn_source_id = Column(Integer())
-    compost_percent = Column(Numeric())
-    compost_source_id = Column(Integer())
-    landfill_percent = Column(Numeric())
-    landfill_source_id = Column(Integer())
-    counterfactual_date = Column(Date())
-    note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ResourceCounterfactual(geoid={self.geoid},resource_id={self.resource_id},counterfactual_description={self.counterfactual_description},animal_bedding_percent={self.animal_bedding_percent},animal_bedding_source_id={self.animal_bedding_source_id},animal_feed_percent={self.animal_feed_percent},animal_feed_source_id={self.animal_feed_source_id},bioelectricty_percent={self.bioelectricty_percent},bioelectricty_source_id={self.bioelectricty_source_id},burn_percent={self.burn_percent},burn_source_id={self.burn_source_id},compost_percent={self.compost_percent},compost_source_id={self.compost_source_id},landfill_percent={self.landfill_percent},landfill_source_id={self.landfill_source_id},counterfactual_date={self.counterfactual_date},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

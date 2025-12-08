@@ -52,7 +52,7 @@ class LookupBase(Base):
 
 class Geography(Base):
     """
-    Geographic location.
+    Geographic region definition (e.g. county, state).
     """
     __tablename__ = 'Geography'
 
@@ -67,6 +67,25 @@ class Geography(Base):
 
     def __repr__(self):
         return f"Geography(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
+
+
+
+
+
+
+class Polygon(Base):
+    """
+    Geospatial polygon definition.
+    """
+    __tablename__ = 'Polygon'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    geoid = Column(Text())
+    geom = Column(Text())
+
+
+    def __repr__(self):
+        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
 
 
 
@@ -133,7 +152,7 @@ class ResourceMorphology(Base):
 
 class ParameterCategoryParameter(Base):
     """
-    Link between Parameter and ParameterCategory.
+    Link between parameter and category.
     """
     __tablename__ = 'ParameterCategoryParameter'
 
@@ -152,7 +171,7 @@ class ParameterCategoryParameter(Base):
 
 class ParameterUnit(Base):
     """
-    Link between Parameter and Unit (alternate units).
+    Link between parameter and alternate units.
     """
     __tablename__ = 'ParameterUnit'
 
@@ -453,9 +472,98 @@ class LocationSoilType(BaseEntity):
 
 
 
+class PreparationMethod(BaseEntity):
+    """
+    Method of sample preparation.
+    """
+    __tablename__ = 'PreparationMethod'
+
+    name = Column(Text())
+    description = Column(Text())
+    prep_method_abbrev_id = Column(Integer())
+    prep_temp_c = Column(Numeric())
+    uri = Column(Text())
+    drying_step = Column(Boolean())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class PreparationMethodAbbreviation(LookupBase):
+    """
+    Abbreviation for preparation method.
+    """
+    __tablename__ = 'PreparationMethodAbbreviation'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class PreparedSample(BaseEntity):
+    """
+    Sample prepared for analysis.
+    """
+    __tablename__ = 'PreparedSample'
+
+    name = Column(Text())
+    field_sample_id = Column(Integer())
+    prep_method_id = Column(Integer())
+    prep_date = Column(Date())
+    preparer_id = Column(Integer())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PreparedSample(name={self.name},field_sample_id={self.field_sample_id},prep_method_id={self.prep_method_id},prep_date={self.prep_date},preparer_id={self.preparer_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class LocationAddress(BaseEntity):
     """
-    Physical address.
+    Specific physical location.
     """
     __tablename__ = 'LocationAddress'
 
@@ -669,150 +777,6 @@ class ResourceCounterfactual(BaseEntity):
 
 
 
-class DataSource(BaseEntity):
-    """
-    Source of data.
-    """
-    __tablename__ = 'DataSource'
-
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-    publication_date = Column(Date())
-    version = Column(Text())
-    publisher = Column(Text())
-    author = Column(Text())
-    license = Column(Text())
-    note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"DataSource(name={self.name},description={self.description},uri={self.uri},publication_date={self.publication_date},version={self.version},publisher={self.publisher},author={self.author},license={self.license},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class FileObjectMetadata(BaseEntity):
-    """
-    Metadata for a file object.
-    """
-    __tablename__ = 'FileObjectMetadata'
-
-    data_source_id = Column(Integer())
-    bucket_path = Column(Text())
-    file_format = Column(Text())
-    file_size = Column(Integer())
-    checksum_md5 = Column(Text())
-    checksum_sha256 = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FileObjectMetadata(data_source_id={self.data_source_id},bucket_path={self.bucket_path},file_format={self.file_format},file_size={self.file_size},checksum_md5={self.checksum_md5},checksum_sha256={self.checksum_sha256},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class DataSourceType(BaseEntity):
-    """
-    Type of data source.
-    """
-    __tablename__ = 'DataSourceType'
-
-    source_type_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"DataSourceType(source_type_id={self.source_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class LocationResolution(LookupBase):
-    """
-    Resolution of the location (e.g. nation, state, county).
-    """
-    __tablename__ = 'LocationResolution'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"LocationResolution(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class SourceType(LookupBase):
-    """
-    Type of source (e.g. database, literature).
-    """
-    __tablename__ = 'SourceType'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"SourceType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class Unit(LookupBase):
     """
     Unit of measurement.
@@ -873,7 +837,7 @@ class Method(BaseEntity):
 
 class MethodAbbrev(LookupBase):
     """
-    Abbreviation for method.
+    Abbreviation for a method.
     """
     __tablename__ = 'MethodAbbrev'
 
@@ -898,7 +862,7 @@ class MethodAbbrev(LookupBase):
 
 class MethodCategory(LookupBase):
     """
-    Category of method.
+    Category of a method.
     """
     __tablename__ = 'MethodCategory'
 
@@ -923,7 +887,7 @@ class MethodCategory(LookupBase):
 
 class MethodStandard(LookupBase):
     """
-    Standard associated with the method.
+    Standard associated with a method.
     """
     __tablename__ = 'MethodStandard'
 
@@ -948,7 +912,7 @@ class MethodStandard(LookupBase):
 
 class Parameter(BaseEntity):
     """
-    Parameter being measured.
+    Parameter measured.
     """
     __tablename__ = 'Parameter'
 
@@ -978,7 +942,7 @@ class Parameter(BaseEntity):
 
 class ParameterCategory(LookupBase):
     """
-    Category of parameter.
+    Category of a parameter.
     """
     __tablename__ = 'ParameterCategory'
 

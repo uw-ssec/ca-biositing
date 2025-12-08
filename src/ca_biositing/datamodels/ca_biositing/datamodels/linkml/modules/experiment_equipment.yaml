@@ -121,3 +121,7 @@ slots:
   prepared_sample_id:
     range: integer
     description: Reference to PreparedSample.
+
+  method_id:
+    range: integer
+    description: Reference to Method.

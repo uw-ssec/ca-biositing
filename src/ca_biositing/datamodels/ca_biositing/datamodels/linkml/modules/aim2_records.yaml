@@ -35,6 +35,8 @@ classes:
       - raw_data_id
       - qc_pass
       - note
+      - technical_replicate_total
+      - technical_replicate_no
 
   PretreatmentRecord:
     is_a: Aim2RecordBase
@@ -68,13 +70,11 @@ classes:
       - feedstock_mass
       - bed_temperature
       - gas_flow_rate
-      - technical_replicate_no
 
   AutoclaveRecord:
     is_a: Aim2RecordBase
     description: Autoclave record.
-    slots:
-      - technical_replicate_no
+    slots: []
 
   Strain:
     is_a: LookupBase
@@ -140,4 +140,22 @@ slots:
     description: Gas flow rate.
 
   parent_strain_id:
+    range: integer
+
+  sample_id:
+    range: integer
+
+  raw_data_id:
+    range: integer
+    description: Reference to FileObjectMetadata.
+
+  qc_pass:
+    range: boolean
+    description: Whether the record passed QC.
+
+  technical_replicate_no:
+    range: integer
+    description: Replicate number.
+
+  technical_replicate_total:
     range: integer
