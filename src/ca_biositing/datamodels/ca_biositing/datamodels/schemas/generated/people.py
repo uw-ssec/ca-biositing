@@ -13,7 +13,7 @@ class Contact(Base):
     """
     Contact information for a person.
     """
-    __tablename__ = 'Contact'
+    __tablename__ = 'contact'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     first_name = Column(Text())
@@ -34,7 +34,7 @@ class Provider(Base):
     """
     Provider information.
     """
-    __tablename__ = 'Provider'
+    __tablename__ = 'provider'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     codename = Column(Text())

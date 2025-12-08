@@ -179,6 +179,8 @@ migrate = { cmd = [
     "start-services",
 ] }
 
+update-schema = { cmd = "python src/ca_biositing/datamodels/utils/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
+
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
 

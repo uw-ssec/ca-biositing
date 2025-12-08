@@ -13,7 +13,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -34,7 +34,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
