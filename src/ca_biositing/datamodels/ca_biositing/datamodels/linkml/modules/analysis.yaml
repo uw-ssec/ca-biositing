@@ -91,3 +91,15 @@ slots:
   dimension_unit_id:
     range: integer
     description: Reference to Unit (dimension).
+
+  source_id:
+    range: integer
+    description: Reference to Source.
+
+  start_date:
+    range: datetime
+    description: Start date of the dataset.
+
+  end_date:
+    range: datetime
+    description: End date of the dataset.
