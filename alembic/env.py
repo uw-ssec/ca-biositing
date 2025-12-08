@@ -13,17 +13,18 @@ PROJECT_ROOT = HERE.parent.resolve()
 load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
-from ca_biositing.datamodels.biomass import *
-from ca_biositing.datamodels.data_and_references import *
-from ca_biositing.datamodels.experiments_analysis import *
-from ca_biositing.datamodels.external_datasets import *
-from ca_biositing.datamodels.geographic_locations import *
-from ca_biositing.datamodels.metadata_samples import *
-from ca_biositing.datamodels.organizations import *
-from ca_biositing.datamodels.people_contacts import *
-from ca_biositing.datamodels.sample_preprocessing import *
-from ca_biositing.datamodels.specific_aalysis_results import *
-from ca_biositing.datamodels.user import *
+# from ca_biositing.datamodels.biomass import *
+# from ca_biositing.datamodels.data_and_references import *
+# from ca_biositing.datamodels.experiments_analysis import *
+# from ca_biositing.datamodels.external_datasets import *
+# from ca_biositing.datamodels.geographic_locations import *
+# from ca_biositing.datamodels.metadata_samples import *
+# from ca_biositing.datamodels.organizations import *
+# from ca_biositing.datamodels.people_contacts import *
+# from ca_biositing.datamodels.sample_preprocessing import *
+# from ca_biositing.datamodels.specific_aalysis_results import *
+# from ca_biositing.datamodels.user import *
+from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 from sqlmodel import SQLModel
 import importlib.util
 from pathlib import Path
@@ -51,7 +52,8 @@ if config.config_file_name is not None:
 # See: https://alembic.sqlalchemy.org/en/latest/autogenerate.html#affecting-the-autogenerate-process
 
 # Start with the default SQLModel metadata
-target_metadata = SQLModel.metadata
+# target_metadata = SQLModel.metadata
+target_metadata = Base.metadata
 
 # Manually merge metadata from generated modules
 # for table in census_metadata.tables.values():
