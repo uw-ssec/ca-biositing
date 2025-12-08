@@ -13,7 +13,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -34,7 +34,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -54,7 +54,7 @@ class Geography(Base):
     """
     Geographic location.
     """
-    __tablename__ = 'Geography'
+    __tablename__ = 'geography'
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -77,7 +77,7 @@ class ParameterCategoryParameter(Base):
     """
     Link between Parameter and ParameterCategory.
     """
-    __tablename__ = 'ParameterCategoryParameter'
+    __tablename__ = 'parameter_category_parameter'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer())
@@ -96,7 +96,7 @@ class ParameterUnit(Base):
     """
     Link between Parameter and Unit (alternate units).
     """
-    __tablename__ = 'ParameterUnit'
+    __tablename__ = 'parameter_unit'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer())
@@ -115,7 +115,7 @@ class ExperimentMethod(Base):
     """
     Link between Experiment and Method.
     """
-    __tablename__ = 'ExperimentMethod'
+    __tablename__ = 'experiment_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer())
@@ -134,7 +134,7 @@ class ExperimentEquipment(Base):
     """
     Link between Experiment and Equipment.
     """
-    __tablename__ = 'ExperimentEquipment'
+    __tablename__ = 'experiment_equipment'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer())
@@ -153,7 +153,7 @@ class ExperimentAnalysis(Base):
     """
     Link between Experiment and AnalysisType.
     """
-    __tablename__ = 'ExperimentAnalysis'
+    __tablename__ = 'experiment_analysis'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer())
@@ -172,7 +172,7 @@ class ExperimentPreparedSample(Base):
     """
     Link between Experiment and PreparedSample.
     """
-    __tablename__ = 'ExperimentPreparedSample'
+    __tablename__ = 'experiment_prepared_sample'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer())
@@ -191,7 +191,7 @@ class ResourceMorphology(Base):
     """
     Morphology of a resource.
     """
-    __tablename__ = 'ResourceMorphology'
+    __tablename__ = 'resource_morphology'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     resource_id = Column(Integer())
@@ -210,7 +210,7 @@ class Contact(Base):
     """
     Contact information for a person.
     """
-    __tablename__ = 'Contact'
+    __tablename__ = 'contact'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     first_name = Column(Text())
@@ -231,7 +231,7 @@ class Provider(Base):
     """
     Provider information.
     """
-    __tablename__ = 'Provider'
+    __tablename__ = 'provider'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     codename = Column(Text())
@@ -249,7 +249,7 @@ class Aim1RecordBase(BaseEntity):
     """
 
     """
-    __tablename__ = 'Aim1RecordBase'
+    __tablename__ = 'aim1_record_base'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -285,7 +285,7 @@ class AnalysisType(LookupBase):
     """
     Type of analysis.
     """
-    __tablename__ = 'AnalysisType'
+    __tablename__ = 'analysis_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -310,7 +310,7 @@ class Dataset(BaseEntity):
     """
     Dataset definition.
     """
-    __tablename__ = 'Dataset'
+    __tablename__ = 'dataset'
 
     name = Column(Text())
     record_type = Column(Text())
@@ -342,7 +342,7 @@ class DimensionType(LookupBase):
     """
     Type of dimension.
     """
-    __tablename__ = 'DimensionType'
+    __tablename__ = 'dimension_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -367,7 +367,7 @@ class Observation(BaseEntity):
     """
     Observation data.
     """
-    __tablename__ = 'Observation'
+    __tablename__ = 'observation'
 
     dataset_id = Column(Integer())
     record_type = Column(Text())
@@ -403,7 +403,7 @@ class LocationAddress(BaseEntity):
     """
     Physical address.
     """
-    __tablename__ = 'LocationAddress'
+    __tablename__ = 'location_address'
 
     geography_id = Column(Text())
     address_line1 = Column(Text())
@@ -437,7 +437,7 @@ class Unit(LookupBase):
     """
     Unit of measurement.
     """
-    __tablename__ = 'Unit'
+    __tablename__ = 'unit'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -462,7 +462,7 @@ class Method(BaseEntity):
     """
     Analytical method.
     """
-    __tablename__ = 'Method'
+    __tablename__ = 'method'
 
     name = Column(Text())
     method_abbrev_id = Column(Integer())
@@ -495,7 +495,7 @@ class MethodAbbrev(LookupBase):
     """
     Abbreviation for method.
     """
-    __tablename__ = 'MethodAbbrev'
+    __tablename__ = 'method_abbrev'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -520,7 +520,7 @@ class MethodCategory(LookupBase):
     """
     Category of method.
     """
-    __tablename__ = 'MethodCategory'
+    __tablename__ = 'method_category'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -545,7 +545,7 @@ class MethodStandard(LookupBase):
     """
     Standard associated with the method.
     """
-    __tablename__ = 'MethodStandard'
+    __tablename__ = 'method_standard'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -570,7 +570,7 @@ class Parameter(BaseEntity):
     """
     Parameter being measured.
     """
-    __tablename__ = 'Parameter'
+    __tablename__ = 'parameter'
 
     name = Column(Text())
     standard_unit_id = Column(Integer())
@@ -600,7 +600,7 @@ class ParameterCategory(LookupBase):
     """
     Category of parameter.
     """
-    __tablename__ = 'ParameterCategory'
+    __tablename__ = 'parameter_category'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -625,7 +625,7 @@ class PreparationMethod(BaseEntity):
     """
     Method of sample preparation.
     """
-    __tablename__ = 'PreparationMethod'
+    __tablename__ = 'preparation_method'
 
     name = Column(Text())
     description = Column(Text())
@@ -657,7 +657,7 @@ class PreparationMethodAbbreviation(LookupBase):
     """
     Abbreviation for preparation method.
     """
-    __tablename__ = 'PreparationMethodAbbreviation'
+    __tablename__ = 'preparation_method_abbreviation'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -682,7 +682,7 @@ class PreparedSample(BaseEntity):
     """
     Sample that has been prepared.
     """
-    __tablename__ = 'PreparedSample'
+    __tablename__ = 'prepared_sample'
 
     name = Column(Text())
     field_sample_id = Column(Integer())
@@ -714,7 +714,7 @@ class DataSource(BaseEntity):
     """
     Source of data.
     """
-    __tablename__ = 'DataSource'
+    __tablename__ = 'data_source'
 
     name = Column(Text())
     description = Column(Text())
@@ -749,7 +749,7 @@ class FileObjectMetadata(BaseEntity):
     """
     Metadata for a file object.
     """
-    __tablename__ = 'FileObjectMetadata'
+    __tablename__ = 'file_object_metadata'
 
     data_source_id = Column(Integer())
     bucket_path = Column(Text())
@@ -781,7 +781,7 @@ class DataSourceType(BaseEntity):
     """
     Type of data source.
     """
-    __tablename__ = 'DataSourceType'
+    __tablename__ = 'data_source_type'
 
     source_type_id = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -808,7 +808,7 @@ class LocationResolution(LookupBase):
     """
     Resolution of the location (e.g. nation, state, county).
     """
-    __tablename__ = 'LocationResolution'
+    __tablename__ = 'location_resolution'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -833,7 +833,7 @@ class SourceType(LookupBase):
     """
     Type of source (e.g. database, literature).
     """
-    __tablename__ = 'SourceType'
+    __tablename__ = 'source_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -858,7 +858,7 @@ class Experiment(BaseEntity):
     """
     Experiment definition.
     """
-    __tablename__ = 'Experiment'
+    __tablename__ = 'experiment'
 
     analyst_id = Column(Integer())
     exper_start_date = Column(Date())
@@ -890,7 +890,7 @@ class Equipment(LookupBase):
     """
     Equipment used in experiments.
     """
-    __tablename__ = 'Equipment'
+    __tablename__ = 'equipment'
 
     equipment_location_id = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -916,7 +916,7 @@ class Resource(BaseEntity):
     """
     Biomass resource definition.
     """
-    __tablename__ = 'Resource'
+    __tablename__ = 'resource'
 
     name = Column(Text())
     primary_crop_id = Column(Integer())
@@ -947,7 +947,7 @@ class ResourceClass(LookupBase):
     """
     Classification of resources.
     """
-    __tablename__ = 'ResourceClass'
+    __tablename__ = 'resource_class'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -972,7 +972,7 @@ class ResourceSubclass(LookupBase):
     """
     Sub-classification of resources.
     """
-    __tablename__ = 'ResourceSubclass'
+    __tablename__ = 'resource_subclass'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -997,7 +997,7 @@ class PrimaryCrop(LookupBase):
     """
     Primary crop definition.
     """
-    __tablename__ = 'PrimaryCrop'
+    __tablename__ = 'primary_crop'
 
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1023,7 +1023,7 @@ class ResourceAvailability(BaseEntity):
     """
     Availability of a resource in a location.
     """
-    __tablename__ = 'ResourceAvailability'
+    __tablename__ = 'resource_availability'
 
     resource_id = Column(Integer())
     geoid = Column(Text())
@@ -1055,7 +1055,7 @@ class ResourceCounterfactual(BaseEntity):
     """
     Counterfactual uses of a resource.
     """
-    __tablename__ = 'ResourceCounterfactual'
+    __tablename__ = 'resource_counterfactual'
 
     geoid = Column(Text())
     resource_id = Column(Integer())
@@ -1098,7 +1098,7 @@ class FieldSample(BaseEntity):
     """
     Sample collected from the field.
     """
-    __tablename__ = 'FieldSample'
+    __tablename__ = 'field_sample'
 
     name = Column(Text())
     resource_id = Column(Integer())
@@ -1142,7 +1142,7 @@ class FieldStorageMethod(LookupBase):
     """
     Method of field storage.
     """
-    __tablename__ = 'FieldStorageMethod'
+    __tablename__ = 'field_storage_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1167,7 +1167,7 @@ class CollectionMethod(LookupBase):
     """
     Method of collection.
     """
-    __tablename__ = 'CollectionMethod'
+    __tablename__ = 'collection_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1192,7 +1192,7 @@ class HarvestMethod(LookupBase):
     """
     Method of harvest.
     """
-    __tablename__ = 'HarvestMethod'
+    __tablename__ = 'harvest_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1217,7 +1217,7 @@ class ProcessingMethod(LookupBase):
     """
     Method of processing.
     """
-    __tablename__ = 'ProcessingMethod'
+    __tablename__ = 'processing_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1242,7 +1242,7 @@ class PhysicalCharacteristic(BaseEntity):
     """
     Physical characteristics of a sample.
     """
-    __tablename__ = 'PhysicalCharacteristic'
+    __tablename__ = 'physical_characteristic'
 
     field_sample_id = Column(Integer())
     particle_length = Column(Numeric())
@@ -1273,7 +1273,7 @@ class SoilType(LookupBase):
     """
     Type of soil.
     """
-    __tablename__ = 'SoilType'
+    __tablename__ = 'soil_type'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1298,7 +1298,7 @@ class AgTreatment(LookupBase):
     """
     Agricultural treatment.
     """
-    __tablename__ = 'AgTreatment'
+    __tablename__ = 'ag_treatment'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -1323,7 +1323,7 @@ class FieldSampleCondition(BaseEntity):
     """
     Condition of the field sample.
     """
-    __tablename__ = 'FieldSampleCondition'
+    __tablename__ = 'field_sample_condition'
 
     field_sample_id = Column(Integer())
     ag_treatment_id = Column(Integer())
@@ -1354,7 +1354,7 @@ class LocationSoilType(BaseEntity):
     """
     Soil type at a location.
     """
-    __tablename__ = 'LocationSoilType'
+    __tablename__ = 'location_soil_type'
 
     location_id = Column(Integer())
     soil_type_id = Column(Integer())
@@ -1382,7 +1382,7 @@ class ProximateRecord(Aim1RecordBase):
     """
     Proximate analysis record.
     """
-    __tablename__ = 'ProximateRecord'
+    __tablename__ = 'proximate_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1418,7 +1418,7 @@ class UltimateRecord(Aim1RecordBase):
     """
     Ultimate analysis record.
     """
-    __tablename__ = 'UltimateRecord'
+    __tablename__ = 'ultimate_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1454,7 +1454,7 @@ class CompositionalRecord(Aim1RecordBase):
     """
     Compositional analysis record.
     """
-    __tablename__ = 'CompositionalRecord'
+    __tablename__ = 'compositional_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1490,7 +1490,7 @@ class IcpRecord(Aim1RecordBase):
     """
     ICP analysis record.
     """
-    __tablename__ = 'IcpRecord'
+    __tablename__ = 'icp_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1526,7 +1526,7 @@ class XrfRecord(Aim1RecordBase):
     """
     XRF analysis record.
     """
-    __tablename__ = 'XrfRecord'
+    __tablename__ = 'xrf_record'
 
     maybe_wavelength_nm = Column(Numeric())
     maybe_intensity = Column(Numeric())
@@ -1566,7 +1566,7 @@ class XrdRecord(Aim1RecordBase):
     """
     XRD analysis record.
     """
-    __tablename__ = 'XrdRecord'
+    __tablename__ = 'xrd_record'
 
     maybe_scan_low_nm = Column(Integer())
     maybe_scan_high_nm = Column(Integer())
@@ -1604,7 +1604,7 @@ class CalorimetryRecord(Aim1RecordBase):
     """
     Calorimetry analysis record.
     """
-    __tablename__ = 'CalorimetryRecord'
+    __tablename__ = 'calorimetry_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1640,7 +1640,7 @@ class FtnirRecord(Aim1RecordBase):
     """
     FT-NIR analysis record.
     """
-    __tablename__ = 'FtnirRecord'
+    __tablename__ = 'ftnir_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
@@ -1676,7 +1676,7 @@ class RgbRecord(Aim1RecordBase):
     """
     RGB analysis record.
     """
-    __tablename__ = 'RgbRecord'
+    __tablename__ = 'rgb_record'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())

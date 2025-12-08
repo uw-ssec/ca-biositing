@@ -13,7 +13,7 @@ class ResourceMorphology(Base):
     """
     Morphology of a resource.
     """
-    __tablename__ = 'ResourceMorphology'
+    __tablename__ = 'resource_morphology'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     resource_id = Column(Integer())
@@ -32,7 +32,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -53,7 +53,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -73,7 +73,7 @@ class Geography(Base):
     """
     Geographic region definition (e.g. county, state).
     """
-    __tablename__ = 'Geography'
+    __tablename__ = 'geography'
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -96,7 +96,7 @@ class Polygon(Base):
     """
     Geospatial polygon definition.
     """
-    __tablename__ = 'Polygon'
+    __tablename__ = 'polygon'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     geoid = Column(Text())
@@ -115,7 +115,7 @@ class Resource(BaseEntity):
     """
     Biomass resource definition.
     """
-    __tablename__ = 'Resource'
+    __tablename__ = 'resource'
 
     name = Column(Text())
     primary_crop_id = Column(Integer())
@@ -146,7 +146,7 @@ class ResourceClass(LookupBase):
     """
     Classification of resources.
     """
-    __tablename__ = 'ResourceClass'
+    __tablename__ = 'resource_class'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -171,7 +171,7 @@ class ResourceSubclass(LookupBase):
     """
     Sub-classification of resources.
     """
-    __tablename__ = 'ResourceSubclass'
+    __tablename__ = 'resource_subclass'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -196,7 +196,7 @@ class PrimaryCrop(LookupBase):
     """
     Primary crop definition.
     """
-    __tablename__ = 'PrimaryCrop'
+    __tablename__ = 'primary_crop'
 
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -222,7 +222,7 @@ class ResourceAvailability(BaseEntity):
     """
     Availability of a resource in a location.
     """
-    __tablename__ = 'ResourceAvailability'
+    __tablename__ = 'resource_availability'
 
     resource_id = Column(Integer())
     geoid = Column(Text())
@@ -254,7 +254,7 @@ class ResourceCounterfactual(BaseEntity):
     """
     Counterfactual uses of a resource.
     """
-    __tablename__ = 'ResourceCounterfactual'
+    __tablename__ = 'resource_counterfactual'
 
     geoid = Column(Text())
     resource_id = Column(Integer())
@@ -297,7 +297,7 @@ class LocationAddress(BaseEntity):
     """
     Specific physical location.
     """
-    __tablename__ = 'LocationAddress'
+    __tablename__ = 'location_address'
 
     geography_id = Column(Text())
     address_line1 = Column(Text())

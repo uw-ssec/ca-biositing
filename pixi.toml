@@ -186,6 +186,8 @@ generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", de
 
 update-schema = { cmd = "python resources/linkml/scripts/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
+update-schema = { cmd = "python src/ca_biositing/datamodels/utils/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
+
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
 

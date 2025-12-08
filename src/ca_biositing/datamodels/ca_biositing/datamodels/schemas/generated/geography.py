@@ -13,7 +13,7 @@ class Geography(Base):
     """
     Geographic region definition (e.g. county, state).
     """
-    __tablename__ = 'Geography'
+    __tablename__ = 'geography'
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -36,7 +36,7 @@ class Polygon(Base):
     """
     Geospatial polygon definition.
     """
-    __tablename__ = 'Polygon'
+    __tablename__ = 'polygon'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     geoid = Column(Text())
@@ -55,7 +55,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -76,7 +76,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -96,7 +96,7 @@ class LocationAddress(BaseEntity):
     """
     Specific physical location.
     """
-    __tablename__ = 'LocationAddress'
+    __tablename__ = 'location_address'
 
     geography_id = Column(Text())
     address_line1 = Column(Text())

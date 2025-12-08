@@ -13,7 +13,7 @@ class LineageGroup(Base):
     """
     Grouping for lineage information.
     """
-    __tablename__ = 'LineageGroup'
+    __tablename__ = 'lineage_group'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     etl_run_id = Column(Text())
@@ -32,7 +32,7 @@ class EntityLineage(Base):
     """
     Lineage information for a specific entity.
     """
-    __tablename__ = 'EntityLineage'
+    __tablename__ = 'entity_lineage'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     lineage_group_id = Column(Integer())
@@ -53,7 +53,7 @@ class EtlRun(Base):
     """
     Information about an ETL run.
     """
-    __tablename__ = 'EtlRun'
+    __tablename__ = 'etl_run'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     started_at = Column(DateTime())
@@ -76,7 +76,7 @@ class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
     """
-    __tablename__ = 'BaseEntity'
+    __tablename__ = 'base_entity'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -97,7 +97,7 @@ class LookupBase(Base):
     """
     Base class for enum/ontology-like tables.
     """
-    __tablename__ = 'LookupBase'
+    __tablename__ = 'lookup_base'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())

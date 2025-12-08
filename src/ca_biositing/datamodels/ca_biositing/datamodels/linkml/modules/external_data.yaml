@@ -140,6 +140,7 @@ classes:
       - acres
       - version
       - note
+      - test
 
   BillionTon2023Record:
     is_a: BaseEntity
@@ -423,3 +424,7 @@ slots:
   geom:
     range: string
     description: Geometry (WKT or similar).
+
+  test:
+    range: string
+    description: A test slot.
