@@ -15,11 +15,15 @@ py312 = ["py312", "datamodels", "pipeline", "webservice"]
 py313 = ["py313", "datamodels", "pipeline", "webservice"]
 gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
 etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
-webservice = { features = ["datamodels", "webservice"], solve-group = "default" }
-frontend = { features = ["frontend"], no-default-feature = true, solve-group = "default" }
+webservice = { features = [
+    "datamodels",
+    "webservice",
+], solve-group = "default" }
+frontend = { features = [
+    "frontend",
+], no-default-feature = true, solve-group = "default" }
 docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 deployment = { features = ["cloud"], solve-group = "default" }
-
 [dependencies]
 python = "~=3.12"
 pre-commit = ">=4.2.0,<5"
@@ -186,6 +190,7 @@ description = "Run all tests with coverage and HTML report"
 cmd = "git submodule update --init frontend"
 description = "Initialize only the frontend submodule."
 
+# GIS Dependencies
 
 [feature.qgis.dependencies]
 qgis = "*"
@@ -248,6 +253,8 @@ depends-on = [{ task = "start-services" }]
 # Webservice Dependencies
 [feature.webservice.pypi-dependencies]
 ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
+fastapi = ">=0.111.0,<0.115.0"
+pydantic = ">=2.5,<3.0"
 
 [feature.docs.dependencies]
 python = ">=3.11,<3.14"
