@@ -31,15 +31,30 @@ classes:
       - license
       - note
 
-  MetadataSample:
+  FileObjectMetadata:
     is_a: BaseEntity
-    description: Metadata for a field sample.
+    description: Metadata for a file object.
     slots:
-      - field_sample_id
-      - metadata_key
-      - metadata_value
-      - metadata_type
-      - note
+      - data_source_id
+      - bucket_path
+      - file_format
+      - file_size
+      - checksum_md5
+      - checksum_sha256
+
+  DataSourceType:
+    is_a: BaseEntity
+    description: Type of data source.
+    slots:
+      - source_type_id
+
+  LocationResolution:
+    is_a: LookupBase
+    description: Resolution of the location (e.g. nation, state, county).
+
+  SourceType:
+    is_a: LookupBase
+    description: Type of source (e.g. database, literature).
 
 slots:
   publication_date:
@@ -50,6 +65,10 @@ slots:
     range: string
     description: Version of the data source.
 
+  publisher:
+    range: string
+    description: Publisher of the data source.
+
   author:
     range: string
     description: Author of the data source.
@@ -58,14 +77,30 @@ slots:
     range: string
     description: License of the data source.
 
-  metadata_key:
-    range: string
-    description: Key for the metadata.
+  data_source_id:
+    range: integer
+    description: Reference to DataSource.
 
-  metadata_value:
+  bucket_path:
     range: string
-    description: Value for the metadata.
+    description: Path to the file in the bucket.
 
-  metadata_type:
+  file_format:
     range: string
-    description: Type of the metadata value (e.g. string, int, float).
+    description: Format of the file.
+
+  file_size:
+    range: integer
+    description: Size of the file in bytes.
+
+  checksum_md5:
+    range: string
+    description: MD5 checksum of the file.
+
+  checksum_sha256:
+    range: string
+    description: SHA256 checksum of the file.
+
+  source_type_id:
+    range: integer
+    description: Reference to SourceType.

@@ -245,22 +245,22 @@ class Provider(Base):
 
 
 
-class Aim2RecordBase(BaseEntity):
+class Aim1RecordBase(BaseEntity):
     """
 
     """
-    __tablename__ = 'Aim2RecordBase'
+    __tablename__ = 'Aim1RecordBase'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -269,33 +269,7 @@ class Aim2RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Strain(LookupBase):
-    """
-    Strain used in fermentation.
-    """
-    __tablename__ = 'Strain'
-
-    parent_strain_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"Strain(parent_strain_id={self.parent_strain_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1404,28 +1378,22 @@ class LocationSoilType(BaseEntity):
 
 
 
-class PretreatmentRecord(Aim2RecordBase):
+class ProximateRecord(Aim1RecordBase):
     """
-    Pretreatment record.
+    Proximate analysis record.
     """
-    __tablename__ = 'PretreatmentRecord'
+    __tablename__ = 'ProximateRecord'
 
-    pretreatment_method_id = Column(Integer())
-    eh_method_id = Column(Integer())
-    reaction_block_id = Column(Integer())
-    block_position = Column(Text())
-    temperature = Column(Numeric())
-    replicate_no = Column(Integer())
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1434,7 +1402,7 @@ class PretreatmentRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1446,31 +1414,22 @@ class PretreatmentRecord(Aim2RecordBase):
 
 
 
-class FermentationRecord(Aim2RecordBase):
+class UltimateRecord(Aim1RecordBase):
     """
-    Fermentation record.
+    Ultimate analysis record.
     """
-    __tablename__ = 'FermentationRecord'
+    __tablename__ = 'UltimateRecord'
 
-    strain_id = Column(Integer())
-    pretreatment_method_id = Column(Integer())
-    eh_method_id = Column(Integer())
-    replicate_no = Column(Integer())
-    well_position = Column(Text())
-    temperature = Column(Numeric())
-    agitation_rpm = Column(Numeric())
-    vessel_id = Column(Integer())
-    analyte_detection_equipment_id = Column(Integer())
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1479,7 +1438,7 @@ class FermentationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},replicate_no={self.replicate_no},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1491,25 +1450,22 @@ class FermentationRecord(Aim2RecordBase):
 
 
 
-class GasificationRecord(Aim2RecordBase):
+class CompositionalRecord(Aim1RecordBase):
     """
-    Gasification record.
+    Compositional analysis record.
     """
-    __tablename__ = 'GasificationRecord'
+    __tablename__ = 'CompositionalRecord'
 
-    feedstock_mass = Column(Numeric())
-    bed_temperature = Column(Numeric())
-    gas_flow_rate = Column(Numeric())
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1518,7 +1474,7 @@ class GasificationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1530,22 +1486,22 @@ class GasificationRecord(Aim2RecordBase):
 
 
 
-class AutoclaveRecord(Aim2RecordBase):
+class IcpRecord(Aim1RecordBase):
     """
-    Autoclave record.
+    ICP analysis record.
     """
-    __tablename__ = 'AutoclaveRecord'
+    __tablename__ = 'IcpRecord'
 
     dataset_id = Column(Integer())
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1554,7 +1510,193 @@ class AutoclaveRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class XrfRecord(Aim1RecordBase):
+    """
+    XRF analysis record.
+    """
+    __tablename__ = 'XrfRecord'
+
+    maybe_wavelength_nm = Column(Numeric())
+    maybe_intensity = Column(Numeric())
+    maybe_energy_slope = Column(Numeric())
+    maybe_energy_offset = Column(Numeric())
+    dataset_id = Column(Integer())
+    experiment_id = Column(Integer())
+    resource_id = Column(Integer())
+    sample_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
+    raw_data_id = Column(Integer())
+    qc_pass = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"XrfRecord(maybe_wavelength_nm={self.maybe_wavelength_nm},maybe_intensity={self.maybe_intensity},maybe_energy_slope={self.maybe_energy_slope},maybe_energy_offset={self.maybe_energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class XrdRecord(Aim1RecordBase):
+    """
+    XRD analysis record.
+    """
+    __tablename__ = 'XrdRecord'
+
+    maybe_scan_low_nm = Column(Integer())
+    maybe_scan_high_nm = Column(Integer())
+    dataset_id = Column(Integer())
+    experiment_id = Column(Integer())
+    resource_id = Column(Integer())
+    sample_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
+    raw_data_id = Column(Integer())
+    qc_pass = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"XrdRecord(maybe_scan_low_nm={self.maybe_scan_low_nm},maybe_scan_high_nm={self.maybe_scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class CalorimetryRecord(Aim1RecordBase):
+    """
+    Calorimetry analysis record.
+    """
+    __tablename__ = 'CalorimetryRecord'
+
+    dataset_id = Column(Integer())
+    experiment_id = Column(Integer())
+    resource_id = Column(Integer())
+    sample_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
+    raw_data_id = Column(Integer())
+    qc_pass = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class FtnirRecord(Aim1RecordBase):
+    """
+    FT-NIR analysis record.
+    """
+    __tablename__ = 'FtnirRecord'
+
+    dataset_id = Column(Integer())
+    experiment_id = Column(Integer())
+    resource_id = Column(Integer())
+    sample_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
+    raw_data_id = Column(Integer())
+    qc_pass = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class RgbRecord(Aim1RecordBase):
+    """
+    RGB analysis record.
+    """
+    __tablename__ = 'RgbRecord'
+
+    dataset_id = Column(Integer())
+    experiment_id = Column(Integer())
+    resource_id = Column(Integer())
+    sample_id = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer())
+    raw_data_id = Column(Integer())
+    qc_pass = Column(Boolean())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
