@@ -1,0 +1,73 @@
+id: https://w3id.org/ca_biositing/places
+name: places
+title: Places Definitions
+description: Geographic locations and addresses.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+
+classes:
+  Geography:
+    is_a: BaseEntity
+    description: Geographic location.
+    slots:
+      - geoid
+      - name
+      - type
+      - geometry
+    slot_usage:
+      geoid:
+        identifier: true
+
+  LocationAddress:
+    is_a: BaseEntity
+    description: Physical address.
+    slots:
+      - street_address
+      - city
+      - state
+      - zip_code
+      - country
+      - geoid
+
+slots:
+  geoid:
+    range: string
+    description: Unique identifier for geography.
+
+  type:
+    range: string
+    description: Type of geography (e.g. county, state).
+
+  geometry:
+    range: string
+    description: WKT geometry.
+
+  street_address:
+    range: string
+    description: Street address.
+
+  city:
+    range: string
+    description: City.
+
+  state:
+    range: string
+    description: State.
+
+  zip_code:
+    range: string
+    description: ZIP code.
+
+  country:
+    range: string
+    description: Country.

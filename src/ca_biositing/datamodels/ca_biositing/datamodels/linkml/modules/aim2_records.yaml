@@ -1,0 +1,143 @@
+id: https://w3id.org/ca_biositing/aim2_records
+name: aim2_records
+title: Aim 2 Records
+description: Records for Aim 2 analysis.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - general_analysis
+  - experiment_equipment
+  - resource_information
+  - sample_preparation
+  - methods_parameters_units
+  - data_sources_metadata
+  - people
+
+classes:
+  Aim2RecordBase:
+    is_a: BaseEntity
+    abstract: true
+    slots:
+      - dataset_id
+      - experiment_id
+      - resource_id
+      - sample_id
+      - analyst_id
+      - raw_data_id
+      - qc_pass
+      - note
+
+  PretreatmentRecord:
+    is_a: Aim2RecordBase
+    description: Pretreatment record.
+    slots:
+      - pretreatment_method_id
+      - eh_method_id
+      - reaction_block_id
+      - block_position
+      - temperature
+      - replicate_no
+
+  FermentationRecord:
+    is_a: Aim2RecordBase
+    description: Fermentation record.
+    slots:
+      - strain_id
+      - pretreatment_method_id
+      - eh_method_id
+      - replicate_no
+      - well_position
+      - temperature
+      - agitation_rpm
+      - vessel_id
+      - analyte_detection_equipment_id
+
+  GasificationRecord:
+    is_a: Aim2RecordBase
+    description: Gasification record.
+    slots:
+      - feedstock_mass
+      - bed_temperature
+      - gas_flow_rate
+      - technical_replicate_no
+
+  AutoclaveRecord:
+    is_a: Aim2RecordBase
+    description: Autoclave record.
+    slots:
+      - technical_replicate_no
+
+  Strain:
+    is_a: LookupBase
+    description: Strain used in fermentation.
+    slots:
+      - parent_strain_id
+
+slots:
+  pretreatment_method_id:
+    range: integer
+    description: Reference to Method (pretreatment).
+
+  eh_method_id:
+    range: integer
+    description: Reference to Method (enzymatic hydrolysis).
+
+  reaction_block_id:
+    range: integer
+    description: ID of the reaction block.
+
+  block_position:
+    range: string
+    description: Position in the block.
+
+  temperature:
+    range: decimal
+    description: Temperature.
+
+  replicate_no:
+    range: integer
+    description: Replicate number.
+
+  strain_id:
+    range: integer
+    description: Reference to Strain.
+
+  well_position:
+    range: string
+    description: Position in the well.
+
+  agitation_rpm:
+    range: decimal
+    description: Agitation in RPM.
+
+  vessel_id:
+    range: integer
+    description: Reference to Equipment (vessel).
+
+  analyte_detection_equipment_id:
+    range: integer
+    description: Reference to Equipment (detection).
+
+  feedstock_mass:
+    range: decimal
+    description: Mass of feedstock.
+
+  bed_temperature:
+    range: decimal
+    description: Bed temperature.
+
+  gas_flow_rate:
+    range: decimal
+    description: Gas flow rate.
+
+  parent_strain_id:
+    range: integer
