@@ -1,0 +1,32 @@
+id: https://w3id.org/ca_biositing
+name: ca_biositing
+title: CA Biositing Schema
+description: >-
+  LinkML schema for the CA Biositing project, defining data models for
+  bioeconomy site selection, including resources, sampling, analysis, and
+  infrastructure.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+  schema: http://schema.org/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - modules/core
+  - modules/resource_information
+  - modules/field_sampling
+  - modules/places
+  - modules/people
+  - modules/lineage
+  - modules/data_sources_metadata
+  - modules/sample_preparation
+  - modules/methods_parameters_units
+  - modules/experiment_equipment
+  - modules/general_analysis
+  - modules/aim1_records
+  - modules/aim2_records
+  - modules/external_data

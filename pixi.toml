@@ -6,7 +6,7 @@ requires-pixi = ">=0.55,<1.0"
 authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
-platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
 version = "0.1.0"
 
 [environments]
@@ -30,6 +30,7 @@ docker-compose = ">=2.39.2,<3"
 docker-cli = ">=28.3.1,<29"
 testcontainers = ">=4.13.2,<5"
 python-dotenv = ">=1.2.1,<2"
+asyncpg = ">=0.29.0,<0.30"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -55,9 +56,7 @@ start-services = { cmd = [
     "resources/docker/docker-compose.yml",
     "up",
     "-d",
-], description = "Start required services using Docker Compose.", depends-on = [
-    "initial-migration",
-] }
+], description = "Start required services using Docker Compose." }
 teardown-services = { cmd = [
     "docker-compose",
     "-f",
@@ -166,6 +165,21 @@ restart-prefect-worker = { cmd = [
     "restart",
     "prefect-worker",
 ], description = "Restart the Prefect worker service." }
+
+migrate = { cmd = [
+    "docker-compose",
+    "-f",
+    "resources/docker/docker-compose.yml",
+    "exec",
+    "prefect-worker",
+    "/bin/bash",
+    "-c",
+    "source /shell-hook.sh && alembic upgrade head",
+], description = "Apply database migrations.", depends-on = [
+    "start-services",
+] }
+
+update-schema = { cmd = "python src/ca_biositing/datamodels/utils/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
@@ -292,3 +306,7 @@ cwd = "deployment/cloud/gcp/infrastructure"
 [feature.cloud.tasks.cloud-destroy]
 cmd = "tofu destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+
+[pypi-dependencies]
+linkml = ">=1.9.3, <2"
+sqlalchemy = ">=2.0.44, <3"

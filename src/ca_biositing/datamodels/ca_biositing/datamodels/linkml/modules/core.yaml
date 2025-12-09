@@ -1,0 +1,101 @@
+id: https://w3id.org/ca_biositing/core
+name: core
+title: Core Definitions
+description: Base classes, lineage, and data source definitions.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  BaseEntity:
+    mixin: true
+    description: Base entity included in all main entity tables.
+    slots:
+      - id
+      - created_at
+      - updated_at
+      - etl_run_id
+      - lineage_group_id
+
+  LookupBase:
+    mixin: true
+    description: Base class for enum/ontology-like tables.
+    slots:
+      - id
+      - name
+      - description
+      - uri
+
+slots:
+  id:
+    identifier: true
+    range: integer
+    description: Unique identifier.
+
+  created_at:
+    range: datetime
+    description: Timestamp when the record was created.
+
+  updated_at:
+    range: datetime
+    description: Timestamp when the record was last updated.
+
+  etl_run_id:
+    range: string
+    description: Identifier of the ETL run.
+
+  lineage_group_id:
+    range: integer
+    description: Reference to the lineage group.
+
+  name:
+    range: string
+    description: Name of the entity.
+
+  description:
+    range: string
+    description: Description of the entity.
+
+  uri:
+    range: uri
+    description: URI for the entity.
+
+  note:
+    range: string
+    description: Additional notes.
+
+  source_table:
+    range: string
+    description: Source table name.
+
+  source_row_id:
+    range: string
+    description: Source row identifier.
+
+  started_at:
+    range: datetime
+    description: Start time of the ETL run.
+
+  completed_at:
+    range: datetime
+    description: Completion time of the ETL run.
+
+  pipeline_name:
+    range: string
+    description: Name of the pipeline.
+
+  status:
+    range: string
+    description: Status of the ETL run.
+
+  records_ingested:
+    range: integer
+    description: Number of records ingested.

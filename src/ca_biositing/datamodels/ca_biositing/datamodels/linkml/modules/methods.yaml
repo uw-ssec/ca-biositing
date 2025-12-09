@@ -1,0 +1,120 @@
+id: https://w3id.org/ca_biositing/methods
+name: methods
+title: Methods and Parameters
+description: Methods, parameters, and units.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+
+classes:
+  Unit:
+    is_a: LookupBase
+    description: Unit of measurement.
+
+  Method:
+    is_a: BaseEntity
+    description: Analytical method.
+    slots:
+      - name
+      - method_abbrev_id
+      - method_category_id
+      - method_standard_id
+      - description
+      - detection_limits
+      - source_id
+
+  MethodAbbrev:
+    is_a: LookupBase
+    description: Abbreviation for a method.
+
+  MethodCategory:
+    is_a: LookupBase
+    description: Category of a method.
+
+  MethodStandard:
+    is_a: LookupBase
+    description: Standard associated with a method.
+
+  Parameter:
+    is_a: BaseEntity
+    description: Parameter measured.
+    slots:
+      - name
+      - standard_unit_id
+      - calculated
+      - description
+
+  ParameterCategory:
+    is_a: LookupBase
+    description: Category of a parameter.
+
+  ParameterCategoryParameter:
+    description: Link between parameter and category.
+    slots:
+      - id
+      - parameter_id
+      - parameter_category_id
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+  ParameterUnit:
+    description: Link between parameter and alternate units.
+    slots:
+      - id
+      - parameter_id
+      - alternate_unit_id
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  method_abbrev_id:
+    range: integer
+    description: Reference to MethodAbbrev.
+
+  method_category_id:
+    range: integer
+    description: Reference to MethodCategory.
+
+  method_standard_id:
+    range: integer
+    description: Reference to MethodStandard.
+
+  detection_limits:
+    range: string
+    description: Detection limits of the method.
+
+  source_id:
+    range: integer
+    description: Reference to DataSource.
+
+  standard_unit_id:
+    range: integer
+    description: Reference to Unit (standard).
+
+  calculated:
+    range: boolean
+    description: Whether the parameter is calculated.
+
+  parameter_id:
+    range: integer
+    description: Reference to Parameter.
+
+  parameter_category_id:
+    range: integer
+    description: Reference to ParameterCategory.
+
+  alternate_unit_id:
+    range: integer

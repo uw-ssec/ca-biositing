@@ -1,0 +1,178 @@
+id: https://w3id.org/ca_biositing/resource_information
+name: resource_information
+title: Resource Information
+description: Biomass resources and their classifications.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - places
+
+classes:
+  Resource:
+    is_a: BaseEntity
+    description: Biomass resource definition.
+    slots:
+      - name
+      - primary_crop_id
+      - resource_class_id
+      - resource_subclass_id
+      - note
+
+  ResourceClass:
+    is_a: LookupBase
+    description: Classification of resources.
+
+  ResourceSubclass:
+    is_a: LookupBase
+    description: Sub-classification of resources.
+
+  PrimaryCrop:
+    is_a: LookupBase
+    description: Primary crop definition.
+    slots:
+      - note
+
+  ResourceAvailability:
+    is_a: BaseEntity
+    description: Availability of a resource in a location.
+    slots:
+      - resource_id
+      - geoid
+      - from_month
+      - to_month
+      - year_round
+      - note
+
+  ResourceCounterfactual:
+    is_a: BaseEntity
+    description: Counterfactual uses of a resource.
+    slots:
+      - geoid
+      - resource_id
+      - counterfactual_description
+      - animal_bedding_percent
+      - animal_bedding_source_id
+      - animal_feed_percent
+      - animal_feed_source_id
+      - bioelectricty_percent
+      - bioelectricty_source_id
+      - burn_percent
+      - burn_source_id
+      - compost_percent
+      - compost_source_id
+      - landfill_percent
+      - landfill_source_id
+      - counterfactual_date
+      - note
+
+  ResourceMorphology:
+    description: Morphology of a resource.
+    slots:
+      - id
+      - resource_id
+      - morphology_uri
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  primary_crop_id:
+    range: integer
+    description: Reference to PrimaryCrop.
+
+  resource_class_id:
+    range: integer
+    description: Reference to ResourceClass.
+
+  resource_subclass_id:
+    range: integer
+    description: Reference to ResourceSubclass.
+
+  resource_id:
+    range: integer
+    description: Reference to Resource.
+
+  geoid:
+    range: string
+    description: Reference to Geography.
+
+  from_month:
+    range: integer
+    description: Start month of availability.
+
+  to_month:
+    range: integer
+    description: End month of availability.
+
+  year_round:
+    range: boolean
+    description: Whether available year-round.
+
+  counterfactual_description:
+    range: string
+    description: Description of counterfactual scenario.
+
+  animal_bedding_percent:
+    range: decimal
+    description: Percentage used for animal bedding.
+
+  animal_bedding_source_id:
+    range: integer
+    description: Source for animal bedding data.
+
+  animal_feed_percent:
+    range: decimal
+    description: Percentage used for animal feed.
+
+  animal_feed_source_id:
+    range: integer
+    description: Source for animal feed data.
+
+  bioelectricty_percent:
+    range: decimal
+    description: Percentage used for bioelectricity.
+
+  bioelectricty_source_id:
+    range: integer
+    description: Source for bioelectricity data.
+
+  burn_percent:
+    range: decimal
+    description: Percentage burned.
+
+  burn_source_id:
+    range: integer
+    description: Source for burn data.
+
+  compost_percent:
+    range: decimal
+    description: Percentage composted.
+
+  compost_source_id:
+    range: integer
+    description: Source for compost data.
+
+  landfill_percent:
+    range: decimal
+    description: Percentage landfilled.
+
+  landfill_source_id:
+    range: integer
+    description: Source for landfill data.
+
+  counterfactual_date:
+    range: date
+    description: Date of counterfactual data.
+
+  morphology_uri:
+    range: string

@@ -1,0 +1,200 @@
+id: https://w3id.org/ca_biositing/field_sampling
+name: field_sampling
+title: Field Sampling
+description: Field sampling and preparation.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - places
+  - people
+  - resource_information
+  - methods_parameters_units
+
+classes:
+  FieldSample:
+    is_a: BaseEntity
+    description: Sample collected from the field.
+    slots:
+      - name
+      - resource_id
+      - provider_id
+      - collector_id
+      - sample_collection_source
+      - amount_collected
+      - amount_collected_unit_id
+      - sampling_location_id
+      - field_storage_method_id
+      - field_storage_duration_value
+      - field_storage_duration_unit_id
+      - field_storage_location_id
+      - collection_timestamp
+      - collection_method_id
+      - harvest_method_id
+      - harvest_date
+      - field_sample_storage_location_id
+      - note
+
+  FieldStorageMethod:
+    is_a: LookupBase
+    description: Method of field storage.
+
+  CollectionMethod:
+    is_a: LookupBase
+    description: Method of collection.
+
+  HarvestMethod:
+    is_a: LookupBase
+    description: Method of harvest.
+
+  ProcessingMethod:
+    is_a: LookupBase
+    description: Method of processing.
+
+  PhysicalCharacteristic:
+    is_a: BaseEntity
+    description: Physical characteristics of a sample.
+    slots:
+      - field_sample_id
+      - particle_length
+      - particle_width
+      - particle_height
+      - particle_unit_id
+
+  SoilType:
+    is_a: LookupBase
+    description: Type of soil.
+
+  AgTreatment:
+    is_a: LookupBase
+    description: Agricultural treatment.
+
+  FieldSampleCondition:
+    is_a: BaseEntity
+    description: Condition of the field sample.
+    slots:
+      - field_sample_id
+      - ag_treatment_id
+      - last_application_date
+      - treatment_amount_per_acre
+      - processing_method_id
+
+  LocationSoilType:
+    is_a: BaseEntity
+    description: Soil type at a location.
+    slots:
+      - location_id
+      - soil_type_id
+
+slots:
+  provider_id:
+    range: integer
+    description: Reference to Provider.
+
+  collector_id:
+    range: integer
+    description: Reference to Contact (collector).
+
+  sample_collection_source:
+    range: string
+    description: Source of sample collection.
+
+  amount_collected:
+    range: decimal
+    description: Amount collected.
+
+  amount_collected_unit_id:
+    range: integer
+    description: Reference to Unit.
+
+  sampling_location_id:
+    range: integer
+    description: Reference to LocationAddress.
+
+  field_storage_method_id:
+    range: integer
+    description: Reference to FieldStorageMethod.
+
+  field_storage_duration_value:
+    range: decimal
+    description: Duration of field storage.
+
+  field_storage_duration_unit_id:
+    range: integer
+    description: Reference to Unit.
+
+  field_storage_location_id:
+    range: integer
+    description: Reference to LocationAddress.
+
+  collection_timestamp:
+    range: datetime
+    description: Timestamp of collection.
+
+  collection_method_id:
+    range: integer
+    description: Reference to CollectionMethod.
+
+  harvest_method_id:
+    range: integer
+    description: Reference to HarvestMethod.
+
+  harvest_date:
+    range: date
+    description: Date of harvest.
+
+  field_sample_storage_location_id:
+    range: integer
+    description: Reference to LocationAddress.
+
+  field_sample_id:
+    range: integer
+    description: Reference to FieldSample.
+
+  particle_length:
+    range: decimal
+    description: Length of particle.
+
+  particle_width:
+    range: decimal
+    description: Width of particle.
+
+  particle_height:
+    range: decimal
+    description: Height of particle.
+
+  particle_unit_id:
+    range: integer
+    description: Reference to Unit.
+
+  ag_treatment_id:
+    range: integer
+    description: Reference to AgTreatment.
+
+  last_application_date:
+    range: date
+    description: Date of last application.
+
+  treatment_amount_per_acre:
+    range: float
+    description: Amount of treatment per acre.
+
+  processing_method_id:
+    range: integer
+    description: Reference to ProcessingMethod.
+
+  location_id:
+    range: integer
+    description: Reference to LocationAddress.
+
+  soil_type_id:
+    range: integer
+    description: Reference to SoilType.
