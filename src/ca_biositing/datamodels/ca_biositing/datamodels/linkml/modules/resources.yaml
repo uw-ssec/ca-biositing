@@ -38,8 +38,6 @@ classes:
   PrimaryCrop:
     is_a: LookupBase
     description: Primary crop definition.
-    slots:
-      - note
 
   ResourceAvailability:
     is_a: BaseEntity
