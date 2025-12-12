@@ -31,6 +31,22 @@ classes:
       - license
       - note
 
+      #missing fields compared to DBdiagram. Was this a purposeful paring down of fields?
+      #data_source_type_id
+      #full_title
+      #creator
+      #subject
+      #publisher
+      #date
+      #types
+      #biocirv
+      #format
+      #language
+      #relation
+      #temporal_coverage
+      #location_coverage
+      #rights
+
   FileObjectMetadata:
     is_a: BaseEntity
     description: Metadata for a file object.
@@ -44,7 +60,7 @@ classes:
 
   DataSourceType:
     is_a: BaseEntity
-    description: Type of data source.
+    description: Type of data source (e.g. database, literature).
     slots:
       - source_type_id
 

@@ -259,7 +259,7 @@ args = [
     { "arg" = "env_file", "default" = "../docker/.env" },
 ]
 cwd = "resources/prefect"
-cmd = "./deploy.py --env-file {{ env_file }} {{ deployment_name }}"
+cmd = ["python", "deploy.py", "--env-file", "{{ env_file }}", "{{ deployment_name }}"]
 description = "Deploy the ETL pipeline to Prefect."
 depends-on = [{ task = "start-services" }]
 
