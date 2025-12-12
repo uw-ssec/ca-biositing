@@ -43,6 +43,26 @@ classes:
       - field_sample_storage_location_id
       - note
 
+  PhysicalCharacteristic:
+    is_a: BaseEntity
+    description: Physical characteristics of a sample.
+    slots:
+      - field_sample_id
+      - particle_length
+      - particle_width
+      - particle_height
+      - particle_unit_id
+
+  FieldSampleCondition:
+    is_a: BaseEntity
+    description: Condition of the field sample.
+    slots:
+      - field_sample_id
+      - ag_treatment_id
+      - last_application_date
+      - treatment_amount_per_acre
+      - processing_method_id
+
   FieldStorageMethod:
     is_a: LookupBase
     description: Method of field storage.
@@ -59,16 +79,6 @@ classes:
     is_a: LookupBase
     description: Method of processing.
 
-  PhysicalCharacteristic:
-    is_a: BaseEntity
-    description: Physical characteristics of a sample.
-    slots:
-      - field_sample_id
-      - particle_length
-      - particle_width
-      - particle_height
-      - particle_unit_id
-
   SoilType:
     is_a: LookupBase
     description: Type of soil.
@@ -76,16 +86,6 @@ classes:
   AgTreatment:
     is_a: LookupBase
     description: Agricultural treatment.
-
-  FieldSampleCondition:
-    is_a: BaseEntity
-    description: Condition of the field sample.
-    slots:
-      - field_sample_id
-      - ag_treatment_id
-      - last_application_date
-      - treatment_amount_per_acre
-      - processing_method_id
 
   LocationSoilType:
     is_a: BaseEntity

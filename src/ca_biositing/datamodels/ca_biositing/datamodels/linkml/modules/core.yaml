@@ -35,6 +35,8 @@ classes:
       - uri
 
 slots:
+  ##Slots from BaseEntity
+
   id:
     identifier: true
     range: integer
@@ -56,6 +58,8 @@ slots:
     range: integer
     description: Reference to the lineage group.
 
+  ##Slots from LookupBase
+
   name:
     range: string
     description: Name of the entity.
@@ -67,6 +71,8 @@ slots:
   uri:
     range: uri
     description: URI for the entity.
+
+  ##Slots for other ETL related fields
 
   note:
     range: string
