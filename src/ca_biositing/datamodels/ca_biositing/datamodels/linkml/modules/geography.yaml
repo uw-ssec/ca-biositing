@@ -43,17 +43,6 @@ classes:
       - lon
       - is_anonymous
 
-  Polygon:
-    description: Geospatial polygon definition.
-    slots:
-      - id
-      - geoid
-      - geom
-    slot_usage:
-      id:
-        identifier: true
-        range: integer
-
 slots:
   geoid:
     range: string

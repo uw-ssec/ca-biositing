@@ -86,6 +86,8 @@ classes:
         range: integer
 
 slots:
+  #Resource slots
+
   primary_crop_id:
     range: integer
     description: Reference to PrimaryCrop.
@@ -97,6 +99,8 @@ slots:
   resource_subclass_id:
     range: integer
     description: Reference to ResourceSubclass.
+
+  #ResourceAvailability slots
 
   resource_id:
     range: integer
@@ -117,6 +121,8 @@ slots:
   year_round:
     range: boolean
     description: Whether available year-round.
+
+  #ResourceCounterfactual slots
 
   counterfactual_description:
     range: string

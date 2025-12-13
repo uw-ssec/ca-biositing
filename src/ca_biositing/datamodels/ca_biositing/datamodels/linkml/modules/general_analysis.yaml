@@ -53,6 +53,10 @@ classes:
       - note
 
 slots:
+  #Slots imported
+  #parameter_id: from methods.yaml
+  #note: from core.yaml
+
   record_type:
     range: string
     description: Type of record.

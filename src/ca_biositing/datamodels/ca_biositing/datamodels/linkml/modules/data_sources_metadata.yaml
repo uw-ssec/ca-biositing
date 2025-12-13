@@ -31,7 +31,7 @@ classes:
       - license
       - note
 
-      #missing fields compared to DBdiagram. Was this a purposeful paring down of fields?
+      #missing fields compared to DBdiagram.
       #data_source_type_id
       #full_title
       #creator

@@ -82,6 +82,19 @@ classes:
     description: RGB analysis record.
 
 slots:
+  #Slots imported
+  #dataset_id: from general_analysis.yaml
+  #experiment_id: from experiments.yaml
+  #resource_id: from resource_information.yaml
+  #method_id: from experiments.yaml
+  #note: from core.yaml
+
+  #New slots defined in Aim1RecordBase class
+
+  sample_id:
+    range: integer
+    description: Reference to PreparedSample.
+
   technical_replicate_no:
     range: integer
     description: Replicate number.
@@ -97,6 +110,8 @@ slots:
   qc_pass:
     range: boolean
     description: Whether the record passed QC.
+
+  #Potential slots for XrfRecord and XrdRecords
 
   maybe_wavelength_nm:
     range: decimal
@@ -121,10 +136,3 @@ slots:
   maybe_scan_high_nm:
     range: integer
     description: High scan range in nm.
-
-  sample_id:
-    range: integer
-    description: Reference to PreparedSample.
-#How are slots above determined? I see the 6 slots that were defined outside of the Aim1RecordBase class,
-#but I don't see why the other slots listed (technical_replicate_no, technical_replicate_total, qc_pass, raw_data_id, sample_id) are highlighted.
-#Should the remaining slots in the base class be included in these slots as well?

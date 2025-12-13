@@ -60,6 +60,10 @@ classes:
     description: Type of analysis.
 
 slots:
+  #Slots imported
+  #parameter_id: from methods.yaml
+  #note: from core.yaml
+
   dataset_id:
     range: integer
     description: Reference to Dataset.

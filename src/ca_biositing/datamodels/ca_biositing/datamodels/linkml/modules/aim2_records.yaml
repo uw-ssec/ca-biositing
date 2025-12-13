@@ -31,12 +31,12 @@ classes:
       - experiment_id
       - resource_id
       - sample_id
+      - technical_replicate_total
+      - technical_replicate_no
       - analyst_id
       - raw_data_id
       - qc_pass
       - note
-      - technical_replicate_total
-      - technical_replicate_no
 
   PretreatmentRecord:
     is_a: Aim2RecordBase
@@ -47,7 +47,7 @@ classes:
       - reaction_block_id
       - block_position
       - temperature
-      - replicate_no
+      - replicate_no #delete bc redundancy with technical_replicate_no in aim2recordbase entity?
 
   FermentationRecord:
     is_a: Aim2RecordBase
@@ -56,7 +56,7 @@ classes:
       - strain_id
       - pretreatment_method_id
       - eh_method_id
-      - replicate_no
+      - replicate_no #delete bc redundancy with technical_replicate_no in aim2recordbase entity?
       - well_position
       - temperature
       - agitation_rpm
