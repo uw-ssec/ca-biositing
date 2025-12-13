@@ -33,6 +33,33 @@ classes:
     is_a: LookupBase
     description: USDA survey program.
 
+  UsdaCensusRecord:
+    is_a: BaseEntity
+    description: USDA census record.
+    slots:
+      - dataset_id
+      - geoid
+      - commodity_code
+      - year
+      - source_reference
+      - note
+
+  UsdaSurveyRecord:
+    is_a: BaseEntity
+    description: USDA survey record.
+    slots:
+      - dataset_id
+      - geoid
+      - commodity_code
+      - year
+      - survey_program_id
+      - survey_period
+      - reference_month
+      - seasonal_flag
+      - note
+
+  #RESOURCE ONTOLOGY MAPPING
+
   UsdaCommodity:
     is_a: LookupBase
     description: USDA commodity.
@@ -62,30 +89,7 @@ classes:
       - match_tier
       - note
 
-  UsdaCensusRecord:
-    is_a: BaseEntity
-    description: USDA census record.
-    slots:
-      - dataset_id
-      - geoid
-      - commodity_code
-      - year
-      - source_reference
-      - note
-
-  UsdaSurveyRecord:
-    is_a: BaseEntity
-    description: USDA survey record.
-    slots:
-      - dataset_id
-      - geoid
-      - commodity_code
-      - year
-      - survey_program_id
-      - survey_period
-      - reference_month
-      - seasonal_flag
-      - note
+  #USDA MARKET DATA
 
   UsdaMarketReport:
     is_a: BaseEntity
@@ -111,9 +115,9 @@ classes:
       - report_date
       - commodity_id
       - market_type_id
-      - market_type_catagory
+      - market_type_category
       - grp
-      - market_catagory_id
+      - market_category_id
       - class_
       - grade
       - variety
@@ -124,6 +128,8 @@ classes:
       - price_unit_id
       - freight
       - trans_mode
+
+  #LANDIQ DATA
 
   LandiqRecord:
     is_a: BaseEntity
@@ -140,7 +146,19 @@ classes:
       - acres
       - version
       - note
-      - test
+
+  Polygon:
+    description: Geospatial polygon.
+    slots:
+      - id
+      - geoid
+      - geom
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+  #BILLION TON DATA
 
   BillionTon2023Record:
     is_a: BaseEntity
@@ -160,17 +178,6 @@ classes:
       - energy_content_unit_id
       - product_density_dtpersqmi
       - land_source
-
-  Polygon:
-    description: Geospatial polygon.
-    slots:
-      - id
-      - geoid
-      - geom
-    slot_usage:
-      id:
-        identifier: true
-        range: integer
 
 slots:
   usda_source:
@@ -289,7 +296,7 @@ slots:
     range: integer
     description: ID of the market type.
 
-  market_type_catagory:
+  market_type_category:
     range: string
     description: Category of the market type.
 
@@ -297,7 +304,7 @@ slots:
     range: string
     description: Group.
 
-  market_catagory_id:
+  market_category_id:
     range: integer
     description: ID of the market category.
 

@@ -81,6 +81,8 @@ classes:
         range: integer
 
 slots:
+  #Method slots
+
   method_abbrev_id:
     range: integer
     description: Reference to MethodAbbrev.
@@ -101,6 +103,8 @@ slots:
     range: integer
     description: Reference to DataSource.
 
+  #Parameter slots
+
   standard_unit_id:
     range: integer
     description: Reference to Unit.
@@ -109,6 +113,8 @@ slots:
     range: boolean
     description: Whether the parameter is calculated.
 
+  #ParameterCategoryParameter slots
+
   parameter_id:
     range: integer
     description: Reference to Parameter.
@@ -116,6 +122,8 @@ slots:
   parameter_category_id:
     range: integer
     description: Reference to ParameterCategory.
+
+  #ParameterUnit slots
 
   alternate_unit_id:
     range: integer
