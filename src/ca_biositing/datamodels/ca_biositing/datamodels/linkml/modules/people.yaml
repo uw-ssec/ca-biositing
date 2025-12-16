@@ -16,6 +16,7 @@ imports:
 
 classes:
   Contact:
+    is_a: BaseEntity
     description: Contact information for a person.
     slots:
       - id
@@ -29,6 +30,7 @@ classes:
         range: integer
 
   Provider:
+    is_a: BaseEntity
     description: Provider information.
     slots:
       - id
