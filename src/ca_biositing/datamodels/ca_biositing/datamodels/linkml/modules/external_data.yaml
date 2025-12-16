@@ -380,6 +380,10 @@ slots:
     range: float
     description: Number of acres.
 
+  version:
+    range: string
+    description: Version of the data source.
+
   subclass_id:
     range: integer
     description: Reference to ResourceSubclass.

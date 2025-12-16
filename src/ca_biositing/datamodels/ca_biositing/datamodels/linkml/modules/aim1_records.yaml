@@ -33,6 +33,7 @@ classes:
       - technical_replicate_no
       - technical_replicate_total
       - method_id
+      - analyst_id
       - raw_data_id
       - qc_pass
       - note
@@ -84,9 +85,10 @@ classes:
 slots:
   #Slots imported
   #dataset_id: from general_analysis.yaml
-  #experiment_id: from experiments.yaml
+  #experiment_id: from experiments_equipment.yaml
+  #analyst_id: from experiments_equipment.yaml
   #resource_id: from resource_information.yaml
-  #method_id: from experiments.yaml
+  #method_id: from experiments_equipment.yaml
   #note: from core.yaml
 
   #New slots defined in Aim1RecordBase class

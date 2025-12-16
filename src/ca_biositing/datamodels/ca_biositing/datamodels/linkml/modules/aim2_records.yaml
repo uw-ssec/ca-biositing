@@ -33,7 +33,8 @@ classes:
       - sample_id
       - technical_replicate_total
       - technical_replicate_no
-      - analyst_id
+      - calc_method_id #differentiated from method in the experiment, optional
+      - calc_analyst_id #differentiated from analyst in the experiment, optional
       - raw_data_id
       - qc_pass
       - note
