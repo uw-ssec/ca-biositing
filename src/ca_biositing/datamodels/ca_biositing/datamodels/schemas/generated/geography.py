@@ -32,25 +32,6 @@ class Geography(Base):
 
 
 
-class Polygon(Base):
-    """
-    Geospatial polygon definition.
-    """
-    __tablename__ = 'polygon'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    geoid = Column(Text())
-    geom = Column(Text())
-
-
-    def __repr__(self):
-        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
-
-
-
-
-
-
 class BaseEntity(Base):
     """
     Base entity included in all main entity tables.

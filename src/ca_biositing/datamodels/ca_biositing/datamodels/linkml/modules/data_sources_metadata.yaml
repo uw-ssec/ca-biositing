@@ -36,7 +36,7 @@ classes:
       - language
       - relation
       - temporal_coverage
-      - location_coverage
+      - location_coverage_id
       - rights
       - license
       - uri
@@ -163,3 +163,7 @@ slots:
   rights:
     range: string
     description: Information about rights held in and over the resource.
+
+  license:
+    range: string
+    description: License of the resource.

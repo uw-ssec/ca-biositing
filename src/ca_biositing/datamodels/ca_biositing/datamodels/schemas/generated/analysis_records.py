@@ -150,64 +150,6 @@ class Geography(Base):
 
 
 
-class Polygon(Base):
-    """
-    Geospatial polygon definition.
-    """
-    __tablename__ = 'polygon'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    geoid = Column(Text())
-    geom = Column(Text())
-
-
-    def __repr__(self):
-        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
-
-
-
-
-
-
-class Contact(Base):
-    """
-    Contact information for a person.
-    """
-    __tablename__ = 'contact'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    first_name = Column(Text())
-    last_name = Column(Text())
-    email = Column(Text())
-    affiliation = Column(Text())
-
-
-    def __repr__(self):
-        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},)"
-
-
-
-
-
-
-class Provider(Base):
-    """
-    Provider information.
-    """
-    __tablename__ = 'provider'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    codename = Column(Text())
-
-
-    def __repr__(self):
-        return f"Provider(id={self.id},codename={self.codename},)"
-
-
-
-
-
-
 class ParameterCategoryParameter(Base):
     """
     Link between parameter and category.
@@ -858,6 +800,63 @@ class LocationAddress(BaseEntity):
 
     def __repr__(self):
         return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Contact(BaseEntity):
+    """
+    Contact information for a person.
+    """
+    __tablename__ = 'contact'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    first_name = Column(Text())
+    last_name = Column(Text())
+    email = Column(Text())
+    affiliation = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Provider(BaseEntity):
+    """
+    Provider information.
+    """
+    __tablename__ = 'provider'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    codename = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Provider(id={self.id},codename={self.codename},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1601,7 +1600,6 @@ class PrimaryCrop(LookupBase):
     """
     __tablename__ = 'primary_crop'
 
-    note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
@@ -1609,7 +1607,7 @@ class PrimaryCrop(LookupBase):
 
 
     def __repr__(self):
-        return f"PrimaryCrop(note={self.note},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"PrimaryCrop(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 

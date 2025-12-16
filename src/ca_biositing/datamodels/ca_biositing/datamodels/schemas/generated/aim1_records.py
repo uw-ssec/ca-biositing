@@ -206,45 +206,6 @@ class ResourceMorphology(Base):
 
 
 
-class Contact(Base):
-    """
-    Contact information for a person.
-    """
-    __tablename__ = 'contact'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    first_name = Column(Text())
-    last_name = Column(Text())
-    email = Column(Text())
-    affiliation = Column(Text())
-
-
-    def __repr__(self):
-        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},)"
-
-
-
-
-
-
-class Provider(Base):
-    """
-    Provider information.
-    """
-    __tablename__ = 'provider'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    codename = Column(Text())
-
-
-    def __repr__(self):
-        return f"Provider(id={self.id},codename={self.codename},)"
-
-
-
-
-
-
 class Aim1RecordBase(BaseEntity):
     """
 
@@ -258,6 +219,7 @@ class Aim1RecordBase(BaseEntity):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -269,7 +231,7 @@ class Aim1RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -718,12 +680,23 @@ class DataSource(BaseEntity):
 
     name = Column(Text())
     description = Column(Text())
-    uri = Column(Text())
-    publication_date = Column(Date())
-    version = Column(Text())
+    data_source_type_id = Column(Integer())
+    full_title = Column(Text())
+    creator = Column(Text())
+    subject = Column(Text())
     publisher = Column(Text())
-    author = Column(Text())
+    contributor = Column(Text())
+    date = Column(DateTime())
+    type = Column(Text())
+    biocirv = Column(Boolean())
+    format = Column(Text())
+    language = Column(Text())
+    relation = Column(Text())
+    temporal_coverage = Column(Text())
+    location_coverage_id = Column(Integer())
+    rights = Column(Text())
     license = Column(Text())
+    uri = Column(Text())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -733,7 +706,7 @@ class DataSource(BaseEntity):
 
 
     def __repr__(self):
-        return f"DataSource(name={self.name},description={self.description},uri={self.uri},publication_date={self.publication_date},version={self.version},publisher={self.publisher},author={self.author},license={self.license},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"DataSource(name={self.name},description={self.description},data_source_type_id={self.data_source_type_id},full_title={self.full_title},creator={self.creator},subject={self.subject},publisher={self.publisher},contributor={self.contributor},date={self.date},type={self.type},biocirv={self.biocirv},format={self.format},language={self.language},relation={self.relation},temporal_coverage={self.temporal_coverage},location_coverage_id={self.location_coverage_id},rights={self.rights},license={self.license},uri={self.uri},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -779,7 +752,7 @@ class FileObjectMetadata(BaseEntity):
 
 class DataSourceType(BaseEntity):
     """
-    Type of data source.
+    Type of data source (e.g. database, literature).
     """
     __tablename__ = 'data_source_type'
 
@@ -1138,6 +1111,68 @@ class FieldSample(BaseEntity):
 
 
 
+class PhysicalCharacteristic(BaseEntity):
+    """
+    Physical characteristics of a sample.
+    """
+    __tablename__ = 'physical_characteristic'
+
+    field_sample_id = Column(Integer())
+    particle_length = Column(Numeric())
+    particle_width = Column(Numeric())
+    particle_height = Column(Numeric())
+    particle_unit_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class FieldSampleCondition(BaseEntity):
+    """
+    Condition of the field sample.
+    """
+    __tablename__ = 'field_sample_condition'
+
+    field_sample_id = Column(Integer())
+    ag_treatment_id = Column(Integer())
+    last_application_date = Column(Date())
+    treatment_amount_per_acre = Column(Float())
+    processing_method_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FieldSampleCondition(field_sample_id={self.field_sample_id},ag_treatment_id={self.ag_treatment_id},last_application_date={self.last_application_date},treatment_amount_per_acre={self.treatment_amount_per_acre},processing_method_id={self.processing_method_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class FieldStorageMethod(LookupBase):
     """
     Method of field storage.
@@ -1238,37 +1273,6 @@ class ProcessingMethod(LookupBase):
 
 
 
-class PhysicalCharacteristic(BaseEntity):
-    """
-    Physical characteristics of a sample.
-    """
-    __tablename__ = 'physical_characteristic'
-
-    field_sample_id = Column(Integer())
-    particle_length = Column(Numeric())
-    particle_width = Column(Numeric())
-    particle_height = Column(Numeric())
-    particle_unit_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class SoilType(LookupBase):
     """
     Type of soil.
@@ -1319,37 +1323,6 @@ class AgTreatment(LookupBase):
 
 
 
-class FieldSampleCondition(BaseEntity):
-    """
-    Condition of the field sample.
-    """
-    __tablename__ = 'field_sample_condition'
-
-    field_sample_id = Column(Integer())
-    ag_treatment_id = Column(Integer())
-    last_application_date = Column(Date())
-    treatment_amount_per_acre = Column(Float())
-    processing_method_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FieldSampleCondition(field_sample_id={self.field_sample_id},ag_treatment_id={self.ag_treatment_id},last_application_date={self.last_application_date},treatment_amount_per_acre={self.treatment_amount_per_acre},processing_method_id={self.processing_method_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class LocationSoilType(BaseEntity):
     """
     Soil type at a location.
@@ -1378,6 +1351,63 @@ class LocationSoilType(BaseEntity):
 
 
 
+class Contact(BaseEntity):
+    """
+    Contact information for a person.
+    """
+    __tablename__ = 'contact'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    first_name = Column(Text())
+    last_name = Column(Text())
+    email = Column(Text())
+    affiliation = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Provider(BaseEntity):
+    """
+    Provider information.
+    """
+    __tablename__ = 'provider'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    codename = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Provider(id={self.id},codename={self.codename},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class ProximateRecord(Aim1RecordBase):
     """
     Proximate analysis record.
@@ -1391,6 +1421,7 @@ class ProximateRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1402,7 +1433,7 @@ class ProximateRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1427,6 +1458,7 @@ class UltimateRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1438,7 +1470,7 @@ class UltimateRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1463,6 +1495,7 @@ class CompositionalRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1474,7 +1507,7 @@ class CompositionalRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1499,6 +1532,7 @@ class IcpRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1510,7 +1544,7 @@ class IcpRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1539,6 +1573,7 @@ class XrfRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1550,7 +1585,7 @@ class XrfRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"XrfRecord(maybe_wavelength_nm={self.maybe_wavelength_nm},maybe_intensity={self.maybe_intensity},maybe_energy_slope={self.maybe_energy_slope},maybe_energy_offset={self.maybe_energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrfRecord(maybe_wavelength_nm={self.maybe_wavelength_nm},maybe_intensity={self.maybe_intensity},maybe_energy_slope={self.maybe_energy_slope},maybe_energy_offset={self.maybe_energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1577,6 +1612,7 @@ class XrdRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1588,7 +1624,7 @@ class XrdRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"XrdRecord(maybe_scan_low_nm={self.maybe_scan_low_nm},maybe_scan_high_nm={self.maybe_scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrdRecord(maybe_scan_low_nm={self.maybe_scan_low_nm},maybe_scan_high_nm={self.maybe_scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1613,6 +1649,7 @@ class CalorimetryRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1624,7 +1661,7 @@ class CalorimetryRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1649,6 +1686,7 @@ class FtnirRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1660,7 +1698,7 @@ class FtnirRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1685,6 +1723,7 @@ class RgbRecord(Aim1RecordBase):
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer())
+    analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -1696,7 +1735,7 @@ class RgbRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
