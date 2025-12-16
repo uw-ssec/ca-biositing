@@ -206,45 +206,6 @@ class ResourceMorphology(Base):
 
 
 
-class Contact(Base):
-    """
-    Contact information for a person.
-    """
-    __tablename__ = 'contact'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    first_name = Column(Text())
-    last_name = Column(Text())
-    email = Column(Text())
-    affiliation = Column(Text())
-
-
-    def __repr__(self):
-        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},)"
-
-
-
-
-
-
-class Provider(Base):
-    """
-    Provider information.
-    """
-    __tablename__ = 'provider'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    codename = Column(Text())
-
-
-    def __repr__(self):
-        return f"Provider(id={self.id},codename={self.codename},)"
-
-
-
-
-
-
 class Aim2RecordBase(BaseEntity):
     """
 
@@ -255,12 +216,13 @@ class Aim2RecordBase(BaseEntity):
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    calc_method_id = Column(Integer())
+    calc_analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -269,7 +231,7 @@ class Aim2RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -744,12 +706,23 @@ class DataSource(BaseEntity):
 
     name = Column(Text())
     description = Column(Text())
-    uri = Column(Text())
-    publication_date = Column(Date())
-    version = Column(Text())
+    data_source_type_id = Column(Integer())
+    full_title = Column(Text())
+    creator = Column(Text())
+    subject = Column(Text())
     publisher = Column(Text())
-    author = Column(Text())
+    contributor = Column(Text())
+    date = Column(DateTime())
+    type = Column(Text())
+    biocirv = Column(Boolean())
+    format = Column(Text())
+    language = Column(Text())
+    relation = Column(Text())
+    temporal_coverage = Column(Text())
+    location_coverage_id = Column(Integer())
+    rights = Column(Text())
     license = Column(Text())
+    uri = Column(Text())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -759,7 +732,7 @@ class DataSource(BaseEntity):
 
 
     def __repr__(self):
-        return f"DataSource(name={self.name},description={self.description},uri={self.uri},publication_date={self.publication_date},version={self.version},publisher={self.publisher},author={self.author},license={self.license},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"DataSource(name={self.name},description={self.description},data_source_type_id={self.data_source_type_id},full_title={self.full_title},creator={self.creator},subject={self.subject},publisher={self.publisher},contributor={self.contributor},date={self.date},type={self.type},biocirv={self.biocirv},format={self.format},language={self.language},relation={self.relation},temporal_coverage={self.temporal_coverage},location_coverage_id={self.location_coverage_id},rights={self.rights},license={self.license},uri={self.uri},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -805,7 +778,7 @@ class FileObjectMetadata(BaseEntity):
 
 class DataSourceType(BaseEntity):
     """
-    Type of data source.
+    Type of data source (e.g. database, literature).
     """
     __tablename__ = 'data_source_type'
 
@@ -1164,6 +1137,68 @@ class FieldSample(BaseEntity):
 
 
 
+class PhysicalCharacteristic(BaseEntity):
+    """
+    Physical characteristics of a sample.
+    """
+    __tablename__ = 'physical_characteristic'
+
+    field_sample_id = Column(Integer())
+    particle_length = Column(Numeric())
+    particle_width = Column(Numeric())
+    particle_height = Column(Numeric())
+    particle_unit_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class FieldSampleCondition(BaseEntity):
+    """
+    Condition of the field sample.
+    """
+    __tablename__ = 'field_sample_condition'
+
+    field_sample_id = Column(Integer())
+    ag_treatment_id = Column(Integer())
+    last_application_date = Column(Date())
+    treatment_amount_per_acre = Column(Float())
+    processing_method_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FieldSampleCondition(field_sample_id={self.field_sample_id},ag_treatment_id={self.ag_treatment_id},last_application_date={self.last_application_date},treatment_amount_per_acre={self.treatment_amount_per_acre},processing_method_id={self.processing_method_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class FieldStorageMethod(LookupBase):
     """
     Method of field storage.
@@ -1264,37 +1299,6 @@ class ProcessingMethod(LookupBase):
 
 
 
-class PhysicalCharacteristic(BaseEntity):
-    """
-    Physical characteristics of a sample.
-    """
-    __tablename__ = 'physical_characteristic'
-
-    field_sample_id = Column(Integer())
-    particle_length = Column(Numeric())
-    particle_width = Column(Numeric())
-    particle_height = Column(Numeric())
-    particle_unit_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class SoilType(LookupBase):
     """
     Type of soil.
@@ -1345,37 +1349,6 @@ class AgTreatment(LookupBase):
 
 
 
-class FieldSampleCondition(BaseEntity):
-    """
-    Condition of the field sample.
-    """
-    __tablename__ = 'field_sample_condition'
-
-    field_sample_id = Column(Integer())
-    ag_treatment_id = Column(Integer())
-    last_application_date = Column(Date())
-    treatment_amount_per_acre = Column(Float())
-    processing_method_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FieldSampleCondition(field_sample_id={self.field_sample_id},ag_treatment_id={self.ag_treatment_id},last_application_date={self.last_application_date},treatment_amount_per_acre={self.treatment_amount_per_acre},processing_method_id={self.processing_method_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class LocationSoilType(BaseEntity):
     """
     Soil type at a location.
@@ -1404,6 +1377,63 @@ class LocationSoilType(BaseEntity):
 
 
 
+class Contact(BaseEntity):
+    """
+    Contact information for a person.
+    """
+    __tablename__ = 'contact'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    first_name = Column(Text())
+    last_name = Column(Text())
+    email = Column(Text())
+    affiliation = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Provider(BaseEntity):
+    """
+    Provider information.
+    """
+    __tablename__ = 'provider'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    codename = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Provider(id={self.id},codename={self.codename},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class PretreatmentRecord(Aim2RecordBase):
     """
     Pretreatment record.
@@ -1420,12 +1450,13 @@ class PretreatmentRecord(Aim2RecordBase):
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    calc_method_id = Column(Integer())
+    calc_analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1434,7 +1465,7 @@ class PretreatmentRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1465,12 +1496,13 @@ class FermentationRecord(Aim2RecordBase):
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    calc_method_id = Column(Integer())
+    calc_analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1479,7 +1511,7 @@ class FermentationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},replicate_no={self.replicate_no},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},replicate_no={self.replicate_no},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1504,12 +1536,13 @@ class GasificationRecord(Aim2RecordBase):
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    calc_method_id = Column(Integer())
+    calc_analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1518,7 +1551,7 @@ class GasificationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1540,12 +1573,13 @@ class AutoclaveRecord(Aim2RecordBase):
     experiment_id = Column(Integer())
     resource_id = Column(Integer())
     sample_id = Column(Integer())
-    analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    technical_replicate_no = Column(Integer())
+    calc_method_id = Column(Integer())
+    calc_analyst_id = Column(Integer())
     raw_data_id = Column(Integer())
     qc_pass = Column(Boolean())
     note = Column(Text())
-    technical_replicate_total = Column(Integer())
-    technical_replicate_no = Column(Integer())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1554,7 +1588,7 @@ class AutoclaveRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

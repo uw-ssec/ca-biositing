@@ -33,8 +33,8 @@ classes:
       - sample_id
       - technical_replicate_total
       - technical_replicate_no
-      - calc_method_id #differentiated from method in the experiment, optional
-      - calc_analyst_id #differentiated from analyst in the experiment, optional
+      - calc_method_id
+      - calc_analyst_id
       - raw_data_id
       - qc_pass
       - note
@@ -157,6 +157,14 @@ slots:
   technical_replicate_no:
     range: integer
     description: Replicate number.
+
+  calc_method_id:
+    range: integer
+    description: Reference to Method used in calculation.
+
+  calc_analyst_id:
+    range: integer
+    description: Reference to Analyst who performed calculation.
 
   technical_replicate_total:
     range: integer
