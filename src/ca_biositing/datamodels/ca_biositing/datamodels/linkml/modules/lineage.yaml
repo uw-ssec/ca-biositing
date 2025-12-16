@@ -53,3 +53,36 @@ classes:
     slot_usage:
       id:
         identifier: true
+
+slots:
+  #Slots for EntityLineage class
+
+  source_table:
+    range: string
+    description: Source table name.
+
+  source_row_id:
+    range: string
+    description: Source row identifier.
+
+  #Slots for EtlRun class
+
+  started_at:
+    range: datetime
+    description: Start time of the ETL run.
+
+  completed_at:
+    range: datetime
+    description: Completion time of the ETL run.
+
+  pipeline_name:
+    range: string
+    description: Name of the pipeline.
+
+  status:
+    range: string
+    description: Status of the ETL run.
+
+  records_ingested:
+    range: integer
+    description: Number of records ingested.
