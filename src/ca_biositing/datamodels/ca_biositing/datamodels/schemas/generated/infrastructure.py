@@ -802,11 +802,11 @@ class Contact(BaseEntity):
     """
     __tablename__ = 'contact'
 
-    id = Column(Integer(), primary_key=True, nullable=False )
     first_name = Column(Text())
     last_name = Column(Text())
     email = Column(Text())
     affiliation = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Text())
@@ -814,7 +814,7 @@ class Contact(BaseEntity):
 
 
     def __repr__(self):
-        return f"Contact(id={self.id},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -832,8 +832,8 @@ class Provider(BaseEntity):
     """
     __tablename__ = 'provider'
 
-    id = Column(Integer(), primary_key=True, nullable=False )
     codename = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Text())
@@ -841,7 +841,7 @@ class Provider(BaseEntity):
 
 
     def __repr__(self):
-        return f"Provider(id={self.id},codename={self.codename},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Provider(codename={self.codename},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

@@ -9,44 +9,6 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
-class ParameterCategoryParameter(Base):
-    """
-    Link between Parameter and ParameterCategory.
-    """
-    __tablename__ = 'parameter_category_parameter'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    parameter_id = Column(Integer())
-    parameter_category_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ParameterCategoryParameter(id={self.id},parameter_id={self.parameter_id},parameter_category_id={self.parameter_category_id},)"
-
-
-
-
-
-
-class ParameterUnit(Base):
-    """
-    Link between Parameter and Unit (alternate units).
-    """
-    __tablename__ = 'parameter_unit'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    parameter_id = Column(Integer())
-    alternate_unit_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"ParameterUnit(id={self.id},parameter_id={self.parameter_id},alternate_unit_id={self.alternate_unit_id},)"
-
-
-
-
-
-
 class BaseEntity(Base):
     """
     Base entity included in all main entity tables.
@@ -130,44 +92,56 @@ class ResourceMorphology(Base):
 
 
 
-class Unit(LookupBase):
+class ParameterCategoryParameter(Base):
     """
-    Unit of measurement.
+    Link between Parameter and ParameterCategory.
     """
-    __tablename__ = 'unit'
+    __tablename__ = 'parameter_category_parameter'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
+    parameter_id = Column(Integer())
+    parameter_category_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"Unit(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"ParameterCategoryParameter(id={self.id},parameter_id={self.parameter_id},parameter_category_id={self.parameter_category_id},)"
 
 
 
 
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
 
 
-
-class Method(BaseEntity):
+class ParameterUnit(Base):
     """
-    Analytical method.
+    Link between Parameter and Unit (alternate units).
     """
-    __tablename__ = 'method'
+    __tablename__ = 'parameter_unit'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    parameter_id = Column(Integer())
+    alternate_unit_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"ParameterUnit(id={self.id},parameter_id={self.parameter_id},alternate_unit_id={self.alternate_unit_id},)"
+
+
+
+
+
+
+class PreparationMethod(BaseEntity):
+    """
+    Method of sample preparation.
+    """
+    __tablename__ = 'preparation_method'
 
     name = Column(Text())
-    method_abbrev_id = Column(Integer())
-    method_category_id = Column(Integer())
-    method_standard_id = Column(Integer())
     description = Column(Text())
-    detection_limits = Column(Text())
-    source_id = Column(Integer())
+    prep_method_abbrev_id = Column(Integer())
+    prep_temp_c = Column(Numeric())
+    uri = Column(Text())
+    drying_step = Column(Boolean())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -176,7 +150,7 @@ class Method(BaseEntity):
 
 
     def __repr__(self):
-        return f"Method(name={self.name},method_abbrev_id={self.method_abbrev_id},method_category_id={self.method_category_id},method_standard_id={self.method_standard_id},description={self.description},detection_limits={self.detection_limits},source_id={self.source_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -188,11 +162,11 @@ class Method(BaseEntity):
 
 
 
-class MethodAbbrev(LookupBase):
+class PreparationMethodAbbreviation(LookupBase):
     """
-    Abbreviation for method.
+    Abbreviation for preparation method.
     """
-    __tablename__ = 'method_abbrev'
+    __tablename__ = 'preparation_method_abbreviation'
 
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -201,7 +175,7 @@ class MethodAbbrev(LookupBase):
 
 
     def __repr__(self):
-        return f"MethodAbbrev(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
@@ -213,66 +187,18 @@ class MethodAbbrev(LookupBase):
 
 
 
-class MethodCategory(LookupBase):
+class PreparedSample(BaseEntity):
     """
-    Category of method.
+    Sample that has been prepared.
     """
-    __tablename__ = 'method_category'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"MethodCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class MethodStandard(LookupBase):
-    """
-    Standard associated with the method.
-    """
-    __tablename__ = 'method_standard'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"MethodStandard(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Parameter(BaseEntity):
-    """
-    Parameter being measured.
-    """
-    __tablename__ = 'parameter'
+    __tablename__ = 'prepared_sample'
 
     name = Column(Text())
-    standard_unit_id = Column(Integer())
-    calculated = Column(Boolean())
-    description = Column(Text())
+    field_sample_id = Column(Integer())
+    prep_method_id = Column(Integer())
+    prep_date = Column(Date())
+    preparer_id = Column(Integer())
+    note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -281,32 +207,7 @@ class Parameter(BaseEntity):
 
 
     def __repr__(self):
-        return f"Parameter(name={self.name},standard_unit_id={self.standard_unit_id},calculated={self.calculated},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class ParameterCategory(LookupBase):
-    """
-    Category of parameter.
-    """
-    __tablename__ = 'parameter_category'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    name = Column(Text())
-    description = Column(Text())
-    uri = Column(Text())
-
-
-    def __repr__(self):
-        return f"ParameterCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"PreparedSample(name={self.name},field_sample_id={self.field_sample_id},prep_method_id={self.prep_method_id},prep_date={self.prep_date},preparer_id={self.preparer_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1019,6 +920,194 @@ class SourceType(LookupBase):
 
     def __repr__(self):
         return f"SourceType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Unit(LookupBase):
+    """
+    Unit of measurement.
+    """
+    __tablename__ = 'unit'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"Unit(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Method(BaseEntity):
+    """
+    Analytical method.
+    """
+    __tablename__ = 'method'
+
+    name = Column(Text())
+    method_abbrev_id = Column(Integer())
+    method_category_id = Column(Integer())
+    method_standard_id = Column(Integer())
+    description = Column(Text())
+    detection_limits = Column(Text())
+    source_id = Column(Integer())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Method(name={self.name},method_abbrev_id={self.method_abbrev_id},method_category_id={self.method_category_id},method_standard_id={self.method_standard_id},description={self.description},detection_limits={self.detection_limits},source_id={self.source_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class MethodAbbrev(LookupBase):
+    """
+    Abbreviation for method.
+    """
+    __tablename__ = 'method_abbrev'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"MethodAbbrev(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class MethodCategory(LookupBase):
+    """
+    Category of method.
+    """
+    __tablename__ = 'method_category'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"MethodCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class MethodStandard(LookupBase):
+    """
+    Standard associated with the method.
+    """
+    __tablename__ = 'method_standard'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"MethodStandard(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Parameter(BaseEntity):
+    """
+    Parameter being measured.
+    """
+    __tablename__ = 'parameter'
+
+    name = Column(Text())
+    standard_unit_id = Column(Integer())
+    calculated = Column(Boolean())
+    description = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Parameter(name={self.name},standard_unit_id={self.standard_unit_id},calculated={self.calculated},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class ParameterCategory(LookupBase):
+    """
+    Category of parameter.
+    """
+    __tablename__ = 'parameter_category'
+
+    id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    description = Column(Text())
+    uri = Column(Text())
+
+
+    def __repr__(self):
+        return f"ParameterCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 

@@ -13,13 +13,13 @@ default_range: string
 
 imports:
   - linkml:types
+  - core
 
 classes:
   Contact:
     is_a: BaseEntity
     description: Contact information for a person.
     slots:
-      - id
       - first_name
       - last_name
       - email
@@ -33,7 +33,6 @@ classes:
     is_a: BaseEntity
     description: Provider information.
     slots:
-      - id
       - codename
     slot_usage:
       id:
@@ -41,11 +40,6 @@ classes:
         range: integer
 
 slots:
-  id:
-    identifier: true
-    range: integer
-    description: Unique identifier.
-
   first_name:
     range: string
     description: First name.
