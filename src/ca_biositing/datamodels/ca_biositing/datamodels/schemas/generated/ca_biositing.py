@@ -288,6 +288,449 @@ class Polygon(Base):
 
 
 
+class InfrastructureBiodieselPlants(Base):
+    """
+    Biodiesel plants infrastructure.
+    """
+    __tablename__ = 'infrastructure_biodiesel_plants'
+
+    biodiesel_plant_id = Column(Integer(), primary_key=True, nullable=False )
+    company = Column(Text())
+    bbi_index = Column(Integer())
+    city = Column(Text())
+    state = Column(Text())
+    capacity_mmg_per_y = Column(Integer())
+    feedstock = Column(Text())
+    status = Column(Text())
+    address = Column(Text())
+    coordinates = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+    source = Column(Text())
+
+
+    def __repr__(self):
+        return f"InfrastructureBiodieselPlants(biodiesel_plant_id={self.biodiesel_plant_id},company={self.company},bbi_index={self.bbi_index},city={self.city},state={self.state},capacity_mmg_per_y={self.capacity_mmg_per_y},feedstock={self.feedstock},status={self.status},address={self.address},coordinates={self.coordinates},latitude={self.latitude},longitude={self.longitude},source={self.source},)"
+
+
+
+
+
+
+class InfrastructureBiosolidsFacilities(Base):
+    """
+    Biosolids facilities infrastructure.
+    """
+    __tablename__ = 'infrastructure_biosolids_facilities'
+
+    biosolid_facility_id = Column(Integer(), primary_key=True, nullable=False )
+    report_submitted_date = Column(Date())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+    facility = Column(Text())
+    authority = Column(Text())
+    plant_type = Column(Text())
+    aqmd = Column(Text())
+    facility_address = Column(Text())
+    facility_city = Column(Text())
+    state = Column(Text())
+    facility_zip = Column(Text())
+    facility_county = Column(Text())
+    mailing_street_1 = Column(Text())
+    mailing_city = Column(Text())
+    mailing_state = Column(Text())
+    mailing_zip = Column(Text())
+    biosolids_number = Column(Text())
+    biosolids_contact = Column(Text())
+    biosolids_contact_phone = Column(Text())
+    biosolids_contact_email = Column(Text())
+    adwf = Column(Numeric())
+    potw_biosolids_generated = Column(Integer())
+    twtds_biosolids_treated = Column(Integer())
+    class_b_land_app = Column(Integer())
+    class_b_applier = Column(Text())
+    class_a_compost = Column(Integer())
+    class_a_heat_dried = Column(Integer())
+    class_a_other = Column(Integer())
+    class_a_other_applier = Column(Text())
+    twtds_transfer_to_second_preparer = Column(Integer())
+    twtds_second_preparer_name = Column(Text())
+    adc_or_final_c = Column(Integer())
+    landfill = Column(Integer())
+    landfill_name = Column(Text())
+    surface_disposal = Column(Integer())
+    deepwell_injection = Column(Text())
+    stored = Column(Integer())
+    longterm_treatment = Column(Integer())
+    other = Column(Integer())
+    name_of_other = Column(Text())
+    incineration = Column(Integer())
+
+
+    def __repr__(self):
+        return f"InfrastructureBiosolidsFacilities(biosolid_facility_id={self.biosolid_facility_id},report_submitted_date={self.report_submitted_date},latitude={self.latitude},longitude={self.longitude},facility={self.facility},authority={self.authority},plant_type={self.plant_type},aqmd={self.aqmd},facility_address={self.facility_address},facility_city={self.facility_city},state={self.state},facility_zip={self.facility_zip},facility_county={self.facility_county},mailing_street_1={self.mailing_street_1},mailing_city={self.mailing_city},mailing_state={self.mailing_state},mailing_zip={self.mailing_zip},biosolids_number={self.biosolids_number},biosolids_contact={self.biosolids_contact},biosolids_contact_phone={self.biosolids_contact_phone},biosolids_contact_email={self.biosolids_contact_email},adwf={self.adwf},potw_biosolids_generated={self.potw_biosolids_generated},twtds_biosolids_treated={self.twtds_biosolids_treated},class_b_land_app={self.class_b_land_app},class_b_applier={self.class_b_applier},class_a_compost={self.class_a_compost},class_a_heat_dried={self.class_a_heat_dried},class_a_other={self.class_a_other},class_a_other_applier={self.class_a_other_applier},twtds_transfer_to_second_preparer={self.twtds_transfer_to_second_preparer},twtds_second_preparer_name={self.twtds_second_preparer_name},adc_or_final_c={self.adc_or_final_c},landfill={self.landfill},landfill_name={self.landfill_name},surface_disposal={self.surface_disposal},deepwell_injection={self.deepwell_injection},stored={self.stored},longterm_treatment={self.longterm_treatment},other={self.other},name_of_other={self.name_of_other},incineration={self.incineration},)"
+
+
+
+
+
+
+class InfrastructureCafoManureLocations(Base):
+    """
+    CAFO manure locations infrastructure.
+    """
+    __tablename__ = 'infrastructure_cafo_manure_locations'
+
+    cafo_manure_id = Column(Integer(), primary_key=True, nullable=False )
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+    owner_name = Column(Text())
+    facility_name = Column(Text())
+    address = Column(Text())
+    town = Column(Text())
+    state = Column(Text())
+    zip = Column(Text())
+    animal = Column(Text())
+    animal_feed_operation_type = Column(Text())
+    animal_units = Column(Integer())
+    animal_count = Column(Integer())
+    manure_total_solids = Column(Numeric())
+    source = Column(Text())
+    date_accessed = Column(Date())
+
+
+    def __repr__(self):
+        return f"InfrastructureCafoManureLocations(cafo_manure_id={self.cafo_manure_id},latitude={self.latitude},longitude={self.longitude},owner_name={self.owner_name},facility_name={self.facility_name},address={self.address},town={self.town},state={self.state},zip={self.zip},animal={self.animal},animal_feed_operation_type={self.animal_feed_operation_type},animal_units={self.animal_units},animal_count={self.animal_count},manure_total_solids={self.manure_total_solids},source={self.source},date_accessed={self.date_accessed},)"
+
+
+
+
+
+
+class InfrastructureEthanolBiorefineries(Base):
+    """
+    Ethanol biorefineries infrastructure.
+    """
+    __tablename__ = 'infrastructure_ethanol_biorefineries'
+
+    ethanol_biorefinery_id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    city = Column(Text())
+    state = Column(Text())
+    address = Column(Text())
+    type = Column(Text())
+    capacity_mgy = Column(Integer())
+    production_mgy = Column(Integer())
+    constr_exp = Column(Integer())
+
+
+    def __repr__(self):
+        return f"InfrastructureEthanolBiorefineries(ethanol_biorefinery_id={self.ethanol_biorefinery_id},name={self.name},city={self.city},state={self.state},address={self.address},type={self.type},capacity_mgy={self.capacity_mgy},production_mgy={self.production_mgy},constr_exp={self.constr_exp},)"
+
+
+
+
+
+
+class InfrastructureLandfills(Base):
+    """
+    Landfills infrastructure.
+    """
+    __tablename__ = 'infrastructure_landfills'
+
+    project_id = Column(Text(), primary_key=True, nullable=False )
+    project_int_id = Column(Integer())
+    ghgrp_id = Column(Text())
+    landfill_id = Column(Integer())
+    landfill_name = Column(Text())
+    state = Column(Text())
+    physical_address = Column(Text())
+    city = Column(Text())
+    county = Column(Text())
+    zip_code = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+    ownership_type = Column(Text())
+    landfill_owner_orgs = Column(Text())
+    landfill_opened_year = Column(Date())
+    landfill_closure_year = Column(Date())
+    landfill_status = Column(Text())
+    waste_in_place = Column(Integer())
+    waste_in_place_year = Column(Date())
+    lfg_system_in_place = Column(Boolean())
+    lfg_collected = Column(Numeric())
+    lfg_flared = Column(Numeric())
+    project_status = Column(Text())
+    project_name = Column(Text())
+    project_start_date = Column(Date())
+    project_shutdown_date = Column(Date())
+    project_type_category = Column(Text())
+    lfg_energy_project_type = Column(Text())
+    rng_delivery_method = Column(Text())
+    actual_mw_generation = Column(Numeric())
+    rated_mw_capacity = Column(Numeric())
+    lfg_flow_to_project = Column(Numeric())
+    direct_emission_reductions = Column(Numeric())
+    avoided_emission_reductions = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureLandfills(project_id={self.project_id},project_int_id={self.project_int_id},ghgrp_id={self.ghgrp_id},landfill_id={self.landfill_id},landfill_name={self.landfill_name},state={self.state},physical_address={self.physical_address},city={self.city},county={self.county},zip_code={self.zip_code},latitude={self.latitude},longitude={self.longitude},ownership_type={self.ownership_type},landfill_owner_orgs={self.landfill_owner_orgs},landfill_opened_year={self.landfill_opened_year},landfill_closure_year={self.landfill_closure_year},landfill_status={self.landfill_status},waste_in_place={self.waste_in_place},waste_in_place_year={self.waste_in_place_year},lfg_system_in_place={self.lfg_system_in_place},lfg_collected={self.lfg_collected},lfg_flared={self.lfg_flared},project_status={self.project_status},project_name={self.project_name},project_start_date={self.project_start_date},project_shutdown_date={self.project_shutdown_date},project_type_category={self.project_type_category},lfg_energy_project_type={self.lfg_energy_project_type},rng_delivery_method={self.rng_delivery_method},actual_mw_generation={self.actual_mw_generation},rated_mw_capacity={self.rated_mw_capacity},lfg_flow_to_project={self.lfg_flow_to_project},direct_emission_reductions={self.direct_emission_reductions},avoided_emission_reductions={self.avoided_emission_reductions},)"
+
+
+
+
+
+
+class InfrastructureLivestockAnaerobicDigesters(Base):
+    """
+    Livestock anaerobic digesters infrastructure.
+    """
+    __tablename__ = 'infrastructure_livestock_anaerobic_digesters'
+
+    digester_id = Column(Integer(), primary_key=True, nullable=False )
+    project_name = Column(Text())
+    project_type = Column(Text())
+    city = Column(Text())
+    state = Column(Text())
+    digester_type = Column(Text())
+    profile = Column(Text())
+    year_operational = Column(Date())
+    animal_type_class = Column(Text())
+    animal_types = Column(Text())
+    pop_feeding_digester = Column(Text())
+    total_pop_feeding_digester = Column(Integer())
+    cattle = Column(Integer())
+    dairy = Column(Integer())
+    poultry = Column(Integer())
+    swine = Column(Integer())
+    codigestion = Column(Text())
+    biogas_generation_estimate = Column(Integer())
+    electricity_generated = Column(Integer())
+    biogas_end_uses = Column(Text())
+    methane_emission_reductions = Column(Integer())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureLivestockAnaerobicDigesters(digester_id={self.digester_id},project_name={self.project_name},project_type={self.project_type},city={self.city},state={self.state},digester_type={self.digester_type},profile={self.profile},year_operational={self.year_operational},animal_type_class={self.animal_type_class},animal_types={self.animal_types},pop_feeding_digester={self.pop_feeding_digester},total_pop_feeding_digester={self.total_pop_feeding_digester},cattle={self.cattle},dairy={self.dairy},poultry={self.poultry},swine={self.swine},codigestion={self.codigestion},biogas_generation_estimate={self.biogas_generation_estimate},electricity_generated={self.electricity_generated},biogas_end_uses={self.biogas_end_uses},methane_emission_reductions={self.methane_emission_reductions},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
+class InfrastructureSafAndRenewableDieselPlants(Base):
+    """
+    SAF and renewable diesel plants infrastructure.
+    """
+    __tablename__ = 'infrastructure_saf_and_renewable_diesel_plants'
+
+    ibcc_index = Column(Integer(), primary_key=True, nullable=False )
+    company = Column(Text())
+    city = Column(Text())
+    state = Column(Text())
+    country = Column(Text())
+    capacity = Column(Text())
+    feedstock = Column(Text())
+    products = Column(Text())
+    status = Column(Text())
+    address = Column(Text())
+    coordinates = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureSafAndRenewableDieselPlants(ibcc_index={self.ibcc_index},company={self.company},city={self.city},state={self.state},country={self.country},capacity={self.capacity},feedstock={self.feedstock},products={self.products},status={self.status},address={self.address},coordinates={self.coordinates},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
+class InfrastructureWastewaterTreatmentPlants(Base):
+    """
+    Wastewater treatment plants infrastructure.
+    """
+    __tablename__ = 'infrastructure_wastewater_treatment_plants'
+
+    plant_id = Column(Integer(), primary_key=True, nullable=False )
+    name = Column(Text())
+    state = Column(Text())
+    codigestion = Column(Text())
+    flow_design_adjusted = Column(Numeric())
+    flow_average = Column(Numeric())
+    biosolids = Column(Numeric())
+    excess_flow = Column(Numeric())
+    biogas_utilized = Column(Boolean())
+    flaring = Column(Boolean())
+    excess_mass_loading_rate = Column(Numeric())
+    excess_mass_loading_rate_wet = Column(Numeric())
+    methane_production = Column(Numeric())
+    energy_content = Column(Numeric())
+    electric_kw = Column(Numeric())
+    thermal_mmbtu_d = Column(Numeric())
+    electric_kwh = Column(Numeric())
+    thermal_annual_mmbtu_y = Column(Numeric())
+    anaerobic_digestion_facility = Column(Text())
+    county = Column(Text())
+    dayload_bdt = Column(Numeric())
+    dayload = Column(Numeric())
+    equivalent_generation = Column(Numeric())
+    facility_type = Column(Text())
+    feedstock = Column(Text())
+    type = Column(Text())
+    city = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+    zipcode = Column(Text())
+
+
+    def __repr__(self):
+        return f"InfrastructureWastewaterTreatmentPlants(plant_id={self.plant_id},name={self.name},state={self.state},codigestion={self.codigestion},flow_design_adjusted={self.flow_design_adjusted},flow_average={self.flow_average},biosolids={self.biosolids},excess_flow={self.excess_flow},biogas_utilized={self.biogas_utilized},flaring={self.flaring},excess_mass_loading_rate={self.excess_mass_loading_rate},excess_mass_loading_rate_wet={self.excess_mass_loading_rate_wet},methane_production={self.methane_production},energy_content={self.energy_content},electric_kw={self.electric_kw},thermal_mmbtu_d={self.thermal_mmbtu_d},electric_kwh={self.electric_kwh},thermal_annual_mmbtu_y={self.thermal_annual_mmbtu_y},anaerobic_digestion_facility={self.anaerobic_digestion_facility},county={self.county},dayload_bdt={self.dayload_bdt},dayload={self.dayload},equivalent_generation={self.equivalent_generation},facility_type={self.facility_type},feedstock={self.feedstock},type={self.type},city={self.city},latitude={self.latitude},longitude={self.longitude},zipcode={self.zipcode},)"
+
+
+
+
+
+
+class InfrastructureCombustionPlants(Base):
+    """
+    Combustion plants infrastructure.
+    """
+    __tablename__ = 'infrastructure_combustion_plants'
+
+    combustion_fid = Column(Integer(), primary_key=True, nullable=False )
+    objectid = Column(Integer())
+    status = Column(Text())
+    city = Column(Text())
+    name = Column(Text())
+    county = Column(Text())
+    equivalent_generation = Column(Numeric())
+    np_mw = Column(Numeric())
+    cf = Column(Numeric())
+    yearload = Column(Integer())
+    fuel = Column(Text())
+    notes = Column(Text())
+    type = Column(Text())
+    wkt_geom = Column(Text())
+    geom = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureCombustionPlants(combustion_fid={self.combustion_fid},objectid={self.objectid},status={self.status},city={self.city},name={self.name},county={self.county},equivalent_generation={self.equivalent_generation},np_mw={self.np_mw},cf={self.cf},yearload={self.yearload},fuel={self.fuel},notes={self.notes},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
+class InfrastructureDistrictEnergySystems(Base):
+    """
+    District energy systems infrastructure.
+    """
+    __tablename__ = 'infrastructure_district_energy_systems'
+
+    des_fid = Column(Integer(), primary_key=True, nullable=False )
+    cbg_id = Column(Integer())
+    name = Column(Text())
+    system = Column(Text())
+    object_id = Column(Integer())
+    city = Column(Text())
+    state = Column(Text())
+    primary_fuel = Column(Text())
+    secondary_fuel = Column(Text())
+    usetype = Column(Text())
+    cap_st = Column(Numeric())
+    cap_hw = Column(Numeric())
+    cap_cw = Column(Numeric())
+    chpcg_cap = Column(Numeric())
+    excess_c = Column(Numeric())
+    excess_h = Column(Numeric())
+    type = Column(Text())
+    wkt_geom = Column(Text())
+    geom = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureDistrictEnergySystems(des_fid={self.des_fid},cbg_id={self.cbg_id},name={self.name},system={self.system},object_id={self.object_id},city={self.city},state={self.state},primary_fuel={self.primary_fuel},secondary_fuel={self.secondary_fuel},usetype={self.usetype},cap_st={self.cap_st},cap_hw={self.cap_hw},cap_cw={self.cap_cw},chpcg_cap={self.chpcg_cap},excess_c={self.excess_c},excess_h={self.excess_h},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
+class InfrastructureFoodProcessingFacilities(Base):
+    """
+    Food processing facilities infrastructure.
+    """
+    __tablename__ = 'infrastructure_food_processing_facilities'
+
+    processing_facility_id = Column(Integer(), primary_key=True, nullable=False )
+    address = Column(Text())
+    county = Column(Text())
+    city = Column(Text())
+    company = Column(Text())
+    join_count = Column(Integer())
+    master_type = Column(Text())
+    state = Column(Text())
+    subtype = Column(Text())
+    target_fid = Column(Integer())
+    processing_type = Column(Text())
+    zip = Column(Text())
+    type = Column(Text())
+    wkt_geom = Column(Text())
+    geom = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureFoodProcessingFacilities(processing_facility_id={self.processing_facility_id},address={self.address},county={self.county},city={self.city},company={self.company},join_count={self.join_count},master_type={self.master_type},state={self.state},subtype={self.subtype},target_fid={self.target_fid},processing_type={self.processing_type},zip={self.zip},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
+class InfrastructureMswToEnergyAnaerobicDigesters(Base):
+    """
+    MSW to energy anaerobic digesters infrastructure.
+    """
+    __tablename__ = 'infrastructure_msw_to_energy_anaerobic_digesters'
+
+    wte_id = Column(Integer(), primary_key=True, nullable=False )
+    city = Column(Text())
+    county = Column(Text())
+    equivalent_generation = Column(Numeric())
+    feedstock = Column(Text())
+    dayload = Column(Numeric())
+    dayload_bdt = Column(Numeric())
+    facility_type = Column(Text())
+    status = Column(Text())
+    notes = Column(Text())
+    source = Column(Text())
+    type = Column(Text())
+    wkt_geom = Column(Text())
+    geom = Column(Text())
+    latitude = Column(Numeric())
+    longitude = Column(Numeric())
+
+
+    def __repr__(self):
+        return f"InfrastructureMswToEnergyAnaerobicDigesters(wte_id={self.wte_id},city={self.city},county={self.county},equivalent_generation={self.equivalent_generation},feedstock={self.feedstock},dayload={self.dayload},dayload_bdt={self.dayload_bdt},facility_type={self.facility_type},status={self.status},notes={self.notes},source={self.source},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
+
+
+
+
+
+
 class Resource(BaseEntity):
     """
     Biomass resource definition.
@@ -299,6 +742,7 @@ class Resource(BaseEntity):
     resource_class_id = Column(Integer())
     resource_subclass_id = Column(Integer())
     note = Column(Text())
+    test = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -307,7 +751,7 @@ class Resource(BaseEntity):
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_crop_id={self.primary_crop_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_crop_id={self.primary_crop_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},test={self.test},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1932,6 +2376,40 @@ class BillionTon2023Record(BaseEntity):
 
     def __repr__(self):
         return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class FacilityRecord(BaseEntity):
+    """
+    Facility record.
+    """
+    __tablename__ = 'facility_record'
+
+    dataset_id = Column(Integer())
+    facility_name = Column(Text())
+    location_id = Column(Integer())
+    capacity_mw = Column(Numeric())
+    resource_id = Column(Integer())
+    operator = Column(Text())
+    start_year = Column(Integer())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
