@@ -2480,6 +2480,40 @@ class PreparationMethodAbbreviation(LookupBase):
 
 
 
+class FacilityRecord(BaseEntity):
+    """
+    Facility record.
+    """
+    __tablename__ = 'facility_record'
+
+    dataset_id = Column(Integer())
+    facility_name = Column(Text())
+    location_id = Column(Integer())
+    capacity_mw = Column(Numeric())
+    resource_id = Column(Integer())
+    operator = Column(Text())
+    start_year = Column(Integer())
+    note = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Text())
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class ProximateRecord(Aim1RecordBase):
     """
     Proximate analysis record.

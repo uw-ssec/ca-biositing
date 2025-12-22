@@ -26,6 +26,7 @@ classes:
       - resource_class_id
       - resource_subclass_id
       - note
+      - test
 
   ResourceClass:
     is_a: LookupBase
@@ -99,6 +100,10 @@ slots:
   resource_subclass_id:
     range: integer
     description: Reference to ResourceSubclass.
+
+  test:
+    range: string
+    description: Test field.
 
   #ResourceAvailability slots
 
