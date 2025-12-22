@@ -30,3 +30,5 @@ imports:
   - modules/aim1_records
   - modules/aim2_records
   - modules/external_data
+  - modules/infrastructure
+  - modules/geography
