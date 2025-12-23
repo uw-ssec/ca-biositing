@@ -22,7 +22,7 @@ classes:
     description: Biomass resource definition.
     slots:
       - name
-      - primary_crop_id
+      - primary_ag_product_id
       - resource_class_id
       - resource_subclass_id
       - note
@@ -36,9 +36,9 @@ classes:
     is_a: LookupBase
     description: Sub-classification of resources.
 
-  PrimaryCrop:
+  PrimaryAgProduct:
     is_a: LookupBase
-    description: Primary crop definition.
+    description: Primary agricultural product definition.
     slots:
       - note
 
@@ -89,9 +89,9 @@ classes:
 slots:
   #Resource slots
 
-  primary_crop_id:
+  primary_ag_product_id:
     range: integer
-    description: Reference to PrimaryCrop.
+    description: Reference to PrimaryAgProduct.
 
   resource_class_id:
     range: integer

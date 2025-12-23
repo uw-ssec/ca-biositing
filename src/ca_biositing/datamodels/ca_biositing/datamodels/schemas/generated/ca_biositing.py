@@ -738,7 +738,7 @@ class Resource(BaseEntity):
     __tablename__ = 'resource'
 
     name = Column(Text())
-    primary_crop_id = Column(Integer())
+    primary_ag_product_id = Column(Integer())
     resource_class_id = Column(Integer())
     resource_subclass_id = Column(Integer())
     note = Column(Text())
@@ -751,7 +751,7 @@ class Resource(BaseEntity):
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_crop_id={self.primary_crop_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},test={self.test},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},test={self.test},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -813,11 +813,11 @@ class ResourceSubclass(LookupBase):
 
 
 
-class PrimaryCrop(LookupBase):
+class PrimaryAgProduct(LookupBase):
     """
-    Primary crop definition.
+    Primary agricultural product definition.
     """
-    __tablename__ = 'primary_crop'
+    __tablename__ = 'primary_ag_product'
 
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -827,7 +827,7 @@ class PrimaryCrop(LookupBase):
 
 
     def __repr__(self):
-        return f"PrimaryCrop(note={self.note},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"PrimaryAgProduct(note={self.note},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
@@ -2206,7 +2206,7 @@ class ResourceUsdaCommodityMap(BaseEntity):
     __tablename__ = 'resource_usda_commodity_map'
 
     resource_id = Column(Integer())
-    primary_crop_id = Column(Integer())
+    primary_ag_product_id = Column(Integer())
     usda_commodity_id = Column(Integer())
     match_tier = Column(Text())
     note = Column(Text())
@@ -2218,7 +2218,7 @@ class ResourceUsdaCommodityMap(BaseEntity):
 
 
     def __repr__(self):
-        return f"ResourceUsdaCommodityMap(resource_id={self.resource_id},primary_crop_id={self.primary_crop_id},usda_commodity_id={self.usda_commodity_id},match_tier={self.match_tier},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ResourceUsdaCommodityMap(resource_id={self.resource_id},primary_ag_product_id={self.primary_ag_product_id},usda_commodity_id={self.usda_commodity_id},match_tier={self.match_tier},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

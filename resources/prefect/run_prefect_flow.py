@@ -1,24 +1,32 @@
 import sys
-from prefect import flow
-from ca_biositing.pipeline.flows.primary_product import primary_product_flow
-from ca_biositing.pipeline.flows.analysis_type import analysis_type_flow
+import traceback
+from prefect import flow, get_run_logger
+from prefect.utilities.importtools import import_object
 
-# A dictionary mapping flow names to their function objects
+# A dictionary mapping flow names to their import paths
 AVAILABLE_FLOWS = {
-    "primary_product": primary_product_flow,
-    "analysis_type": analysis_type_flow,
+    "primary_ag_product": "ca_biositing.pipeline.flows.primary_ag_product.primary_ag_product_flow",
+    "analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
 }
 
 @flow(name="Master ETL Flow", log_prints=True)
 def master_flow():
     """
     A master flow to orchestrate all ETL pipelines.
+    This flow dynamically imports and runs sub-flows, allowing it to continue
+    even if some sub-flows fail to import or run.
     """
-    print("Running master ETL flow...")
-    for flow_name, flow_func in AVAILABLE_FLOWS.items():
-        print(f"--- Running sub-flow: {flow_name} ---")
-        flow_func()
-    print("Master ETL flow completed.")
+    logger = get_run_logger()
+    logger.info("Running master ETL flow...")
+    for flow_name, flow_path in AVAILABLE_FLOWS.items():
+        try:
+            logger.info(f"--- Running sub-flow: {flow_name} ---")
+            flow_func = import_object(flow_path)
+            flow_func()
+        except Exception as e:
+            logger.error(f"Flow '{flow_name}' failed with error: {e}")
+            logger.error(traceback.format_exc())
+    logger.info("Master ETL flow completed.")
 
 if __name__ == "__main__":
     # This script is a placeholder for running flows directly.

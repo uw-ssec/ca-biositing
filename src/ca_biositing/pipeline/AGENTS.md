@@ -109,11 +109,13 @@ Located in `ca_biositing/pipeline/etl/`:
    - Pattern: Prefect `@task` decorated functions that return DataFrames
 
 2. **`transform/`** - Data transformation tasks
-   - `products/primary_product.py`: Transform primary product data
+   - `products/primary_ag_product.py`: Transform primary agricultural product
+     data
    - Pattern: Prefect `@task` functions that accept and return DataFrames
 
 3. **`load/`** - Data loading tasks
-   - `products/primary_product.py`: Load primary products to database
+   - `products/primary_ag_product.py`: Load primary agricultural products to
+     database
    - `analysis/`: Analysis-related load functions
    - Pattern: Prefect `@task` functions that insert data via SQLModel session
 
@@ -126,7 +128,7 @@ Located in `ca_biositing/pipeline/etl/`:
 
 Located in `ca_biositing/pipeline/flows/`:
 
-- **`primary_product.py`**: Primary product ETL flow
+- **`primary_ag_product.py`**: Primary agricultural product ETL flow
 - **`analysis_type.py`**: Analysis type ETL flow
 - Pattern: Prefect `@flow` decorated functions that orchestrate tasks
 
@@ -141,8 +143,10 @@ Located in `ca_biositing/pipeline/utils/`:
 2. **`gsheet_to_pandas.py`** - Google Sheets to DataFrame conversion
    - `gsheet_to_df()`: Main extraction function
 
-3. **`run_pipeline.py`** - Master pipeline orchestrator
-   - Runs all ETL flows in sequence
+3. **`../../resources/prefect/run_prefect_flow.py`** - Master pipeline
+   orchestrator
+   - A resilient master flow that dynamically imports and runs all ETL flows,
+     catching errors from individual flows.
 
 4. **`clear_alembic.py`** - Database migration cleanup utility
 
@@ -442,7 +446,8 @@ def test_lookup_utility(session):
 4. **Create flow** in `flows/my_flow.py`:
    - Use `@flow` decorator
    - Orchestrate extract → transform → load
-   - Add to master orchestrator in `utils/run_pipeline.py`
+   - Add the flow's import path to the `AVAILABLE_FLOWS` dictionary in
+     `resources/prefect/run_prefect_flow.py`
 
 5. **Write tests** in `tests/test_my_pipeline.py`:
    - Mock external dependencies
@@ -634,10 +639,11 @@ Run flows from command line or Python:
 
 ```bash
 # Run specific flow
-python -m ca_biositing.pipeline.flows.primary_product
+python -m ca_biositing.pipeline.flows.primary_ag_product
 
-# Run all flows (master orchestrator)
-python -m ca_biositing.pipeline.utils.run_pipeline
+# Run all flows via the main project's pixi task
+# This executes the master flow defined in resources/prefect/run_prefect_flow.py
+pixi run run-etl
 ```
 
 ### Usage with Docker

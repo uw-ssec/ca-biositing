@@ -2,37 +2,37 @@ import pandas as pd
 from prefect import task, get_run_logger
 from sqlmodel import Session, select
 from ca_biositing.datamodels.database import engine
-from ca_biositing.datamodels.biomass import PrimaryProduct
+from ca_biositing.datamodels.schemas.generated.ca_biositing import PrimaryAgProduct
 
 @task
-def load_products_primary_product(primary_product_df: pd.DataFrame):
+def load_products_primary_ag_product(primary_ag_product_df: pd.DataFrame):
     """
-    Loads the data from the primary products DataFrame into the database.
+    Loads the data from the primary ag products DataFrame into the database.
 
-    Iterates over a DataFrame and inserts each product name from the 'Primary_crop' column
-    into the PrimaryProduct table.
+    Iterates over a DataFrame and inserts each product name from the 'name' column
+    into the PrimaryAgProduct table.
     """
     logger = get_run_logger()
-    if primary_product_df is None or primary_product_df.empty:
+    if primary_ag_product_df is None or primary_ag_product_df.empty:
         logger.info("No data to load. Skipping database insertion.")
         return
 
-    column_name = 'Primary_crop'
-    if column_name not in primary_product_df.columns:
+    column_name = 'name'
+    if column_name not in primary_ag_product_df.columns:
         logger.error(f"Column '{column_name}' not found in the DataFrame. Aborting load.")
         return
 
-    logger.info(f"Attempting to load {len(primary_product_df)} products into the database...")
+    logger.info(f"Attempting to load {len(primary_ag_product_df)} products into the database...")
 
     with Session(engine) as session:
-        statement = select(PrimaryProduct.primary_product_name)
+        statement = select(PrimaryAgProduct.name)
         existing_products = session.exec(statement).all()
         existing_product_names = set(existing_products)
 
         records_to_add = []
-        for product_name in primary_product_df[column_name]:
+        for product_name in primary_ag_product_df[column_name]:
             if product_name not in existing_product_names:
-                product = PrimaryProduct(primary_product_name=product_name)
+                product = PrimaryAgProduct(name=product_name)
                 records_to_add.append(product)
                 existing_product_names.add(product_name)  # Add to set to avoid re-adding in same batch
 

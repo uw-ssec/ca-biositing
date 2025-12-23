@@ -84,7 +84,7 @@ classes:
     description: Mapping between resources/crops and USDA commodities.
     slots:
       - resource_id
-      - primary_crop_id
+      - primary_ag_product_id
       - usda_commodity_id
       - match_tier
       - note
@@ -354,19 +354,19 @@ slots:
 
   main_crop:
     range: integer
-    description: Reference to PrimaryCrop.
+    description: Reference to PrimaryAgProduct.
 
   secondary_crop:
     range: integer
-    description: Reference to PrimaryCrop.
+    description: Reference to PrimaryAgProduct.
 
   tertiary_crop:
     range: integer
-    description: Reference to PrimaryCrop.
+    description: Reference to PrimaryAgProduct.
 
   quaternary_crop:
     range: integer
-    description: Reference to PrimaryCrop.
+    description: Reference to PrimaryAgProduct.
 
   confidence:
     range: integer
