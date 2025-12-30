@@ -1,0 +1,35 @@
+id: https://w3id.org/ca_biositing/resource_availability
+name: resource_availability
+title: Resource Availability
+description: Availability of a resource in a location.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - places
+  - resource_information
+
+classes:
+  ResourceAvailability:
+    is_a: BaseEntity
+    description: Availability of a resource in a location.
+    slots:
+      - resource_id
+      - geoid
+      - from_month
+      - to_month
+      - year_round
+      - note
+
+slots:
+  resource_id:
+    range: Resource
+    description: Reference to Resource.

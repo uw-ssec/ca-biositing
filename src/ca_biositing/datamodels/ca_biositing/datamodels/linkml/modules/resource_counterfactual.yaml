@@ -1,0 +1,47 @@
+id: https://w3id.org/ca_biositing/resource_counterfactual
+name: resource_counterfactual
+title: Resource Counterfactual
+description: Counterfactual uses of a resource.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - places
+  - resource_information
+  - data_sources_metadata
+
+classes:
+  ResourceCounterfactual:
+    is_a: BaseEntity
+    description: Counterfactual uses of a resource.
+    slots:
+      - geoid
+      - resource_id
+      - counterfactual_description
+      - animal_bedding_percent
+      - animal_bedding_source_id
+      - animal_feed_percent
+      - animal_feed_source_id
+      - bioelectricty_percent
+      - bioelectricty_source_id
+      - burn_percent
+      - burn_source_id
+      - compost_percent
+      - compost_source_id
+      - landfill_percent
+      - landfill_source_id
+      - counterfactual_date
+      - note
+
+slots:
+  resource_id:
+    range: Resource
+    description: Reference to Resource.

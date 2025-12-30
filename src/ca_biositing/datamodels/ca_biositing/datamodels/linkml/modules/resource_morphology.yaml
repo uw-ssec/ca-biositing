@@ -1,0 +1,34 @@
+id: https://w3id.org/ca_biositing/resource_morphology
+name: resource_morphology
+title: Resource Morphology
+description: Morphology of a resource.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - resource_information
+
+classes:
+  ResourceMorphology:
+    description: Morphology of a resource.
+    slots:
+      - id
+      - resource_id
+      - morphology_uri
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  resource_id:
+    range: Resource
+    description: Reference to Resource.
