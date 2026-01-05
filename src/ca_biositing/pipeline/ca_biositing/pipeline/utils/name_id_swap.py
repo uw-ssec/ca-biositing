@@ -40,10 +40,13 @@ def replace_name_with_id_df(
     model_name_attr: str,
     id_column_name: str,
     final_column_name: str,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, int]:
     """
     Replace a DataFrame name column with foreign key IDs from a SQLAlchemy table.
     Creates missing reference records if needed.
+
+    Returns:
+        A tuple containing the modified DataFrame and the number of new records created.
     """
 
     # 1. Fetch existing reference rows (name + id only)
@@ -61,6 +64,7 @@ def replace_name_with_id_df(
     # 2. Determine which names are new
     unique_names = set(df_copy[df_name_column].dropna().unique())
     new_names = unique_names - set(name_to_id_map.keys())
+    num_new_records = len(new_names)
 
     # 3. Insert missing reference rows
     if new_names:
@@ -87,4 +91,4 @@ def replace_name_with_id_df(
     df_copy[final_column_name] = df_copy[df_name_column].map(name_to_id_map)
     df_copy = df_copy.drop(columns=[df_name_column])
 
-    return df_copy
+    return df_copy, num_new_records
