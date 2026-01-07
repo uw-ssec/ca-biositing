@@ -1,0 +1,13 @@
+id: https://w3id.org/ca_biositing/methods_parameters_units/method_abbrev
+name: method_abbrev
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+default_range: string
+
+classes:
+  MethodAbbrev:
+    is_a: LookupBase
+    description: Abbreviation for method.

@@ -1,0 +1,119 @@
+id: https://w3id.org/ca_biositing/external_data/usda_market_record
+name: usda_market_record
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - usda_market_report
+  - ../data_sources_metadata/data_source
+  - usda_commodity
+  - ../methods_parameters_units/unit
+default_range: string
+
+classes:
+  UsdaMarketRecord:
+    is_a: BaseEntity
+    description: USDA market record.
+    slots:
+      - report_id
+      - dataset_id
+      - report_begin_date
+      - report_end_date
+      - report_date
+      - commodity_id
+      - market_type_id
+      - market_type_category
+      - grp
+      - market_category_id
+      - class_
+      - grade
+      - variety
+      - protein_pct
+      - application
+      - pkg
+      - sale_type
+      - price_unit_id
+      - freight
+      - trans_mode
+
+slots:
+  report_id:
+    range: UsdaMarketReport
+    description: Reference to UsdaMarketReport.
+
+  dataset_id:
+    range: DataSource
+    description: Reference to DataSource.
+
+  report_begin_date:
+    range: datetime
+    description: Begin date of the report.
+
+  report_end_date:
+    range: datetime
+    description: End date of the report.
+
+  report_date:
+    range: datetime
+    description: Date of the report.
+
+  commodity_id:
+    range: UsdaCommodity
+    description: Reference to UsdaCommodity.
+
+  market_type_id:
+    range: integer
+    description: ID of the market type.
+
+  market_type_category:
+    range: string
+    description: Category of the market type.
+
+  grp:
+    range: string
+    description: Group.
+
+  market_category_id:
+    range: integer
+    description: ID of the market category.
+
+  class_:
+    range: string
+    description: Class.
+
+  grade:
+    range: string
+    description: Grade.
+
+  variety:
+    range: string
+    description: Variety.
+
+  protein_pct:
+    range: decimal
+    description: Protein percentage.
+
+  application:
+    range: string
+    description: Application.
+
+  pkg:
+    range: string
+    description: Package.
+
+  sale_type:
+    range: string
+    description: Sale type.
+
+  price_unit_id:
+    range: Unit
+    description: Reference to Unit.
+
+  freight:
+    range: string
+    description: Freight.
+
+  trans_mode:
+    range: string
+    description: Transportation mode.

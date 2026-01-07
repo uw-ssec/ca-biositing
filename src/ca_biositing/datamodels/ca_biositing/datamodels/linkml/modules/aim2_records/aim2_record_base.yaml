@@ -1,0 +1,60 @@
+id: https://w3id.org/ca_biositing/aim2_records/aim2_record_base
+name: aim2_record_base
+title: Aim 2 Record Base
+description: Base class for Aim 2 records.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../general_analysis/dataset
+  - ../experiment_equipment/experiment
+
+classes:
+  Aim2RecordBase:
+    is_a: BaseEntity
+    abstract: true
+    slots:
+      - dataset_id
+      - experiment_id
+      - resource_id
+      - sample_id
+      - technical_replicate_total
+      - technical_replicate_no
+      - calc_method_id
+      - calc_analyst_id
+      - raw_data_id
+      - qc_pass
+      - note
+
+slots:
+  experiment_id:
+    range: integer
+    description: Reference to Experiment.
+  resource_id:
+    range: integer
+  sample_id:
+    range: integer
+  technical_replicate_total:
+    range: integer
+  technical_replicate_no:
+    range: integer
+  calc_method_id:
+    range: integer
+    description: Reference to Method used in calculation.
+  calc_analyst_id:
+    range: integer
+    description: Reference to Analyst who performed calculation.
+  raw_data_id:
+    range: integer
+    description: Reference to FileObjectMetadata.
+  qc_pass:
+    range: boolean
+    description: Whether the record passed QC.

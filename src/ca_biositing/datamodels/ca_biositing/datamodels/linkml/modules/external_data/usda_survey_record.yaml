@@ -1,0 +1,60 @@
+id: https://w3id.org/ca_biositing/external_data/usda_survey_record
+name: usda_survey_record
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../data_sources_metadata/data_source
+  - ../places/geography
+  - usda_commodity
+  - usda_survey_program
+default_range: string
+
+classes:
+  UsdaSurveyRecord:
+    is_a: BaseEntity
+    description: USDA survey record.
+    slots:
+      - dataset_id
+      - geoid
+      - commodity_code
+      - year
+      - survey_program_id
+      - survey_period
+      - reference_month
+      - seasonal_flag
+      - note
+
+slots:
+  dataset_id:
+    range: DataSource
+    description: Reference to DataSource.
+
+  geoid:
+    range: Geography
+    description: Reference to Geography.
+
+  commodity_code:
+    range: UsdaCommodity
+    description: Reference to UsdaCommodity.
+
+  year:
+    range: integer
+    description: Year of the record.
+
+  survey_program_id:
+    range: UsdaSurveyProgram
+    description: Reference to UsdaSurveyProgram.
+
+  survey_period:
+    range: string
+    description: Period of the survey.
+
+  reference_month:
+    range: string
+    description: Reference month.
+
+  seasonal_flag:
+    range: boolean
+    description: Whether the record is seasonal.

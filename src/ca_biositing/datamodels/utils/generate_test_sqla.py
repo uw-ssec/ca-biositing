@@ -34,36 +34,34 @@ def generate_sqla():
     Generates SQLAlchemy models from LinkML schema modules.
     """
     base_dir = Path(__file__).parent.parent
-    linkml_dir = base_dir / "ca_biositing/datamodels/linkml"
-    modules_dir = linkml_dir / "modules"
-    output_dir = base_dir / "ca_biositing/datamodels/schemas/generated"
+    linkml_dir = base_dir / "ca_biositing/datamodels/linkml/test_schemas"
+    output_dir = base_dir / "ca_biositing/datamodels/schemas/generated_test"
 
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Clean output directory recursively
+    # Clean output directory
     print(f"Cleaning output directory: {output_dir}")
-    for f in output_dir.glob('**/*.py'):
-        if f.name != '__init__.py':
-            f.unlink()
+    for file in output_dir.glob("*.py"):
+        if file.name != "__init__.py":
+            file.unlink()
 
     # Generate for modules
+    for yaml_file in linkml_dir.glob("*.yaml"):
+        module_name = yaml_file.stem
+        output_file = output_dir / f"{module_name}.py"
+        print(f"Generating {output_file} from {yaml_file}...")
 
-    # Generate for main schema
-    main_yaml = linkml_dir / "ca_biositing.yaml"
-    main_output = output_dir / "ca_biositing.py"
-    print(f"Generating {main_output} from {main_yaml}...")
+        cmd = [
+            "python", "-m", "linkml.generators.sqlalchemygen",
+            "--mergeimports",
+            str(yaml_file)
+        ]
 
-    cmd = [
-        "python", "-m", "linkml.generators.sqlalchemygen",
-        "--mergeimports",
-        str(main_yaml)
-    ]
+        with open(output_file, "w") as f:
+            subprocess.run(cmd, stdout=f, check=True)
 
-    with open(main_output, "w") as f:
-        subprocess.run(cmd, stdout=f, check=True)
-
-    post_process_file(main_output)
+        post_process_file(output_file)
 
     print("Generation complete.")
 

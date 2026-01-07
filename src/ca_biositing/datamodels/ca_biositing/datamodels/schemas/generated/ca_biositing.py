@@ -901,7 +901,7 @@ class SourceType(LookupBase):
 
 class Equipment(LookupBase):
     """
-    Equipment used in experiments.
+    Provider information.
     """
     __tablename__ = 'equipment'
     __table_args__ = {'extend_existing': True}
@@ -1407,9 +1407,9 @@ class UsdaCensusRecord(BaseEntity):
 
 
 
-class UsdaDomain(LookupBase):
+class ResourceAvailability(BaseEntity):
     """
-    USDA domain.
+    Availability of a resource in a location.
     """
     __tablename__ = 'usda_domain'
     __table_args__ = {'extend_existing': True}
@@ -1604,7 +1604,7 @@ class UsdaSurveyProgram(LookupBase):
 
 class UsdaSurveyRecord(BaseEntity):
     """
-    USDA survey record.
+    Classification of resources.
     """
     __tablename__ = 'usda_survey_record'
     __table_args__ = {'extend_existing': True}
@@ -1640,7 +1640,7 @@ class UsdaSurveyRecord(BaseEntity):
 
 class UsdaTermMap(BaseEntity):
     """
-    Mapping of raw terms to USDA commodities.
+    Method of sample preparation.
     """
     __tablename__ = 'usda_term_map'
     __table_args__ = {'extend_existing': True}
@@ -1659,7 +1659,7 @@ class UsdaTermMap(BaseEntity):
 
 
     def __repr__(self):
-        return f"UsdaTermMap(source_system={self.source_system},source_context={self.source_context},raw_term={self.raw_term},usda_commodity_id={self.usda_commodity_id},is_verified={self.is_verified},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

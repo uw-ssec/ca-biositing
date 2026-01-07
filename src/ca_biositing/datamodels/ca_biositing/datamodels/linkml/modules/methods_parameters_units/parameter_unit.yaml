@@ -1,0 +1,31 @@
+id: https://w3id.org/ca_biositing/methods_parameters_units/parameter_unit
+name: parameter_unit
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - parameter
+  - unit
+default_range: string
+
+classes:
+  ParameterUnit:
+    description: Link between Parameter and Unit (alternate units).
+    slots:
+      - id
+      - parameter_id
+      - alternate_unit_id
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  parameter_id:
+    range: Parameter
+    description: Reference to Parameter.
+
+  alternate_unit_id:
+    range: Unit
+    description: Reference to Unit.
