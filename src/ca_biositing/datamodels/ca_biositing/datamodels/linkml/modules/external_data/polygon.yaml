@@ -1,0 +1,30 @@
+id: https://w3id.org/ca_biositing/external_data/polygon
+name: polygon
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../places/geography
+default_range: string
+
+classes:
+  Polygon:
+    description: Geospatial polygon.
+    slots:
+      - id
+      - geoid
+      - geom
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  geoid:
+    range: Geography
+    description: Reference to Geography.
+
+  geom:
+    range: string
+    description: Geometry (WKT or similar).

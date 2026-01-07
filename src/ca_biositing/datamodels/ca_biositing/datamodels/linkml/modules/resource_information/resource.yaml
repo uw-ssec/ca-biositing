@@ -1,0 +1,44 @@
+id: https://w3id.org/ca_biositing/resource_information/resource
+name: resource
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - primary_ag_product
+  - resource_class
+  - resource_subclass
+default_range: string
+
+classes:
+  Resource:
+    is_a: BaseEntity
+    description: Biomass resource definition.
+    slots:
+      - name
+      - primary_ag_product_id
+      - resource_class_id
+      - resource_subclass_id
+      - note
+      - test
+
+slots:
+  primary_ag_product_id:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  resource_class_id:
+    range: ResourceClass
+    description: Reference to ResourceClass.
+
+  resource_subclass_id:
+    range: ResourceSubclass
+    description: Reference to ResourceSubclass.
+
+  note:
+    range: string
+    description: Additional notes about the resource.
+
+  test:
+    range: string
+    description: Test field.

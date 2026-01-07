@@ -1,0 +1,36 @@
+id: https://w3id.org/ca_biositing/lineage/entity_lineage
+name: entity_lineage
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - lineage_group
+default_range: string
+
+classes:
+  EntityLineage:
+    description: Lineage information for a specific entity.
+    slots:
+      - id
+      - lineage_group_id
+      - source_table
+      - source_row_id
+      - note
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  lineage_group_id:
+    range: LineageGroup
+    description: Reference to the lineage group.
+
+  source_table:
+    range: string
+    description: Source table name.
+
+  source_row_id:
+    range: string
+    description: Source row identifier.

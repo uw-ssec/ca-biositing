@@ -1,0 +1,52 @@
+id: https://w3id.org/ca_biositing/places/geography
+name: geography
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+default_range: string
+
+classes:
+  Geography:
+    description: Geographic location.
+    slots:
+      - geoid
+      - state_name
+      - state_fips
+      - county_name
+      - county_fips
+      - region_name
+      - agg_level_desc
+    slot_usage:
+      geoid:
+        identifier: true
+
+slots:
+  geoid:
+    range: string
+    description: Unique identifier for geography.
+
+  state_name:
+    range: string
+    description: State name.
+
+  state_fips:
+    range: string
+    description: State FIPS code.
+
+  county_name:
+    range: string
+    description: County name.
+
+  county_fips:
+    range: string
+    description: County FIPS code.
+
+  region_name:
+    range: string
+    description: Region name.
+
+  agg_level_desc:
+    range: string
+    description: Aggregation level description.

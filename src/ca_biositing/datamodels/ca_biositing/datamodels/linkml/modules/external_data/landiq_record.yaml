@@ -1,0 +1,69 @@
+id: https://w3id.org/ca_biositing/external_data/landiq_record
+name: landiq_record
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../data_sources_metadata/data_source
+  - polygon
+  - ../resource_information/primary_ag_product
+default_range: string
+
+classes:
+  LandiqRecord:
+    is_a: BaseEntity
+    description: LandIQ record.
+    slots:
+      - dataset_id
+      - polygon_id
+      - main_crop
+      - secondary_crop
+      - tertiary_crop
+      - quaternary_crop
+      - confidence
+      - irrigated
+      - acres
+      - version
+      - note
+
+slots:
+  dataset_id:
+    range: DataSource
+    description: Reference to DataSource.
+
+  polygon_id:
+    range: Polygon
+    description: Reference to Polygon.
+
+  main_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  secondary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  tertiary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  quaternary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  confidence:
+    range: integer
+    description: Confidence level.
+
+  irrigated:
+    range: boolean
+    description: Whether the land is irrigated.
+
+  acres:
+    range: float
+    description: Number of acres.
+
+  version:
+    range: string
+    description: Version of the data source.
