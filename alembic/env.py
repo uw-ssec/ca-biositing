@@ -24,16 +24,12 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project 
 # from ca_biositing.datamodels.sample_preprocessing import *
 # from ca_biositing.datamodels.specific_aalysis_results import *
 # from ca_biositing.datamodels.user import *
+from ca_biositing.datamodels.schemas.generated import ca_biositing
 from ca_biositing.datamodels.schemas.generated.ca_biositing import *
-from sqlmodel import SQLModel
-import importlib.util
-from pathlib import Path
+from ca_biositing.datamodels.database import Base
 
-# --- Import generated models and their metadata ---
-# from ca_biositing.datamodels.schemas.generated.census_survey import metadata as census_metadata
-# from ca_biositing.datamodels.schemas.generated.geography import metadata as geography_metadata
-
-# --- Alembic Config object, provides access to alembic.ini values ---
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
 config = context.config
 
 # Override sqlalchemy.url in alembic.ini with value from .env
@@ -43,16 +39,15 @@ if DATABASE_URL:
 else:
     raise RuntimeError("DATABASE_URL not found in .env file. Alembic cannot run migrations.")
 
-# --- Configure logging (from alembic.ini logging section) ---
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- Metadata from your models for autogenerate ---
-# Combine metadata from all models
-# See: https://alembic.sqlalchemy.org/en/latest/autogenerate.html#affecting-the-autogenerate-process
-
-# Start with the default SQLModel metadata
-# target_metadata = SQLModel.metadata
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
 # Manually merge metadata from generated modules

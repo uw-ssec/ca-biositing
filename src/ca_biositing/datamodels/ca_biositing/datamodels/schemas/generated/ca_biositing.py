@@ -1,11 +1,13 @@
+from ...database import Base
+
+from ...database import Base
+
 
 from sqlalchemy import Column, Index, Table, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import *
-from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 
-Base = declarative_base()
 metadata = Base.metadata
 
 
@@ -57,8 +59,8 @@ class ExperimentAnalysis(Base):
     __tablename__ = 'experiment_analysis'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    analysis_type_id = Column(Integer(), ForeignKey('AnalysisType.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    analysis_type_id = Column(Integer(), ForeignKey('analysis_type.id'))
 
 
     def __repr__(self):
@@ -76,8 +78,8 @@ class ExperimentEquipment(Base):
     __tablename__ = 'experiment_equipment'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    equipment_id = Column(Integer(), ForeignKey('Equipment.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    equipment_id = Column(Integer(), ForeignKey('equipment.id'))
 
 
     def __repr__(self):
@@ -95,8 +97,8 @@ class ExperimentMethod(Base):
     __tablename__ = 'experiment_method'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    method_id = Column(Integer(), ForeignKey('Method.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
 
 
     def __repr__(self):
@@ -114,8 +116,8 @@ class ExperimentPreparedSample(Base):
     __tablename__ = 'experiment_prepared_sample'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    prepared_sample_id = Column(Integer(), ForeignKey('PreparedSample.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
 
 
     def __repr__(self):
@@ -681,8 +683,8 @@ class ParameterCategoryParameter(Base):
     __tablename__ = 'parameter_category_parameter'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    parameter_id = Column(Integer(), ForeignKey('Parameter.id'))
-    parameter_category_id = Column(Integer(), ForeignKey('ParameterCategory.id'))
+    parameter_id = Column(Integer(), ForeignKey('parameter.id'))
+    parameter_category_id = Column(Integer(), ForeignKey('parameter_category.id'))
 
 
     def __repr__(self):
@@ -700,8 +702,8 @@ class ParameterUnit(Base):
     __tablename__ = 'parameter_unit'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    parameter_id = Column(Integer(), ForeignKey('Parameter.id'))
-    alternate_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    parameter_id = Column(Integer(), ForeignKey('parameter.id'))
+    alternate_unit_id = Column(Integer(), ForeignKey('unit.id'))
 
 
     def __repr__(self):
@@ -719,7 +721,7 @@ class ResourceMorphology(Base):
     __tablename__ = 'resource_morphology'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     morphology_uri = Column(Text())
 
 
@@ -739,7 +741,7 @@ class DataSource(BaseEntity):
 
     name = Column(Text())
     description = Column(Text())
-    data_source_type_id = Column(Integer(), ForeignKey('DataSourceType.id'))
+    data_source_type_id = Column(Integer(), ForeignKey('data_source_type.id'))
     full_title = Column(Text())
     creator = Column(Text())
     subject = Column(Text())
@@ -752,7 +754,7 @@ class DataSource(BaseEntity):
     language = Column(Text())
     relation = Column(Text())
     temporal_coverage = Column(Text())
-    location_coverage_id = Column(Integer(), ForeignKey('LocationResolution.id'))
+    location_coverage_id = Column(Integer(), ForeignKey('location_resolution.id'))
     rights = Column(Text())
     license = Column(Text())
     uri = Column(Text())
@@ -783,7 +785,7 @@ class DataSourceType(BaseEntity):
     """
     __tablename__ = 'data_source_type'
 
-    source_type_id = Column(Integer(), ForeignKey('SourceType.id'))
+    source_type_id = Column(Integer(), ForeignKey('source_type.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -810,7 +812,7 @@ class FileObjectMetadata(BaseEntity):
     """
     __tablename__ = 'file_object_metadata'
 
-    data_source_id = Column(Integer(), ForeignKey('DataSource.id'))
+    data_source_id = Column(Integer(), ForeignKey('data_source.id'))
     bucket_path = Column(Text())
     file_format = Column(Text())
     file_size = Column(Integer())
@@ -892,7 +894,7 @@ class Equipment(LookupBase):
     """
     __tablename__ = 'equipment'
 
-    equipment_location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    equipment_location_id = Column(Integer(), ForeignKey('location_address.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
@@ -918,11 +920,11 @@ class Experiment(BaseEntity):
     """
     __tablename__ = 'experiment'
 
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     exper_start_date = Column(Date())
     exper_duration = Column(Numeric())
-    exper_duration_unit_id = Column(Integer(), ForeignKey('Unit.id'))
-    exper_location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    exper_duration_unit_id = Column(Integer(), ForeignKey('unit.id'))
+    exper_location_id = Column(Integer(), ForeignKey('location_address.id'))
     description = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -976,12 +978,12 @@ class Method(BaseEntity):
     __tablename__ = 'method'
 
     name = Column(Text())
-    method_abbrev_id = Column(Integer(), ForeignKey('MethodAbbrev.id'))
-    method_category_id = Column(Integer(), ForeignKey('MethodCategory.id'))
-    method_standard_id = Column(Integer(), ForeignKey('MethodStandard.id'))
+    method_abbrev_id = Column(Integer(), ForeignKey('method_abbrev.id'))
+    method_category_id = Column(Integer(), ForeignKey('method_category.id'))
+    method_standard_id = Column(Integer(), ForeignKey('method_standard.id'))
     description = Column(Text())
     detection_limits = Column(Text())
-    source_id = Column(Integer(), ForeignKey('DataSource.id'))
+    source_id = Column(Integer(), ForeignKey('data_source.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1009,10 +1011,10 @@ class PreparedSample(BaseEntity):
     __tablename__ = 'prepared_sample'
 
     name = Column(Text())
-    field_sample_id = Column(Integer(), ForeignKey('FieldSample.id'))
-    prep_method_id = Column(Integer(), ForeignKey('PreparationMethod.id'))
+    field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
+    prep_method_id = Column(Integer(), ForeignKey('preparation_method.id'))
     prep_date = Column(Date())
-    preparer_id = Column(Integer(), ForeignKey('Contact.id'))
+    preparer_id = Column(Integer(), ForeignKey('contact.id'))
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -1041,9 +1043,9 @@ class Resource(BaseEntity):
     __tablename__ = 'resource'
 
     name = Column(Text())
-    primary_ag_product_id = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
-    resource_class_id = Column(Integer(), ForeignKey('ResourceClass.id'))
-    resource_subclass_id = Column(Integer(), ForeignKey('ResourceSubclass.id'))
+    primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
+    resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
     note = Column(Text())
     test = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1122,18 +1124,18 @@ class BillionTon2023Record(BaseEntity):
     """
     __tablename__ = 'billion_ton2023_record'
 
-    subclass_id = Column(Integer(), ForeignKey('ResourceSubclass.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     geoid = Column(Text())
     county_square_miles = Column(Float())
     model_name = Column(Text())
     scenario_name = Column(Text())
     price_offered_usd = Column(Numeric())
     production = Column(Integer())
-    production_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    production_unit_id = Column(Integer(), ForeignKey('unit.id'))
     btu_ton = Column(Integer())
     production_energy_content = Column(Integer())
-    energy_content_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    energy_content_unit_id = Column(Integer(), ForeignKey('unit.id'))
     product_density_dtpersqmi = Column(Numeric())
     land_source = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1187,12 +1189,12 @@ class LandiqRecord(BaseEntity):
     """
     __tablename__ = 'landiq_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    polygon_id = Column(Integer(), ForeignKey('Polygon.id'))
-    main_crop = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
-    secondary_crop = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
-    tertiary_crop = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
-    quaternary_crop = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    polygon_id = Column(Integer(), ForeignKey('polygon.id'))
+    main_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    secondary_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    tertiary_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    quaternary_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
     confidence = Column(Integer())
     irrigated = Column(Boolean())
     acres = Column(Float())
@@ -1226,7 +1228,7 @@ class UsdaCommodity(LookupBase):
 
     usda_source = Column(Text())
     usda_code = Column(Text())
-    parent_commodity_id = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    parent_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
@@ -1252,9 +1254,9 @@ class ResourceUsdaCommodityMap(BaseEntity):
     """
     __tablename__ = 'resource_usda_commodity_map'
 
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
-    primary_ag_product_id = Column(Integer(), ForeignKey('PrimaryAgProduct.id'))
-    usda_commodity_id = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
+    primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    usda_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     match_tier = Column(Text())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1283,9 +1285,9 @@ class UsdaCensusRecord(BaseEntity):
     """
     __tablename__ = 'usda_census_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     geoid = Column(Text())
-    commodity_code = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    commodity_code = Column(Integer(), ForeignKey('usda_commodity.id'))
     year = Column(Integer())
     source_reference = Column(Text())
     note = Column(Text())
@@ -1345,9 +1347,9 @@ class UsdaMarketReport(BaseEntity):
     report_series_title = Column(Text())
     frequency = Column(Text())
     office_name = Column(Text())
-    office_city_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    office_city_id = Column(Integer(), ForeignKey('location_address.id'))
     office_state_fips = Column(Text())
-    source_id = Column(Integer(), ForeignKey('DataSource.id'))
+    source_id = Column(Integer(), ForeignKey('data_source.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1374,12 +1376,12 @@ class UsdaMarketRecord(BaseEntity):
     """
     __tablename__ = 'usda_market_record'
 
-    report_id = Column(Integer(), ForeignKey('UsdaMarketReport.id'))
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
+    report_id = Column(Integer(), ForeignKey('usda_market_report.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     report_begin_date = Column(DateTime())
     report_end_date = Column(DateTime())
     report_date = Column(DateTime())
-    commodity_id = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     market_type_id = Column(Integer())
     market_type_category = Column(Text())
     grp = Column(Text())
@@ -1391,7 +1393,7 @@ class UsdaMarketRecord(BaseEntity):
     application = Column(Text())
     pkg = Column(Text())
     sale_type = Column(Text())
-    price_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    price_unit_id = Column(Integer(), ForeignKey('unit.id'))
     freight = Column(Text())
     trans_mode = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1420,7 +1422,7 @@ class LocationAddress(BaseEntity):
     """
     __tablename__ = 'location_address'
 
-    geography_id = Column(Text(), ForeignKey('Geography.geoid'))
+    geography_id = Column(Text(), ForeignKey('geography.geoid'))
     address_line1 = Column(Text())
     address_line2 = Column(Text())
     city = Column(Text())
@@ -1504,11 +1506,11 @@ class UsdaSurveyRecord(BaseEntity):
     """
     __tablename__ = 'usda_survey_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     geoid = Column(Text())
-    commodity_code = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    commodity_code = Column(Integer(), ForeignKey('usda_commodity.id'))
     year = Column(Integer())
-    survey_program_id = Column(Integer(), ForeignKey('UsdaSurveyProgram.id'))
+    survey_program_id = Column(Integer(), ForeignKey('usda_survey_program.id'))
     survey_period = Column(Text())
     reference_month = Column(Text())
     seasonal_flag = Column(Boolean())
@@ -1542,7 +1544,7 @@ class UsdaTermMap(BaseEntity):
     source_system = Column(Text())
     source_context = Column(Text())
     raw_term = Column(Text())
-    usda_commodity_id = Column(Integer(), ForeignKey('UsdaCommodity.id'))
+    usda_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     is_verified = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -1622,22 +1624,22 @@ class FieldSample(BaseEntity):
     __tablename__ = 'field_sample'
 
     name = Column(Text())
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
-    provider_id = Column(Integer(), ForeignKey('Provider.id'))
-    collector_id = Column(Integer(), ForeignKey('Contact.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
+    provider_id = Column(Integer(), ForeignKey('provider.id'))
+    collector_id = Column(Integer(), ForeignKey('contact.id'))
     sample_collection_source = Column(Text())
     amount_collected = Column(Numeric())
-    amount_collected_unit_id = Column(Integer(), ForeignKey('Unit.id'))
-    sampling_location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
-    field_storage_method_id = Column(Integer(), ForeignKey('FieldStorageMethod.id'))
+    amount_collected_unit_id = Column(Integer(), ForeignKey('unit.id'))
+    sampling_location_id = Column(Integer(), ForeignKey('location_address.id'))
+    field_storage_method_id = Column(Integer(), ForeignKey('field_storage_method.id'))
     field_storage_duration_value = Column(Numeric())
-    field_storage_duration_unit_id = Column(Integer(), ForeignKey('Unit.id'))
-    field_storage_location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    field_storage_duration_unit_id = Column(Integer(), ForeignKey('unit.id'))
+    field_storage_location_id = Column(Integer(), ForeignKey('location_address.id'))
     collection_timestamp = Column(DateTime())
-    collection_method_id = Column(Integer(), ForeignKey('CollectionMethod.id'))
-    harvest_method_id = Column(Integer(), ForeignKey('HarvestMethod.id'))
+    collection_method_id = Column(Integer(), ForeignKey('collection_method.id'))
+    harvest_method_id = Column(Integer(), ForeignKey('harvest_method.id'))
     harvest_date = Column(Date())
-    field_sample_storage_location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    field_sample_storage_location_id = Column(Integer(), ForeignKey('location_address.id'))
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -1690,11 +1692,11 @@ class FieldSampleCondition(BaseEntity):
     """
     __tablename__ = 'field_sample_condition'
 
-    field_sample_id = Column(Integer(), ForeignKey('FieldSample.id'))
-    ag_treatment_id = Column(Integer(), ForeignKey('AgTreatment.id'))
+    field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
+    ag_treatment_id = Column(Integer(), ForeignKey('ag_treatment.id'))
     last_application_date = Column(Date())
     treatment_amount_per_acre = Column(Float())
-    processing_method_id = Column(Integer(), ForeignKey('ProcessingMethod.id'))
+    processing_method_id = Column(Integer(), ForeignKey('processing_method.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1796,8 +1798,8 @@ class LocationSoilType(BaseEntity):
     """
     __tablename__ = 'location_soil_type'
 
-    location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
-    soil_type_id = Column(Integer(), ForeignKey('SoilType.id'))
+    location_id = Column(Integer(), ForeignKey('location_address.id'))
+    soil_type_id = Column(Integer(), ForeignKey('soil_type.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1824,11 +1826,11 @@ class PhysicalCharacteristic(BaseEntity):
     """
     __tablename__ = 'physical_characteristic'
 
-    field_sample_id = Column(Integer(), ForeignKey('FieldSample.id'))
+    field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
     particle_length = Column(Numeric())
     particle_width = Column(Numeric())
     particle_height = Column(Numeric())
-    particle_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    particle_unit_id = Column(Integer(), ForeignKey('unit.id'))
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1857,7 +1859,7 @@ class Dataset(BaseEntity):
 
     name = Column(Text())
     record_type = Column(Text())
-    source_id = Column(Integer(), ForeignKey('DataSource.id'))
+    source_id = Column(Integer(), ForeignKey('data_source.id'))
     start_date = Column(Date())
     end_date = Column(Date())
     description = Column(Text())
@@ -1912,15 +1914,15 @@ class Observation(BaseEntity):
     """
     __tablename__ = 'observation'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     record_type = Column(Text())
     record_id = Column(Integer())
-    parameter_id = Column(Integer(), ForeignKey('Parameter.id'))
+    parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     value = Column(Numeric())
-    unit_id = Column(Integer(), ForeignKey('Unit.id'))
-    dimension_type_id = Column(Integer(), ForeignKey('DimensionType.id'))
+    unit_id = Column(Integer(), ForeignKey('unit.id'))
+    dimension_type_id = Column(Integer(), ForeignKey('dimension_type.id'))
     dimension_value = Column(Numeric())
-    dimension_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    dimension_unit_id = Column(Integer(), ForeignKey('unit.id'))
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -1948,11 +1950,11 @@ class FacilityRecord(BaseEntity):
     """
     __tablename__ = 'facility_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     facility_name = Column(Text())
-    location_id = Column(Integer(), ForeignKey('LocationAddress.id'))
+    location_id = Column(Integer(), ForeignKey('location_address.id'))
     capacity_mw = Column(Numeric())
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     operator = Column(Text())
     start_year = Column(Integer())
     note = Column(Text())
@@ -2058,7 +2060,7 @@ class Parameter(BaseEntity):
     __tablename__ = 'parameter'
 
     name = Column(Text())
-    standard_unit_id = Column(Integer(), ForeignKey('Unit.id'))
+    standard_unit_id = Column(Integer(), ForeignKey('unit.id'))
     calculated = Column(Boolean())
     description = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2169,15 +2171,15 @@ class Aim1RecordBase(BaseEntity):
     """
     __tablename__ = 'aim1_record_base'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2206,15 +2208,15 @@ class Aim2RecordBase(BaseEntity):
     """
     __tablename__ = 'aim2_record_base'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_total = Column(Integer())
     technical_replicate_no = Column(Integer())
     calc_method_id = Column(Integer())
     calc_analyst_id = Column(Integer())
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2269,7 +2271,7 @@ class ResourceAvailability(BaseEntity):
     """
     __tablename__ = 'resource_availability'
 
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     geoid = Column(Text())
     from_month = Column(Integer())
     to_month = Column(Integer())
@@ -2328,7 +2330,7 @@ class PreparationMethod(BaseEntity):
 
     name = Column(Text())
     description = Column(Text())
-    prep_method_abbrev_id = Column(Integer(), ForeignKey('PreparationMethodAbbreviation.id'))
+    prep_method_abbrev_id = Column(Integer(), ForeignKey('preparation_method_abbreviation.id'))
     prep_temp_c = Column(Numeric())
     uri = Column(Text())
     drying_step = Column(Boolean())
@@ -2383,15 +2385,15 @@ class ProximateRecord(Aim1RecordBase):
     """
     __tablename__ = 'proximate_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2420,15 +2422,15 @@ class UltimateRecord(Aim1RecordBase):
     """
     __tablename__ = 'ultimate_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2457,15 +2459,15 @@ class CompositionalRecord(Aim1RecordBase):
     """
     __tablename__ = 'compositional_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2494,15 +2496,15 @@ class IcpRecord(Aim1RecordBase):
     """
     __tablename__ = 'icp_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2535,15 +2537,15 @@ class XrfRecord(Aim1RecordBase):
     intensity = Column(Numeric())
     energy_slope = Column(Numeric())
     energy_offset = Column(Numeric())
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2574,15 +2576,15 @@ class XrdRecord(Aim1RecordBase):
 
     scan_low_nm = Column(Integer())
     scan_high_nm = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2611,15 +2613,15 @@ class CalorimetryRecord(Aim1RecordBase):
     """
     __tablename__ = 'calorimetry_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2648,15 +2650,15 @@ class FtnirRecord(Aim1RecordBase):
     """
     __tablename__ = 'ftnir_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2685,15 +2687,15 @@ class RgbRecord(Aim1RecordBase):
     """
     __tablename__ = 'rgb_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
-    method_id = Column(Integer(), ForeignKey('Method.id'))
-    analyst_id = Column(Integer(), ForeignKey('Contact.id'))
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2728,15 +2730,15 @@ class PretreatmentRecord(Aim2RecordBase):
     block_position = Column(Text())
     temperature = Column(Numeric())
     replicate_no = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_total = Column(Integer())
     technical_replicate_no = Column(Integer())
     calc_method_id = Column(Integer())
     calc_analyst_id = Column(Integer())
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2773,15 +2775,15 @@ class FermentationRecord(Aim2RecordBase):
     agitation_rpm = Column(Numeric())
     vessel_id = Column(Integer())
     analyte_detection_equipment_id = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_total = Column(Integer())
     technical_replicate_no = Column(Integer())
     calc_method_id = Column(Integer())
     calc_analyst_id = Column(Integer())
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2813,15 +2815,15 @@ class GasificationRecord(Aim2RecordBase):
     feedstock_mass = Column(Numeric())
     bed_temperature = Column(Numeric())
     gas_flow_rate = Column(Numeric())
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_total = Column(Integer())
     technical_replicate_no = Column(Integer())
     calc_method_id = Column(Integer())
     calc_analyst_id = Column(Integer())
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
@@ -2850,15 +2852,15 @@ class AutoclaveRecord(Aim2RecordBase):
     """
     __tablename__ = 'autoclave_record'
 
-    dataset_id = Column(Integer(), ForeignKey('DataSource.id'))
-    experiment_id = Column(Integer(), ForeignKey('Experiment.id'))
-    resource_id = Column(Integer(), ForeignKey('Resource.id'))
+    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    experiment_id = Column(Integer(), ForeignKey('experiment.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
     sample_id = Column(Integer())
     technical_replicate_total = Column(Integer())
     technical_replicate_no = Column(Integer())
     calc_method_id = Column(Integer())
     calc_analyst_id = Column(Integer())
-    raw_data_id = Column(Integer(), ForeignKey('FileObjectMetadata.id'))
+    raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
