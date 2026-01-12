@@ -5,7 +5,7 @@ from ca_biositing.datamodels.database import engine
 from ca_biositing.datamodels.schemas.generated.ca_biositing import PrimaryAgProduct
 
 @task
-def load_products_primary_ag_product(primary_ag_product_df: pd.DataFrame):
+def load(primary_ag_product_df: pd.DataFrame):
     """
     Loads the data from the primary ag products DataFrame into the database.
 

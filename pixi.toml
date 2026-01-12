@@ -219,6 +219,7 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+geopandas = "*"
 
 # Python Dependencies for specific versions
 
