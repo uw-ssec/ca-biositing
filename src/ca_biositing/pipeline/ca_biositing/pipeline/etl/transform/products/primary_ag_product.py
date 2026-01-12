@@ -5,7 +5,7 @@ from prefect import task, get_run_logger
 EXTRACT_SOURCES = ["basic_sample_info"]
 
 @task
-def transform_products_primary_ag_product(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
+def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
     """
     Transforms the raw data to extract unique primary agricultural products.
 
