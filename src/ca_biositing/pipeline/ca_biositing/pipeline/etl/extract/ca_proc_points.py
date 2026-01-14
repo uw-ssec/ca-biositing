@@ -7,7 +7,7 @@ import os
 @task
 def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
-    Extracts raw data from a .csv file.
+    Extracts raw data from a .zip file.
 
     This function serves as the 'Extract' step in an ETL pipeline. It connects
     to the data source and returns the data as is, without transformation.
@@ -17,10 +17,10 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
     logger = get_run_logger()
 
-    FILE_NAME = "Biodiesel_Plants.csv"
-    MIME_TYPE = "text/csv"
+    FILE_NAME = "CA_proc_points.zip"
+    MIME_TYPE = "application/zip"
     CREDENTIALS_PATH = "credentials.json"
-    DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
+    DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/" 
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
     # If project_root is provided (e.g., from a notebook), construct an absolute path
@@ -34,7 +34,7 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     # The gdrive_to_df function handles authentication, data fetching, and error handling.
     raw_df = gdrive_to_df(FILE_NAME, MIME_TYPE, credentials_path, dataset_folder)
 
-
+    
 
     if raw_df is None:
         logger.error("Failed to extract data. Aborting.")

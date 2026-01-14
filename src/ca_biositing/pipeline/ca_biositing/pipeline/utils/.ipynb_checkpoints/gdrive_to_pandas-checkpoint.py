@@ -1,14 +1,20 @@
 import pandas as pd
-from pydrive2.auth import GoogleAuth
+from pydrive2.auth import GoogleAuth, AuthenticationError
 from pydrive2.drive import GoogleDrive
+from pydrive2.files import ApiRequestError
+import zipfile
+import geopandas as gpd
+import os
 
-def gdrive_to_df(file_name: str, credentials_path: str) -> pd.DataFrame:
+def gdrive_to_df(file_name: str, mime_type: str, credentials_path: str, dataset_folder: str) -> pd.DataFrame | gpd.GeoDataFrame:
     """
-    Extracts data from a CSV or GEOJSON into a pandas DataFrame.
+    Extracts data from a CSV, ZIP, or GEOJSON file into a pandas DataFrame.
 
     Args:
         file_name: The name of the requested file.
+        mime_type: The MIME type - according to https://mime-type.com/
         credentials_path: The path to the Google Cloud service account credentials JSON file.
+        dataset_folder: the folder where the extracted file is stored.
 
     Returns:
         A pandas DataFrame containing the data from the specified worksheet, or None on error.
@@ -26,30 +32,45 @@ def gdrive_to_df(file_name: str, credentials_path: str) -> pd.DataFrame:
         drive = GoogleDrive(gauth)
 
         try:
-            file_list = drive.ListFile().GetList()
-            print(file_list)
-        except SpreadsheetNotFound:
-            print(f"Error: Spreadsheet '{gsheet_name}' not found.")
-            print("Please make sure the spreadsheet name is correct and that you have shared it with the service account email.")
+            file_entries = drive.ListFile({"q": f"title = '{file_name}' and mimeType= '{mime_type}'"}).GetList()
+            if len(file_entries) == 0:
+                raise FileNotFoundError(f"Error: File '{file_name}' not found. \n Please make sure the name and mimeType is correct and that you have shared it with the service account email.")
+                return None
+            else:
+                file_entry = file_entries[0]
+            file = drive.CreateFile({'id': file_entry['id']})
+            file.GetContentFile(dataset_folder + file_name) # Download file
+        except ApiRequestError:
+            print(f"An unexpected error occurred: {e}")
             return None
 
+        # read csv if file is csv
+        if mime_type == "text/csv":
+            df = pd.read_csv(dataset_folder + file_name)
 
-        # Get values directly to ensure we get calculated values, not formulas.
-        # 'FORMATTED_VALUE' gets the value as you see it in the sheet.
-        all_values = worksheet.get_all_values(value_render_option='FORMATTED_VALUE')
-        if not all_values:
-            return pd.DataFrame() # Return empty DataFrame if sheet is empty
+        # extract from zip if file is zip
+        # note: THIS CODE ASSUMES THAT THE ZIP ONLY CONTAINS ONE CSV FILE
+        elif mime_type == "application/zip":
 
-        # Use the first row as header and the rest as data
-        df = pd.DataFrame(all_values[1:], columns=all_values[0])
+            # note: THIS CODE ASSUMES THAT THE CSV FILE HAS THE SAME NAME AS THE ZIP FILE
+            csv_name = file_name[:-4] + ".csv"
+
+            with zipfile.ZipFile(dataset_folder + file_name,"r") as zip_ref:
+                zip_ref.extractall(dataset_folder)
+            df = pd.read_csv(dataset_folder + csv_name)
+
+        elif mime_type == "application/geo+json":
+            df = gpd.read_file(dataset_folder + file_name)
+        else:
+            raise Exception("Can't handle this MIME type. Sorry.")
 
         # De-duplicate columns, keeping the first occurrence
         df = df.loc[:, ~df.columns.duplicated()]
 
         return df
 
-    except APIError as e:
-        print(f"Google API Error: {e}")
+    except AuthenticationError as e:
+        print(f"Google Authentication Error: {e}")
         return None
     except Exception as e:
         print(f"An unexpected error occurred: {e}")

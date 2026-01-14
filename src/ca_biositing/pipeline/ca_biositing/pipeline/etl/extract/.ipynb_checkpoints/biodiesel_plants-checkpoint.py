@@ -1,11 +1,11 @@
 from typing import Optional
 import pandas as pd
 from prefect import task, get_run_logger
-from ...utils.gdrive_to_pandas import gdrive_to_df
-# from resources.prefect import credentials
+from src.ca_biositing.pipeline.ca_biositing.pipeline.utils.gdrive_to_pandas import gdrive_to_df
+import os
 
 @task
-def extract(csv_path) -> Optional[pd.DataFrame]:
+def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
     Extracts raw data from a .csv file.
 
@@ -18,11 +18,21 @@ def extract(csv_path) -> Optional[pd.DataFrame]:
     logger = get_run_logger()
 
     FILE_NAME = "Biodiesel_Plants.csv"
+    MIME_TYPE = "text/csv"
     CREDENTIALS_PATH = "credentials.json"
+    DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
-    # The gsheet_to_df function handles authentication, data fetching, and error handling.
-    raw_df = gdrive_to_pandas(FILE_NAME, CREDENTIALS_PATH)
+    # If project_root is provided (e.g., from a notebook), construct an absolute path
+    # Otherwise, use the default relative path (for the main pipeline)
+    credentials_path = CREDENTIALS_PATH
+    dataset_folder = DATASET_FOLDER
+    if project_root:
+        credentials_path = os.path.join(project_root, CREDENTIALS_PATH)
+        dataset_folder = os.path.join(project_root, DATASET_FOLDER)
+
+    # The gdrive_to_df function handles authentication, data fetching, and error handling.
+    raw_df = gdrive_to_df(FILE_NAME, MIME_TYPE, credentials_path, dataset_folder)
 
 
 
