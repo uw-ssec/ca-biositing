@@ -24,7 +24,7 @@ def extract(csv_path) -> Optional[pd.DataFrame]:
     # The gsheet_to_df function handles authentication, data fetching, and error handling.
     raw_df = gdrive_to_pandas(FILE_NAME, CREDENTIALS_PATH)
 
-    
+
 
     if raw_df is None:
         logger.error("Failed to extract data. Aborting.")

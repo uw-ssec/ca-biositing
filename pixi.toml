@@ -36,6 +36,7 @@ testcontainers = ">=4.13.2,<5"
 python-dotenv = ">=1.2.1,<2"
 asyncpg = ">=0.29.0,<0.30"
 pydrive2 = ">=1.21.3,<2"
+geopandas = ">=1.1.2,<2"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
