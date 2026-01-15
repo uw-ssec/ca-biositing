@@ -2,13 +2,12 @@ from typing import Optional
 import pandas as pd
 from prefect import task, get_run_logger
 from src.ca_biositing.pipeline.ca_biositing.pipeline.utils.gdrive_to_pandas import gdrive_to_df
-import geopandas as gpd
 import os
 
 @task
-def extract(project_root: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
+def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
-    Extracts raw data from a .geojson file.
+    Extracts raw data from a .csv or .zip file.
 
     This function serves as the 'Extract' step in an ETL pipeline. It connects
     to the data source and returns the data as is, without transformation.
@@ -18,14 +17,21 @@ def extract(project_root: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
     """
     logger = get_run_logger()
 
-    FILE_NAME = "US_Petroleum_Pipelines.geojson"
-    MIME_TYPE = "application/geo+json"
+    # replace with the name & MIME type of your file. 
+    # you can find the latter here: https://mime-type.com/ 
+    FILE_NAME = "FILE_NAME.csv"
+    MIME_TYPE = "text/csv" # or "application/zip"
+    
     CREDENTIALS_PATH = "credentials.json"
+
+    # directory for dumping dataset from gdrive to convert to a Pandas DataFrame
     DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
     # If project_root is provided (e.g., from a notebook), construct an absolute path
     # Otherwise, use the default relative path (for the main pipeline)
+
+    # make sure that these work
     credentials_path = CREDENTIALS_PATH
     dataset_folder = DATASET_FOLDER
     if project_root:
