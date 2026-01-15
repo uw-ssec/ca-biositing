@@ -21,7 +21,7 @@ def extract(project_root: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
     FILE_NAME = "US_Petroleum_Pipelines.geojson"
     MIME_TYPE = "application/geo+json"
     CREDENTIALS_PATH = "credentials.json"
-    DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/" 
+    DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
     # If project_root is provided (e.g., from a notebook), construct an absolute path
@@ -35,7 +35,7 @@ def extract(project_root: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
     # The gdrive_to_df function handles authentication, data fetching, and error handling.
     raw_df = gdrive_to_df(FILE_NAME, MIME_TYPE, credentials_path, dataset_folder)
 
-    
+
 
     if raw_df is None:
         logger.error("Failed to extract data. Aborting.")
