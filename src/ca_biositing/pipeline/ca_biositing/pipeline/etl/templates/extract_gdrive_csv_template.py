@@ -17,11 +17,11 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
     logger = get_run_logger()
 
-    # replace with the name & MIME type of your file. 
-    # you can find the latter here: https://mime-type.com/ 
+    # replace with the name & MIME type of your file.
+    # you can find the latter here: https://mime-type.com/
     FILE_NAME = "FILE_NAME.csv"
     MIME_TYPE = "text/csv" # or "application/zip"
-    
+
     CREDENTIALS_PATH = "credentials.json"
 
     # directory for dumping dataset from gdrive to convert to a Pandas DataFrame
