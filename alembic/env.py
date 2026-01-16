@@ -19,7 +19,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src/ca_biositing/datamodels"))
 
 from ca_biositing.datamodels.schemas.generated import ca_biositing
 from ca_biositing.datamodels.schemas.generated.ca_biositing import *
-# from ca_biositing.datamodels.database import Base
+#from ca_biositing.datamodels.database import Base
 
 # Alembic Config object
 config = context.config
