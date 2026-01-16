@@ -26,8 +26,39 @@ def post_process_file(file_path):
 
     new_content = re.sub(pattern, replace_tablename, content)
 
+    # Convert ForeignKey references from class names to table names
+    # Matches: ForeignKey('SomeClass.id') -> ForeignKey('some_class.id')
+    # Convert ForeignKey references from class names to table names
+    # Matches: ForeignKey('SomeClass.column') -> ForeignKey('some_class.column')
+    def replace_foreign_key(match):
+        fk_content = match.group(0)
+        # Extract the table/class name and column name from inside the quotes
+        inner_match = re.search(r"ForeignKey\('([A-Za-z0-9]+)\.([A-Za-z0-9]+)'\)", fk_content)
+        if inner_match:
+            class_name = inner_match.group(1)
+            column_name = inner_match.group(2)
+            table_name = to_snake_case(class_name)
+            return fk_content.replace(f"'{class_name}.{column_name}'", f"'{table_name}.{column_name}'")
+        return fk_content
+
+    # Apply to all ForeignKey occurrences
+    new_content = re.sub(r"ForeignKey\('[^']+\.[^']+'\)", replace_foreign_key, new_content)
+
+    # Inject the Base import
+    new_content = "from ...database import Base\n\n" + new_content
+
+        # Inject the Base import
+    new_content = "from ...database import Base\n\n" + new_content
+
+    # Remove the line that redefines Base
+    new_content = re.sub(r"Base = declarative_base\(\)\n", "", new_content)
+
+    # Remove the unused import if present
+    new_content = re.sub(r"from sqlalchemy\.orm import declarative_base\n", "", new_content)
+
     with open(file_path, 'w') as f:
         f.write(new_content)
+
 
 def generate_sqla():
     """
@@ -41,28 +72,13 @@ def generate_sqla():
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Clean output directory
+    # Clean output directory recursively
     print(f"Cleaning output directory: {output_dir}")
-    for file in output_dir.glob("*.py"):
-        if file.name != "__init__.py":
-            file.unlink()
+    for f in output_dir.glob('**/*.py'):
+        if f.name != '__init__.py':
+            f.unlink()
 
     # Generate for modules
-    for yaml_file in modules_dir.glob("*.yaml"):
-        module_name = yaml_file.stem
-        output_file = output_dir / f"{module_name}.py"
-        print(f"Generating {output_file} from {yaml_file}...")
-
-        cmd = [
-            "python", "-m", "linkml.generators.sqlalchemygen",
-            "--no-mergeimports",
-            str(yaml_file)
-        ]
-
-        with open(output_file, "w") as f:
-            subprocess.run(cmd, stdout=f, check=True)
-
-        post_process_file(output_file)
 
     # Generate for main schema
     main_yaml = linkml_dir / "ca_biositing.yaml"
@@ -71,7 +87,7 @@ def generate_sqla():
 
     cmd = [
         "python", "-m", "linkml.generators.sqlalchemygen",
-        "--no-mergeimports",
+        "--mergeimports",
         str(main_yaml)
     ]
 

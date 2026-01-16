@@ -242,6 +242,7 @@ frontend-build = { cmd = "npm run build", cwd = "frontend", description = "Build
 # Kernel Dependencies
 # This is to enable Jupyter Notebooks with IPython kernel
 [feature.kernel.dependencies]
+jupyter = ">=1.0.0,<2"
 ipykernel = ">=7.1.0,<8"
 ipython = ">=9.0.0,<10"
 

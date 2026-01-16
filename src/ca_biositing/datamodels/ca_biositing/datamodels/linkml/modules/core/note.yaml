@@ -1,0 +1,12 @@
+id: https://w3id.org/ca_biositing/core/note
+name: note
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+default_range: string
+
+slots:
+  note:
+    range: string
+    description: Additional notes.
