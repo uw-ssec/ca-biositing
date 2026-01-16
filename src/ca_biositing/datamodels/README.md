@@ -33,7 +33,9 @@ making schema changes is:
     ```
     This command performs the following steps:
     - Cleans the generated models directory.
-    - Generates new SQLAlchemy/SQLModel classes from the LinkML schema.
+    - Generates new SQLAlchemy classes from the LinkML schema.
+    - Generated schemas are IN A SINGLE .py FILE
+      (datamodels/schemas/generate/ca_biositing)!
     - Rebuilds the Docker services to include the new code.
     - Starts the services.
     - Generates an Alembic migration script.
@@ -59,7 +61,7 @@ src/ca_biositing/datamodels/
 │       │   ├── ca_biositing.yaml    # Main schema entrypoint
 │       │   └── modules/             # Modular schema definitions
 │       ├── schemas/
-│       │   └── generated/           # Generated SQLModel classes (DO NOT EDIT)
+│       │   └── generated/           # Generated SQLAlchemy classes (DO NOT EDIT)
 │       └── utils/                   # Schema management scripts
 │           ├── generate_sqla.py     # Script to generate models from LinkML
 │           └── orchestrate_schema_update.py # Orchestration script
@@ -127,17 +129,19 @@ sample = FieldSample(
 ### Database Operations
 
 ```python
-from sqlmodel import Session, create_engine, select
-from ca_biositing.datamodels.schemas.generated.resource_information import Resource
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
 
 # Create engine and session
 engine = create_engine("postgresql://user:pass@localhost/dbname")
+Session = sessionmaker(bind=engine)
 
-# Use with SQLModel Session
-with Session(engine) as session:
+# Use with SQLAlchemy Session
+with Session() as session:
     # Query models
     statement = select(Resource)
-    resources = session.exec(statement).all()
+    resources = session.execute(statement).scalars().all()
 
     # Add new records
     new_resource = Resource(name="Corn Stover")

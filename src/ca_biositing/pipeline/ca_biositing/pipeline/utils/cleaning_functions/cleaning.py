@@ -6,6 +6,8 @@ from typing import Iterable, Optional
 import logging
 import pandas as pd
 import numpy as np
+# Import janitor to register the ``clean_names`` accessor on DataFrames
+import janitor  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
