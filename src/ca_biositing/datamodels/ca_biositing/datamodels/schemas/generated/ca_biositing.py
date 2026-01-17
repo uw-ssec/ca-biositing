@@ -1047,7 +1047,6 @@ class Resource(BaseEntity):
     resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
     resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
     note = Column(Text())
-    test = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1056,7 +1055,7 @@ class Resource(BaseEntity):
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},test={self.test},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
