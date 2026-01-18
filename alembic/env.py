@@ -16,7 +16,8 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project 
 
 from ca_biositing.datamodels.schemas.generated import ca_biositing
 from ca_biositing.datamodels.schemas.generated.ca_biositing import *
-#from ca_biositing.datamodels.database import Base
+# Import Base for target metadata
+from ca_biositing.datamodels.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -2173,7 +2173,7 @@ class Aim1RecordBase(BaseEntity):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2189,7 +2189,7 @@ class Aim1RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2210,11 +2210,11 @@ class Aim2RecordBase(BaseEntity):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -2226,7 +2226,7 @@ class Aim2RecordBase(BaseEntity):
 
 
     def __repr__(self):
-        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2387,7 +2387,7 @@ class ProximateRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2403,7 +2403,7 @@ class ProximateRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2424,7 +2424,7 @@ class UltimateRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2440,7 +2440,7 @@ class UltimateRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2461,7 +2461,7 @@ class CompositionalRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2477,7 +2477,7 @@ class CompositionalRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2498,7 +2498,7 @@ class IcpRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2514,7 +2514,7 @@ class IcpRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2539,7 +2539,7 @@ class XrfRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2555,7 +2555,7 @@ class XrfRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"XrfRecord(wavelength_nm={self.wavelength_nm},intensity={self.intensity},energy_slope={self.energy_slope},energy_offset={self.energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrfRecord(wavelength_nm={self.wavelength_nm},intensity={self.intensity},energy_slope={self.energy_slope},energy_offset={self.energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2578,7 +2578,7 @@ class XrdRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2594,7 +2594,7 @@ class XrdRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"XrdRecord(scan_low_nm={self.scan_low_nm},scan_high_nm={self.scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrdRecord(scan_low_nm={self.scan_low_nm},scan_high_nm={self.scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2615,7 +2615,7 @@ class CalorimetryRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2631,7 +2631,7 @@ class CalorimetryRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2652,7 +2652,7 @@ class FtnirRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2668,7 +2668,7 @@ class FtnirRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2689,7 +2689,7 @@ class RgbRecord(Aim1RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
@@ -2705,7 +2705,7 @@ class RgbRecord(Aim1RecordBase):
 
 
     def __repr__(self):
-        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2732,11 +2732,11 @@ class PretreatmentRecord(Aim2RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -2748,7 +2748,7 @@ class PretreatmentRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2777,11 +2777,11 @@ class FermentationRecord(Aim2RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -2793,7 +2793,7 @@ class FermentationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2817,11 +2817,11 @@ class GasificationRecord(Aim2RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -2833,7 +2833,7 @@ class GasificationRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2854,11 +2854,11 @@ class AutoclaveRecord(Aim2RecordBase):
     dataset_id = Column(Integer(), ForeignKey('data_source.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Boolean())
     note = Column(Text())
@@ -2870,7 +2870,7 @@ class AutoclaveRecord(Aim2RecordBase):
 
 
     def __repr__(self):
-        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
