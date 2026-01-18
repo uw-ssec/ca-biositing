@@ -28,10 +28,9 @@ classes:
     abstract: true
     slots:
       - dataset_id
-
       - experiment_id
       - resource_id
-      - sample_id
+      - prepared_sample_id
       - technical_replicate_no
       - technical_replicate_total
       - method_id
@@ -41,8 +40,8 @@ classes:
       - note
 
 slots:
-  sample_id:
-    range: integer
+  prepared_sample_id:
+    range: PreparedSample
     description: Reference to PreparedSample.
 
   resource_id:
