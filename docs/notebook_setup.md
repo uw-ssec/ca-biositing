@@ -153,7 +153,7 @@ If you still see `ModuleNotFoundError`, double‑check that the kernel selected 
    ```
 4. To import something from the `datamodels` package, just use its namespace:
    ```python
-   from ca_biositing.datamodels.datamodels.database import engine
+   from ca_biositing.datamodels.database import engine
    ```
 5. Verify that the import path is correct:
    ```python
@@ -199,7 +199,7 @@ command), always use the short import._
 | Component  | Distribution root on `PYTHONPATH` | Example import                                                                 |
 | ---------- | --------------------------------- | ------------------------------------------------------------------------------ |
 | Pipeline   | `src/ca_biositing/pipeline`       | `from ca_biositing.pipeline.utils.name_id_swap import replace_name_with_id_df` |
-| Datamodels | `src/ca_biositing/datamodels`     | `from ca_biositing.datamodels.datamodels.database import engine`               |
+| Datamodels | `src/ca_biositing/datamodels`     | `from ca_biositing.datamodels.database import engine`                          |
 | Webservice | `src/ca_biositing/webservice`     | `from ca_biositing.webservice.main import app`                                 |
 
 ---
