@@ -32,7 +32,7 @@ slots:
     description: Timestamp when the record was last updated.
 
   etl_run_id:
-    range: string
+    range: EtlRun
     description: Identifier of the ETL run.
 
   lineage_group_id:
