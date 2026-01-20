@@ -7,6 +7,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import *
 from sqlalchemy.ext.associationproxy import association_proxy
 
+# Use a property or function to access metadata lazily if needed,
+# but for now, ensure Base is imported correctly.
 metadata = Base.metadata
 
 
