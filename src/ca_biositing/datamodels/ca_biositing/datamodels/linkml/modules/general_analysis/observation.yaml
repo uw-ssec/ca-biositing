@@ -5,9 +5,9 @@ prefixes:
 imports:
   - linkml:types
   - ../core/base_entity
-  - dataset
+  - ../general_analysis/dataset
   - ../methods_parameters_units/unit
-  - dimension_type
+  - ../general_analysis/dimension_type
 default_range: string
 
 classes:
@@ -15,6 +15,7 @@ classes:
     is_a: BaseEntity
     description: Observation data.
     slots:
+      - record_id
       - dataset_id
       - record_type
       - record_id
@@ -28,7 +29,7 @@ classes:
 
 slots:
   dataset_id:
-    range: Dataset
+    range: integer
     description: Reference to Dataset.
 
   record_type:
@@ -36,8 +37,9 @@ slots:
     description: Type of record.
 
   record_id:
-    range: integer
+    range: string
     description: ID of the record.
+    identifier: true
 
   parameter_id:
     range: Parameter

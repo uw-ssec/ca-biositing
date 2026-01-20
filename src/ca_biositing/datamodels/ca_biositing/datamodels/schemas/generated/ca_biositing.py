@@ -2494,7 +2494,7 @@ class FacilityRecord(BaseEntity):
     operator = Column(Text())
     start_year = Column(Integer())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Text())
