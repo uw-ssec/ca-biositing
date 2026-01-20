@@ -7,7 +7,11 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 # from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 
 @task
-def transform_observation(raw_dfs: List[pd.DataFrame]) -> pd.DataFrame:
+def transform_observation(
+    raw_dfs: List[pd.DataFrame],
+    etl_run_id: int = None,
+    lineage_group_id: int = None
+) -> pd.DataFrame:
     print("DEBUG: transform_observation task execution started")
     from ca_biositing.datamodels.schemas.generated.ca_biositing import (
         Resource,
@@ -35,6 +39,12 @@ def transform_observation(raw_dfs: List[pd.DataFrame]) -> pd.DataFrame:
         df_copy = df.copy()
         df_copy['dataset'] = 'biocirv'
         cleaned_df = cleaning_mod.standard_clean(df_copy)
+
+        if etl_run_id:
+            cleaned_df['etl_run_id'] = etl_run_id
+        if lineage_group_id:
+            cleaned_df['lineage_group_id'] = lineage_group_id
+
         coerced_df = coercion_mod.coerce_columns(
             cleaned_df,
             int_cols=['repl_no'],
@@ -70,7 +80,9 @@ def transform_observation(raw_dfs: List[pd.DataFrame]) -> pd.DataFrame:
                 'parameter_id',
                 'value',
                 'unit_id',
-                'note'
+                'note',
+                'etl_run_id',
+                'lineage_group_id'
             ]].copy().rename(columns={'analysis_type': 'record_type'})
 
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])

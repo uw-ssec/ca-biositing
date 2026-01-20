@@ -54,6 +54,15 @@ def analysis_records_flow(*args, **kwargs):
     logger = get_run_logger()
     logger.info("Starting Analysis Records ETL flow...")
 
+    # 0. Lineage Tracking Setup
+    logger.info("Setting up lineage tracking...")
+    from ca_biositing.pipeline.utils.lineage import create_etl_run_record, create_lineage_group
+    etl_run_id = create_etl_run_record.fn(pipeline_name="Analysis Records ETL")
+    logger.info(f"ETL Run ID: {etl_run_id}")
+
+    lineage_group_id = create_lineage_group.fn(etl_run_id=etl_run_id, note="Proximate, Ultimate, and Compositional records")
+    logger.info(f"Lineage Group ID: {lineage_group_id}")
+
     # 1. Extract
     logger.info("Extracting Proximate data...")
     prox_raw = proximate.extract.fn()
@@ -68,28 +77,40 @@ def analysis_records_flow(*args, **kwargs):
     logger.info("Starting transformations...")
 
     @task(name="Wrapper Transform Observation")
-    def wrap_obs(data):
+    def wrap_obs(data, etl_id, lin_id):
         print("DEBUG: Inside wrap_obs task")
-        return transform_observation.fn(data)
+        return transform_observation.fn(data, etl_run_id=etl_id, lineage_group_id=lin_id)
 
     print("DEBUG: Calling wrap_obs()")
-    obs_df = wrap_obs(raw_data)
+    obs_df = wrap_obs(raw_data, etl_run_id, lineage_group_id)
     print("DEBUG: wrap_obs() completed")
 
     # Assuming order: 0: Proximate, 1: Ultimate, 2: Compositional
-    logger.info("Transforming Proximate records...")
+    logger.info("Transforming Proximate records with lineage tracking...")
     print("DEBUG: Calling transform_proximate_record.fn()")
-    prox_rec_df = transform_proximate_record.fn(prox_raw)
+    prox_rec_df = transform_proximate_record.fn(
+        prox_raw,
+        etl_run_id=etl_run_id,
+        lineage_group_id=lineage_group_id
+    )
     print("DEBUG: transform_proximate_record.fn() completed")
 
-    logger.info("Transforming Ultimate records...")
+    logger.info("Transforming Ultimate records with lineage tracking...")
     print("DEBUG: Calling transform_ultimate_record.fn()")
-    ult_rec_df = transform_ultimate_record.fn(ult_raw)
+    ult_rec_df = transform_ultimate_record.fn(
+        ult_raw,
+        etl_run_id=etl_run_id,
+        lineage_group_id=lineage_group_id
+    )
     print("DEBUG: transform_ultimate_record.fn() completed")
 
-    logger.info("Transforming Compositional records...")
+    logger.info("Transforming Compositional records with lineage tracking...")
     print("DEBUG: Calling transform_compositional_record.fn()")
-    comp_rec_df = transform_compositional_record.fn(cmpana_raw)
+    comp_rec_df = transform_compositional_record.fn(
+        cmpana_raw,
+        etl_run_id=etl_run_id,
+        lineage_group_id=lineage_group_id
+    )
     print("DEBUG: transform_compositional_record.fn() completed")
 
     # 3. Load

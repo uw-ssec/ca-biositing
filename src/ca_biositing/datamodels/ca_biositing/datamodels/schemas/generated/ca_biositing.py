@@ -1,6 +1,6 @@
-from ...database import Base, get_engine
+from ...database import Base
 
-# from ...database import Base
+from ...database import Base
 
 
 from sqlalchemy import Column, Index, Table, ForeignKey
@@ -8,8 +8,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import *
 from sqlalchemy.ext.associationproxy import association_proxy
 
-# Use a property or function to access metadata lazily if needed,
-# but for now, ensure Base is imported correctly.
 metadata = Base.metadata
 
 
@@ -22,7 +20,7 @@ class BaseEntity(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -622,7 +620,7 @@ class LineageGroup(Base):
     __tablename__ = 'lineage_group'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     note = Column(Text())
 
 
@@ -662,6 +660,7 @@ class EtlRun(Base):
     __tablename__ = 'etl_run'
 
     id = Column(Integer(), primary_key=True, nullable=False )
+    run_id = Column(Text())
     started_at = Column(DateTime())
     completed_at = Column(DateTime())
     pipeline_name = Column(Text())
@@ -671,7 +670,7 @@ class EtlRun(Base):
 
 
     def __repr__(self):
-        return f"EtlRun(id={self.id},started_at={self.started_at},completed_at={self.completed_at},pipeline_name={self.pipeline_name},status={self.status},records_ingested={self.records_ingested},note={self.note},)"
+        return f"EtlRun(id={self.id},run_id={self.run_id},started_at={self.started_at},completed_at={self.completed_at},pipeline_name={self.pipeline_name},status={self.status},records_ingested={self.records_ingested},note={self.note},)"
 
 
 
@@ -764,7 +763,7 @@ class DataSource(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -791,7 +790,7 @@ class DataSourceType(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -823,7 +822,7 @@ class FileObjectMetadata(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -931,7 +930,7 @@ class Experiment(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -989,7 +988,7 @@ class Method(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1021,7 +1020,7 @@ class PreparedSample(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1052,7 +1051,7 @@ class Resource(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1142,7 +1141,7 @@ class BillionTon2023Record(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1204,7 +1203,7 @@ class LandiqRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1263,7 +1262,7 @@ class ResourceUsdaCommodityMap(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1295,7 +1294,7 @@ class UsdaCensusRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1354,7 +1353,7 @@ class UsdaMarketReport(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1400,7 +1399,7 @@ class UsdaMarketRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1434,7 +1433,7 @@ class LocationAddress(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1519,7 +1518,7 @@ class UsdaSurveyRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1551,7 +1550,7 @@ class UsdaTermMap(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1645,7 +1644,7 @@ class FieldSample(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1701,7 +1700,7 @@ class FieldSampleCondition(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1804,7 +1803,7 @@ class LocationSoilType(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1835,7 +1834,7 @@ class PhysicalCharacteristic(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1867,7 +1866,7 @@ class Dataset(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1928,7 +1927,7 @@ class Observation(BaseEntity):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1962,7 +1961,7 @@ class FacilityRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2067,7 +2066,7 @@ class Parameter(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2122,7 +2121,7 @@ class Contact(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2149,7 +2148,7 @@ class Provider(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2187,7 +2186,7 @@ class Aim1RecordBase(BaseEntity):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2225,7 +2224,7 @@ class Aim2RecordBase(BaseEntity):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2283,7 +2282,7 @@ class ResourceAvailability(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2340,7 +2339,7 @@ class PreparationMethod(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2403,7 +2402,7 @@ class ProximateRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2441,7 +2440,7 @@ class UltimateRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2479,7 +2478,7 @@ class CompositionalRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2517,7 +2516,7 @@ class IcpRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2559,7 +2558,7 @@ class XrfRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2599,7 +2598,7 @@ class XrdRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2637,7 +2636,7 @@ class CalorimetryRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2675,7 +2674,7 @@ class FtnirRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2713,7 +2712,7 @@ class RgbRecord(Aim1RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2757,7 +2756,7 @@ class PretreatmentRecord(Aim2RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2803,7 +2802,7 @@ class FermentationRecord(Aim2RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2844,7 +2843,7 @@ class GasificationRecord(Aim2RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2882,7 +2881,7 @@ class AutoclaveRecord(Aim2RecordBase):
     id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 

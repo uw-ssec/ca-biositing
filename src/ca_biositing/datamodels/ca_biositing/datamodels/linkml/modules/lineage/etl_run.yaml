@@ -12,6 +12,7 @@ classes:
     description: Information about an ETL run.
     slots:
       - id
+      - run_id
       - started_at
       - completed_at
       - pipeline_name
@@ -23,6 +24,10 @@ classes:
         identifier: true
 
 slots:
+  run_id:
+    range: string
+    description: The Prefect run ID or other external identifier.
+
   started_at:
     range: datetime
     description: Start time of the ETL run.

@@ -6,7 +6,11 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 # from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 
 @task
-def transform_proximate_record(raw_df: pd.DataFrame) -> pd.DataFrame:
+def transform_proximate_record(
+    raw_df: pd.DataFrame,
+    etl_run_id: str = None,
+    lineage_group_id: int = None
+) -> pd.DataFrame:
     from ca_biositing.datamodels.schemas.generated.ca_biositing import (
         Resource,
         PreparedSample,
@@ -28,7 +32,14 @@ def transform_proximate_record(raw_df: pd.DataFrame) -> pd.DataFrame:
     # 1. Cleaning & Coercion
     df_copy = raw_df.copy()
     df_copy['dataset'] = 'biocirv'
+
     cleaned_df = cleaning_mod.standard_clean(df_copy)
+
+    # Add lineage IDs AFTER standard_clean to avoid them being lowercased or modified
+    if etl_run_id:
+        cleaned_df['etl_run_id'] = etl_run_id
+    if lineage_group_id:
+        cleaned_df['lineage_group_id'] = lineage_group_id
     coerced_df = coercion_mod.coerce_columns(
         cleaned_df,
         int_cols=['repl_no'],
@@ -54,9 +65,11 @@ def transform_proximate_record(raw_df: pd.DataFrame) -> pd.DataFrame:
     # 3. Table Specific Mapping
     rename_map = {
         'record_id': 'record_id',
-        'repl_no': 'technical_replication_no',
+        'repl_no': 'technical_replicate_no',
         'qc_result': 'qc_pass',
-        'note': 'note'
+        'note': 'note',
+        'etl_run_id': 'etl_run_id',
+        'lineage_group_id': 'lineage_group_id'
     }
 
     for col in normalize_columns.keys():

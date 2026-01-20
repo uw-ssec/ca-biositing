@@ -69,9 +69,12 @@ like Prefect.
 3.  **Use Docker-Aware Hostnames**: Always check for the existence of
     `/.dockerenv` to determine if the code should connect to `db` or
     `localhost`.
-4.  **Prefer `.fn()` for Local Sub-flows**: When running a master flow that
-    orchestrates other flows, use `sub_flow.fn()` to avoid scheduling deadlocks
-    in single-worker environments.
+4.  **Local vs. Production Orchestration**:
+    - **Local/Docker**: Use `sub_flow.fn()` when calling flows from within a
+      master flow to avoid scheduling deadlocks in single-worker environments.
+    - **Production (GCP/Cloud Run)**: Use standard sub-flow calls or
+      `run_deployment` to allow Prefect to track individual runs and manage
+      infrastructure scaling.
 5.  **Granular Debug Logging**: Use `print()` statements alongside `logger` for
     critical lifecycle events (Session open, Commit, Batch start) to identify
     hangs that occur outside the logger's context.
