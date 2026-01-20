@@ -48,6 +48,14 @@ The generated Python models are saved in
 `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`. **Do
 not edit these files directly.** Always modify the LinkML schema and regenerate.
 
+### Note on Unique Constraints
+
+LinkML's SQLAlchemy generator does not always preserve `UNIQUE` constraints or
+`identifier` status in a way that Alembic detects for all polymorphic tables.
+The `generate_sqla.py` script includes a post-processing step to manually inject
+`unique=True` for `record_id` on target classes (Observations and Aim Records)
+to ensure robust upsert support.
+
 ## Structure
 
 ```text
