@@ -3,10 +3,21 @@ from prefect import task, get_run_logger
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
-from ca_biositing.datamodels.schemas.generated.ca_biositing import *
+# from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 
 @task
 def transform_proximate_record(raw_df: pd.DataFrame) -> pd.DataFrame:
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+        Resource,
+        PreparedSample,
+        Method,
+        Parameter,
+        Unit,
+        Contact,
+        PrimaryAgProduct,
+        Provider,
+        Dataset,
+    )
     """
     Transforms raw DataFrame into the ProximateRecord table format.
     Includes cleaning, coercion, and normalization.

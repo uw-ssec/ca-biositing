@@ -4,14 +4,28 @@ from typing import List
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
-from ca_biositing.datamodels.schemas.generated.ca_biositing import *
+# from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 
 @task
 def transform_observation(raw_dfs: List[pd.DataFrame]) -> pd.DataFrame:
+    print("DEBUG: transform_observation task execution started")
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+        Resource,
+        PreparedSample,
+        Method,
+        Parameter,
+        Unit,
+        Contact,
+        PrimaryAgProduct,
+        Provider,
+        Dataset,
+    )
+    print("DEBUG: transform_observation models imported")
     """
     Transforms raw DataFrames into the Observation table format.
     Includes cleaning, coercion, and normalization.
     """
+    print(f"DEBUG: transform_observation started with {len(raw_dfs)} dfs")
     logger = get_run_logger()
     logger.info(f"Transforming {len(raw_dfs)} raw dataframes for Observation table")
 
@@ -44,8 +58,10 @@ def transform_observation(raw_dfs: List[pd.DataFrame]) -> pd.DataFrame:
     }
 
     observation_data = []
-    for df in coerced_data:
+    for i, df in enumerate(coerced_data):
+        print(f"DEBUG: Normalizing dataframe #{i+1}")
         normalized_df = normalize_dataframes(df, normalize_columns)
+        print(f"DEBUG: Dataframe #{i+1} normalized")
         try:
             obs_df = normalized_df[[
                 'dataset_id',

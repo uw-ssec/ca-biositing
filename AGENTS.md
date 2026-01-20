@@ -186,8 +186,13 @@ The API layer.
 
 - **Import Errors**: Ensure you are using the Pixi kernel or have set
   `PYTHONPATH` correctly.
-- **Docker Hangs**: Always use `pixi run update-schema` instead of running
-  alembic inside containers on macOS.
+- **Docker Hangs & Deadlocks**:
+  - **CRITICAL**: Never import heavy SQLAlchemy models or Pydantic settings at
+    the module level. Always import them inside the `@task` or `@flow` function.
+  - **CRITICAL**: Avoid any network I/O or database connectivity tests at the
+    module level (import time).
+  - **Docker Networking**: Inside containers, use the `db` hostname for
+    PostgreSQL. Outside, use `localhost`.
 - **GCP Auth**: `credentials.json` must be in the root for ETL tasks. See
   [`docs/pipeline/GCP_SETUP.md`](docs/pipeline/GCP_SETUP.md).
 

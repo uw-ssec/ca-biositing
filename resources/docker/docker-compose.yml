@@ -72,6 +72,8 @@ services:
       - ../../credentials.json:/app/credentials.json
       - ../../alembic:/app/alembic
       - ../../alembic.ini:/app/alembic.ini
+      - ../../src/ca_biositing/pipeline/ca_biositing:/app/.pixi/envs/etl/lib/python3.12/site-packages/ca_biositing
+      - ../../src/ca_biositing/datamodels/ca_biositing/datamodels:/app/.pixi/envs/etl/lib/python3.12/site-packages/ca_biositing/datamodels
     depends_on:
       prefect-server:
         condition: service_healthy

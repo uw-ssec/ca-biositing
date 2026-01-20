@@ -117,7 +117,7 @@ def replace_name_with_id_df(
   return df_copy, num_new_records
 
 import logging
-from .engine import engine
+# from .engine import engine
 
 logger = logging.getLogger(__name__)
 
@@ -142,9 +142,13 @@ def normalize_dataframes(
         dataframes = [dataframes]
 
     logger.info(f"Starting normalization for {len(dataframes)} DataFrames.")
+    print(f"DEBUG: Starting normalization for {len(dataframes)} DataFrames")
     normalized_dfs: list[pd.DataFrame] = []
+    from .engine import engine
     try:
+        print("DEBUG: Opening database session...")
         with Session(engine) as db:
+            print("DEBUG: Database session opened")
             for i, df in enumerate(dataframes):
                 if not isinstance(df, pd.DataFrame):
                     logger.warning(f"Item {i+1} is not a DataFrame; skipping.")

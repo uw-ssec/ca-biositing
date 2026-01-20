@@ -17,8 +17,12 @@ while path != os.path.dirname(path): # Stop at the filesystem root
 # Use platform‑independent path construction to avoid Windows‑style separators on macOS/Linux.
 from pathlib import Path
 
-env_path = Path(project_root) / "resources" / "docker" / ".env"
-load_dotenv(dotenv_path=env_path)
+if project_root:
+    env_path = Path(project_root) / "resources" / "docker" / ".env"
+    load_dotenv(dotenv_path=env_path)
+else:
+    # Fallback for container environments where project_root might not be detectable via pixi.toml
+    load_dotenv()
 
 # Database Connection
 POSTGRES_USER = os.getenv("POSTGRES_USER")
@@ -40,17 +44,19 @@ def _build_database_url() -> str:
     import sqlalchemy
     from sqlalchemy.exc import OperationalError
 
+    # Check if we are inside a Docker container
+    is_docker = os.path.exists('/.dockerenv')
+
     if POSTGRES_USER and POSTGRES_PASSWORD and POSTGRES_PORT:
-        url = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:{POSTGRES_PORT}/biocirv_db"
-        try:
-            # Create a temporary engine to test connectivity.
-            test_engine = sqlalchemy.create_engine(url, pool_pre_ping=True)
-            with test_engine.connect() as conn:
-                pass  # Connection succeeded.
-            return url
-        except OperationalError:
-            # Server not reachable – fall back.
-            pass
+        # Use 'db' host inside docker, 'localhost' outside
+        host = "db" if is_docker else "localhost"
+        port = "5432" if is_docker else POSTGRES_PORT
+
+        url = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{host}:{port}/biocirv_db"
+
+        # Skip connectivity test during import to avoid hangs
+        return url
+
     # Fallback SQLite in‑memory DB.
     return "sqlite:///:memory:"
 
