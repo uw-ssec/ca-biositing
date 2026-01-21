@@ -2,7 +2,7 @@ import pandas as pd
 from prefect import task, get_run_logger
 from sqlmodel import Session, select
 from ca_biositing.datamodels.database import engine
-from ca_biositing.datamodels.experiments_analysis import AnalysisType
+from ca_biositing.datamodels.schemas.generated.ca_biositing import AnalysisType
 
 @task
 def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
@@ -25,14 +25,14 @@ def load_analysis_analysis_type(analysis_types_df: pd.DataFrame):
     logger.info(f"Attempting to load {len(analysis_types_df)} analysis names into the database...")
 
     with Session(engine) as session:
-        statement = select(AnalysisType.analysis_name)
+        statement = select(AnalysisType.name)
         existing_analysis_types = session.exec(statement).all()
         existing_analysis_type_names = set(existing_analysis_types)
 
         records_to_add = []
         for analysis_type in analysis_types_df[column_name]:
             if analysis_type not in existing_analysis_type_names:
-                name = AnalysisType(analysis_name=analysis_type)
+                name = AnalysisType(name=analysis_type)
                 records_to_add.append(name)
                 existing_analysis_type_names.add(analysis_type)
 

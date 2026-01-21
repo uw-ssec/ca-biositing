@@ -16107,7 +16107,7 @@ packages:
 - pypi: ./src/ca_biositing/datamodels
   name: ca-biositing-datamodels
   version: 0.1.0
-  sha256: 718d8653acf22013568096765cdd4ba08419b4e53036b066786a81021a361bc0
+  sha256: e21a01e18771bb61e74741b5fc08c12d0d9e7c28c69d4e3a336f47df10a6b6bb
   requires_dist:
   - alembic>=1.13.2,<2
   - linkml>=1.8.0
@@ -16137,7 +16137,7 @@ packages:
 - pypi: ./src/ca_biositing/webservice
   name: ca-biositing-webservice
   version: 0.1.0
-  sha256: 416d11457476ae6436dcc65dfc63d9bea6d6f4f92093de252cb1544a18705522
+  sha256: 3081f77449d1a896571f7265d0b232dec7d37fa6eba965ce43bec05144a45056
   requires_dist:
   - ca-biositing-datamodels==0.1.0
   - fastapi>=0.111.0,<0.115.0

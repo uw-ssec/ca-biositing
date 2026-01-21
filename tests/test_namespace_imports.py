@@ -19,26 +19,26 @@ def test_pipeline_import():
 
 def test_model_imports():
     """Test that models can be imported from datamodels."""
-    from ca_biositing.datamodels.biomass import FieldSample, PrimaryProduct
-    from ca_biositing.datamodels.experiments_analysis import AnalysisType
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import FieldSample, PrimaryAgProduct
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import AnalysisType
 
-    assert FieldSample.__tablename__ == "field_samples"
-    assert PrimaryProduct.__tablename__ == "primary_product"
-    assert AnalysisType.__tablename__ == "analysis_types"
+    assert FieldSample.__tablename__ == "field_sample"
+    assert PrimaryAgProduct.__tablename__ == "primary_ag_product"
+    assert AnalysisType.__tablename__ == "analysis_type"
 
 
 def test_database_import():
     """Test that database module can be imported."""
     from ca_biositing.datamodels import database
 
-    assert hasattr(database, 'engine')
+    assert hasattr(database, 'get_engine')
     assert hasattr(database, 'get_session')
 
 
 def test_pipeline_flows_import():
     """Test that pipeline flows can be imported."""
-    from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+    from ca_biositing.pipeline.flows.primary_ag_product import primary_ag_product_flow
     from ca_biositing.pipeline.flows.analysis_type import analysis_type_flow
 
-    assert callable(primary_product_flow)
+    assert callable(primary_ag_product_flow)
     assert callable(analysis_type_flow)

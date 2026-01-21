@@ -35,6 +35,12 @@ def get_session_local():
 
 Base = declarative_base()
 
+# For backward compatibility with existing code that expects 'engine'
+def __getattr__(name):
+    if name == "engine":
+        return get_engine()
+    raise AttributeError(f"module {__name__} has no attribute {name}")
+
 def get_session():
     """
     Dependency that yields a database session.
