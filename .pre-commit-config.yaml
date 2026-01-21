@@ -28,7 +28,7 @@ repos:
     rev: "v2.4.1"
     hooks:
       - id: codespell
-        exclude: (\.ipynb$|pixi\.lock)
+        exclude: (\.ipynb$|pixi\.lock|temp_external_datasets/)
 
   - repo: local
     hooks:

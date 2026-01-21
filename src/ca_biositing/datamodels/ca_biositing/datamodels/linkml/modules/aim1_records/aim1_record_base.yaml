@@ -27,11 +27,11 @@ classes:
     is_a: BaseEntity
     abstract: true
     slots:
+      - record_id
       - dataset_id
-
       - experiment_id
       - resource_id
-      - sample_id
+      - prepared_sample_id
       - technical_replicate_no
       - technical_replicate_total
       - method_id
@@ -41,8 +41,13 @@ classes:
       - note
 
 slots:
-  sample_id:
-    range: integer
+  record_id:
+    range: string
+    description: Unique identifier for the record.
+    identifier: true
+
+  prepared_sample_id:
+    range: PreparedSample
     description: Reference to PreparedSample.
 
   resource_id:
@@ -62,7 +67,7 @@ slots:
     description: Reference to FileObjectMetadata.
 
   dataset_id:
-    range: Dataset
+    range: integer
     description: Reference to Dataset.
 
   experiment_id:
@@ -78,7 +83,7 @@ slots:
     description: Total number of replicates.
 
   qc_pass:
-    range: boolean
+    range: string
     description: Whether the record passed QC.
 
   note:

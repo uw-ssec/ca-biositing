@@ -5,8 +5,10 @@ from prefect.utilities.importtools import import_object
 
 # A dictionary mapping flow names to their import paths
 AVAILABLE_FLOWS = {
-    "primary_ag_product": "ca_biositing.pipeline.flows.primary_ag_product.primary_ag_product_flow",
-    "analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
+    #"primary_ag_product": "ca_biositing.pipeline.flows.primary_ag_product.primary_ag_product_flow",
+    #"analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
+    "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
+    "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
 }
 
 @flow(name="Master ETL Flow", log_prints=True)
@@ -21,8 +23,25 @@ def master_flow():
     for flow_name, flow_path in AVAILABLE_FLOWS.items():
         try:
             logger.info(f"--- Running sub-flow: {flow_name} ---")
-            flow_func = import_object(flow_path)
-            flow_func()
+            print(f"DEBUG: Attempting to import {flow_path}")
+            # Split the path to import the module first
+            module_path, obj_name = flow_path.rsplit(".", 1)
+            import importlib
+            print(f"DEBUG: Importing module {module_path}")
+            mod = importlib.import_module(module_path)
+            print(f"DEBUG: Module {module_path} imported")
+            flow_func = getattr(mod, obj_name)
+            print(f"DEBUG: Successfully got attribute {obj_name}")
+
+            if hasattr(flow_func, "fn"):
+                logger.info(f"Executing {flow_name} via .fn()")
+                print(f"DEBUG: Calling {flow_name}.fn()")
+                flow_func.fn()
+            else:
+                logger.info(f"Executing {flow_name} directly")
+                print(f"DEBUG: Calling {flow_name} directly")
+                flow_func()
+            print(f"DEBUG: Finished {flow_name}")
         except Exception as e:
             logger.error(f"Flow '{flow_name}' failed with error: {e}")
             logger.error(traceback.format_exc())

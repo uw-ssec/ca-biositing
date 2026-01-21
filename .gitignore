@@ -33,6 +33,13 @@ venv/
 # Local Data
 data/interim/
 data/processed/
+data/landiq/*.shp
+data/landiq/*.shx
+data/landiq/*.dbf
+data/landiq/*.prj
+data/landiq/*.cpg
+data/landiq/*.xml
+*.csv
 
 # Credentials
 credentials.json

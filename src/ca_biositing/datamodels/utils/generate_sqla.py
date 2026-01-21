@@ -28,8 +28,6 @@ def post_process_file(file_path):
 
     # Convert ForeignKey references from class names to table names
     # Matches: ForeignKey('SomeClass.id') -> ForeignKey('some_class.id')
-    # Convert ForeignKey references from class names to table names
-    # Matches: ForeignKey('SomeClass.column') -> ForeignKey('some_class.column')
     def replace_foreign_key(match):
         fk_content = match.group(0)
         # Extract the table/class name and column name from inside the quotes
@@ -37,7 +35,15 @@ def post_process_file(file_path):
         if inner_match:
             class_name = inner_match.group(1)
             column_name = inner_match.group(2)
-            table_name = to_snake_case(class_name)
+
+            # CUSTOM FIX: Force dataset_id to point to 'dataset' table, not 'data_source'
+            # This applies to Observation and all Record classes
+            # If the user changes range to 'integer', this block won't be reached as there's no ForeignKey
+            if class_name == 'DataSource' and 'dataset_id' in match.string[max(0, match.start()-100):match.end()]:
+                table_name = 'dataset'
+            else:
+                table_name = to_snake_case(class_name)
+
             return fk_content.replace(f"'{class_name}.{column_name}'", f"'{table_name}.{column_name}'")
         return fk_content
 
@@ -55,6 +61,34 @@ def post_process_file(file_path):
 
     # Remove the unused import if present
     new_content = re.sub(r"from sqlalchemy\.orm import declarative_base\n", "", new_content)
+
+    # Inject UniqueConstraint for record_id on specific classes
+    # This ensures Alembic detects them and they are part of the SQLAlchemy model
+    target_classes = [
+        'Observation', 'Aim1RecordBase', 'Aim2RecordBase', 'AutoclaveRecord',
+        'CalorimetryRecord', 'CompositionalRecord', 'FermentationRecord',
+        'FtnirRecord', 'GasificationRecord', 'IcpRecord', 'PretreatmentRecord',
+        'ProximateRecord', 'RgbRecord', 'UltimateRecord', 'XrdRecord', 'XrfRecord'
+    ]
+
+    for cls_name in target_classes:
+        # LinkML generator usually puts record_id as a regular Column(Text())
+        # We replace the existing record_id definition to include unique=True
+        # We also handle cases where it might be marked as primary_key=True by LinkML
+        record_id_pattern = rf"(class {cls_name}\(.*?record_id = Column\(Text\(\))([^)]*)\)"
+
+        def add_unique_param(m):
+            prefix = m.group(1)
+            params = m.group(2)
+            if "unique=True" in params:
+                return m.group(0)
+            # Add unique=True and ensure nullable=False
+            new_params = params
+            if "nullable=False" not in params:
+                new_params += ", nullable=False"
+            return f"{prefix}{new_params}, unique=True)"
+
+        new_content = re.sub(record_id_pattern, add_unique_param, new_content, flags=re.DOTALL)
 
     with open(file_path, 'w') as f:
         f.write(new_content)

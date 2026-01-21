@@ -15,7 +15,8 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project 
 # --- Import your models so Alembic knows about them ---
 from ca_biositing.datamodels.schemas.generated import ca_biositing
 from ca_biositing.datamodels.schemas.generated.ca_biositing import *
-# from ca_biositing.datamodels.database import Base
+# Import Base for target metadata
+from ca_biositing.datamodels.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -47,6 +48,19 @@ target_metadata = Base.metadata
 #     table.tometadata(target_metadata)
 
 
+def include_object(obj, name, type_, reflected, compare_to):
+    """Filter objects for autogenerate."""
+    if type_ == "table" and name in [
+        "spatial_ref_sys",
+        "geometry_columns",
+        "geography_columns",
+        "raster_columns",
+        "raster_overviews",
+    ]:
+        return False
+    return True
+
+
 def render_item(type_, obj, autogen_context):
     """Add custom imports to the migration template."""
     if type_ == "type" and hasattr(obj, "__module__"):
@@ -64,6 +78,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         render_item=render_item,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -83,6 +98,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             render_item=render_item,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

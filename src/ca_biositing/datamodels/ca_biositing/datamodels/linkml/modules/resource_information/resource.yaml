@@ -20,7 +20,6 @@ classes:
       - resource_class_id
       - resource_subclass_id
       - note
-      - test
 
 slots:
   primary_ag_product_id:
@@ -39,6 +38,6 @@ slots:
     range: string
     description: Additional notes about the resource.
 
-  test:
-    range: string
-    description: Test field.
+  #test:
+  # range: string
+  # description: Test field.

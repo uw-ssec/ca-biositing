@@ -20,7 +20,7 @@ class BaseEntity(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -128,11 +128,11 @@ class ExperimentPreparedSample(Base):
 
 
 
-class Geography(Base):
+class Place(Base):
     """
     Geographic location.
     """
-    __tablename__ = 'geography'
+    __tablename__ = 'place'
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -144,26 +144,7 @@ class Geography(Base):
 
 
     def __repr__(self):
-        return f"Geography(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
-
-
-
-
-
-
-class Polygon(Base):
-    """
-    Geospatial polygon.
-    """
-    __tablename__ = 'polygon'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    geoid = Column(Text())
-    geom = Column(Text())
-
-
-    def __repr__(self):
-        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
+        return f"Place(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
 
 
 
@@ -620,7 +601,7 @@ class LineageGroup(Base):
     __tablename__ = 'lineage_group'
 
     id = Column(Integer(), primary_key=True, nullable=False )
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     note = Column(Text())
 
 
@@ -660,6 +641,7 @@ class EtlRun(Base):
     __tablename__ = 'etl_run'
 
     id = Column(Integer(), primary_key=True, nullable=False )
+    run_id = Column(Text())
     started_at = Column(DateTime())
     completed_at = Column(DateTime())
     pipeline_name = Column(Text())
@@ -669,7 +651,7 @@ class EtlRun(Base):
 
 
     def __repr__(self):
-        return f"EtlRun(id={self.id},started_at={self.started_at},completed_at={self.completed_at},pipeline_name={self.pipeline_name},status={self.status},records_ingested={self.records_ingested},note={self.note},)"
+        return f"EtlRun(id={self.id},run_id={self.run_id},started_at={self.started_at},completed_at={self.completed_at},pipeline_name={self.pipeline_name},status={self.status},records_ingested={self.records_ingested},note={self.note},)"
 
 
 
@@ -762,7 +744,7 @@ class DataSource(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -789,7 +771,7 @@ class DataSourceType(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -821,7 +803,7 @@ class FileObjectMetadata(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -929,7 +911,7 @@ class Experiment(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -987,7 +969,7 @@ class Method(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1019,7 +1001,7 @@ class PreparedSample(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1047,16 +1029,15 @@ class Resource(BaseEntity):
     resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
     resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
     note = Column(Text())
-    test = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},test={self.test},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1141,12 +1122,40 @@ class BillionTon2023Record(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
         return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Polygon(BaseEntity):
+    """
+    Geospatial polygon.
+    """
+    __tablename__ = 'polygon'
+
+    geoid = Column(Text())
+    geom = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Polygon(geoid={self.geoid},geom={self.geom},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1189,7 +1198,8 @@ class LandiqRecord(BaseEntity):
     """
     __tablename__ = 'landiq_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False )
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     polygon_id = Column(Integer(), ForeignKey('polygon.id'))
     main_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
     secondary_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
@@ -1200,15 +1210,19 @@ class LandiqRecord(BaseEntity):
     acres = Column(Float())
     version = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    pct1 = Column(Float())
+    pct2 = Column(Float())
+    pct3 = Column(Float())
+    pct4 = Column(Float())
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"LandiqRecord(dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},pct1={self.pct1},pct2={self.pct2},pct3={self.pct3},pct4={self.pct4},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1262,7 +1276,7 @@ class ResourceUsdaCommodityMap(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1285,7 +1299,7 @@ class UsdaCensusRecord(BaseEntity):
     """
     __tablename__ = 'usda_census_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     geoid = Column(Text())
     commodity_code = Column(Integer(), ForeignKey('usda_commodity.id'))
     year = Column(Integer())
@@ -1294,7 +1308,7 @@ class UsdaCensusRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1353,7 +1367,7 @@ class UsdaMarketReport(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1377,7 +1391,7 @@ class UsdaMarketRecord(BaseEntity):
     __tablename__ = 'usda_market_record'
 
     report_id = Column(Integer(), ForeignKey('usda_market_report.id'))
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     report_begin_date = Column(DateTime())
     report_end_date = Column(DateTime())
     report_date = Column(DateTime())
@@ -1399,7 +1413,7 @@ class UsdaMarketRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1422,7 +1436,7 @@ class LocationAddress(BaseEntity):
     """
     __tablename__ = 'location_address'
 
-    geography_id = Column(Text(), ForeignKey('geography.geoid'))
+    geography_id = Column(Text(), ForeignKey('place.geoid'))
     address_line1 = Column(Text())
     address_line2 = Column(Text())
     city = Column(Text())
@@ -1433,7 +1447,7 @@ class LocationAddress(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1506,7 +1520,7 @@ class UsdaSurveyRecord(BaseEntity):
     """
     __tablename__ = 'usda_survey_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     geoid = Column(Text())
     commodity_code = Column(Integer(), ForeignKey('usda_commodity.id'))
     year = Column(Integer())
@@ -1518,7 +1532,7 @@ class UsdaSurveyRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1550,7 +1564,7 @@ class UsdaTermMap(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1644,7 +1658,7 @@ class FieldSample(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1700,7 +1714,7 @@ class FieldSampleCondition(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1803,7 +1817,7 @@ class LocationSoilType(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1834,7 +1848,7 @@ class PhysicalCharacteristic(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1866,7 +1880,7 @@ class Dataset(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -1914,9 +1928,9 @@ class Observation(BaseEntity):
     """
     __tablename__ = 'observation'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     record_type = Column(Text())
-    record_id = Column(Integer())
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     value = Column(Numeric())
     unit_id = Column(Integer(), ForeignKey('unit.id'))
@@ -1924,15 +1938,15 @@ class Observation(BaseEntity):
     dimension_value = Column(Numeric())
     dimension_unit_id = Column(Integer(), ForeignKey('unit.id'))
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"Observation(dataset_id={self.dataset_id},record_type={self.record_type},record_id={self.record_id},parameter_id={self.parameter_id},value={self.value},unit_id={self.unit_id},dimension_type_id={self.dimension_type_id},dimension_value={self.dimension_value},dimension_unit_id={self.dimension_unit_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Observation(record_id={self.record_id},dataset_id={self.dataset_id},record_type={self.record_type},parameter_id={self.parameter_id},value={self.value},unit_id={self.unit_id},dimension_type_id={self.dimension_type_id},dimension_value={self.dimension_value},dimension_unit_id={self.dimension_unit_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1950,7 +1964,7 @@ class FacilityRecord(BaseEntity):
     """
     __tablename__ = 'facility_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     facility_name = Column(Text())
     location_id = Column(Integer(), ForeignKey('location_address.id'))
     capacity_mw = Column(Numeric())
@@ -1961,7 +1975,7 @@ class FacilityRecord(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2066,7 +2080,7 @@ class Parameter(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2121,7 +2135,7 @@ class Contact(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2148,7 +2162,7 @@ class Provider(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2171,26 +2185,27 @@ class Aim1RecordBase(BaseEntity):
     """
     __tablename__ = 'aim1_record_base'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"Aim1RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim1RecordBase(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2208,26 +2223,27 @@ class Aim2RecordBase(BaseEntity):
     """
     __tablename__ = 'aim2_record_base'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"Aim2RecordBase(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Aim2RecordBase(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2280,7 +2296,7 @@ class ResourceAvailability(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2337,7 +2353,7 @@ class PreparationMethod(BaseEntity):
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
@@ -2385,26 +2401,27 @@ class ProximateRecord(Aim1RecordBase):
     """
     __tablename__ = 'proximate_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"ProximateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ProximateRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2422,26 +2439,27 @@ class UltimateRecord(Aim1RecordBase):
     """
     __tablename__ = 'ultimate_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"UltimateRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UltimateRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2459,26 +2477,27 @@ class CompositionalRecord(Aim1RecordBase):
     """
     __tablename__ = 'compositional_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"CompositionalRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CompositionalRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2496,26 +2515,27 @@ class IcpRecord(Aim1RecordBase):
     """
     __tablename__ = 'icp_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"IcpRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"IcpRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2537,26 +2557,27 @@ class XrfRecord(Aim1RecordBase):
     intensity = Column(Numeric())
     energy_slope = Column(Numeric())
     energy_offset = Column(Numeric())
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"XrfRecord(wavelength_nm={self.wavelength_nm},intensity={self.intensity},energy_slope={self.energy_slope},energy_offset={self.energy_offset},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrfRecord(wavelength_nm={self.wavelength_nm},intensity={self.intensity},energy_slope={self.energy_slope},energy_offset={self.energy_offset},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2576,26 +2597,27 @@ class XrdRecord(Aim1RecordBase):
 
     scan_low_nm = Column(Integer())
     scan_high_nm = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"XrdRecord(scan_low_nm={self.scan_low_nm},scan_high_nm={self.scan_high_nm},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"XrdRecord(scan_low_nm={self.scan_low_nm},scan_high_nm={self.scan_high_nm},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2613,26 +2635,27 @@ class CalorimetryRecord(Aim1RecordBase):
     """
     __tablename__ = 'calorimetry_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"CalorimetryRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"CalorimetryRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2650,26 +2673,27 @@ class FtnirRecord(Aim1RecordBase):
     """
     __tablename__ = 'ftnir_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"FtnirRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FtnirRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2687,26 +2711,27 @@ class RgbRecord(Aim1RecordBase):
     """
     __tablename__ = 'rgb_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
     technical_replicate_total = Column(Integer())
     method_id = Column(Integer(), ForeignKey('method.id'))
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"RgbRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"RgbRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2730,26 +2755,27 @@ class PretreatmentRecord(Aim2RecordBase):
     block_position = Column(Text())
     temperature = Column(Numeric())
     replicate_no = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2775,26 +2801,27 @@ class FermentationRecord(Aim2RecordBase):
     agitation_rpm = Column(Numeric())
     vessel_id = Column(Integer())
     analyte_detection_equipment_id = Column(Integer())
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2815,26 +2842,27 @@ class GasificationRecord(Aim2RecordBase):
     feedstock_mass = Column(Numeric())
     bed_temperature = Column(Numeric())
     gas_flow_rate = Column(Numeric())
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2852,26 +2880,27 @@ class AutoclaveRecord(Aim2RecordBase):
     """
     __tablename__ = 'autoclave_record'
 
-    dataset_id = Column(Integer(), ForeignKey('data_source.id'))
+    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
-    sample_id = Column(Integer())
-    technical_replicate_total = Column(Integer())
+    prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
     technical_replicate_no = Column(Integer())
-    calc_method_id = Column(Integer())
-    calc_analyst_id = Column(Integer())
+    technical_replicate_total = Column(Integer())
+    method_id = Column(Integer(), ForeignKey('method.id'))
+    analyst_id = Column(Integer(), ForeignKey('contact.id'))
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
-    qc_pass = Column(Boolean())
+    qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
 
 
     def __repr__(self):
-        return f"AutoclaveRecord(dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},sample_id={self.sample_id},technical_replicate_total={self.technical_replicate_total},technical_replicate_no={self.technical_replicate_no},calc_method_id={self.calc_method_id},calc_analyst_id={self.calc_analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"AutoclaveRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

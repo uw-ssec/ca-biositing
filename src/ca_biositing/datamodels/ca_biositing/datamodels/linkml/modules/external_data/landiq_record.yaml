@@ -15,6 +15,7 @@ classes:
     is_a: BaseEntity
     description: LandIQ record.
     slots:
+      - record_id
       - dataset_id
       - polygon_id
       - main_crop
@@ -26,8 +27,17 @@ classes:
       - acres
       - version
       - note
+      - pct1
+      - pct2
+      - pct3
+      - pct4
 
 slots:
+  record_id:
+    range: string
+    description: Unique identifier for the record.
+    identifier: true
+
   dataset_id:
     range: DataSource
     description: Reference to DataSource.
@@ -67,3 +77,19 @@ slots:
   version:
     range: string
     description: Version of the data source.
+
+  pct1:
+    range: float
+    description: Percentage of main crop.
+
+  pct2:
+    range: float
+    description: Percentage of secondary crop.
+
+  pct3:
+    range: float
+    description: Percentage of tertiary crop.
+
+  pct4:
+    range: float
+    description: Percentage of quaternary crop.

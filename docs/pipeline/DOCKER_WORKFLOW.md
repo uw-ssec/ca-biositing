@@ -1,69 +1,91 @@
 # Docker Development Workflow
 
 This guide provides a quick reference for the common Docker commands and
-workflows used in this project. This guide provides a quick reference for the
-common Docker commands and workflows used in this project.
+workflows used in this project. All Docker operations are orchestrated via
+**Pixi tasks**.
 
 ---
 
-### Production Docker Workflow
+### Core Docker Workflow
 
-This is the standard process for running the full, containerized ETL system,
-including the Prefect worker.
+This is the standard process for running the containerized ETL system and
+database.
 
 **1. Starting Your Environment:**
 
-To start all services (`db`, `app`, 'prefect-server' and `prefect-worker`) and
-run them in the background, use:
+To start all services (`db`, `prefect-server`, and `prefect-worker`) in the
+background:
 
 ```bash
-# Make sure you are in the project root directory
-docker-compose up -d
+pixi run start-services
 ```
 
 This command will:
 
 - Start the PostgreSQL database.
-- Start the main application container.
-- Start the Prefect server
-- Start a dedicated Prefect worker container that automatically connects to your
-  Prefect server.
+- Start the Prefect server.
+- Start the Prefect worker.
 
-**2. Stopping Your Environment:**
-
-To stop and remove all running containers, use:
+**2. Checking Status and Logs:**
 
 ```bash
-# Make sure you are in the project root directory
-docker-compose down
+# Check service status
+pixi run service-status
+
+# View logs from all services
+pixi run service-logs
+```
+
+**3. Stopping Your Environment:**
+
+```bash
+# Stop services
+pixi run teardown-services
+
+# Stop and remove volumes (CAUTION: deletes all data)
+pixi run teardown-services-volumes
 ```
 
 ---
 
-### How to Add a New Python Package
+### Rebuilding Services
 
-This is the process to follow whenever you need to add a new dependency (e.g.,
-`a-new-package`) to your project using Pixi.
-
-**Step 1: Add the Dependency with Pixi**
-
-From the project root (`ca-biositing`), use the `pixi add` command. This will
-automatically update your `pixi.toml` and `pixi.lock` files.
+If you change dependencies in `pixi.toml` or modify the Dockerfiles, you must
+rebuild the images.
 
 ```bash
-# Make sure you are in the ca-biositing directory
-pixi add a-new-package
+# Rebuild images without cache
+pixi run rebuild-services
+
+# Restart services
+pixi run start-services
 ```
 
-**Step 2: Rebuild Your Docker Images**
+---
 
-Because you've changed the project's dependencies, you must rebuild your Docker
-images to include the new package.
+### Database Access
 
 ```bash
-# Make sure you are in the project root directory
-docker-compose up --build -d
+# Access the application database via psql
+pixi run access-db
+
+# Access the Prefect metadata database
+pixi run access-prefect-db
+
+# Check database health
+pixi run check-db-health
 ```
 
-Your `app` and `prefect-worker` containers will now have the new package
-installed and ready to use.
+---
+
+### Executing Commands in Containers
+
+If you need to run a command inside a specific container:
+
+```bash
+# Execute in Prefect worker
+pixi run exec-prefect-worker <command>
+
+# Execute in Database container
+pixi run exec-db <command>
+```

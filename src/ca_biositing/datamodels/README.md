@@ -33,7 +33,9 @@ making schema changes is:
     ```
     This command performs the following steps:
     - Cleans the generated models directory.
-    - Generates new SQLAlchemy/SQLModel classes from the LinkML schema.
+    - Generates new SQLAlchemy classes from the LinkML schema.
+    - Generated schemas are IN A SINGLE .py FILE
+      (datamodels/schemas/generate/ca_biositing)!
     - Rebuilds the Docker services to include the new code.
     - Starts the services.
     - Generates an Alembic migration script.
@@ -45,6 +47,14 @@ making schema changes is:
 The generated Python models are saved in
 `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`. **Do
 not edit these files directly.** Always modify the LinkML schema and regenerate.
+
+### Note on Unique Constraints
+
+LinkML's SQLAlchemy generator does not always preserve `UNIQUE` constraints or
+`identifier` status in a way that Alembic detects for all polymorphic tables.
+The `generate_sqla.py` script includes a post-processing step to manually inject
+`unique=True` for `record_id` on target classes (Observations and Aim Records)
+to ensure robust upsert support.
 
 ## Structure
 
@@ -59,7 +69,7 @@ src/ca_biositing/datamodels/
 │       │   ├── ca_biositing.yaml    # Main schema entrypoint
 │       │   └── modules/             # Modular schema definitions
 │       ├── schemas/
-│       │   └── generated/           # Generated SQLModel classes (DO NOT EDIT)
+│       │   └── generated/           # Generated SQLAlchemy classes (DO NOT EDIT)
 │       └── utils/                   # Schema management scripts
 │           ├── generate_sqla.py     # Script to generate models from LinkML
 │           └── orchestrate_schema_update.py # Orchestration script
@@ -127,17 +137,19 @@ sample = FieldSample(
 ### Database Operations
 
 ```python
-from sqlmodel import Session, create_engine, select
-from ca_biositing.datamodels.schemas.generated.resource_information import Resource
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
 
 # Create engine and session
 engine = create_engine("postgresql://user:pass@localhost/dbname")
+Session = sessionmaker(bind=engine)
 
-# Use with SQLModel Session
-with Session(engine) as session:
+# Use with SQLAlchemy Session
+with Session() as session:
     # Query models
     statement = select(Resource)
-    resources = session.exec(statement).all()
+    resources = session.execute(statement).scalars().all()
 
     # Add new records
     new_resource = Resource(name="Corn Stover")

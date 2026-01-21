@@ -10,10 +10,10 @@ platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
 version = "0.1.0"
 
 [environments]
-default = ["datamodels", "pipeline", "webservice", "kernel"]
+default = ["datamodels", "pipeline", "webservice", "kernel", "gis"]
 py312 = ["py312", "datamodels", "pipeline", "webservice"]
 py313 = ["py313", "datamodels", "pipeline", "webservice"]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+gis = { features = ["qgis", "raster", "vector", "kernel"], solve-group = "default" }
 etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
 webservice = { features = [
     "datamodels",
@@ -37,6 +37,7 @@ python-dotenv = ">=1.2.1,<2"
 asyncpg = ">=0.29.0,<0.30"
 pydrive2 = ">=1.21.3,<2"
 geopandas = ">=1.1.2,<2"
+proj = "*"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -173,17 +174,10 @@ restart-prefect-worker = { cmd = [
 ], description = "Restart the Prefect worker service." }
 
 migrate = { cmd = [
-    "docker-compose",
-    "-f",
-    "resources/docker/docker-compose.yml",
-    "exec",
-    "prefect-worker",
-    "/bin/bash",
-    "-c",
-    "source /shell-hook.sh && alembic upgrade head",
-], description = "Apply database migrations.", depends-on = [
-    "start-services",
-] }
+    "alembic",
+    "upgrade",
+    "head",
+], description = "Apply database migrations locally to the Docker database.", env = { PYTHONPATH = "./src/ca_biositing/datamodels", DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
 update-schema = { cmd = "python src/ca_biositing/datamodels/utils/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
@@ -221,6 +215,8 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+proj = "*"
+geopandas = "*"
 
 # Python Dependencies for specific versions
 
@@ -255,6 +251,8 @@ ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels" }
 # Pipeline Dependencies
 [feature.pipeline.pypi-dependencies]
 ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline" }
+# Alembic is required for generating migrations inside the worker container
+alembic = ">=1.13.2,<2"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -316,6 +314,12 @@ cwd = "deployment/cloud/gcp/infrastructure"
 [feature.cloud.tasks.cloud-destroy]
 cmd = "tofu destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+
+[feature.gis.pypi-dependencies]
+geopandas = "*"
+matplotlib = "*"
+ipykernel = "*"
+jupyter = "*"
 
 [pypi-dependencies]
 linkml = ">=1.9.3, <2"
