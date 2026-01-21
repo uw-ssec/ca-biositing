@@ -1,19 +1,68 @@
-📄 Description
+# LinkML and SQLAlchemy Integration
 
-This PR implements a master "source-of-truth" LinkML schema within the
-datamodels package. This LinkML schema is then used to generate SQLAlchemy
-models, which are tracked by alembic and migrated to the postgres database. A
-mixi-command was created to generate and clean the sqlalchemy models, as well as
-create a migration file with alembic. The readme doc in the datamodels package
-has been updated with instructions on how to perform these commands.
+This PR introduces a robust, schema-first approach to data modeling using
+**LinkML** as the source of truth. This architecture ensures that our database
+schema, Python models, and documentation remain perfectly synchronized.
 
-There is a persistent issue where inherited attributes in sqlalchemy classes are
-being placed at the end of the list of columns (so for example id, created_at,
-updated_at are at the end). I am still trying to work out a fix for this...
+## Core Architecture
 
-In addition, there were some small fixes to debug issues with windows pipeline
-users. win-64 was added as a platform to the pixi.toml, and asyncpg was added as
-a dependency.
+### LinkML Source of Truth
 
-There is still a good bit of cleanup and documentation updating that should
-occur, but that will be in another PR.
+The data model is defined using LinkML YAML modules located in:
+`src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`
+
+These modules cover core entities, geospatial polygons, ETL lineage, and
+domain-specific records (Aim 1, Aim 2, LandIQ, USDA).
+
+### Automated SQLAlchemy Generation
+
+We use a custom orchestration script, `generate_sqla.py`, to transform LinkML
+YAML definitions into SQLAlchemy ORM classes.
+
+**Key Features of `generate_sqla.py`:**
+
+- **Automated Mapping**: Converts LinkML classes, slots, and types into
+  SQLAlchemy tables and columns.
+- **Post-Processing for Upserts**: LinkML's default generator sometimes misses
+  critical database constraints. Our script manually injects `unique=True` for
+  `record_id` fields on Observations and Aim Records. This is essential for our
+  "upsert" (update or insert) logic in the ETL pipeline.
+- **Polymorphic Support**: Correctly handles inheritance patterns defined in
+  LinkML for complex record types.
+
+## Schema Management Workflow
+
+To maintain the integrity of the database while avoiding performance issues
+(especially on macOS Docker environments), we have implemented a specialized
+workflow:
+
+1.  **Modify Schema**: Edit YAML files in `linkml/modules/`.
+2.  **Orchestrate Update**: Run `pixi run update-schema`. This executes
+    `orchestrate_schema_update.py`, which:
+    - Generates the Python SQLAlchemy models.
+    - Rebuilds the relevant Docker services.
+    - **Generates the Alembic migration LOCALLY**. This is a critical
+      optimization that prevents the common "Alembic hang" seen when trying to
+      import heavy models inside a container.
+3.  **Apply Migrations**: Run `pixi run migrate` to apply the changes to the
+    PostgreSQL database.
+
+## Benefits to Upstream
+
+- **Type Safety**: Pydantic and SQLAlchemy models are strictly typed based on
+  the schema.
+- **Maintainability**: Adding a new field only requires a single change in a
+  YAML file.
+- **Consistency**: The same schema can be used to generate JSON-LD, SHACL, or
+  Markdown documentation in the future.
+- **Performance**: Local migration generation significantly speeds up the
+  development cycle.
+
+## Relevant Files
+
+- `src/ca_biositing/datamodels/utils/generate_sqla.py`: The core generation
+  logic.
+- `src/ca_biositing/datamodels/utils/orchestrate_schema_update.py`: The task
+  runner for schema updates.
+- `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`: The
+  output directory for generated models (DO NOT EDIT).
