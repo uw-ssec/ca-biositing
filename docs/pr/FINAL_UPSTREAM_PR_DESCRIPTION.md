@@ -19,6 +19,8 @@ for external data extraction.
 2.  **Enhanced ETL Pipeline (Prefect-orchestrated)**:
     - Implemented robust extraction patterns for Google Sheets and Google Drive
       (CSV, GeoJSON, Zip).
+    - Developed test notebooks for etl development
+    - Created ETL pipelines for three key analysis types extracted from Gsheets
     - Added lineage tracking for data provenance.
     - Integrated LandIQ dataset processing and infrastructure facility records.
     - Resolved complex hang issues related to Docker/Prefect networking on
@@ -35,6 +37,12 @@ for external data extraction.
     - Standardized on Pixi for environment management and task orchestration.
     - Refined Docker Compose configurations for database and Prefect worker
       services.
+    - **Notebook & Namespace Integration**: Implemented a standardized Jupyter
+      workflow using Pixi-managed kernels to handle PEP 420 namespace package
+      imports seamlessly.
+    - **Analysis ETL Pipelines**: Developed specialized ETL pipelines and
+      notebooks for data analysis, including gsheet extraction and geospatial
+      processing.
     - Updated pre-commit hooks (including `codespell` and `prettier`) to
       maintain high code quality.
 
