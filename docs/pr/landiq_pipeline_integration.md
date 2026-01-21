@@ -97,3 +97,30 @@ python resources/prefect/run_prefect_flow.py
 - **Normalization**: The `normalize_dataframes` utility was updated to
   dynamically detect primary keys, ensuring that name-to-ID swaps work correctly
   for models with non-standard identifiers.
+
+## Performance & Future Improvements
+
+### Current Loading Performance
+
+The Land IQ pipeline currently uses a **chunked extraction** but a **row-by-row
+load** pattern. While this manages memory effectively, it results in significant
+overhead in the Prefect UI and database:
+
+- **N+1 Query Pattern**: For every record in a chunk (e.g., 10,000), the loader
+  performs individual `SELECT` queries to check for existing `Polygon` and
+  `LandiqRecord` entries.
+- **Database Round-trips**: This results in ~20,000 round-trips per chunk, which
+  is the primary cause of slow ingestion times.
+
+### Future Fixes
+
+Since this data is loaded infrequently, the current implementation is acceptable
+for initial integration. However, for future optimizations, the following should
+be considered:
+
+- **Bulk Upserts**: Refactor `load_landiq_record` to use PostgreSQL's
+  `ON CONFLICT` syntax via SQLAlchemy's `insert().on_conflict_do_update()`. This
+  would collapse thousands of queries into a single bulk operation per chunk.
+- **Staging Tables**: For even higher performance, load raw chunks into a
+  temporary staging table and perform a single set-based `INSERT/UPDATE` join in
+  SQL.

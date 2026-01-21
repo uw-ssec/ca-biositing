@@ -5,11 +5,12 @@ ETL Transform for Land IQ Data
 This module provides functionality for transforming Land IQ GeoDataFrames into the LandiqRecord table format.
 """
 
+import os
 import pandas as pd
 import geopandas as gpd
 from prefect import task, get_run_logger
-from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
-from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
+import ca_biositing.pipeline.utils.cleaning_functions.cleaning as cleaning_mod
+import ca_biositing.pipeline.utils.cleaning_functions.coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 
 @task
@@ -51,15 +52,57 @@ def transform_landiq_record(
     df['version'] = 'land use 2023'
 
     # Map shapefile columns to model fields
-    # CLASS2 is the main crop for single cropped fields
-    if 'CLASS2' in df.columns:
-        df['main_crop'] = df['CLASS2']
+    # MAIN_CROP is the main crop for single cropped fields
+    if 'MAIN_CROP' in df.columns:
+        df['main_crop'] = df['MAIN_CROP']
     if 'CLASS1' in df.columns:
         df['secondary_crop'] = df['CLASS1']
+    if 'CLASS2' in df.columns:
+        df['tertiary_crop'] = df['CLASS2']
     if 'CLASS3' in df.columns:
-        df['tertiary_crop'] = df['CLASS3']
-    if 'CLASS4' in df.columns:
-        df['quaternary_crop'] = df['CLASS4']
+        df['quaternary_crop'] = df['CLASS3']
+
+
+    # Load crop mapping
+    crop_map = {}
+    # Handle both package and notebook contexts
+    try:
+        # Try to get the directory of the current file
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        # Fallback for notebook context or when __file__ is not defined
+        # We use the workspace root and the known relative path
+        base_path = os.path.join(os.getcwd(), 'src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq')
+
+    mapping_path = os.path.join(base_path, 'crops_classification.csv')
+
+    # If the path doesn't exist, try one more fallback for common notebook execution locations
+    if not os.path.exists(mapping_path):
+        # Try relative to workspace root if we are in a notebook
+        workspace_path = os.path.join(os.getcwd(), 'src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq/crops_classification.csv')
+        if os.path.exists(workspace_path):
+            mapping_path = workspace_path
+
+    try:
+        if os.path.exists(mapping_path):
+            mapping_df = pd.read_csv(mapping_path)
+            crop_map = {str(k).strip().upper(): v for k, v in zip(mapping_df['crop_code'], mapping_df['crop'])}
+            logger.info(f"Loaded {len(crop_map)} crop mappings from {mapping_path}")
+
+            # Convert crop codes to text
+            for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
+                if col in df.columns:
+                    # Ensure we handle potential whitespace and case sensitivity in codes
+                    df[col] = df[col].astype(str).str.strip().str.upper().map(crop_map).fillna(df[col])
+        else:
+            logger.warning(f"Crop mapping file not found at {mapping_path}")
+    except Exception as e:
+        # Use print as fallback if logger isn't initialized in some contexts
+        msg = f"Could not load or apply crop mapping: {e}"
+        try:
+            logger.warning(msg)
+        except:
+            print(msg)
 
     # Map UniqueID to record_id for lineage and upsert
     if 'UniqueID' in df.columns:
@@ -73,27 +116,37 @@ def transform_landiq_record(
     else:
         df['irrigated'] = False
 
-    # 2. Standard Clean
-    # We pass lowercase=False because standard_clean's to_lowercase_df implementation
-    # has a bug where it tries to access .str on the DataFrame itself if columns is None.
-    # 2. Standard Clean
-    # We pass lowercase=False and replace_empty=False to avoid bugs in cleaning.py
-    # that occur when processing DataFrames with certain column types.
-    cleaned_df = cleaning_mod.clean_names_df(df)
+    # 2. Standard Clean (Bypassed)
+    # We bypass the cleaning module entirely to avoid persistent AttributeError issues
+    # in the notebook environment. We use the DataFrame as-is.
+    cleaned_df = df.copy()
 
-    # Remove duplicate columns if any (e.g., if 'main_crop' already existed)
+    # Ensure column names are cleaned (snake_case) as expected by the rest of the pipeline
+    # but without the buggy to_lowercase_df call
+    cleaned_df = cleaning_mod.clean_names_df(cleaned_df)
+
+    # CRITICAL: Remove duplicate columns after clean_names_df
+    # This prevents AttributeError: 'DataFrame' object has no attribute 'str'
+    # and ValueError: Cannot set a DataFrame with multiple columns
     cleaned_df = cleaned_df.loc[:, ~cleaned_df.columns.duplicated()].copy()
 
+    # Re-apply mapping to ensure correct values
+    for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
+        if col in cleaned_df.columns and crop_map:
+            # Ensure we are working with a Series
+            series = cleaned_df[col]
+            if isinstance(series, pd.DataFrame):
+                series = series.iloc[:, 0]
+            cleaned_df[col] = series.astype(str).str.strip().str.upper().map(crop_map).fillna(series)
+
     # Manually lowercase string columns and handle empty strings
-    # We iterate over columns and check if they are string-like to avoid AttributeError
-    for i in range(len(cleaned_df.columns)):
-        # Use iloc with integer index to handle potential duplicate column names
-        # which can cause .loc to return a DataFrame instead of a Series
-        series = cleaned_df.iloc[:, i]
+    for col in cleaned_df.columns:
+        series = cleaned_df[col]
+        if isinstance(series, pd.DataFrame):
+            series = series.iloc[:, 0]
 
         if series.dtype == "object" or pd.api.types.is_string_dtype(series):
-            # Use Series-level .str accessor explicitly
-            cleaned_df.iloc[:, i] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
+            cleaned_df[col] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
 
     # Add lineage IDs
     if etl_run_id:
@@ -121,10 +174,17 @@ def transform_landiq_record(
     }
 
     # Ensure geometry is in WKT format for normalization if it's a GeoSeries
-    if 'geometry' in coerced_df.columns and hasattr(coerced_df['geometry'], 'to_wkt'):
-        coerced_df['geometry'] = coerced_df['geometry'].to_wkt()
+    # We use a copy to avoid modifying the original GeoDataFrame's geometry
+    # which we need later for the final record_df
+    df_for_norm = coerced_df.copy()
+    if 'geometry' in df_for_norm.columns:
+        if hasattr(df_for_norm['geometry'], 'to_wkt'):
+            df_for_norm['geometry'] = df_for_norm['geometry'].to_wkt()
+        else:
+            # Fallback for cases where it might be a Series of objects
+            df_for_norm['geometry'] = df_for_norm['geometry'].astype(str)
 
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalize_dataframes(df_for_norm, normalize_columns)
 
     # 5. Table Specific Mapping
     rename_map = {
@@ -148,6 +208,14 @@ def transform_landiq_record(
     # Ensure dataset_id is included if it was normalized
     if 'dataset_id' in normalized_df.columns:
         rename_map['dataset_id'] = 'dataset_id'
+
+    # Ensure crop columns are preserved if they were normalized
+    # We map the normalized ID columns (e.g., main_crop_id) back to the
+    # model field names (e.g., main_crop) expected by the database.
+    for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
+        norm_col = f"{col}_id"
+        if norm_col in normalized_df.columns:
+            rename_map[norm_col] = col
 
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
