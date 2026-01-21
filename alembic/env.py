@@ -76,6 +76,19 @@ def include_object(obj, name, type_, reflected, compare_to):
 #     table.tometadata(target_metadata)
 
 
+def include_object(obj, name, type_, reflected, compare_to):
+    """Filter objects for autogenerate."""
+    if type_ == "table" and name in [
+        "spatial_ref_sys",
+        "geometry_columns",
+        "geography_columns",
+        "raster_columns",
+        "raster_overviews",
+    ]:
+        return False
+    return True
+
+
 def render_item(type_, obj, autogen_context):
     """
     Add custom imports to the migration template.
