@@ -41,8 +41,8 @@ slots:
     description: Reference to Resource.
 
   geoid:
-    range: Geography
-    description: Reference to Geography.
+    range: Place
+    description: Reference to Place.
 
   county_square_miles:
     range: float

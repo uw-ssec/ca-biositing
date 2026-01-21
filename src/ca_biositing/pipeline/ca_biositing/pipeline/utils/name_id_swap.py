@@ -163,13 +163,19 @@ def normalize_dataframes(
                         logger.info(f"Column '{col}' contains only nulls; skipping normalization.")
                         continue
                     try:
+                        # Determine the ID column name.
+                        # For Dataset, it's 'id'. For others, it might be different.
+                        # We check the model's primary key columns.
+                        pk_cols = [c.name for c in model.__table__.primary_key.columns]
+                        id_col = pk_cols[0] if pk_cols else "id"
+
                         df_norm, num_created = replace_name_with_id_df(
                             db=db,
                             df=df_norm,
                             ref_model=model,
                             df_name_column=col,
                             model_name_attr=model_name_attr,
-                            id_column_name="id",
+                            id_column_name=id_col,
                             final_column_name=f"{col}_id",
                         )
                         if num_created:

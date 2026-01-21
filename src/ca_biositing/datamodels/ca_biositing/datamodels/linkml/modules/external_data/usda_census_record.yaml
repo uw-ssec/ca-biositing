@@ -28,8 +28,8 @@ slots:
     description: Reference to DataSource.
 
   geoid:
-    range: Geography
-    description: Reference to Geography.
+    range: Place
+    description: Reference to Place.
 
   commodity_code:
     range: UsdaCommodity

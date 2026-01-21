@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:13
+    image: postgis/postgis:13-3.1
     container_name: BioCirV_ETL_db
     env_file:
       - .env
@@ -68,6 +68,7 @@ services:
       - .env
     volumes:
       # Adding the flow code to the worker
+      - ../../data:/app/data
       - ../prefect/run_prefect_flow.py:/app/run_prefect_flow.py
       - ../../credentials.json:/app/credentials.json
       - ../../alembic:/app/alembic

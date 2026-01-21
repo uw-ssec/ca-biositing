@@ -128,11 +128,11 @@ class ExperimentPreparedSample(Base):
 
 
 
-class Geography(Base):
+class Place(Base):
     """
     Geographic location.
     """
-    __tablename__ = 'geography'
+    __tablename__ = 'place'
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -144,26 +144,7 @@ class Geography(Base):
 
 
     def __repr__(self):
-        return f"Geography(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
-
-
-
-
-
-
-class Polygon(Base):
-    """
-    Geospatial polygon.
-    """
-    __tablename__ = 'polygon'
-
-    id = Column(Integer(), primary_key=True, nullable=False )
-    geoid = Column(Text())
-    geom = Column(Text())
-
-
-    def __repr__(self):
-        return f"Polygon(id={self.id},geoid={self.geoid},geom={self.geom},)"
+        return f"Place(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
 
 
 
@@ -1158,6 +1139,34 @@ class BillionTon2023Record(BaseEntity):
 
 
 
+class Polygon(BaseEntity):
+    """
+    Geospatial polygon.
+    """
+    __tablename__ = 'polygon'
+
+    geoid = Column(Text())
+    geom = Column(Text())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Polygon(geoid={self.geoid},geom={self.geom},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class PrimaryAgProduct(LookupBase):
     """
     Primary agricultural product definition.
@@ -1189,6 +1198,7 @@ class LandiqRecord(BaseEntity):
     """
     __tablename__ = 'landiq_record'
 
+    record_id = Column(Text(), primary_key=True, nullable=False )
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     polygon_id = Column(Integer(), ForeignKey('polygon.id'))
     main_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
@@ -1200,7 +1210,7 @@ class LandiqRecord(BaseEntity):
     acres = Column(Float())
     version = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), primary_key=True, autoincrement=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1208,7 +1218,7 @@ class LandiqRecord(BaseEntity):
 
 
     def __repr__(self):
-        return f"LandiqRecord(dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1422,7 +1432,7 @@ class LocationAddress(BaseEntity):
     """
     __tablename__ = 'location_address'
 
-    geography_id = Column(Text(), ForeignKey('geography.geoid'))
+    geography_id = Column(Text(), ForeignKey('place.geoid'))
     address_line1 = Column(Text())
     address_line2 = Column(Text())
     city = Column(Text())

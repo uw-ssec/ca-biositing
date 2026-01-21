@@ -24,8 +24,8 @@ classes:
 
 slots:
   geography_id:
-    range: Geography
-    description: Reference to Geography.
+    range: Place
+    description: Reference to Place.
 
   address_line1:
     range: string
