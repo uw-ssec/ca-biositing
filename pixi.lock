@@ -16120,7 +16120,7 @@ packages:
 - pypi: ./src/ca_biositing/pipeline
   name: ca-biositing-pipeline
   version: 0.1.0
-  sha256: 7248d2e3f17c8fc44bee1b300e33638d20d30398311360de248e55fa104ca75b
+  sha256: 307df32f5eaaeccdd665f7f052ab08dff798949705fd65e4dfcefa2351f716ef
   requires_dist:
   - asyncpg
   - ca-biositing-datamodels==0.1.0

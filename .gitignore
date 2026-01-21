@@ -48,6 +48,9 @@ credentials.json
 # macOS
 .DS_Store
 
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
 # OpenTofu
 .terraform/
 *.tfstate*
