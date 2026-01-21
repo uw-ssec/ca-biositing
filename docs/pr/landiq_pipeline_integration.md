@@ -124,3 +124,9 @@ be considered:
 - **Staging Tables**: For even higher performance, load raw chunks into a
   temporary staging table and perform a single set-based `INSERT/UPDATE` join in
   SQL.
+
+### Other Future Fixes
+
+The LandIQ dataset has more columns that may be useful in the future, such as
+percent of each croptype on each field. In the future, consider incorporating
+those into the LandIQ record schema.

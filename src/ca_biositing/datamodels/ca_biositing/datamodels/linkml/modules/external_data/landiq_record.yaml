@@ -27,6 +27,10 @@ classes:
       - acres
       - version
       - note
+      - pct1
+      - pct2
+      - pct3
+      - pct4
 
 slots:
   record_id:
@@ -73,3 +77,19 @@ slots:
   version:
     range: string
     description: Version of the data source.
+
+  pct1:
+    range: float
+    description: Percentage of main crop.
+
+  pct2:
+    range: float
+    description: Percentage of secondary crop.
+
+  pct3:
+    range: float
+    description: Percentage of tertiary crop.
+
+  pct4:
+    range: float
+    description: Percentage of quaternary crop.

@@ -1210,7 +1210,11 @@ class LandiqRecord(BaseEntity):
     acres = Column(Float())
     version = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, autoincrement=True, nullable=False )
+    pct1 = Column(Float())
+    pct2 = Column(Float())
+    pct3 = Column(Float())
+    pct4 = Column(Float())
+    id = Column(Integer(), nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1218,7 +1222,7 @@ class LandiqRecord(BaseEntity):
 
 
     def __repr__(self):
-        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},pct1={self.pct1},pct2={self.pct2},pct3={self.pct3},pct4={self.pct4},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
