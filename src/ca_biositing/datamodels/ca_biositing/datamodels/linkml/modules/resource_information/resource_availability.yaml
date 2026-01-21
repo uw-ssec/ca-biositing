@@ -27,8 +27,8 @@ slots:
     description: Reference to Resource.
 
   geoid:
-    range: Geography
-    description: Reference to Geography.
+    range: Place
+    description: Reference to Place.
 
   from_month:
     range: integer

@@ -15,6 +15,7 @@ classes:
     is_a: BaseEntity
     description: LandIQ record.
     slots:
+      - record_id
       - dataset_id
       - polygon_id
       - main_crop
@@ -28,6 +29,11 @@ classes:
       - note
 
 slots:
+  record_id:
+    range: string
+    description: Unique identifier for the record.
+    identifier: true
+
   dataset_id:
     range: DataSource
     description: Reference to DataSource.
