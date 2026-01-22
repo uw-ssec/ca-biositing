@@ -106,6 +106,18 @@ def transform(
     }
     normalized_df = normalized_df.rename(columns=rename_columns)
 
+    # 4.5 Filter invalid names
+    if 'name' in normalized_df.columns:
+        initial_count = len(normalized_df)
+        normalized_df = normalized_df[
+            normalized_df['name'].notna() &
+            (normalized_df['name'].astype(str).str.strip() != "") &
+            (normalized_df['name'].astype(str).str.lower() != "#n/a")
+        ]
+        filtered_count = initial_count - len(normalized_df)
+        if filtered_count > 0:
+            logger.info(f"Filtered out {filtered_count} records with invalid names (empty or '#n/a').")
+
     # 5. Final Mapping & Selection
     # TODO: Update this list to match the columns in your target database table
     try:

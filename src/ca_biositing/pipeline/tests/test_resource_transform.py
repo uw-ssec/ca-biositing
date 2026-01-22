@@ -9,13 +9,13 @@ from ca_biositing.pipeline.etl.transform.resource import transform
 def test_resource_transform(mock_session, mock_engine):
     # 1. Setup Mock Data
     raw_data = pd.DataFrame({
-        "Name": ["Almond Hulls", "Corn Stover"],
-        "Resource Class": ["Agricultural Residue", "Agricultural Residue"],
-        "Resource Subclass": ["Nut Hulls", "Cereal Straw"],
-        "Primary Ag Product": ["Almonds", "Corn"],
-        "Note": ["Test note 1", "Test note 2"],
-        "Created At": ["2024-01-01", "2024-01-02"],
-        "Updated At": ["2024-01-01", "2024-01-02"]
+        "Name": ["Almond Hulls", "Corn Stover", "", "  ", "#N/A", None],
+        "Resource Class": ["Agricultural Residue", "Agricultural Residue", "Class", "Class", "Class", "Class"],
+        "Resource Subclass": ["Nut Hulls", "Cereal Straw", "Sub", "Sub", "Sub", "Sub"],
+        "Primary Ag Product": ["Almonds", "Corn", "Prod", "Prod", "Prod", "Prod"],
+        "Note": ["Test note 1", "Test note 2", "N/A", "N/A", "N/A", "N/A"],
+        "Created At": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-01", "2024-01-01", "2024-01-01"],
+        "Updated At": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-01", "2024-01-01", "2024-01-01"]
     })
 
     data_sources = {"basic_sample_info": raw_data}
