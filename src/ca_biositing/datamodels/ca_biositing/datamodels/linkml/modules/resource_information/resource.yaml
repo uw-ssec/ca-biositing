@@ -22,6 +22,11 @@ classes:
       - note
 
 slots:
+  name:
+    range: string
+    description: Name of the resource.
+    identifier: true
+
   primary_ag_product_id:
     range: PrimaryAgProduct
     description: Reference to PrimaryAgProduct.
