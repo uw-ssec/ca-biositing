@@ -186,6 +186,17 @@ The API layer.
 
 - **Import Errors**: Ensure you are using the Pixi kernel or have set
   `PYTHONPATH` correctly.
+- **macOS Geospatial Library Conflicts**: On macOS (especially Apple Silicon),
+  you may encounter `PROJ` database version mismatch errors when using
+  `geopandas` or `pyogrio`.
+  - **Fix**: Ensure `PROJ_LIB` environment variable is set to the Pixi
+    environment's data directory _before_ importing geospatial libraries.
+  - **Example**:
+    ```python
+    import os, pyproj
+    os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
+    import geopandas as gpd
+    ```
 - **Docker Hangs & Deadlocks**:
   - **CRITICAL**: Never import heavy SQLAlchemy models or Pydantic settings at
     the module level. Always import them inside the `@task` or `@flow` function.

@@ -19,10 +19,10 @@ from ...utils.gsheet_to_pandas import gsheet_to_df
 
 # --- CONFIGURATION ---
 # TODO: Replace with the name of the Google Sheet file.
-GSHEET_NAME = "SampleMetadata-BioCirV"
+GSHEET_NAME = "SampleMetadata_v02-BioCirV"
 
 # TODO: Replace with the exact name of the worksheet/tab to extract data from.
-WORKSHEET_NAME = "01_SampleMetadata"
+WORKSHEET_NAME = "02_Sample_Desc"
 
 # The path to the credentials file. This is typically kept in the project root.
 CREDENTIALS_PATH = "credentials.json"

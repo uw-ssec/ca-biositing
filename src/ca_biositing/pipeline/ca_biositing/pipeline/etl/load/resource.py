@@ -29,14 +29,9 @@ def get_local_engine():
     )
 
 @task
-def load_data_template(df: pd.DataFrame):
+def load_resource(df: pd.DataFrame):
     """
-    Upserts records into the database.
-
-    Template Instructions:
-    1. Replace 'YourModel' with the actual SQLAlchemy model class.
-    2. Update 'index_elements' with the unique constraint column (e.g., 'record_id').
-    3. Adjust 'update_dict' exclusions as needed.
+    Upserts resource records into the database.
     """
     try:
         logger = get_run_logger()
@@ -48,24 +43,22 @@ def load_data_template(df: pd.DataFrame):
         logger.info("No data to load.")
         return
 
-    logger.info(f"Upserting {len(df)} records...")
+    logger.info(f"Upserting {len(df)} resource records...")
 
     try:
         # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-        # from ca_biositing.datamodels.schemas.generated.ca_biositing import YourModel
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation as YourModel # Placeholder
+        from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
 
         now = datetime.now(timezone.utc)
 
         # Filter columns to match the table schema
-        table_columns = {c.name for c in YourModel.__table__.columns}
+        table_columns = {c.name for c in Resource.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
         engine = get_local_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 for i, record in enumerate(records):
-                    # Optional: Add progress logging for larger datasets (from landiq.py)
                     if i > 0 and i % 500 == 0:
                         logger.info(f"Processed {i} records...")
 
@@ -77,26 +70,21 @@ def load_data_template(df: pd.DataFrame):
                     if clean_record.get('created_at') is None:
                         clean_record['created_at'] = now
 
-                    # Build Upsert Statement (PostgreSQL specific)
-                    stmt = insert(YourModel).values(clean_record)
+                    # Manual Check-and-Update (since 'name' lacks a unique constraint)
+                    existing_record = session.query(Resource).filter(Resource.name == clean_record['name']).first()
 
-                    # Define columns to update on conflict
-                    # Exclude primary keys and creation timestamps
-                    update_dict = {
-                        c.name: stmt.excluded[c.name]
-                        for c in YourModel.__table__.columns
-                        if c.name not in ['id', 'created_at', 'record_id']
-                    }
-
-                    upsert_stmt = stmt.on_conflict_do_update(
-                        index_elements=['record_id'], # Replace with your unique constraint column
-                        set_=update_dict
-                    )
-
-                    session.execute(upsert_stmt)
+                    if existing_record:
+                        # Update existing record
+                        for key, value in clean_record.items():
+                            if key not in ['id', 'created_at']:
+                                setattr(existing_record, key, value)
+                    else:
+                        # Insert new record
+                        new_resource = Resource(**clean_record)
+                        session.add(new_resource)
 
                 session.commit()
-        logger.info("Successfully upserted records.")
+        logger.info("Successfully upserted resource records.")
     except Exception as e:
-        logger.error(f"Failed to load records: {e}")
+        logger.error(f"Failed to load resource records: {e}")
         raise

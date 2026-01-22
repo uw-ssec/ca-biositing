@@ -23,6 +23,11 @@ classes:
       - note
 
 slots:
+  name:
+    range: string
+    description: Name of the prepared sample.
+    identifier: true
+
   field_sample_id:
     range: FieldSample
     description: Reference to FieldSample.

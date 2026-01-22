@@ -1,10 +1,14 @@
+import os
+import pyproj
+# CRITICAL: Set PROJ_LIB before importing any geospatial libraries to avoid macOS version conflicts
+os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
+
 import pandas as pd
 from pydrive2.auth import GoogleAuth, AuthenticationError
 from pydrive2.drive import GoogleDrive
 from pydrive2.files import ApiRequestError
 import zipfile
 import geopandas as gpd
-import os
 
 def gdrive_to_df(file_name: str, mime_type: str, credentials_path: str, dataset_folder: str) -> pd.DataFrame | gpd.GeoDataFrame:
     """
