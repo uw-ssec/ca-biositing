@@ -1,12 +1,15 @@
 # CA-Biositing Local Setup Guide
 
-This guide provides verified steps to **set up and test the CA-Biositing project locally** — including the ETL pipeline, database, Prefect orchestration, and Docker infrastructure.
+This guide provides verified steps to **set up and test the CA-Biositing project
+locally** — including the ETL pipeline, database, Prefect orchestration, and
+Docker infrastructure.
 
 ---
 
 ## Cloning and Installing
 
 ### Prerequisites
+
 - **Homebrew**
 - **Pixi** (for dependency management)
 - **Docker Desktop** (running)
@@ -32,16 +35,19 @@ cp resources/docker/.env.example resources/docker/.env
 pixi run start-services
 ```
 
-> This command spins up the PostgreSQL, Prefect Server, and Prefect Worker containers.
+> This command spins up the PostgreSQL, Prefect Server, and Prefect Worker
+> containers.
 
 ---
 
 ## 3. Google Sheets Credentials (REQUIRED)
+
 - ETL pulls data from Google Sheets
 - You must have a valid Google service account JSON key
 - Share the target Google Sheet with the service account email
 
 ### Where to place credentials
+
 - Place the file at repo root:
 
   ca-biositing/credentials.json
@@ -52,7 +58,7 @@ pixi run start-services
 
 - Do NOT commit this file (keep it in .gitignore)
 
---- 
+---
 
 ### Deploy + Run ETL
 
@@ -71,7 +77,8 @@ Access Prefect at:
 
 [http://localhost:4200](http://localhost:4200)
 
-> Verify that the ETL flow (e.g., *Master ETL Flow / towering-caribou*) is visible.
+> Verify that the ETL flow (e.g., _Master ETL Flow / towering-caribou_) is
+> visible.
 
 ---
 
@@ -84,7 +91,8 @@ pixi run access-db
 SELECT * FROM biomass LIMIT 5;
 ```
 
-> Tables should exist, but may be empty if Google Sheet credentials are unavailable.
+> Tables should exist, but may be empty if Google Sheet credentials are
+> unavailable.
 
 ---
 
@@ -112,5 +120,5 @@ Start API webservice:
 pixi pixi run start-webservice
 ```
 
-Visit localhost at http://127.0.0.1:8000/ to validate API and visit http://127.0.0.1:8000/docs to view API docs & try API's using swagger.
-
+Visit localhost at http://127.0.0.1:8000/ to validate API and visit
+http://127.0.0.1:8000/docs to view API docs & try API's using swagger.
