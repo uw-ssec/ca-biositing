@@ -21,38 +21,18 @@ analysis tools) of the parent ca-biositing project.
 - **License:** BSD License
 - **Domain:** Database models, SQLModel, PostgreSQL, Data validation
 
-## Key Concepts
+## Cross-Cutting Documentation
 
-### Namespace Package Structure
+This package follows project-wide patterns documented in:
 
-This package follows **PEP 420** implicit namespace package conventions:
+| Topic | Document | When to Reference |
+|-------|----------|-------------------|
+| Namespace Packages | [namespace_packages.md](../../../agent_docs/namespace_packages.md) | Import errors, package structure questions |
+| Testing Patterns | [testing_patterns.md](../../../agent_docs/testing_patterns.md) | Writing tests, fixtures, pytest commands |
+| Code Quality | [code_quality.md](../../../agent_docs/code_quality.md) | Pre-commit, style, imports |
+| Troubleshooting | [troubleshooting.md](../../../agent_docs/troubleshooting.md) | Common errors and solutions |
 
-```text
-src/ca_biositing/datamodels/
-├── ca_biositing/              # No __init__.py at this level (namespace)
-│   └── datamodels/            # Package implementation
-│       ├── __init__.py        # Package initialization
-│       └── *.py               # Model modules
-├── tests/                     # Test suite
-├── pyproject.toml            # Package metadata
-└── README.md                 # Documentation
-```
-
-**CRITICAL:** The `ca_biositing/` directory does **NOT** have an `__init__.py`
-file. This allows multiple packages to share the `ca_biositing` namespace.
-
-### Model Architecture
-
-All models use **SQLModel**, which combines SQLAlchemy and Pydantic:
-
-- Models are Python classes that represent database tables
-- Use type hints for field definitions
-- Include validation through Pydantic
-- Support both ORM operations and API serialization
-
-## Dependencies & Environment
-
-### Core Dependencies
+## Dependencies
 
 From `pyproject.toml`:
 
@@ -61,26 +41,6 @@ From `pyproject.toml`:
 - **psycopg2** (>=2.9.9, <3): PostgreSQL adapter
 - **Pydantic** (>=2.0.0): Data validation
 - **Pydantic Settings** (>=2.0.0): Configuration management
-
-### Development Environment
-
-This package is typically developed as part of the main ca-biositing project
-using Pixi. See the main project's `AGENTS.md` for Pixi setup.
-
-**For testing this package:**
-
-```bash
-# From the main project root
-pixi run pytest src/ca_biositing/datamodels -v
-```
-
-**For standalone development:**
-
-```bash
-# From this directory
-pip install -e .
-pytest -v
-```
 
 ## File Structure & Modules
 
@@ -116,10 +76,6 @@ Located in `ca_biositing/datamodels/`:
 - **`config.py`**: Model configuration using Pydantic Settings
 - **`database.py`**: Database connection and session management
 - **`__init__.py`**: Package metadata and version
-
-### Templates
-
-- **`templates/`**: Template files for creating new model modules
 
 ## Working with Models
 
@@ -192,8 +148,7 @@ class MyTable(SQLModel, table=True):
 6. **Descriptions:** Always provide field descriptions
 7. **Table Names:** Use `__tablename__` to explicitly set table names (usually
    snake_case)
-8. **Timestamps:** Use `datetime.utcnow` for creation timestamps (note: consider
-   migrating to `datetime.now(datetime.UTC)` to avoid deprecation warning)
+8. **Timestamps:** Use `default_factory=datetime.utcnow` for creation timestamps
 
 ### Lookup Tables Pattern
 
@@ -204,80 +159,6 @@ class MyLookup(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(default=None, unique=True, description="Lookup value")
-```
-
-## Testing
-
-### Test Structure
-
-Tests are in the `tests/` directory:
-
-- **`conftest.py`**: Shared fixtures (engine, session)
-- **`test_biomass.py`**: Tests for biomass models
-- **`test_geographic_locations.py`**: Tests for location models
-- **`test_package.py`**: Package metadata tests
-- **`README.md`**: Test documentation
-
-### Running Tests
-
-```bash
-# Run all tests (from main project root)
-pixi run pytest src/ca_biositing/datamodels -v
-
-# Run specific test file
-pixi run pytest src/ca_biositing/datamodels/tests/test_biomass.py -v
-
-# Run with coverage
-pixi run pytest src/ca_biositing/datamodels --cov=ca_biositing.datamodels --cov-report=html
-```
-
-### Test Fixtures
-
-From `conftest.py`:
-
-```python
-# Use these fixtures in tests
-def test_my_model(session):
-    """Test using database session."""
-    model = MyModel(name="test")
-    session.add(model)
-    session.commit()
-    assert model.id is not None
-```
-
-Available fixtures:
-
-- `engine`: SQLite in-memory database engine
-- `session`: SQLModel session for database operations
-
-### Writing Tests
-
-**Model Instantiation Test:**
-
-```python
-def test_model_creation():
-    """Test creating a Model instance."""
-    model = MyModel(name="Test", value=Decimal("100.50"))
-    assert model.name == "Test"
-    assert model.value == Decimal("100.50")
-    assert model.id is None  # Not yet persisted
-```
-
-**Database Persistence Test:**
-
-```python
-def test_model_persistence(session):
-    """Test saving and retrieving a Model."""
-    model = MyModel(name="Test")
-    session.add(model)
-    session.commit()
-    session.refresh(model)
-
-    assert model.id is not None
-
-    retrieved = session.get(MyModel, model.id)
-    assert retrieved is not None
-    assert retrieved.name == "Test"
 ```
 
 ## Common Tasks
@@ -301,7 +182,7 @@ def test_model_persistence(session):
 
 3. **Write tests** in `tests/test_<module>.py`
 4. **Run tests:** `pixi run pytest src/ca_biositing/datamodels -v`
-5. **Update migrations** (if needed, see main project Alembic docs)
+5. **Update migrations** (if needed, see Alembic workflow)
 
 ### Modifying an Existing Model
 
@@ -309,8 +190,7 @@ def test_model_persistence(session):
 2. **Update the model:** Modify field definitions
 3. **Update tests:** Ensure tests cover the changes
 4. **Run tests:** Verify nothing breaks
-5. **Generate migration:** Use Alembic to create database migration script (see
-   main project workflow)
+5. **Generate migration:** Use Alembic to create database migration script
 6. **Update documentation:** If needed, update README.md
 
 ### Creating a Migration
@@ -320,132 +200,11 @@ Model changes require database migrations:
 1. **Make model changes** in the appropriate module
 2. **Generate migration** (from main project root):
    ```bash
-   # See main project ALEMBIC_WORKFLOW.md
-   cd src/ca_biositing/pipeline
-   alembic revision --autogenerate -m "description of changes"
+   pixi run exec-prefect-worker alembic revision --autogenerate -m "description of changes"
    ```
 3. **Review migration script** in `alembic/versions/`
 4. **Test migration:** Apply and verify in development database
 5. **Commit migration** with model changes
-
-## Code Quality & Standards
-
-### Pre-commit Checks
-
-Always run pre-commit before committing:
-
-```bash
-# From main project root
-pixi run pre-commit run --files src/ca_biositing/datamodels/**/*
-```
-
-Or for specific files:
-
-```bash
-pixi run pre-commit run --files src/ca_biositing/datamodels/ca_biositing/datamodels/biomass.py
-```
-
-### Code Style
-
-- **Type hints:** Required for all fields and functions
-- **Docstrings:** Use triple-quoted strings for classes and complex functions
-- **Formatting:** Handled by pre-commit (prettier, autopep8, etc.)
-- **Line length:** Follow PEP 8 guidelines
-- **Imports:** Group by standard library, third-party, local
-
-### Import Conventions
-
-```python
-# Standard library
-from __future__ import annotations
-from datetime import datetime, date
-from decimal import Decimal
-from typing import Optional
-
-# Third-party
-from sqlmodel import SQLModel, Field
-from sqlalchemy import Index
-
-# Local (if needed)
-# from ca_biositing.datamodels.config import settings
-```
-
-## Common Pitfalls & Solutions
-
-### Issue: Import errors with namespace package
-
-**Problem:** Can't import `ca_biositing.datamodels`
-
-**Solution:**
-
-- Ensure `ca_biositing/` does **NOT** have `__init__.py`
-- Ensure `ca_biositing/datamodels/` **DOES** have `__init__.py`
-- Install package in editable mode: `pip install -e .`
-- For main project: `pixi install`
-
-### Issue: SQLModel field defaults
-
-**Problem:** Field validation errors or unexpected None values
-
-**Solution:**
-
-- Use `default=None` for optional fields
-- Use `Optional[T]` type hint for nullable fields
-- Use `default_factory=callable` for mutable defaults (lists, dicts, datetime)
-- Example: `created_at: datetime = Field(default_factory=datetime.utcnow)`
-
-### Issue: Foreign key constraints
-
-**Problem:** Foreign key violations or cascade issues
-
-**Solution:**
-
-- Foreign keys are **commented out** in models for development flexibility
-- Uncomment when ready to enforce constraints
-- Coordinate with database migrations
-- Example:
-  ```python
-  parent_id: Optional[int] = Field(
-      default=None,
-      description="Reference to parent"
-      # foreign_key="parent_table.id"  # Uncomment when ready
-  )
-  ```
-
-### Issue: Decimal vs Float
-
-**Problem:** Precision issues with financial/scientific data
-
-**Solution:**
-
-- **Always use `Decimal`** for currency, percentages, precise measurements
-- **Use `float`** only for approximate values or when precision loss is
-  acceptable
-- Example:
-  ```python
-  price: Optional[Decimal] = Field(default=None)  # Good
-  price: Optional[float] = Field(default=None)    # Bad for currency
-  ```
-
-### Issue: DateTime deprecation warning
-
-**Problem:** `datetime.utcnow()` deprecation warning
-
-**Current:**
-
-```python
-created_at: datetime = Field(default_factory=datetime.utcnow)
-```
-
-**Recommended migration:**
-
-```python
-from datetime import datetime, UTC
-
-created_at: datetime = Field(
-    default_factory=lambda: datetime.now(UTC)
-)
-```
 
 ## Integration with Main Project
 
@@ -478,12 +237,6 @@ def get_biomass(biomass_id: int) -> Biomass:
     return session.get(Biomass, biomass_id)
 ```
 
-### Database Migrations
-
-- Migrations are managed in the main project's `pipeline/` directory
-- Use Alembic for schema changes
-- See main project's `ALEMBIC_WORKFLOW.md` for details
-
 ## Best Practices
 
 1. **Namespace Package:** Never add `__init__.py` to `ca_biositing/` directory
@@ -509,31 +262,9 @@ def get_biomass(biomass_id: int) -> Biomass:
 
 ## Related Documentation
 
-- **Main Project AGENTS.md:**
-  `/Users/lsetiawan/Repos/SSEC/ca-biositing/AGENTS.md`
+- **Main Project AGENTS.md:** [/AGENTS.md](../../../AGENTS.md)
 - **Package README:** `README.md` (in this directory)
 - **Test Documentation:** `tests/README.md`
-- **Alembic Workflow:** Main project's `pipeline/ALEMBIC_WORKFLOW.md`
-- **ETL Workflow:** Main project's `pipeline/ETL_WORKFLOW.md`
+- **Alembic Workflow:** `docs/pipeline/ALEMBIC_WORKFLOW.md`
 - **SQLModel Docs:** <https://sqlmodel.tiangolo.com/>
 - **Pydantic Docs:** <https://docs.pydantic.dev/>
-
-## Trust These Instructions
-
-These instructions were generated through analysis of the package structure,
-dependencies, and integration patterns. **Follow these guidelines when:**
-
-- Adding or modifying database models
-- Writing tests for models
-- Integrating models with ETL or API code
-- Troubleshooting import or validation issues
-
-**Only search for additional information if:**
-
-- Instructions appear outdated or produce errors
-- Working with advanced SQLAlchemy features not covered here
-- Implementing new patterns not documented here
-- Debugging complex migration issues
-
-For routine model development, testing, and maintenance, these instructions
-provide complete guidance.

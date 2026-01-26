@@ -1,4 +1,4 @@
-# AGENTS.md
+# AGENTS.md - CA Biositing Web Service
 
 This file provides guidance to AI assistants when working with the
 ca-biositing-webservice namespace package.
@@ -19,6 +19,17 @@ selection data and analysis results.
 - **Server:** Uvicorn (>=0.30.0, <1)
 - **Testing:** Pytest with TestClient
 - **Namespace:** PEP 420 namespace package under `ca_biositing.webservice`
+
+## Cross-Cutting Documentation
+
+This package follows project-wide patterns documented in:
+
+| Topic | Document | When to Reference |
+|-------|----------|-------------------|
+| Namespace Packages | [namespace_packages.md](../../../agent_docs/namespace_packages.md) | Import errors, package structure questions |
+| Testing Patterns | [testing_patterns.md](../../../agent_docs/testing_patterns.md) | Writing tests, TestClient fixtures |
+| Code Quality | [code_quality.md](../../../agent_docs/code_quality.md) | Pre-commit, style, imports |
+| Troubleshooting | [troubleshooting.md](../../../agent_docs/troubleshooting.md) | Common errors and solutions |
 
 ## Package Structure
 
@@ -82,111 +93,22 @@ async def root():
 **Development server:**
 
 ```bash
-# Navigate to web service directory
-cd src/ca_biositing/webservice
+# From project root
+pixi run start-webservice
 
-# Run with uvicorn
+# Or manually with uvicorn
 uvicorn ca_biositing.webservice.main:app --reload
 
-# Or with custom host/port
+# With custom host/port
 uvicorn ca_biositing.webservice.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 **Access endpoints:**
 
 - API: <http://localhost:8000>
-- Interactive docs: <http://localhost:8000/docs>
+- Interactive docs (Swagger): <http://localhost:8000/docs>
+- Alternative docs (ReDoc): <http://localhost:8000/redoc>
 - OpenAPI JSON: <http://localhost:8000/openapi.json>
-
-## Testing Patterns
-
-### TestClient Fixture (`tests/conftest.py`)
-
-```python
-"""Pytest configuration and shared fixtures."""
-
-import pytest
-from fastapi.testclient import TestClient
-
-from ca_biositing.webservice.main import app
-
-@pytest.fixture
-def client():
-    """Create a test client for the FastAPI application."""
-    return TestClient(app)
-```
-
-**Usage:**
-
-```python
-def test_endpoint(client):
-    """Test an API endpoint."""
-    response = client.get("/some-endpoint")
-    assert response.status_code == 200
-    data = response.json()
-    assert "key" in data
-```
-
-### Endpoint Testing Pattern
-
-```python
-from fastapi import status
-
-def test_read_item(client):
-    """Test reading a single item."""
-    # Make request
-    response = client.get("/items/1")
-
-    # Check status code
-    assert response.status_code == status.HTTP_200_OK
-
-    # Parse JSON response
-    data = response.json()
-
-    # Validate response structure
-    assert "id" in data
-    assert "name" in data
-    assert data["id"] == 1
-```
-
-### Testing POST/PUT/DELETE Endpoints
-
-```python
-def test_create_item(client):
-    """Test creating a new item."""
-    # Prepare request body
-    item_data = {
-        "name": "Test Item",
-        "description": "A test item",
-    }
-
-    # Make POST request
-    response = client.post("/items", json=item_data)
-
-    # Check status code
-    assert response.status_code == status.HTTP_201_CREATED
-
-    # Validate response
-    data = response.json()
-    assert data["name"] == item_data["name"]
-    assert "id" in data
-```
-
-### Running Tests
-
-```bash
-# Run all web service tests
-pixi run pytest src/ca_biositing/webservice -v
-
-# Run with coverage
-pixi run pytest src/ca_biositing/webservice --cov=ca_biositing.webservice --cov-report=html --cov-report=term-missing
-
-# Run specific test file
-pixi run pytest src/ca_biositing/webservice/tests/test_main.py -v
-
-# Run specific test function
-pixi run pytest src/ca_biositing/webservice/tests/test_main.py::test_read_root -v
-```
 
 ## FastAPI Development Best Practices
 
@@ -304,25 +226,51 @@ async def list_biomass(
     return biomass_list
 ```
 
-## API Documentation
+## API Design Guidelines
 
-FastAPI automatically generates:
+### RESTful URL Patterns
 
-- **Interactive docs** (Swagger UI): `/docs`
-- **Alternative docs** (ReDoc): `/redoc`
-- **OpenAPI schema**: `/openapi.json`
+```text
+GET    /items          # List all items
+POST   /items          # Create new item
+GET    /items/{id}     # Get specific item
+PUT    /items/{id}     # Update item
+DELETE /items/{id}     # Delete item
+GET    /items/{id}/details  # Get item details (sub-resource)
+```
 
-**Customize documentation:**
+### HTTP Status Codes
 
-```python
-app = FastAPI(
-    title="CA Biositing API",
-    description="Comprehensive API description with Markdown formatting",
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-)
+- **200 OK**: Successful GET, PUT, PATCH
+- **201 Created**: Successful POST
+- **204 No Content**: Successful DELETE
+- **400 Bad Request**: Invalid request body
+- **401 Unauthorized**: Missing/invalid authentication
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource doesn't exist
+- **422 Unprocessable Entity**: Validation errors
+- **500 Internal Server Error**: Server error
+
+### Response Format
+
+```json
+// Successful response
+{
+  "id": 1,
+  "name": "Item Name",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+
+// Error response
+{
+  "detail": "Error description"
+}
+
+// List response
+[
+  { "id": 1, "name": "Item 1" },
+  { "id": 2, "name": "Item 2" }
+]
 ```
 
 ## Common Tasks
@@ -390,125 +338,7 @@ app = FastAPI(
        return biomass
    ```
 
-3. **Test with mock database**:
-
-   ```python
-   @pytest.fixture
-   def db_session():
-       # Create in-memory database
-       engine = create_engine("sqlite:///:memory:")
-       SQLModel.metadata.create_all(engine)
-       session = Session(engine)
-       yield session
-       session.close()
-
-   def test_read_biomass(client, db_session):
-       # Test implementation
-       pass
-   ```
-
-### Adding Authentication
-
-```python
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-security = HTTPBearer()
-
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify JWT token."""
-    token = credentials.credentials
-    # Verify token logic
-    if not valid:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
-    return token
-
-@app.get("/protected")
-async def protected_route(token: str = Depends(verify_token)):
-    """Protected endpoint requiring authentication."""
-    return {"message": "Access granted"}
-```
-
-## Dependencies
-
-### Core Dependencies
-
-- **fastapi** (>=0.115.0, <1): Web framework
-- **uvicorn** (>=0.30.0, <1): ASGI server
-- **httpx** (>=0.27.0): HTTP client for TestClient
-- **ca-biositing-datamodels** (>=0.1.0): Database models
-
-### Testing Dependencies
-
-- **pytest** (>=8.4.2): Testing framework
-- **pytest-cov** (>=7.0.0): Coverage reporting
-
-## Common Pitfalls
-
-### Issue: "ModuleNotFoundError: No module named 'ca_biositing.webservice'"
-
-**Cause:** Package not installed or incorrect namespace structure
-
-**Solution:**
-
-```bash
-# Install in development mode
-pip install -e src/ca_biositing/webservice
-
-# Verify structure (no __init__.py in ca_biositing/)
-ls -la src/ca_biositing/
-# Should show: webservice/ datamodels/ pipeline/ (no __init__.py)
-```
-
-### Issue: TestClient import fails
-
-**Cause:** Missing httpx dependency
-
-**Solution:** Add to `pyproject.toml`:
-
-```toml
-dependencies = [
-    "httpx>=0.27.0",
-]
-```
-
-### Issue: Database session errors in endpoints
-
-**Cause:** Incorrect dependency injection or session management
-
-**Solution:**
-
-```python
-# Correct pattern
-from fastapi import Depends
-from sqlmodel import Session
-from ca_biositing.datamodels.database import get_session
-
-@app.get("/items")
-async def list_items(session: Session = Depends(get_session)):
-    # Use session
-    pass
-```
-
-### Issue: 422 Unprocessable Entity errors
-
-**Cause:** Request body doesn't match Pydantic model
-
-**Solution:**
-
-- Check Pydantic model field types
-- Use `Field()` for validation rules
-- Test with correct JSON structure
-- Check FastAPI `/docs` for expected schema
-
-### Issue: CORS errors in browser
-
-**Cause:** Missing CORS middleware
-
-**Solution:**
+### Adding CORS Support
 
 ```python
 from fastapi.middleware.cors import CORSMiddleware
@@ -522,97 +352,6 @@ app.add_middleware(
 )
 ```
 
-## Development Workflow
-
-1. **Start development server:**
-
-   ```bash
-   cd src/ca_biositing/webservice
-   uvicorn ca_biositing.webservice.main:app --reload
-   ```
-
-2. **Make changes** to `main.py` or add new modules
-
-3. **Test endpoints** in browser or with curl:
-
-   ```bash
-   curl http://localhost:8000/
-   curl -X POST http://localhost:8000/items -H "Content-Type: application/json" -d '{"name":"Test"}'
-   ```
-
-4. **Write/update tests** in `tests/`
-
-5. **Run tests:**
-
-   ```bash
-   pixi run pytest src/ca_biositing/webservice -v
-   ```
-
-6. **Check coverage:**
-
-   ```bash
-   pixi run pytest src/ca_biositing/webservice --cov=ca_biositing.webservice --cov-report=html
-   open htmlcov/index.html
-   ```
-
-7. **Run pre-commit checks:**
-
-   ```bash
-   pixi run pre-commit-all
-   ```
-
-## API Design Guidelines
-
-### RESTful URL Patterns
-
-```text
-GET    /items          # List all items
-POST   /items          # Create new item
-GET    /items/{id}     # Get specific item
-PUT    /items/{id}     # Update item
-DELETE /items/{id}     # Delete item
-GET    /items/{id}/details  # Get item details (sub-resource)
-```
-
-### HTTP Status Codes
-
-- **200 OK**: Successful GET, PUT, PATCH
-- **201 Created**: Successful POST
-- **204 No Content**: Successful DELETE
-- **400 Bad Request**: Invalid request body
-- **401 Unauthorized**: Missing/invalid authentication
-- **403 Forbidden**: Insufficient permissions
-- **404 Not Found**: Resource doesn't exist
-- **422 Unprocessable Entity**: Validation errors
-- **500 Internal Server Error**: Server error
-
-### Response Format
-
-```json
-{
-  "id": 1,
-  "name": "Item Name",
-  "created_at": "2024-01-15T10:30:00Z"
-}
-```
-
-**For errors:**
-
-```json
-{
-  "detail": "Error description"
-}
-```
-
-**For lists:**
-
-```json
-[
-  { "id": 1, "name": "Item 1" },
-  { "id": 2, "name": "Item 2" }
-]
-```
-
 ## Performance Considerations
 
 ### Use Async Properly
@@ -623,15 +362,15 @@ GET    /items/{id}/details  # Get item details (sub-resource)
 async def list_items():
     return await get_items_async()
 
-# Avoid - blocking in async
+# Good - use sync for blocking calls
+@app.get("/items")
+def list_items():  # Note: def, not async def
+    return blocking_database_call()
+
+# Bad - blocking in async (blocks event loop)
 @app.get("/items")
 async def list_items():
-    return blocking_call()  # Blocks event loop
-
-# If using blocking calls, use sync
-@app.get("/items")
-def list_items():
-    return blocking_call()  # OK
+    return blocking_call()  # Don't do this
 ```
 
 ### Database Connection Pooling
@@ -660,27 +399,58 @@ async def read_data(param: str):
     return get_expensive_data(param)
 ```
 
-## Documentation Standards
+## Dependencies
 
-- Use docstrings for all endpoints
-- Include parameter descriptions
-- Document response models
-- Add examples to Pydantic models
-- Keep OpenAPI documentation up to date
+### Core Dependencies
 
-## Trust These Instructions
+- **fastapi** (>=0.115.0, <1): Web framework
+- **uvicorn** (>=0.30.0, <1): ASGI server
+- **httpx** (>=0.27.0): HTTP client for TestClient
+- **ca-biositing-datamodels** (>=0.1.0): Database models
 
-These instructions were created specifically for the ca-biositing-webservice
-namespace package following FastAPI best practices. Commands and patterns have
-been validated against the project structure. **Only perform additional searches
-if:**
+### Testing Dependencies
 
-- You need information about integrating with external services
-- Instructions produce unexpected errors
-- You're implementing advanced features (WebSockets, background tasks, etc.)
+- **pytest** (>=8.4.2): Testing framework
+- **pytest-cov** (>=7.0.0): Coverage reporting
 
-For routine API development (adding endpoints, testing, documentation), follow
-these instructions directly.
+## Development Workflow
 
-For more information on SSEC best practices, see:
+1. **Start development server:**
+
+   ```bash
+   pixi run start-webservice
+   ```
+
+2. **Make changes** to `main.py` or add new modules
+
+3. **Test endpoints** in browser or with curl:
+
+   ```bash
+   curl http://localhost:8000/
+   curl -X POST http://localhost:8000/items -H "Content-Type: application/json" -d '{"name":"Test"}'
+   ```
+
+4. **Write/update tests** in `tests/`
+
+5. **Run tests:**
+
+   ```bash
+   pixi run pytest src/ca_biositing/webservice -v
+   ```
+
+6. **Check coverage:**
+
+   ```bash
+   pixi run pytest src/ca_biositing/webservice --cov=ca_biositing.webservice --cov-report=html
+   ```
+
+## Related Documentation
+
+- **Main Project AGENTS.md:** [/AGENTS.md](../../../AGENTS.md)
+- **Datamodels AGENTS.md:** [../datamodels/AGENTS.md](../datamodels/AGENTS.md)
+- **Package README:** `README.md` (in this directory)
+- **FastAPI Docs:** <https://fastapi.tiangolo.com/>
+- **Pydantic Docs:** <https://docs.pydantic.dev/>
+
+For more information on SSEC best practices:
 <https://rse-guidelines.readthedocs.io/en/latest/llms-full.txt>

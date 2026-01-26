@@ -19,6 +19,15 @@ for development and deployment.
 - PostgreSQL for data and metadata storage
 - Pixi for Python environment management (within containers)
 
+## Cross-Cutting Documentation
+
+This directory uses project-wide patterns documented in:
+
+| Topic | Document | When to Reference |
+|-------|----------|-------------------|
+| Docker Workflow | [docker_workflow.md](../agent_docs/docker_workflow.md) | Docker commands, service management |
+| Troubleshooting | [troubleshooting.md](../agent_docs/troubleshooting.md) | Common errors and solutions |
+
 ## Directory Structure
 
 ```text
@@ -77,74 +86,6 @@ resources/
   - `PREFECT_API_DATABASE_CONNECTION_URL`: Prefect metadata DB
   - `PREFECT_API_URL`: Prefect server endpoint
 
-### Docker Workflow Commands
-
-**ALWAYS use Pixi tasks from the project root directory:**
-
-```bash
-# Start all services
-pixi run start-services
-
-# Stop services
-pixi run teardown-services
-
-# Stop and remove volumes (CAUTION: deletes all data)
-pixi run teardown-services-volumes
-
-# View logs
-pixi run service-logs
-
-# Rebuild after code/dependency changes
-pixi run rebuild-services
-
-# Restart all services
-pixi run restart-services
-
-# Check service status
-pixi run service-status
-
-# Execute command in Prefect worker container
-pixi run exec-prefect-worker <command>
-
-# Execute command in database container
-pixi run exec-db <command>
-```
-
-### Common Docker Operations
-
-**Running Alembic Migrations:**
-
-```bash
-# Apply migrations (runs automatically via setup-db service)
-pixi run exec-prefect-worker alembic upgrade head
-
-# Generate new migration (from outside container)
-pixi run exec-prefect-worker alembic revision --autogenerate -m "description"
-```
-
-**Accessing Database:**
-
-```bash
-# PostgreSQL application database
-pixi run access-db
-
-# Prefect metadata database
-pixi run access-prefect-db
-```
-
-**Inspecting Services:**
-
-```bash
-# Check service status
-pixi run service-status
-
-# Check database health
-pixi run check-db-health
-
-# Check container health with docker inspect
-docker inspect BioCirV_ETL_db | grep -A 5 Health
-```
-
 ## Prefect Resources (`resources/prefect/`)
 
 ### Key Files
@@ -181,44 +122,6 @@ docker inspect BioCirV_ETL_db | grep -A 5 Health
 - **Extensibility**: Add new flows by importing and registering in
   `AVAILABLE_FLOWS`
 
-### Prefect Workflow Commands
-
-**Deploying Flows:**
-
-```bash
-# Deploy using the pipeline deploy task (recommended)
-pixi run deploy
-
-# Deploy with specific parameters
-pixi run deploy --deployment-name master-etl-deployment
-
-# Deploy directly with prefect CLI
-pixi run exec-prefect-worker prefect deploy
-```
-
-**Running Flows:**
-
-```bash
-# Trigger master flow via deployment (recommended)
-pixi run run-etl
-
-# Run flow directly for testing (bypasses deployment)
-pixi run exec-prefect-worker python -c 'from run_prefect_flow import master_flow; master_flow()'
-```
-
-**Monitoring:**
-
-```bash
-# Access Prefect UI
-open http://0.0.0.0:4200
-
-# Check work pools
-pixi run exec-prefect-worker prefect work-pool ls
-
-# View flow runs
-pixi run exec-prefect-worker prefect flow-run ls
-```
-
 ## Adding New ETL Flows
 
 **Step-by-Step Process:**
@@ -251,10 +154,22 @@ pixi run exec-prefect-worker prefect flow-run ls
 
 4. **Deploy**:
    ```bash
-   pixi run deploy --deployment-name new-flow-deployment
+   pixi run deploy
    ```
 
 ## Environment Configuration
+
+### Creating .env File
+
+**ALWAYS create from template:**
+
+```bash
+cd resources/docker
+cp .env.example .env
+# Edit .env with your specific values
+```
+
+**NEVER commit `.env` to git** - it contains sensitive credentials.
 
 ### Required Environment Variables
 
@@ -273,72 +188,6 @@ pixi run exec-prefect-worker prefect flow-run ls
 - `PREFECT_SERVER_API_HOST`: Server bind address
 - `PREFECT_UI_API_URL`: UI API endpoint
 - `PREFECT_API_DATABASE_CONNECTION_URL`: Prefect metadata DB connection
-
-### Creating .env File
-
-**ALWAYS create from template:**
-
-```bash
-cd resources/docker
-cp .env.example .env
-# Edit .env with your specific values
-```
-
-**NEVER commit `.env` to git** - it contains sensitive credentials.
-
-## Troubleshooting
-
-### Service Health Checks
-
-**Database not ready:**
-
-```bash
-# Check PostgreSQL health
-pixi run check-db-health
-
-# Expected output: "accepting connections"
-```
-
-**Prefect server not responding:**
-
-```bash
-# Check server health endpoint
-curl -f http://0.0.0.0:4200/api/health
-
-# Expected output: HTTP 200 OK
-```
-
-### Common Issues
-
-**Issue**: Worker not picking up flow runs
-
-- **Check**: Work pool exists and worker is connected
-- **Solution**:
-  ```bash
-  # Verify in Prefect UI: http://0.0.0.0:4200/work-pools
-  # Restart worker if needed
-  pixi run restart-prefect-worker
-  ```
-
-**Issue**: Database connection refused
-
-- **Check**: `DATABASE_URL` uses correct host (`db`, not `localhost`)
-- **Solution**: Update `.env` to use `POSTGRES_HOST=db`
-
-**Issue**: Alembic migrations fail
-
-- **Check**: Database schema is in expected state
-- **Solution**: See `src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md`
-
-**Issue**: "Module not found" errors in containers
-
-- **Check**: Dependencies added to Pixi, images rebuilt
-- **Solution**:
-  ```bash
-  pixi add <package>  # From project root
-  pixi run rebuild-services
-  pixi run start-services
-  ```
 
 ## Development Patterns
 
@@ -377,19 +226,31 @@ pixi run exec-prefect-worker /bin/bash -c "source /shell-hook.sh && python --ver
 pixi run exec-prefect-worker /bin/bash
 ```
 
-### Volume Management
+## Architecture Decisions
 
-**Persistent volumes** retain data across container restarts:
+### Why Multi-Stage Dockerfile?
 
-- `pgdata`: PostgreSQL data files
-- `prefectdata`: Prefect metadata and artifacts
+- **Build stage**: Full Pixi toolchain for dependency resolution
+- **Production stage**: Minimal runtime (only Python + dependencies)
+- **Benefits**: Smaller images, faster deployments, better security
 
-**To reset state** (CAUTION: deletes all data):
+### Why Separate Prefect Server and Worker?
 
-```bash
-pixi run teardown-services-volumes
-pixi run start-services
-```
+- **Server**: Manages orchestration, API, UI
+- **Worker**: Executes flow code
+- **Benefits**: Scalability (multiple workers), isolation, failure resilience
+
+### Why Docker Compose for Development?
+
+- **Simplicity**: Single command to start all services
+- **Consistency**: Same environment across team members
+- **Completeness**: Database + orchestration + workers
+
+**For production**, consider:
+
+- Kubernetes for orchestration
+- Managed PostgreSQL (RDS, Cloud SQL)
+- Prefect Cloud for hosted server
 
 ## Integration with Main Project
 
@@ -418,49 +279,7 @@ pixi run start-services
 **Outside containers** (local development):
 
 - Use Pixi directly: `pixi run <task>`
-- See main `AGENTS.md` for Pixi workflows
-
-## Architecture Decisions
-
-### Why Multi-Stage Dockerfile?
-
-- **Build stage**: Full Pixi toolchain for dependency resolution
-- **Production stage**: Minimal runtime (only Python + dependencies)
-- **Benefits**: Smaller images, faster deployments, better security
-
-### Why Separate Prefect Server and Worker?
-
-- **Server**: Manages orchestration, API, UI
-- **Worker**: Executes flow code
-- **Benefits**: Scalability (multiple workers), isolation, failure resilience
-
-### Why Docker Compose for Development?
-
-- **Simplicity**: Single command to start all services
-- **Consistency**: Same environment across team members
-- **Completeness**: Database + orchestration + workers
-
-**For production**, consider:
-
-- Kubernetes for orchestration
-- Managed PostgreSQL (RDS, Cloud SQL)
-- Prefect Cloud for hosted server
-
-## Related Documentation
-
-**Pipeline Documentation** (`src/ca_biositing/pipeline/docs/`):
-
-- `PREFECT_WORKFLOW.md`: Detailed Prefect usage guide
-- `DOCKER_WORKFLOW.md`: Docker development workflows
-- `ETL_WORKFLOW.md`: ETL development patterns
-- `ALEMBIC_WORKFLOW.md`: Database migration guide
-- `GCP_SETUP.md`: Google Cloud credentials setup
-
-**Main Project Documentation**:
-
-- `/README.md`: Project overview
-- `/AGENTS.md`: Main AI assistant guidance
-- `src/ca_biositing/pipeline/AGENTS.md`: Pipeline-specific guidance
+- See main [/AGENTS.md](../AGENTS.md) for Pixi workflows
 
 ## Best Practices
 
@@ -515,18 +334,18 @@ pixi run restart-services
 - Don't expose ports publicly
 - Enable audit logging
 
-## Trust These Instructions
+## Related Documentation
 
-These instructions were generated through comprehensive analysis of the
-resources directory structure and integration with the main project. Commands
-have been validated against the Docker Compose and Prefect configurations.
+**Pipeline Documentation** (`src/ca_biositing/pipeline/docs/`):
 
-**Only perform additional searches if:**
+- `PREFECT_WORKFLOW.md`: Detailed Prefect usage guide
+- `DOCKER_WORKFLOW.md`: Docker development workflows
+- `ETL_WORKFLOW.md`: ETL development patterns
+- `ALEMBIC_WORKFLOW.md`: Database migration guide
+- `GCP_SETUP.md`: Google Cloud credentials setup
 
-- Instructions produce errors
-- You need to understand integration with source code
-- You're implementing new deployment patterns
-- Configuration files have been significantly changed
+**Main Project Documentation**:
 
-For routine operations (starting services, deploying flows, viewing logs),
-follow these instructions directly.
+- [/AGENTS.md](../AGENTS.md): Main AI assistant guidance
+- [/agent_docs/](../agent_docs/): Cross-cutting documentation
+- `src/ca_biositing/pipeline/AGENTS.md`: Pipeline-specific guidance
