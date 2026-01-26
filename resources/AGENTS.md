@@ -23,10 +23,10 @@ for development and deployment.
 
 This directory uses project-wide patterns documented in:
 
-| Topic | Document | When to Reference |
-|-------|----------|-------------------|
+| Topic           | Document                                               | When to Reference                   |
+| --------------- | ------------------------------------------------------ | ----------------------------------- |
 | Docker Workflow | [docker_workflow.md](../agent_docs/docker_workflow.md) | Docker commands, service management |
-| Troubleshooting | [troubleshooting.md](../agent_docs/troubleshooting.md) | Common errors and solutions |
+| Troubleshooting | [troubleshooting.md](../agent_docs/troubleshooting.md) | Common errors and solutions         |
 
 ## Directory Structure
 

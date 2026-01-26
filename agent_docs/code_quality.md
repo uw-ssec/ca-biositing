@@ -206,7 +206,8 @@ from ca_biositing.webservice import __version__
 
 - Always use proper type hints (`str`, `int`, `Optional[T]`)
 - Use `Decimal` for financial or high-precision numeric fields
-- Use `Optional[int] = Field(default=None, primary_key=True)` for auto-increment IDs
+- Use `Optional[int] = Field(default=None, primary_key=True)` for auto-increment
+  IDs
 - Always provide field descriptions in `Field()`
 - Use `__tablename__` to explicitly set table names (snake_case)
 - Use `default_factory` for mutable defaults (lists, dicts, datetime)

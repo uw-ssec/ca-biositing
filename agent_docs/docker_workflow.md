@@ -17,12 +17,12 @@ pixi run which docker-compose
 
 The `docker-compose.yml` defines these services:
 
-| Service | Description | Port |
-|---------|-------------|------|
-| `db` | PostgreSQL 13 database | 5432 |
-| `setup-db` | One-time Alembic migration runner | - |
-| `prefect-server` | Prefect orchestration server | 4200 |
-| `prefect-worker` | Prefect worker for flow execution | - |
+| Service          | Description                       | Port |
+| ---------------- | --------------------------------- | ---- |
+| `db`             | PostgreSQL 13 database            | 5432 |
+| `setup-db`       | One-time Alembic migration runner | -    |
+| `prefect-server` | Prefect orchestration server      | 4200 |
+| `prefect-worker` | Prefect worker for flow execution | -    |
 
 ### Service Details
 
@@ -380,7 +380,8 @@ pixi run exec-prefect-worker /bin/bash
 
 ## Related Documentation
 
-- **Resources AGENTS.md**: [/resources/AGENTS.md](../resources/AGENTS.md) - Prefect deployment specifics
+- **Resources AGENTS.md**: [/resources/AGENTS.md](../resources/AGENTS.md) -
+  Prefect deployment specifics
 - **Docker Workflow Guide**: `docs/pipeline/DOCKER_WORKFLOW.md`
 - **Prefect Workflow Guide**: `docs/pipeline/PREFECT_WORKFLOW.md`
 - **Alembic Workflow Guide**: `docs/pipeline/ALEMBIC_WORKFLOW.md`

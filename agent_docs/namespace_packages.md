@@ -1,7 +1,7 @@
 # Namespace Package Structure (PEP 420)
 
-This project uses PEP 420 implicit namespace packages to share the `ca_biositing`
-namespace across multiple independently-installable packages.
+This project uses PEP 420 implicit namespace packages to share the
+`ca_biositing` namespace across multiple independently-installable packages.
 
 ## Critical Rule
 
@@ -145,7 +145,8 @@ Same troubleshooting as above. Verify:
 Same troubleshooting as above. Verify:
 
 1. No `__init__.py` in `src/ca_biositing/webservice/ca_biositing/`
-2. `__init__.py` exists in `src/ca_biositing/webservice/ca_biositing/webservice/`
+2. `__init__.py` exists in
+   `src/ca_biositing/webservice/ca_biositing/webservice/`
 3. Package is installed: `pip install -e src/ca_biositing/webservice`
 
 ### Issue: Import works in one package but not another
@@ -165,8 +166,8 @@ pip install -e src/ca_biositing/webservice
 
 ## Best Practices
 
-1. **Never add `__init__.py` to `ca_biositing/` directory** - This breaks namespace
-   package functionality
+1. **Never add `__init__.py` to `ca_biositing/` directory** - This breaks
+   namespace package functionality
 
 2. **Always add `__init__.py` to the actual package directory** - e.g.,
    `ca_biositing/datamodels/__init__.py`

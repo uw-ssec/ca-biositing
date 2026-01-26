@@ -1,6 +1,7 @@
 # Testing Patterns
 
-This document consolidates testing patterns used across all ca-biositing packages.
+This document consolidates testing patterns used across all ca-biositing
+packages.
 
 ## Running Tests with Pixi
 

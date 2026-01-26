@@ -26,13 +26,13 @@ and uses Prefect for workflow orchestration.
 
 This package follows project-wide patterns documented in:
 
-| Topic | Document | When to Reference |
-|-------|----------|-------------------|
-| Namespace Packages | [namespace_packages.md](../../../agent_docs/namespace_packages.md) | Import errors, package structure questions |
-| Testing Patterns | [testing_patterns.md](../../../agent_docs/testing_patterns.md) | Writing tests, fixtures, Prefect task testing |
-| Code Quality | [code_quality.md](../../../agent_docs/code_quality.md) | Pre-commit, style, imports |
-| Troubleshooting | [troubleshooting.md](../../../agent_docs/troubleshooting.md) | Common errors and solutions |
-| Docker Workflow | [docker_workflow.md](../../../agent_docs/docker_workflow.md) | Docker commands, ETL operations |
+| Topic              | Document                                                           | When to Reference                             |
+| ------------------ | ------------------------------------------------------------------ | --------------------------------------------- |
+| Namespace Packages | [namespace_packages.md](../../../agent_docs/namespace_packages.md) | Import errors, package structure questions    |
+| Testing Patterns   | [testing_patterns.md](../../../agent_docs/testing_patterns.md)     | Writing tests, fixtures, Prefect task testing |
+| Code Quality       | [code_quality.md](../../../agent_docs/code_quality.md)             | Pre-commit, style, imports                    |
+| Troubleshooting    | [troubleshooting.md](../../../agent_docs/troubleshooting.md)       | Common errors and solutions                   |
+| Docker Workflow    | [docker_workflow.md](../../../agent_docs/docker_workflow.md)       | Docker commands, ETL operations               |
 
 ## Key Concepts
 

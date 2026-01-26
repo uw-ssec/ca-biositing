@@ -93,7 +93,8 @@ lsof -i :4200  # Prefect UI port
 
 ### Issue: Database connection refused
 
-**Check:** `DATABASE_URL` uses correct host (`db`, not `localhost` in containers)
+**Check:** `DATABASE_URL` uses correct host (`db`, not `localhost` in
+containers)
 
 **Solution:** Update `resources/docker/.env` to use `POSTGRES_HOST=db`
 
@@ -161,8 +162,8 @@ tags: List[str] = Field(default_factory=list, description="Tags")
 
 ### Issue: Foreign key constraints
 
-Foreign keys are **commented out** in models for development flexibility. Uncomment
-when ready to enforce constraints.
+Foreign keys are **commented out** in models for development flexibility.
+Uncomment when ready to enforce constraints.
 
 ```python
 parent_id: Optional[int] = Field(
@@ -176,7 +177,8 @@ parent_id: Optional[int] = Field(
 
 **Problem:** Precision issues with financial/scientific data
 
-**Solution:** Always use `Decimal` for currency, percentages, precise measurements.
+**Solution:** Always use `Decimal` for currency, percentages, precise
+measurements.
 
 ```python
 # Good - use Decimal for precision
@@ -253,7 +255,8 @@ pixi run restart-services
 
 **Problem:** `MissingContextError: There is no active flow or task run context`
 
-**Solution:** See [testing_patterns.md](testing_patterns.md) for the `.fn()` pattern.
+**Solution:** See [testing_patterns.md](testing_patterns.md) for the `.fn()`
+pattern.
 
 Quick fix:
 
@@ -315,8 +318,8 @@ ls -la credentials.json
 
 ### Issue: QGIS fails to launch on macOS
 
-Python faulthandler error is expected and can be ignored.
-See: <https://github.com/qgis/QGIS/issues/52987>
+Python faulthandler error is expected and can be ignored. See:
+<https://github.com/qgis/QGIS/issues/52987>
 
 If QGIS doesn't launch at all:
 
