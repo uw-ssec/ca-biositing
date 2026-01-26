@@ -40,7 +40,7 @@ pixi run start-services
 
 ---
 
-## 3. Google Sheets Credentials (REQUIRED)
+## Google Sheets Credentials (REQUIRED)
 
 - ETL pulls data from Google Sheets
 - You must have a valid Google service account JSON key
@@ -88,6 +88,10 @@ Access the PostgreSQL database:
 
 ```bash
 pixi run access-db
+```
+Once inside the PostgreSQL shell, run:
+
+```sql
 SELECT * FROM biomass LIMIT 5;
 ```
 
@@ -117,8 +121,8 @@ pixi run teardown-services-volumes
 Start API webservice:
 
 ```bash
-pixi pixi run start-webservice
+pixi run start-webservice
 ```
 
-Visit localhost at http://127.0.0.1:8000/ to validate API and visit
-http://127.0.0.1:8000/docs to view API docs & try API's using swagger.
+Visit localhost at [http://127.0.0.1:8000](http://127.0.0.1:8000) to validate the API and visit
+[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to view API docs and try APIs using Swagger.

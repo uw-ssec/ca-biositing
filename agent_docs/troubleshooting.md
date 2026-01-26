@@ -34,7 +34,7 @@ pixi install
 **Solution:** Edit `pixi.toml` and add platforms:
 
 ```toml
-platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
 ```
 
 Then run `pixi install`.
@@ -196,7 +196,12 @@ price: Optional[float] = Field(default=None)  # Don't use for currency
 **Current:**
 
 ```python
-created_at: datetime = Field(default_factory=datetime.utcnow)
+from datetime import datetime, UTC
+from sqlmodel import Field
+
+created_at: datetime = Field(
+    default_factory=lambda: datetime.now(tz=UTC)
+)
 ```
 
 **Recommended migration:**

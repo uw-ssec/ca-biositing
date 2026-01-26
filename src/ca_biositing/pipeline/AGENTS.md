@@ -368,7 +368,7 @@ pixi run run-etl
 
 - Migrations are managed with Alembic
 - Database models come from `ca-biositing-datamodels` package
-- See `docs/pipeline/ALEMBIC_WORKFLOW.md` for migration workflows
+- See `../../../docs/pipeline/ALEMBIC_WORKFLOW.md` for migration workflows
 
 ## Best Practices
 
