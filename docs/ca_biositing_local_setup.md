@@ -89,6 +89,7 @@ Access the PostgreSQL database:
 ```bash
 pixi run access-db
 ```
+
 Once inside the PostgreSQL shell, run:
 
 ```sql
@@ -124,5 +125,6 @@ Start API webservice:
 pixi run start-webservice
 ```
 
-Visit localhost at [http://127.0.0.1:8000](http://127.0.0.1:8000) to validate the API and visit
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to view API docs and try APIs using Swagger.
+Visit localhost at [http://127.0.0.1:8000](http://127.0.0.1:8000) to validate
+the API and visit [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to
+view API docs and try APIs using Swagger.
