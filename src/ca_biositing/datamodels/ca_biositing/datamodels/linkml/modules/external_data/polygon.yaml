@@ -6,15 +6,22 @@ imports:
   - linkml:types
   - ../core/base_entity
   - ../places/geography
+  - ../general_analysis/dataset
 default_range: string
 
 classes:
   Polygon:
     is_a: BaseEntity
     description: Geospatial polygon.
+    unique_keys:
+      unique_geom:
+        unique_key_slots:
+          - geom
+          - dataset_id
     slots:
       - geoid
       - geom
+      - dataset_id
 
 slots:
   geoid:
@@ -24,3 +31,7 @@ slots:
   geom:
     range: geometry
     description: Geometry (WKT or similar).
+
+  dataset_id:
+    range: Dataset
+    description: Reference to Dataset.
