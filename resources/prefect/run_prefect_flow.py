@@ -7,9 +7,9 @@ from prefect.utilities.importtools import import_object
 AVAILABLE_FLOWS = {
     #"primary_ag_product": "ca_biositing.pipeline.flows.primary_ag_product.primary_ag_product_flow",
     #"analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
-    "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
-    #"landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
-    "resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
+    #"analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
+    "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
+    #"resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
 }
 
 @flow(name="Master ETL Flow", log_prints=True)
@@ -34,14 +34,12 @@ def master_flow():
             flow_func = getattr(mod, obj_name)
             print(f"DEBUG: Successfully got attribute {obj_name}")
 
-            if hasattr(flow_func, "fn"):
-                logger.info(f"Executing {flow_name} via .fn()")
-                print(f"DEBUG: Calling {flow_name}.fn()")
-                flow_func.fn()
-            else:
-                logger.info(f"Executing {flow_name} directly")
-                print(f"DEBUG: Calling {flow_name} directly")
-                flow_func()
+            logger.info(f"Executing {flow_name} as sub-flow")
+            print(f"DEBUG: Calling {flow_name} directly")
+            # We must call the flow function. If it's a Prefect flow object,
+            # calling it will trigger the orchestration.
+            result = flow_func()
+            print(f"DEBUG: {flow_name} returned: {result}")
             print(f"DEBUG: Finished {flow_name}")
         except Exception as e:
             logger.error(f"Flow '{flow_name}' failed with error: {e}")

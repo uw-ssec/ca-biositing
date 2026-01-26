@@ -5,7 +5,7 @@ prefixes:
 imports:
   - linkml:types
   - ../core/base_entity
-  - ../data_sources_metadata/data_source
+  - ../general_analysis/dataset
   - polygon
   - ../resource_information/primary_ag_product
 default_range: string
@@ -14,6 +14,10 @@ classes:
   LandiqRecord:
     is_a: BaseEntity
     description: LandIQ record.
+    unique_keys:
+      unique_record_id:
+        unique_key_slots:
+          - record_id
     slots:
       - record_id
       - dataset_id
@@ -39,8 +43,8 @@ slots:
     identifier: true
 
   dataset_id:
-    range: DataSource
-    description: Reference to DataSource.
+    range: Dataset
+    description: Reference to Dataset.
 
   polygon_id:
     range: Polygon

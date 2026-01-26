@@ -1139,14 +1139,18 @@ class BillionTon2023Record(BaseEntity):
 
 
 
-class Polygon(BaseEntity):
+class Dataset(BaseEntity):
     """
-    Geospatial polygon.
+    Dataset definition.
     """
-    __tablename__ = 'polygon'
+    __tablename__ = 'dataset'
 
-    geoid = Column(Text())
-    geom = Column(Text())
+    name = Column(Text())
+    record_type = Column(Text())
+    source_id = Column(Integer(), ForeignKey('data_source.id'))
+    start_date = Column(Date())
+    end_date = Column(Date())
+    description = Column(Text())
     id = Column(Integer(), primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1155,7 +1159,36 @@ class Polygon(BaseEntity):
 
 
     def __repr__(self):
-        return f"Polygon(geoid={self.geoid},geom={self.geom},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Dataset(name={self.name},record_type={self.record_type},source_id={self.source_id},start_date={self.start_date},end_date={self.end_date},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
+class Polygon(BaseEntity):
+    """
+    Geospatial polygon.
+    """
+    __tablename__ = 'polygon'
+
+    geoid = Column(Text())
+    geom = Column(Text())
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"Polygon(geoid={self.geoid},geom={self.geom},dataset_id={self.dataset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1854,38 +1887,6 @@ class PhysicalCharacteristic(BaseEntity):
 
     def __repr__(self):
         return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class Dataset(BaseEntity):
-    """
-    Dataset definition.
-    """
-    __tablename__ = 'dataset'
-
-    name = Column(Text())
-    record_type = Column(Text())
-    source_id = Column(Integer(), ForeignKey('data_source.id'))
-    start_date = Column(Date())
-    end_date = Column(Date())
-    description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"Dataset(name={self.name},record_type={self.record_type},source_id={self.source_id},start_date={self.start_date},end_date={self.end_date},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

@@ -13,7 +13,7 @@ import ca_biositing.pipeline.utils.cleaning_functions.cleaning as cleaning_mod
 import ca_biositing.pipeline.utils.cleaning_functions.coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 
-@task
+@task(persist_result=False)
 def transform_landiq_record(
     gdf: gpd.GeoDataFrame,
     etl_run_id: str = None,
@@ -48,7 +48,7 @@ def transform_landiq_record(
     df = pd.DataFrame(gdf.copy())
 
     # Set dataset name and version as requested
-    df['dataset'] = 'landiq'
+    df['dataset'] = 'landiq_2023'
     df['version'] = 'land use 2023'
 
     # Map shapefile columns to model fields
@@ -61,6 +61,12 @@ def transform_landiq_record(
         df['tertiary_crop'] = df['CLASS2']
     if 'CLASS3' in df.columns:
         df['quaternary_crop'] = df['CLASS3']
+
+    # Map percentage columns
+    for i in range(1, 5):
+        col_name = f'PCNT{i}'
+        if col_name in df.columns:
+            df[f'pct{i}'] = df[col_name]
 
 
     # Load crop mapping
@@ -121,6 +127,13 @@ def transform_landiq_record(
     # in the notebook environment. We use the DataFrame as-is.
     cleaned_df = df.copy()
 
+    # Handle non-numeric values like '**' in percentage columns before cleaning names
+    # to ensure they are preserved as numeric or null
+    for i in range(1, 5):
+        col = f'pct{i}'
+        if col in cleaned_df.columns:
+            cleaned_df[col] = pd.to_numeric(cleaned_df[col], errors='coerce')
+
     # Ensure column names are cleaned (snake_case) as expected by the rest of the pipeline
     # but without the buggy to_lowercase_df call
     cleaned_df = cleaning_mod.clean_names_df(cleaned_df)
@@ -146,7 +159,13 @@ def transform_landiq_record(
             series = series.iloc[:, 0]
 
         if series.dtype == "object" or pd.api.types.is_string_dtype(series):
-            cleaned_df[col] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
+            # CRITICAL: Do not lowercase the dataset name 'landiq_2023' if it's already correct,
+            # but more importantly, ensure we don't turn numeric strings into garbage.
+            # The dataset_id lookup is case sensitive.
+            if col == 'dataset':
+                cleaned_df[col] = series.astype(str).str.strip()
+            else:
+                cleaned_df[col] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
 
     # Add lineage IDs
     if etl_run_id:
@@ -157,34 +176,14 @@ def transform_landiq_record(
     # 3. Coercion
     coerced_df = coercion_mod.coerce_columns(
         cleaned_df,
-        float_cols=['acres'],
+        float_cols=['acres', 'pct1', 'pct2', 'pct3', 'pct4'],
         int_cols=['confidence'] if 'confidence' in cleaned_df.columns else []
     )
 
-    # 4. Normalization
-    # We need to map names to IDs for related tables
-    # We also normalize polygons using the geometry (WKT) as the identifier
-    normalize_columns = {
-        'dataset': (Dataset, 'name'),
-        'main_crop': (PrimaryAgProduct, 'name'),
-        'secondary_crop': (PrimaryAgProduct, 'name'),
-        'tertiary_crop': (PrimaryAgProduct, 'name'),
-        'quaternary_crop': (PrimaryAgProduct, 'name'),
-        'geometry': (Polygon, 'geom'),
-    }
-
-    # Ensure geometry is in WKT format for normalization if it's a GeoSeries
-    # We use a copy to avoid modifying the original GeoDataFrame's geometry
-    # which we need later for the final record_df
-    df_for_norm = coerced_df.copy()
-    if 'geometry' in df_for_norm.columns:
-        if hasattr(df_for_norm['geometry'], 'to_wkt'):
-            df_for_norm['geometry'] = df_for_norm['geometry'].to_wkt()
-        else:
-            # Fallback for cases where it might be a Series of objects
-            df_for_norm['geometry'] = df_for_norm['geometry'].astype(str)
-
-    normalized_df = normalize_dataframes(df_for_norm, normalize_columns)
+    # 4. Normalization (Bypassed for Bulk Loading)
+    # We no longer use normalize_dataframes here because the bulk load step
+    # handles ID resolution in memory to avoid N+1 queries.
+    # We just prepare the columns for the load step.
 
     # 5. Table Specific Mapping
     rename_map = {
@@ -194,34 +193,23 @@ def transform_landiq_record(
         'etl_run_id': 'etl_run_id',
         'lineage_group_id': 'lineage_group_id',
         'irrigated': 'irrigated',
-        'confidence': 'confidence'
+        'confidence': 'confidence',
+        'dataset': 'dataset_id',
+        'main_crop': 'main_crop',
+        'secondary_crop': 'secondary_crop',
+        'tertiary_crop': 'tertiary_crop',
+        'quaternary_crop': 'quaternary_crop',
+        'pct1': 'pct1',
+        'pct2': 'pct2',
+        'pct3': 'pct3',
+        'pct4': 'pct4'
     }
 
-    # Add normalized ID columns
-    for col in normalize_columns.keys():
-        norm_col = f"{col}_id"
-        if norm_col in normalized_df.columns:
-            # Special case: geometry_id maps to polygon_id in LandiqRecord
-            target_col = 'polygon_id' if col == 'geometry' else norm_col
-            rename_map[norm_col] = target_col
-
-    # Ensure dataset_id is included if it was normalized
-    if 'dataset_id' in normalized_df.columns:
-        rename_map['dataset_id'] = 'dataset_id'
-
-    # Ensure crop columns are preserved if they were normalized
-    # We map the normalized ID columns (e.g., main_crop_id) back to the
-    # model field names (e.g., main_crop) expected by the database.
-    for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
-        norm_col = f"{col}_id"
-        if norm_col in normalized_df.columns:
-            rename_map[norm_col] = col
-
-    available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]
+    available_cols = [c for c in rename_map.keys() if c in coerced_df.columns]
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
 
     try:
-        record_df = normalized_df[available_cols].copy().rename(columns=final_rename)
+        record_df = coerced_df[available_cols].copy().rename(columns=final_rename)
 
         # Ensure record_id exists for lineage tracking
         if 'record_id' in record_df.columns:
@@ -230,8 +218,10 @@ def transform_landiq_record(
             logger.warning("record_id (UniqueID) missing from Land IQ transform")
 
         # Add geometry for polygon handling in load step
+        # We use the original gdf geometry to ensure we have the geometry objects
         if 'geometry' in gdf.columns:
-            record_df['geometry'] = gdf['geometry'].values
+            # Align indices to ensure correct mapping if rows were dropped
+            record_df['geometry'] = gdf.loc[record_df.index, 'geometry']
 
         logger.info(f"Successfully transformed {len(record_df)} Land IQ records")
         return record_df
