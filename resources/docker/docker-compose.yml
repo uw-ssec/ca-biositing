@@ -6,6 +6,7 @@ services:
       - .env
     ports:
       - "${POSTGRES_PORT}:5432"
+    shm_size: "1gb"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./create_prefect_db.sql:/docker-entrypoint-initdb.d/create_prefect_db.sql
