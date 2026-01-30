@@ -14,10 +14,12 @@ classes:
     description: Physical address.
     slots:
       - geography_id
+      - full_address
       - address_line1
       - address_line2
       - city
       - zip
+      - county
       - lat
       - lon
       - is_anonymous
@@ -26,6 +28,10 @@ slots:
   geography_id:
     range: Place
     description: Reference to Place.
+
+  full_address:
+    range: string
+    description: Full address.
 
   address_line1:
     range: string
@@ -42,6 +48,10 @@ slots:
   zip:
     range: string
     description: ZIP code.
+
+  county:
+    range: string
+    description: County.
 
   lat:
     range: float

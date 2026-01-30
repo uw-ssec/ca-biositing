@@ -1523,10 +1523,12 @@ class LocationAddress(BaseEntity):
     __table_args__ = {'extend_existing': True}
 
     geography_id = Column(Text(), ForeignKey('place.geoid'))
+    full_address = Column(Text())
     address_line1 = Column(Text())
     address_line2 = Column(Text())
     city = Column(Text())
     zip = Column(Text())
+    county = Column(Text())
     lat = Column(Float())
     lon = Column(Float())
     is_anonymous = Column(Boolean())
@@ -1538,7 +1540,7 @@ class LocationAddress(BaseEntity):
 
 
     def __repr__(self):
-        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LocationAddress(geography_id={self.geography_id},full_address={self.full_address},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},county={self.county},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2205,8 +2207,7 @@ class Contact(BaseEntity):
     __tablename__ = 'contact'
     __table_args__ = {'extend_existing': True}
 
-    first_name = Column(Text())
-    last_name = Column(Text())
+    name = Column(Text())
     email = Column(Text())
     affiliation = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
@@ -2217,7 +2218,7 @@ class Contact(BaseEntity):
 
 
     def __repr__(self):
-        return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Contact(name={self.name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2245,7 +2246,7 @@ class Provider(BaseEntity):
 
 
     def __repr__(self):
-        return f"Provider(codename={self.codename},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Provider(codename={self.codename},type={self.type},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

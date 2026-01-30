@@ -12,8 +12,7 @@ classes:
     is_a: BaseEntity
     description: Contact information for a person.
     slots:
-      - first_name
-      - last_name
+      - name
       - email
       - affiliation
     slot_usage:
@@ -22,13 +21,9 @@ classes:
         range: integer
 
 slots:
-  first_name:
+  name:
     range: string
-    description: First name.
-
-  last_name:
-    range: string
-    description: Last name.
+    description: full name
 
   email:
     range: string
