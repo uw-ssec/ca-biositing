@@ -9,6 +9,7 @@ from ca_biositing.pipeline.etl.load.landiq import (
     bulk_upsert_landiq_records,
     load_landiq_record
 )
+from ca_biositing.pipeline.utils.lookup_utils import fetch_lookup_ids
 from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord, Polygon, DataSource, PrimaryAgProduct
 
 def test_fetch_polygon_ids_by_geoms(session):
@@ -31,10 +32,12 @@ def test_load_landiq_record_optimized(mock_get_engine, session, engine):
     mock_get_engine.return_value = engine
 
     # Setup reference data
-    ds = DataSource(name="Test Dataset")
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import Dataset
+    ds = Dataset(name="Test Dataset")
     crop = PrimaryAgProduct(name="Almonds")
     session.add_all([ds, crop])
     session.commit()
+    session.refresh(ds)
 
     # Create test DataFrame
     df = pd.DataFrame({
@@ -55,10 +58,26 @@ def test_load_landiq_record_optimized(mock_get_engine, session, engine):
          patch("ca_biositing.pipeline.etl.load.landiq.bulk_upsert_landiq_records") as mock_upsert:
 
         # Mock poly_map return
-        with patch("ca_biositing.pipeline.etl.load.landiq.fetch_polygon_ids_by_geoms") as mock_fetch_poly:
-            mock_fetch_poly.return_value = {'POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))': 1}
+        # Mock fetch_lookup_ids where it is imported in landiq.py
+        # We use the full path to where it's used in the task
+        with patch("ca_biositing.pipeline.utils.lookup_utils.fetch_lookup_ids", spec=fetch_lookup_ids) as mock_lookup:
+            mock_lookup.side_effect = [
+                {"Almonds": crop.id},  # First call for crops
+                {"Test Dataset": ds.id}  # Second call for datasets
+            ]
 
-            load_landiq_record.fn(df)
+            # We need to mock the polygon fetching logic inside load_landiq_record
+            # Since it doesn't call fetch_polygon_ids_by_geoms but has its own loop
+            # We mock the session.execute().all() to return a polygon ID
+            mock_result = MagicMock()
+            mock_result.all.return_value = [MagicMock(id=1, geom='POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')]
+
+            # We need to mock the Session class that is used inside load_landiq_record
+            with patch("ca_biositing.pipeline.etl.load.landiq.Session", create=True) as mock_session_cls:
+                mock_session = mock_session_cls.return_value.__enter__.return_value
+                mock_session.execute.return_value = mock_result
+
+                load_landiq_record.fn(df)
 
             assert mock_poly_ins.called
             assert mock_upsert.called
