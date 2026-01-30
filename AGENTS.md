@@ -31,6 +31,18 @@ prototyping for bioeconomy site selection.
 - **`resources/`**: Docker Compose and Prefect deployment configuration.
 - **`frontend/`**: Git submodule for frontend application.
 
+## Cross-Cutting Documentation
+
+For detailed guidance on shared topics, see the `agent_docs/` directory:
+
+| Topic              | Document                                                             | Description                        |
+| ------------------ | -------------------------------------------------------------------- | ---------------------------------- |
+| Namespace Packages | [agent_docs/namespace_packages.md](agent_docs/namespace_packages.md) | PEP 420 structure, import patterns |
+| Testing Patterns   | [agent_docs/testing_patterns.md](agent_docs/testing_patterns.md)     | pytest fixtures, test commands     |
+| Code Quality       | [agent_docs/code_quality.md](agent_docs/code_quality.md)             | Pre-commit, style, imports         |
+| Troubleshooting    | [agent_docs/troubleshooting.md](agent_docs/troubleshooting.md)       | Common pitfalls and solutions      |
+| Docker Workflow    | [agent_docs/docker_workflow.md](agent_docs/docker_workflow.md)       | Docker/Pixi service commands       |
+
 ## Build System & Environment Management
 
 ### Pixi Overview

@@ -22,11 +22,9 @@ and uses Prefect for workflow orchestration.
 - **Domain:** ETL pipelines, data workflows, Prefect orchestration, Google
   Sheets integration
 
-## Key Concepts
+## Cross-Cutting Documentation
 
-### Namespace Package Structure
-
-This package follows **PEP 420** implicit namespace package conventions:
+This package follows project-wide patterns documented in:
 
 ```text
 src/ca_biositing/pipeline/
@@ -42,8 +40,7 @@ src/ca_biositing/pipeline/
 └── README.md                 # Documentation
 ```
 
-**CRITICAL:** The `ca_biositing/` directory does **NOT** have an `__init__.py`
-file. This allows multiple packages to share the `ca_biositing` namespace.
+## Key Concepts
 
 ### ETL Architecture
 
@@ -57,9 +54,7 @@ The pipeline follows a modular ETL pattern:
 - **Flows**: Prefect flows that orchestrate Extract → Transform → Load
   sequences.
 
-## Dependencies & Environment
-
-### Core Dependencies
+## Dependencies
 
 From `pyproject.toml`:
 
