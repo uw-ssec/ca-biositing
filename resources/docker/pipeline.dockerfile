@@ -4,6 +4,9 @@ FROM ghcr.io/prefix-dev/pixi:0.56.0 AS build
 COPY . /app
 WORKDIR /app
 
+# Remove any existing pixi environment (if any)
+RUN rm -rf /app/.pixi
+
 # run the `install` command (or any other). This will also install the dependencies into `/app/.pixi`
 # assumes that you have a `prod` environment defined in your pixi.toml
 RUN pixi install -e etl

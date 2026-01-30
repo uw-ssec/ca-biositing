@@ -33,9 +33,11 @@ def generate_sqla():
     """
     Generates SQLAlchemy models from LinkML schema modules.
     """
-    base_dir = Path(__file__).parent.parent
-    linkml_dir = base_dir / "ca_biositing/datamodels/linkml/test_schemas"
-    output_dir = base_dir / "ca_biositing/datamodels/schemas/generated_test"
+    # Script is now at: resources/linkml/scripts/generate_test_sqla.py
+    script_dir = Path(__file__).parent
+    linkml_dir = script_dir.parent / "test_schemas"  # resources/linkml/test_schemas
+    project_root = script_dir.parent.parent  # ca-biositing/
+    output_dir = project_root / "src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated_test"
 
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)

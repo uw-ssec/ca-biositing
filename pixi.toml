@@ -24,6 +24,7 @@ frontend = { features = [
 ], no-default-feature = true, solve-group = "default" }
 docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 deployment = { features = ["cloud"], solve-group = "default" }
+
 [dependencies]
 python = "~=3.12"
 pre-commit = ">=4.2.0,<5"
@@ -180,7 +181,9 @@ migrate = { cmd = [
     "head",
 ], description = "Apply database migrations locally to the Docker database.", env = { PYTHONPATH = "./src/ca_biositing/datamodels", DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
-update-schema = { cmd = "python src/ca_biositing/datamodels/utils/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
+generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", description = "Generate SQLAlchemy models from LinkML schemas." }
+
+update-schema = { cmd = "python resources/linkml/scripts/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]

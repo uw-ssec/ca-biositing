@@ -27,7 +27,6 @@ dependencies = [
     "psycopg2-binary>=2.9.6,<3",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
-    "linkml>=1.8.0",
     "sqlalchemy>=2.0.0",
 ]
 

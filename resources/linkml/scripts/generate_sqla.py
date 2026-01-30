@@ -53,9 +53,6 @@ def post_process_file(file_path):
     # Inject the Base import
     new_content = "from ...database import Base\n\n" + new_content
 
-        # Inject the Base import
-    new_content = "from ...database import Base\n\n" + new_content
-
     # Remove the line that redefines Base
     new_content = re.sub(r"Base = declarative_base\(\)\n", "", new_content)
 
@@ -98,10 +95,13 @@ def generate_sqla():
     """
     Generates SQLAlchemy models from LinkML schema modules.
     """
-    base_dir = Path(__file__).parent.parent
-    linkml_dir = base_dir / "ca_biositing/datamodels/linkml"
+    # Script is now at: resources/linkml/scripts/generate_sqla.py
+    script_dir = Path(__file__).parent
+    linkml_dir = script_dir.parent  # resources/linkml/
+    project_root = linkml_dir.parent.parent  # ca-biositing/
+    
     modules_dir = linkml_dir / "modules"
-    output_dir = base_dir / "ca_biositing/datamodels/schemas/generated"
+    output_dir = project_root / "src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated"
 
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)

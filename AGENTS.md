@@ -109,14 +109,14 @@ To use notebooks with correct imports:
 
 ## Schema Management & Migrations (CRITICAL)
 
-This project uses **LinkML** as the source of truth for the data model. Due to
-macOS Docker filesystem performance issues, a specific local workflow is
-required.
+This project uses **LinkML** as the source of truth for the data model. The
+schemas are maintained in the `resources/linkml/` directory, separate from the
+installable Python package. Due to macOS Docker filesystem performance issues,
+a specific local workflow is required.
 
 ### 1. LinkML Source of Truth
 
-Modify YAML files in:
-`src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`
+Modify YAML files in: `resources/linkml/modules/`
 
 ### 2. Orchestrated Update
 
@@ -128,7 +128,7 @@ pixi run update-schema -m "Description of changes"
 ```
 
 This task executes
-[`orchestrate_schema_update.py`](src/ca_biositing/datamodels/utils/orchestrate_schema_update.py)
+[`orchestrate_schema_update.py`](resources/linkml/scripts/orchestrate_schema_update.py)
 which:
 
 - Generates SQLAlchemy models from LinkML.

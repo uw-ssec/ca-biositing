@@ -53,14 +53,11 @@ def main():
 
     import os
     # Prepare environment for local alembic run
+    # NOTE: Packages are installed in the pixi environment, so PYTHONPATH
+    # manipulation is not needed. The packages (ca-biositing-datamodels,
+    # ca-biositing-pipeline, ca-biositing-webservice) are properly discoverable
+    # through the virtual environment managed by pixi.
     local_env = os.environ.copy()
-
-    # Add datamodels to PYTHONPATH so models can be imported
-    project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
-    datamodels_path = project_root / "src" / "ca_biositing" / "datamodels"
-
-    existing_pythonpath = local_env.get("PYTHONPATH", "")
-    local_env["PYTHONPATH"] = f"{datamodels_path}:{existing_pythonpath}" if existing_pythonpath else str(datamodels_path)
 
     # Point to the Docker database via localhost
     # We assume the user has the default port 5432 mapped as per docker-compose.yml
@@ -69,13 +66,18 @@ def main():
 
     local_env["EDITOR"] = "true"
 
+    # Find project root for cwd
+    # Script is now at: resources/linkml/scripts/orchestrate_schema_update.py
+    # 3 levels up: scripts/ -> linkml/ -> resources/ -> project root
+    project_root = Path(__file__).resolve().parent.parent.parent
+
     cmd = [
         "pixi", "run", "alembic",
         "revision", "--autogenerate",
         "-m", args.message
     ]
 
-    print(f"Running local migration generation with PYTHONPATH={local_env['PYTHONPATH']}")
+    print("Running local migration generation via pixi environment...")
     try:
         subprocess.run(cmd, env=local_env, check=True, cwd=str(project_root))
     except subprocess.CalledProcessError as e:

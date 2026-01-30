@@ -1,7 +1,5 @@
 from ...database import Base
 
-from ...database import Base
-
 
 from sqlalchemy import Column, Index, Table, ForeignKey
 from sqlalchemy.orm import relationship
@@ -22,14 +20,14 @@ class BaseEntity(Base):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"BaseEntity(id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
 
 
 class LookupBase(Base):
@@ -42,14 +40,14 @@ class LookupBase(Base):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"LookupBase(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
 
 
 class ExperimentAnalysis(Base):
@@ -61,14 +59,14 @@ class ExperimentAnalysis(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     analysis_type_id = Column(Integer(), ForeignKey('analysis_type.id'))
-
+    
 
     def __repr__(self):
         return f"ExperimentAnalysis(id={self.id},experiment_id={self.experiment_id},analysis_type_id={self.analysis_type_id},)"
 
 
 
-
+    
 
 
 class ExperimentEquipment(Base):
@@ -80,14 +78,14 @@ class ExperimentEquipment(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     equipment_id = Column(Integer(), ForeignKey('equipment.id'))
-
+    
 
     def __repr__(self):
         return f"ExperimentEquipment(id={self.id},experiment_id={self.experiment_id},equipment_id={self.equipment_id},)"
 
 
 
-
+    
 
 
 class ExperimentMethod(Base):
@@ -99,14 +97,14 @@ class ExperimentMethod(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     method_id = Column(Integer(), ForeignKey('method.id'))
-
+    
 
     def __repr__(self):
         return f"ExperimentMethod(id={self.id},experiment_id={self.experiment_id},method_id={self.method_id},)"
 
 
 
-
+    
 
 
 class ExperimentPreparedSample(Base):
@@ -118,14 +116,14 @@ class ExperimentPreparedSample(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
-
+    
 
     def __repr__(self):
         return f"ExperimentPreparedSample(id={self.id},experiment_id={self.experiment_id},prepared_sample_id={self.prepared_sample_id},)"
 
 
 
-
+    
 
 
 class Place(Base):
@@ -141,14 +139,14 @@ class Place(Base):
     county_fips = Column(Text())
     region_name = Column(Text())
     agg_level_desc = Column(Text())
-
+    
 
     def __repr__(self):
         return f"Place(geoid={self.geoid},state_name={self.state_name},state_fips={self.state_fips},county_name={self.county_name},county_fips={self.county_fips},region_name={self.region_name},agg_level_desc={self.agg_level_desc},)"
 
 
 
-
+    
 
 
 class InfrastructureBiodieselPlants(Base):
@@ -170,14 +168,14 @@ class InfrastructureBiodieselPlants(Base):
     latitude = Column(Numeric())
     longitude = Column(Numeric())
     source = Column(Text())
-
+    
 
     def __repr__(self):
         return f"InfrastructureBiodieselPlants(biodiesel_plant_id={self.biodiesel_plant_id},company={self.company},bbi_index={self.bbi_index},city={self.city},state={self.state},capacity_mmg_per_y={self.capacity_mmg_per_y},feedstock={self.feedstock},status={self.status},address={self.address},coordinates={self.coordinates},latitude={self.latitude},longitude={self.longitude},source={self.source},)"
 
 
 
-
+    
 
 
 class InfrastructureBiosolidsFacilities(Base):
@@ -228,14 +226,14 @@ class InfrastructureBiosolidsFacilities(Base):
     other = Column(Integer())
     name_of_other = Column(Text())
     incineration = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"InfrastructureBiosolidsFacilities(biosolid_facility_id={self.biosolid_facility_id},report_submitted_date={self.report_submitted_date},latitude={self.latitude},longitude={self.longitude},facility={self.facility},authority={self.authority},plant_type={self.plant_type},aqmd={self.aqmd},facility_address={self.facility_address},facility_city={self.facility_city},state={self.state},facility_zip={self.facility_zip},facility_county={self.facility_county},mailing_street_1={self.mailing_street_1},mailing_city={self.mailing_city},mailing_state={self.mailing_state},mailing_zip={self.mailing_zip},biosolids_number={self.biosolids_number},biosolids_contact={self.biosolids_contact},biosolids_contact_phone={self.biosolids_contact_phone},biosolids_contact_email={self.biosolids_contact_email},adwf={self.adwf},potw_biosolids_generated={self.potw_biosolids_generated},twtds_biosolids_treated={self.twtds_biosolids_treated},class_b_land_app={self.class_b_land_app},class_b_applier={self.class_b_applier},class_a_compost={self.class_a_compost},class_a_heat_dried={self.class_a_heat_dried},class_a_other={self.class_a_other},class_a_other_applier={self.class_a_other_applier},twtds_transfer_to_second_preparer={self.twtds_transfer_to_second_preparer},twtds_second_preparer_name={self.twtds_second_preparer_name},adc_or_final_c={self.adc_or_final_c},landfill={self.landfill},landfill_name={self.landfill_name},surface_disposal={self.surface_disposal},deepwell_injection={self.deepwell_injection},stored={self.stored},longterm_treatment={self.longterm_treatment},other={self.other},name_of_other={self.name_of_other},incineration={self.incineration},)"
 
 
 
-
+    
 
 
 class InfrastructureCafoManureLocations(Base):
@@ -260,14 +258,14 @@ class InfrastructureCafoManureLocations(Base):
     manure_total_solids = Column(Numeric())
     source = Column(Text())
     date_accessed = Column(Date())
-
+    
 
     def __repr__(self):
         return f"InfrastructureCafoManureLocations(cafo_manure_id={self.cafo_manure_id},latitude={self.latitude},longitude={self.longitude},owner_name={self.owner_name},facility_name={self.facility_name},address={self.address},town={self.town},state={self.state},zip={self.zip},animal={self.animal},animal_feed_operation_type={self.animal_feed_operation_type},animal_units={self.animal_units},animal_count={self.animal_count},manure_total_solids={self.manure_total_solids},source={self.source},date_accessed={self.date_accessed},)"
 
 
 
-
+    
 
 
 class InfrastructureCombustionPlants(Base):
@@ -293,14 +291,14 @@ class InfrastructureCombustionPlants(Base):
     geom = Column(Text())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureCombustionPlants(combustion_fid={self.combustion_fid},objectid={self.objectid},status={self.status},city={self.city},name={self.name},county={self.county},equivalent_generation={self.equivalent_generation},np_mw={self.np_mw},cf={self.cf},yearload={self.yearload},fuel={self.fuel},notes={self.notes},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureDistrictEnergySystems(Base):
@@ -330,14 +328,14 @@ class InfrastructureDistrictEnergySystems(Base):
     geom = Column(Text())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureDistrictEnergySystems(des_fid={self.des_fid},cbg_id={self.cbg_id},name={self.name},system={self.system},object_id={self.object_id},city={self.city},state={self.state},primary_fuel={self.primary_fuel},secondary_fuel={self.secondary_fuel},usetype={self.usetype},cap_st={self.cap_st},cap_hw={self.cap_hw},cap_cw={self.cap_cw},chpcg_cap={self.chpcg_cap},excess_c={self.excess_c},excess_h={self.excess_h},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureEthanolBiorefineries(Base):
@@ -355,14 +353,14 @@ class InfrastructureEthanolBiorefineries(Base):
     capacity_mgy = Column(Integer())
     production_mgy = Column(Integer())
     constr_exp = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"InfrastructureEthanolBiorefineries(ethanol_biorefinery_id={self.ethanol_biorefinery_id},name={self.name},city={self.city},state={self.state},address={self.address},type={self.type},capacity_mgy={self.capacity_mgy},production_mgy={self.production_mgy},constr_exp={self.constr_exp},)"
 
 
 
-
+    
 
 
 class InfrastructureFoodProcessingFacilities(Base):
@@ -388,14 +386,14 @@ class InfrastructureFoodProcessingFacilities(Base):
     geom = Column(Text())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureFoodProcessingFacilities(processing_facility_id={self.processing_facility_id},address={self.address},county={self.county},city={self.city},company={self.company},join_count={self.join_count},master_type={self.master_type},state={self.state},subtype={self.subtype},target_fid={self.target_fid},processing_type={self.processing_type},zip={self.zip},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureLandfills(Base):
@@ -438,14 +436,14 @@ class InfrastructureLandfills(Base):
     lfg_flow_to_project = Column(Numeric())
     direct_emission_reductions = Column(Numeric())
     avoided_emission_reductions = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureLandfills(project_id={self.project_id},project_int_id={self.project_int_id},ghgrp_id={self.ghgrp_id},landfill_id={self.landfill_id},landfill_name={self.landfill_name},state={self.state},physical_address={self.physical_address},city={self.city},county={self.county},zip_code={self.zip_code},latitude={self.latitude},longitude={self.longitude},ownership_type={self.ownership_type},landfill_owner_orgs={self.landfill_owner_orgs},landfill_opened_year={self.landfill_opened_year},landfill_closure_year={self.landfill_closure_year},landfill_status={self.landfill_status},waste_in_place={self.waste_in_place},waste_in_place_year={self.waste_in_place_year},lfg_system_in_place={self.lfg_system_in_place},lfg_collected={self.lfg_collected},lfg_flared={self.lfg_flared},project_status={self.project_status},project_name={self.project_name},project_start_date={self.project_start_date},project_shutdown_date={self.project_shutdown_date},project_type_category={self.project_type_category},lfg_energy_project_type={self.lfg_energy_project_type},rng_delivery_method={self.rng_delivery_method},actual_mw_generation={self.actual_mw_generation},rated_mw_capacity={self.rated_mw_capacity},lfg_flow_to_project={self.lfg_flow_to_project},direct_emission_reductions={self.direct_emission_reductions},avoided_emission_reductions={self.avoided_emission_reductions},)"
 
 
 
-
+    
 
 
 class InfrastructureLivestockAnaerobicDigesters(Base):
@@ -477,14 +475,14 @@ class InfrastructureLivestockAnaerobicDigesters(Base):
     methane_emission_reductions = Column(Integer())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureLivestockAnaerobicDigesters(digester_id={self.digester_id},project_name={self.project_name},project_type={self.project_type},city={self.city},state={self.state},digester_type={self.digester_type},profile={self.profile},year_operational={self.year_operational},animal_type_class={self.animal_type_class},animal_types={self.animal_types},pop_feeding_digester={self.pop_feeding_digester},total_pop_feeding_digester={self.total_pop_feeding_digester},cattle={self.cattle},dairy={self.dairy},poultry={self.poultry},swine={self.swine},codigestion={self.codigestion},biogas_generation_estimate={self.biogas_generation_estimate},electricity_generated={self.electricity_generated},biogas_end_uses={self.biogas_end_uses},methane_emission_reductions={self.methane_emission_reductions},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureMswToEnergyAnaerobicDigesters(Base):
@@ -509,14 +507,14 @@ class InfrastructureMswToEnergyAnaerobicDigesters(Base):
     geom = Column(Text())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureMswToEnergyAnaerobicDigesters(wte_id={self.wte_id},city={self.city},county={self.county},equivalent_generation={self.equivalent_generation},feedstock={self.feedstock},dayload={self.dayload},dayload_bdt={self.dayload_bdt},facility_type={self.facility_type},status={self.status},notes={self.notes},source={self.source},type={self.type},wkt_geom={self.wkt_geom},geom={self.geom},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureSafAndRenewableDieselPlants(Base):
@@ -538,14 +536,14 @@ class InfrastructureSafAndRenewableDieselPlants(Base):
     coordinates = Column(Text())
     latitude = Column(Numeric())
     longitude = Column(Numeric())
-
+    
 
     def __repr__(self):
         return f"InfrastructureSafAndRenewableDieselPlants(ibcc_index={self.ibcc_index},company={self.company},city={self.city},state={self.state},country={self.country},capacity={self.capacity},feedstock={self.feedstock},products={self.products},status={self.status},address={self.address},coordinates={self.coordinates},latitude={self.latitude},longitude={self.longitude},)"
 
 
 
-
+    
 
 
 class InfrastructureWastewaterTreatmentPlants(Base):
@@ -584,14 +582,14 @@ class InfrastructureWastewaterTreatmentPlants(Base):
     latitude = Column(Numeric())
     longitude = Column(Numeric())
     zipcode = Column(Text())
-
+    
 
     def __repr__(self):
         return f"InfrastructureWastewaterTreatmentPlants(plant_id={self.plant_id},name={self.name},state={self.state},codigestion={self.codigestion},flow_design_adjusted={self.flow_design_adjusted},flow_average={self.flow_average},biosolids={self.biosolids},excess_flow={self.excess_flow},biogas_utilized={self.biogas_utilized},flaring={self.flaring},excess_mass_loading_rate={self.excess_mass_loading_rate},excess_mass_loading_rate_wet={self.excess_mass_loading_rate_wet},methane_production={self.methane_production},energy_content={self.energy_content},electric_kw={self.electric_kw},thermal_mmbtu_d={self.thermal_mmbtu_d},electric_kwh={self.electric_kwh},thermal_annual_mmbtu_y={self.thermal_annual_mmbtu_y},anaerobic_digestion_facility={self.anaerobic_digestion_facility},county={self.county},dayload_bdt={self.dayload_bdt},dayload={self.dayload},equivalent_generation={self.equivalent_generation},facility_type={self.facility_type},feedstock={self.feedstock},type={self.type},city={self.city},latitude={self.latitude},longitude={self.longitude},zipcode={self.zipcode},)"
 
 
 
-
+    
 
 
 class LineageGroup(Base):
@@ -603,14 +601,14 @@ class LineageGroup(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     note = Column(Text())
-
+    
 
     def __repr__(self):
         return f"LineageGroup(id={self.id},etl_run_id={self.etl_run_id},note={self.note},)"
 
 
 
-
+    
 
 
 class EntityLineage(Base):
@@ -624,14 +622,14 @@ class EntityLineage(Base):
     source_table = Column(Text())
     source_row_id = Column(Text())
     note = Column(Text())
-
+    
 
     def __repr__(self):
         return f"EntityLineage(id={self.id},lineage_group_id={self.lineage_group_id},source_table={self.source_table},source_row_id={self.source_row_id},note={self.note},)"
 
 
 
-
+    
 
 
 class EtlRun(Base):
@@ -648,14 +646,14 @@ class EtlRun(Base):
     status = Column(Text())
     records_ingested = Column(Integer())
     note = Column(Text())
-
+    
 
     def __repr__(self):
         return f"EtlRun(id={self.id},run_id={self.run_id},started_at={self.started_at},completed_at={self.completed_at},pipeline_name={self.pipeline_name},status={self.status},records_ingested={self.records_ingested},note={self.note},)"
 
 
 
-
+    
 
 
 class ParameterCategoryParameter(Base):
@@ -667,14 +665,14 @@ class ParameterCategoryParameter(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     parameter_category_id = Column(Integer(), ForeignKey('parameter_category.id'))
-
+    
 
     def __repr__(self):
         return f"ParameterCategoryParameter(id={self.id},parameter_id={self.parameter_id},parameter_category_id={self.parameter_category_id},)"
 
 
 
-
+    
 
 
 class ParameterUnit(Base):
@@ -686,14 +684,14 @@ class ParameterUnit(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     alternate_unit_id = Column(Integer(), ForeignKey('unit.id'))
-
+    
 
     def __repr__(self):
         return f"ParameterUnit(id={self.id},parameter_id={self.parameter_id},alternate_unit_id={self.alternate_unit_id},)"
 
 
 
-
+    
 
 
 class ResourceMorphology(Base):
@@ -705,14 +703,14 @@ class ResourceMorphology(Base):
     id = Column(Integer(), primary_key=True, nullable=False )
     resource_id = Column(Integer(), ForeignKey('resource.id'))
     morphology_uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"ResourceMorphology(id={self.id},resource_id={self.resource_id},morphology_uri={self.morphology_uri},)"
 
 
 
-
+    
 
 
 class DataSource(BaseEntity):
@@ -746,19 +744,19 @@ class DataSource(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"DataSource(name={self.name},description={self.description},data_source_type_id={self.data_source_type_id},full_title={self.full_title},creator={self.creator},subject={self.subject},publisher={self.publisher},contributor={self.contributor},date={self.date},type={self.type},biocirv={self.biocirv},format={self.format},language={self.language},relation={self.relation},temporal_coverage={self.temporal_coverage},location_coverage_id={self.location_coverage_id},rights={self.rights},license={self.license},uri={self.uri},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class DataSourceType(BaseEntity):
@@ -773,19 +771,19 @@ class DataSourceType(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"DataSourceType(source_type_id={self.source_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FileObjectMetadata(BaseEntity):
@@ -805,19 +803,19 @@ class FileObjectMetadata(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FileObjectMetadata(data_source_id={self.data_source_id},bucket_path={self.bucket_path},file_format={self.file_format},file_size={self.file_size},checksum_md5={self.checksum_md5},checksum_sha256={self.checksum_sha256},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class LocationResolution(LookupBase):
@@ -830,19 +828,19 @@ class LocationResolution(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"LocationResolution(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class SourceType(LookupBase):
@@ -855,19 +853,19 @@ class SourceType(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"SourceType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Equipment(LookupBase):
@@ -881,19 +879,19 @@ class Equipment(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"Equipment(equipment_location_id={self.equipment_location_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Experiment(BaseEntity):
@@ -913,19 +911,19 @@ class Experiment(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Experiment(analyst_id={self.analyst_id},exper_start_date={self.exper_start_date},exper_duration={self.exper_duration},exper_duration_unit_id={self.exper_duration_unit_id},exper_location_id={self.exper_location_id},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class AnalysisType(LookupBase):
@@ -938,19 +936,19 @@ class AnalysisType(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"AnalysisType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Method(BaseEntity):
@@ -971,19 +969,19 @@ class Method(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Method(name={self.name},method_abbrev_id={self.method_abbrev_id},method_category_id={self.method_category_id},method_standard_id={self.method_standard_id},description={self.description},detection_limits={self.detection_limits},source_id={self.source_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PreparedSample(BaseEntity):
@@ -1003,19 +1001,19 @@ class PreparedSample(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"PreparedSample(name={self.name},field_sample_id={self.field_sample_id},prep_method_id={self.prep_method_id},prep_date={self.prep_date},preparer_id={self.preparer_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Resource(BaseEntity):
@@ -1034,19 +1032,19 @@ class Resource(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ResourceSubclass(LookupBase):
@@ -1059,19 +1057,19 @@ class ResourceSubclass(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"ResourceSubclass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Unit(LookupBase):
@@ -1084,19 +1082,19 @@ class Unit(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"Unit(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class BillionTon2023Record(BaseEntity):
@@ -1124,19 +1122,19 @@ class BillionTon2023Record(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Dataset(BaseEntity):
@@ -1156,19 +1154,19 @@ class Dataset(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Dataset(name={self.name},record_type={self.record_type},source_id={self.source_id},start_date={self.start_date},end_date={self.end_date},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Polygon(BaseEntity):
@@ -1185,19 +1183,19 @@ class Polygon(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Polygon(geoid={self.geoid},geom={self.geom},dataset_id={self.dataset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PrimaryAgProduct(LookupBase):
@@ -1210,19 +1208,19 @@ class PrimaryAgProduct(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"PrimaryAgProduct(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class LandiqRecord(BaseEntity):
@@ -1252,19 +1250,19 @@ class LandiqRecord(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},pct1={self.pct1},pct2={self.pct2},pct3={self.pct3},pct4={self.pct4},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaCommodity(LookupBase):
@@ -1280,19 +1278,19 @@ class UsdaCommodity(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"UsdaCommodity(usda_source={self.usda_source},usda_code={self.usda_code},parent_commodity_id={self.parent_commodity_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ResourceUsdaCommodityMap(BaseEntity):
@@ -1311,19 +1309,19 @@ class ResourceUsdaCommodityMap(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"ResourceUsdaCommodityMap(resource_id={self.resource_id},primary_ag_product_id={self.primary_ag_product_id},usda_commodity_id={self.usda_commodity_id},match_tier={self.match_tier},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaCensusRecord(BaseEntity):
@@ -1343,19 +1341,19 @@ class UsdaCensusRecord(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UsdaCensusRecord(dataset_id={self.dataset_id},geoid={self.geoid},commodity_code={self.commodity_code},year={self.year},source_reference={self.source_reference},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaDomain(LookupBase):
@@ -1368,19 +1366,19 @@ class UsdaDomain(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"UsdaDomain(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaMarketReport(BaseEntity):
@@ -1402,19 +1400,19 @@ class UsdaMarketReport(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UsdaMarketReport(slug_id={self.slug_id},slug_name={self.slug_name},report_series_title={self.report_series_title},frequency={self.frequency},office_name={self.office_name},office_city_id={self.office_city_id},office_state_fips={self.office_state_fips},source_id={self.source_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaMarketRecord(BaseEntity):
@@ -1448,19 +1446,19 @@ class UsdaMarketRecord(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UsdaMarketRecord(report_id={self.report_id},dataset_id={self.dataset_id},report_begin_date={self.report_begin_date},report_end_date={self.report_end_date},report_date={self.report_date},commodity_id={self.commodity_id},market_type_id={self.market_type_id},market_type_category={self.market_type_category},grp={self.grp},market_category_id={self.market_category_id},class_={self.class_},grade={self.grade},variety={self.variety},protein_pct={self.protein_pct},application={self.application},pkg={self.pkg},sale_type={self.sale_type},price_unit_id={self.price_unit_id},freight={self.freight},trans_mode={self.trans_mode},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class LocationAddress(BaseEntity):
@@ -1482,19 +1480,19 @@ class LocationAddress(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaStatisticCategory(LookupBase):
@@ -1507,19 +1505,19 @@ class UsdaStatisticCategory(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"UsdaStatisticCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaSurveyProgram(LookupBase):
@@ -1532,19 +1530,19 @@ class UsdaSurveyProgram(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"UsdaSurveyProgram(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaSurveyRecord(BaseEntity):
@@ -1567,19 +1565,19 @@ class UsdaSurveyRecord(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UsdaSurveyRecord(dataset_id={self.dataset_id},geoid={self.geoid},commodity_code={self.commodity_code},year={self.year},survey_program_id={self.survey_program_id},survey_period={self.survey_period},reference_month={self.reference_month},seasonal_flag={self.seasonal_flag},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UsdaTermMap(BaseEntity):
@@ -1599,19 +1597,19 @@ class UsdaTermMap(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UsdaTermMap(source_system={self.source_system},source_context={self.source_context},raw_term={self.raw_term},usda_commodity_id={self.usda_commodity_id},is_verified={self.is_verified},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class AgTreatment(LookupBase):
@@ -1624,19 +1622,19 @@ class AgTreatment(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"AgTreatment(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class CollectionMethod(LookupBase):
@@ -1649,19 +1647,19 @@ class CollectionMethod(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"CollectionMethod(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FieldSample(BaseEntity):
@@ -1693,19 +1691,19 @@ class FieldSample(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FieldSample(name={self.name},resource_id={self.resource_id},provider_id={self.provider_id},collector_id={self.collector_id},sample_collection_source={self.sample_collection_source},amount_collected={self.amount_collected},amount_collected_unit_id={self.amount_collected_unit_id},sampling_location_id={self.sampling_location_id},field_storage_method_id={self.field_storage_method_id},field_storage_duration_value={self.field_storage_duration_value},field_storage_duration_unit_id={self.field_storage_duration_unit_id},field_storage_location_id={self.field_storage_location_id},collection_timestamp={self.collection_timestamp},collection_method_id={self.collection_method_id},harvest_method_id={self.harvest_method_id},harvest_date={self.harvest_date},field_sample_storage_location_id={self.field_sample_storage_location_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ProcessingMethod(LookupBase):
@@ -1718,19 +1716,19 @@ class ProcessingMethod(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"ProcessingMethod(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FieldSampleCondition(BaseEntity):
@@ -1749,19 +1747,19 @@ class FieldSampleCondition(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FieldSampleCondition(field_sample_id={self.field_sample_id},ag_treatment_id={self.ag_treatment_id},last_application_date={self.last_application_date},treatment_amount_per_acre={self.treatment_amount_per_acre},processing_method_id={self.processing_method_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FieldStorageMethod(LookupBase):
@@ -1774,19 +1772,19 @@ class FieldStorageMethod(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"FieldStorageMethod(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class HarvestMethod(LookupBase):
@@ -1799,19 +1797,19 @@ class HarvestMethod(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"HarvestMethod(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class SoilType(LookupBase):
@@ -1824,19 +1822,19 @@ class SoilType(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"SoilType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class LocationSoilType(BaseEntity):
@@ -1852,19 +1850,19 @@ class LocationSoilType(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"LocationSoilType(location_id={self.location_id},soil_type_id={self.soil_type_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PhysicalCharacteristic(BaseEntity):
@@ -1883,19 +1881,19 @@ class PhysicalCharacteristic(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"PhysicalCharacteristic(field_sample_id={self.field_sample_id},particle_length={self.particle_length},particle_width={self.particle_width},particle_height={self.particle_height},particle_unit_id={self.particle_unit_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class DimensionType(LookupBase):
@@ -1908,19 +1906,19 @@ class DimensionType(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"DimensionType(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Observation(BaseEntity):
@@ -1944,19 +1942,19 @@ class Observation(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Observation(record_id={self.record_id},dataset_id={self.dataset_id},record_type={self.record_type},parameter_id={self.parameter_id},value={self.value},unit_id={self.unit_id},dimension_type_id={self.dimension_type_id},dimension_value={self.dimension_value},dimension_unit_id={self.dimension_unit_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FacilityRecord(BaseEntity):
@@ -1978,19 +1976,19 @@ class FacilityRecord(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class MethodAbbrev(LookupBase):
@@ -2003,19 +2001,19 @@ class MethodAbbrev(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"MethodAbbrev(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class MethodCategory(LookupBase):
@@ -2028,19 +2026,19 @@ class MethodCategory(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"MethodCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class MethodStandard(LookupBase):
@@ -2053,19 +2051,19 @@ class MethodStandard(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"MethodStandard(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Parameter(BaseEntity):
@@ -2083,19 +2081,19 @@ class Parameter(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Parameter(name={self.name},standard_unit_id={self.standard_unit_id},calculated={self.calculated},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ParameterCategory(LookupBase):
@@ -2108,19 +2106,19 @@ class ParameterCategory(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"ParameterCategory(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Contact(BaseEntity):
@@ -2138,19 +2136,19 @@ class Contact(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Provider(BaseEntity):
@@ -2165,24 +2163,24 @@ class Provider(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Provider(codename={self.codename},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Aim1RecordBase(BaseEntity):
     """
-
+    
     """
     __tablename__ = 'aim1_record_base'
 
@@ -2203,24 +2201,24 @@ class Aim1RecordBase(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Aim1RecordBase(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Aim2RecordBase(BaseEntity):
     """
-
+    
     """
     __tablename__ = 'aim2_record_base'
 
@@ -2241,19 +2239,19 @@ class Aim2RecordBase(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"Aim2RecordBase(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class Strain(LookupBase):
@@ -2267,19 +2265,19 @@ class Strain(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"Strain(parent_strain_id={self.parent_strain_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ResourceAvailability(BaseEntity):
@@ -2299,19 +2297,19 @@ class ResourceAvailability(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ResourceClass(LookupBase):
@@ -2324,19 +2322,19 @@ class ResourceClass(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"ResourceClass(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PreparationMethod(BaseEntity):
@@ -2356,19 +2354,19 @@ class PreparationMethod(BaseEntity):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PreparationMethodAbbreviation(LookupBase):
@@ -2381,19 +2379,19 @@ class PreparationMethodAbbreviation(LookupBase):
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
-
+    
 
     def __repr__(self):
         return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class ProximateRecord(Aim1RecordBase):
@@ -2419,19 +2417,19 @@ class ProximateRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"ProximateRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class UltimateRecord(Aim1RecordBase):
@@ -2457,19 +2455,19 @@ class UltimateRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"UltimateRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class CompositionalRecord(Aim1RecordBase):
@@ -2495,19 +2493,19 @@ class CompositionalRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"CompositionalRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class IcpRecord(Aim1RecordBase):
@@ -2533,19 +2531,19 @@ class IcpRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"IcpRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class XrfRecord(Aim1RecordBase):
@@ -2575,19 +2573,19 @@ class XrfRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"XrfRecord(wavelength_nm={self.wavelength_nm},intensity={self.intensity},energy_slope={self.energy_slope},energy_offset={self.energy_offset},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class XrdRecord(Aim1RecordBase):
@@ -2615,19 +2613,19 @@ class XrdRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"XrdRecord(scan_low_nm={self.scan_low_nm},scan_high_nm={self.scan_high_nm},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class CalorimetryRecord(Aim1RecordBase):
@@ -2653,19 +2651,19 @@ class CalorimetryRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"CalorimetryRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FtnirRecord(Aim1RecordBase):
@@ -2691,19 +2689,19 @@ class FtnirRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FtnirRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class RgbRecord(Aim1RecordBase):
@@ -2729,19 +2727,19 @@ class RgbRecord(Aim1RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"RgbRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class PretreatmentRecord(Aim2RecordBase):
@@ -2773,19 +2771,19 @@ class PretreatmentRecord(Aim2RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"PretreatmentRecord(pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},reaction_block_id={self.reaction_block_id},block_position={self.block_position},temperature={self.temperature},replicate_no={self.replicate_no},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class FermentationRecord(Aim2RecordBase):
@@ -2819,19 +2817,19 @@ class FermentationRecord(Aim2RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"FermentationRecord(strain_id={self.strain_id},pretreatment_method_id={self.pretreatment_method_id},eh_method_id={self.eh_method_id},well_position={self.well_position},temperature={self.temperature},agitation_rpm={self.agitation_rpm},vessel_id={self.vessel_id},analyte_detection_equipment_id={self.analyte_detection_equipment_id},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class GasificationRecord(Aim2RecordBase):
@@ -2860,19 +2858,19 @@ class GasificationRecord(Aim2RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"GasificationRecord(feedstock_mass={self.feedstock_mass},bed_temperature={self.bed_temperature},gas_flow_rate={self.gas_flow_rate},record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
-
+    
 
 
 class AutoclaveRecord(Aim2RecordBase):
@@ -2898,15 +2896,18 @@ class AutoclaveRecord(Aim2RecordBase):
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     lineage_group_id = Column(Integer())
-
+    
 
     def __repr__(self):
         return f"AutoclaveRecord(record_id={self.record_id},dataset_id={self.dataset_id},experiment_id={self.experiment_id},resource_id={self.resource_id},prepared_sample_id={self.prepared_sample_id},technical_replicate_no={self.technical_replicate_no},technical_replicate_total={self.technical_replicate_total},method_id={self.method_id},analyst_id={self.analyst_id},raw_data_id={self.raw_data_id},qc_pass={self.qc_pass},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
-
+    
     # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
     __mapper_args__ = {
         'concrete': True
     }
+    
+
+
