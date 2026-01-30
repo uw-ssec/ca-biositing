@@ -1,0 +1,40 @@
+id: https://w3id.org/ca_biositing/core/base_entity
+name: base_entity
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+default_range: string
+
+classes:
+  BaseEntity:
+    mixin: true
+    description: Base entity included in all main entity tables.
+    slots:
+      - id
+      - created_at
+      - updated_at
+      - etl_run_id
+      - lineage_group_id
+
+slots:
+  id:
+    identifier: true
+    range: integer
+    description: Unique identifier.
+
+  created_at:
+    range: datetime
+    description: Timestamp when the record was created.
+
+  updated_at:
+    range: datetime
+    description: Timestamp when the record was last updated.
+
+  etl_run_id:
+    range: EtlRun
+    description: Identifier of the ETL run.
+
+  lineage_group_id:
+    range: integer
+    description: Reference to the lineage group.

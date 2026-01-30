@@ -1,0 +1,13 @@
+id: https://w3id.org/ca_biositing/external_data/usda_domain
+name: usda_domain
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+default_range: string
+
+classes:
+  UsdaDomain:
+    is_a: LookupBase
+    description: USDA domain.

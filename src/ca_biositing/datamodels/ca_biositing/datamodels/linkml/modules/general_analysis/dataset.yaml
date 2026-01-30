@@ -1,0 +1,38 @@
+id: https://w3id.org/ca_biositing/general_analysis/dataset
+name: dataset
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../data_sources_metadata/data_source
+default_range: string
+
+classes:
+  Dataset:
+    is_a: BaseEntity
+    description: Dataset definition.
+    slots:
+      - name
+      - record_type
+      - source_id
+      - start_date
+      - end_date
+      - description
+
+slots:
+  record_type:
+    range: string
+    description: Type of record.
+
+  source_id:
+    range: DataSource
+    description: Reference to DataSource.
+
+  start_date:
+    range: date
+    description: Start date of the dataset.
+
+  end_date:
+    range: date
+    description: End date of the dataset.

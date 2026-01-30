@@ -1,0 +1,44 @@
+id: https://w3id.org/ca_biositing/experiment_equipment/experiment
+name: experiment
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../people/contact
+  - ../places/location_address
+  - ../methods_parameters_units/unit
+default_range: string
+
+classes:
+  Experiment:
+    is_a: BaseEntity
+    description: Experiment definition.
+    slots:
+      - analyst_id
+      - exper_start_date
+      - exper_duration
+      - exper_duration_unit_id
+      - exper_location_id
+      - description
+
+slots:
+  analyst_id:
+    range: Contact
+    description: Reference to Contact (analyst).
+
+  exper_start_date:
+    range: date
+    description: Start date of the experiment.
+
+  exper_duration:
+    range: decimal
+    description: Duration of the experiment.
+
+  exper_duration_unit_id:
+    range: Unit
+    description: Reference to Unit.
+
+  exper_location_id:
+    range: LocationAddress
+    description: Reference to LocationAddress.

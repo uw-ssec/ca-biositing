@@ -1,0 +1,26 @@
+id: https://example.com/schema3
+name: schema3
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - schema1
+  - schema2
+default_range: string
+
+classes:
+  ClassC:
+    slots:
+      - id
+      - class_a_id
+      - class_b_id
+    id_prefixes:
+      - C
+
+slots:
+  id:
+    identifier: true
+  class_a_id:
+    range: ClassA
+  class_b_id:
+    range: ClassB

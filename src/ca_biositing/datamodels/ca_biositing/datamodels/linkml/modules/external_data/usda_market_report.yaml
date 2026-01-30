@@ -1,0 +1,57 @@
+id: https://w3id.org/ca_biositing/external_data/usda_market_report
+name: usda_market_report
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../places/location_address
+  - ../data_sources_metadata/data_source
+default_range: string
+
+classes:
+  UsdaMarketReport:
+    is_a: BaseEntity
+    description: USDA market report.
+    slots:
+      - slug_id
+      - slug_name
+      - report_series_title
+      - frequency
+      - office_name
+      - office_city_id
+      - office_state_fips
+      - source_id
+
+slots:
+  slug_id:
+    range: integer
+    description: Slug ID.
+
+  slug_name:
+    range: string
+    description: Slug name.
+
+  report_series_title:
+    range: string
+    description: Title of the report series.
+
+  frequency:
+    range: string
+    description: Frequency of the report.
+
+  office_name:
+    range: string
+    description: Name of the office.
+
+  office_city_id:
+    range: LocationAddress
+    description: Reference to LocationAddress.
+
+  office_state_fips:
+    range: string
+    description: FIPS code of the office state.
+
+  source_id:
+    range: DataSource
+    description: Reference to DataSource.

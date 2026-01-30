@@ -1,0 +1,13 @@
+id: https://w3id.org/ca_biositing/data_sources_metadata/source_type
+name: source_type
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+default_range: string
+
+classes:
+  SourceType:
+    is_a: LookupBase
+    description: Type of source (e.g. database, literature).

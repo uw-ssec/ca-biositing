@@ -1,0 +1,34 @@
+id: https://w3id.org/ca_biositing/core/lookup_base
+name: lookup_base
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+default_range: string
+
+classes:
+  LookupBase:
+    mixin: true
+    description: Base class for enum/ontology-like tables.
+    slots:
+      - id
+      - name
+      - description
+      - uri
+
+slots:
+  id:
+    identifier: true
+    range: integer
+    description: Unique identifier.
+  name:
+    range: string
+    description: Name of the entity.
+
+  description:
+    range: string
+    description: Description of the entity.
+
+  uri:
+    range: uri
+    description: URI for the entity.

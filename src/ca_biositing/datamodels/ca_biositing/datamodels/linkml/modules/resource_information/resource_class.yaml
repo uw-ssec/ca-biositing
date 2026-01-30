@@ -1,0 +1,13 @@
+id: https://w3id.org/ca_biositing/resource_information/resource_class
+name: resource_class
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+default_range: string
+
+classes:
+  ResourceClass:
+    is_a: LookupBase
+    description: Classification of resources.

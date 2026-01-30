@@ -1,0 +1,123 @@
+id: https://w3id.org/ca_biositing/infrastructure/infrastructure_district_energy_systems
+name: infrastructure_district_energy_systems
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+default_range: string
+
+classes:
+  InfrastructureDistrictEnergySystems:
+    description: District energy systems infrastructure.
+    slots:
+      - des_fid
+      - cbg_id
+      - name
+      - system
+      - object_id
+      - city
+      - state
+      - primary_fuel
+      - secondary_fuel
+      - usetype
+      - cap_st
+      - cap_hw
+      - cap_cw
+      - chpcg_cap
+      - excess_c
+      - excess_h
+      - type
+      - wkt_geom
+      - geom
+      - latitude
+      - longitude
+    slot_usage:
+      des_fid:
+        identifier: true
+        range: integer
+
+slots:
+  des_fid:
+    range: integer
+    description: DES FID.
+
+  cbg_id:
+    range: integer
+    description: CBG ID.
+
+  name:
+    range: string
+    description: Name.
+
+  system:
+    range: string
+    description: System.
+
+  object_id:
+    range: integer
+    description: Object ID.
+
+  city:
+    range: string
+    description: City.
+
+  state:
+    range: string
+    description: State.
+
+  primary_fuel:
+    range: string
+    description: Primary fuel.
+
+  secondary_fuel:
+    range: string
+    description: Secondary fuel.
+
+  usetype:
+    range: string
+    description: Use type.
+
+  cap_st:
+    range: decimal
+    description: Cap ST.
+
+  cap_hw:
+    range: decimal
+    description: Cap HW.
+
+  cap_cw:
+    range: decimal
+    description: Cap CW.
+
+  chpcg_cap:
+    range: decimal
+    description: CHPCG Cap.
+
+  excess_c:
+    range: decimal
+    description: Excess C.
+
+  excess_h:
+    range: decimal
+    description: Excess H.
+
+  type:
+    range: string
+    description: Type.
+
+  wkt_geom:
+    range: string
+    description: WKT geometry.
+
+  geom:
+    range: string
+    description: Geometry.
+
+  latitude:
+    range: decimal
+    description: Latitude.
+
+  longitude:
+    range: decimal
+    description: Longitude.

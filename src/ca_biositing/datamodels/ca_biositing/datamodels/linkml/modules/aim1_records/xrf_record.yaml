@@ -1,0 +1,40 @@
+id: https://w3id.org/ca_biositing/aim1_records/xrf_record
+name: xrf_record
+title: XRF Record
+description: XRF analysis record.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - aim1_record_base
+
+classes:
+  XrfRecord:
+    is_a: Aim1RecordBase
+    description: XRF analysis record.
+    slots:
+      - wavelength_nm
+      - intensity
+      - energy_slope
+      - energy_offset
+
+slots:
+  wavelength_nm:
+    range: decimal
+    description: Wavelength in nm.
+  intensity:
+    range: decimal
+    description: Intensity.
+  energy_slope:
+    range: decimal
+    description: Energy slope.
+  energy_offset:
+    range: decimal
+    description: Energy offset.

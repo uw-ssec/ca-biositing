@@ -1,0 +1,104 @@
+id: https://w3id.org/ca_biositing/data_sources_metadata/data_source
+name: data_source
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - data_source_type
+  - location_resolution
+  - ../core/note
+default_range: string
+
+classes:
+  DataSource:
+    is_a: BaseEntity
+    description: Source of data.
+    slots:
+      - name
+      - description
+      - data_source_type_id
+      - full_title
+      - creator
+      - subject
+      - publisher
+      - contributor
+      - date
+      - type
+      - biocirv
+      - format
+      - language
+      - relation
+      - temporal_coverage
+      - location_coverage_id
+      - rights
+      - license
+      - uri
+      - note
+
+slots:
+  data_source_type_id:
+    range: DataSourceType
+    description: Reference to DataSourceType.
+
+  full_title:
+    range: string
+    description: Full title of the data source.
+
+  creator:
+    range: string
+    description: Entity primarily responsible for making the resource.
+
+  subject:
+    range: string
+    description: The topic of the resource.
+
+  publisher:
+    range: string
+    description: Publisher of the data source.
+
+  contributor:
+    range: string
+    description: Entity responsible for making contributions to the resource.
+
+  date:
+    range: datetime
+    description:
+      Point or period of time associated with an event in the lifecycle of the
+      resource.
+
+  type:
+    range: string
+    description: The nature or genre of the resource.
+
+  biocirv:
+    range: boolean
+    description: Internal data flag (FALSE=External, TRUE=Internal).
+
+  format:
+    range: string
+    description: File format, physical medium, or dimensions of the resource.
+
+  language:
+    range: string
+    description: A language of the resource.
+
+  relation:
+    range: string
+    description: A related resource.
+
+  temporal_coverage:
+    range: string
+    description: The temporal topic of the resource (Daterange).
+
+  location_coverage_id:
+    range: LocationResolution
+    description: Reference to LocationResolution.
+
+  rights:
+    range: string
+    description: Information about rights held in and over the resource.
+
+  license:
+    range: string
+    description: License of the resource.

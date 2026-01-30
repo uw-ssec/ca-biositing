@@ -13,20 +13,13 @@ PROJECT_ROOT = HERE.parent.resolve()
 load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
-from ca_biositing.datamodels.biomass import *
-from ca_biositing.datamodels.data_and_references import *
-from ca_biositing.datamodels.experiments_analysis import *
-from ca_biositing.datamodels.external_datasets import *
-from ca_biositing.datamodels.geographic_locations import *
-from ca_biositing.datamodels.metadata_samples import *
-from ca_biositing.datamodels.organizations import *
-from ca_biositing.datamodels.people_contacts import *
-from ca_biositing.datamodels.sample_preprocessing import *
-from ca_biositing.datamodels.specific_aalysis_results import *
-from ca_biositing.datamodels.user import *
-from sqlmodel import SQLModel
+from ca_biositing.datamodels.schemas.generated import ca_biositing
+from ca_biositing.datamodels.schemas.generated.ca_biositing import *
+# Import Base for target metadata
+from ca_biositing.datamodels.database import Base
 
-# --- Alembic Config object, provides access to alembic.ini values ---
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
 config = context.config
 
 # Override sqlalchemy.url in alembic.ini with value from .env
@@ -36,12 +29,36 @@ if DATABASE_URL:
 else:
     raise RuntimeError("DATABASE_URL not found in .env file. Alembic cannot run migrations.")
 
-# --- Configure logging (from alembic.ini logging section) ---
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- Metadata from your models for autogenerate ---
-target_metadata = SQLModel.metadata
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+target_metadata = Base.metadata
+
+# Manually merge metadata from generated modules
+# for table in census_metadata.tables.values():
+#     table.tometadata(target_metadata)
+#
+# for table in geography_metadata.tables.values():
+#     table.tometadata(target_metadata)
+
+
+def include_object(obj, name, type_, reflected, compare_to):
+    """Filter objects for autogenerate."""
+    if type_ == "table" and name in [
+        "spatial_ref_sys",
+        "geometry_columns",
+        "geography_columns",
+        "raster_columns",
+        "raster_overviews",
+    ]:
+        return False
+    return True
 
 
 def render_item(type_, obj, autogen_context):
@@ -61,6 +78,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         render_item=render_item,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -80,6 +98,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             render_item=render_item,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

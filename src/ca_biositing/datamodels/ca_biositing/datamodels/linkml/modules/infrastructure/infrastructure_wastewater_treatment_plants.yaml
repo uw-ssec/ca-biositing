@@ -1,0 +1,168 @@
+id: https://w3id.org/ca_biositing/infrastructure/infrastructure_wastewater_treatment_plants
+name: infrastructure_wastewater_treatment_plants
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+default_range: string
+
+classes:
+  InfrastructureWastewaterTreatmentPlants:
+    description: Wastewater treatment plants infrastructure.
+    slots:
+      - plant_id
+      - name
+      - state
+      - codigestion
+      - flow_design_adjusted
+      - flow_average
+      - biosolids
+      - excess_flow
+      - biogas_utilized
+      - flaring
+      - excess_mass_loading_rate
+      - excess_mass_loading_rate_wet
+      - methane_production
+      - energy_content
+      - electric_kw
+      - thermal_mmbtu_d
+      - electric_kwh
+      - thermal_annual_mmbtu_y
+      - anaerobic_digestion_facility
+      - county
+      - dayload_bdt
+      - dayload
+      - equivalent_generation
+      - facility_type
+      - feedstock
+      - type
+      - city
+      - latitude
+      - longitude
+      - zipcode
+    slot_usage:
+      plant_id:
+        identifier: true
+        range: integer
+
+slots:
+  plant_id:
+    range: integer
+    description: ID of the plant.
+
+  name:
+    range: string
+    description: Name.
+
+  state:
+    range: string
+    description: State.
+
+  codigestion:
+    range: string
+    description: Codigestion.
+
+  flow_design_adjusted:
+    range: decimal
+    description: Flow design adjusted.
+
+  flow_average:
+    range: decimal
+    description: Flow average.
+
+  biosolids:
+    range: decimal
+    description: Biosolids.
+
+  excess_flow:
+    range: decimal
+    description: Excess flow.
+
+  biogas_utilized:
+    range: boolean
+    description: Biogas utilized.
+
+  flaring:
+    range: boolean
+    description: Flaring.
+
+  excess_mass_loading_rate:
+    range: decimal
+    description: Excess mass loading rate.
+
+  excess_mass_loading_rate_wet:
+    range: decimal
+    description: Excess mass loading rate wet.
+
+  methane_production:
+    range: decimal
+    description: Methane production.
+
+  energy_content:
+    range: decimal
+    description: Energy content.
+
+  electric_kw:
+    range: decimal
+    description: Electric KW.
+
+  thermal_mmbtu_d:
+    range: decimal
+    description: Thermal MMBTU/d.
+
+  electric_kwh:
+    range: decimal
+    description: Electric KWh.
+
+  thermal_annual_mmbtu_y:
+    range: decimal
+    description: Thermal annual MMBTU/y.
+
+  anaerobic_digestion_facility:
+    range: string
+    description: Anaerobic digestion facility.
+
+  county:
+    range: string
+    description: County.
+
+  dayload_bdt:
+    range: decimal
+    description: Dayload BDT.
+
+  dayload:
+    range: decimal
+    description: Dayload.
+
+  equivalent_generation:
+    range: decimal
+    description: Equivalent generation.
+
+  facility_type:
+    range: string
+    description: Facility type.
+
+  feedstock:
+    range: string
+    description: Feedstock.
+
+  type:
+    range: string
+    description: Type.
+
+  city:
+    range: string
+    description: City.
+
+  latitude:
+    range: decimal
+    description: Latitude.
+
+  longitude:
+    range: decimal
+    description: Longitude.
+
+  zipcode:
+    range: string
+    description: Zipcode.

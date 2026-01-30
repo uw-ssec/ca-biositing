@@ -1,0 +1,96 @@
+id: https://w3id.org/ca_biositing/resource_information/resource_counterfactual
+name: resource_counterfactual
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - resource
+  - ../places/geography
+  #- ../data_sources_metadata/data_source
+default_range: string
+
+classes:
+  ResourceCounterfactual:
+    description: Counterfactual uses of a resource.
+    slots:
+      - geoid
+      - resource_id
+      - counterfactual_description
+      - animal_bedding_percent
+      - animal_bedding_source_id
+      - animal_feed_percent
+      - animal_feed_source_id
+      - bioelectricty_percent
+      - bioelectricty_source_id
+      - burn_percent
+      - burn_source_id
+      - compost_percent
+      - compost_source_id
+      - landfill_percent
+      - landfill_source_id
+      - counterfactual_date
+
+slots:
+  geoid:
+    range: Place
+    description: Reference to Place.
+
+  resource_id:
+    range: Resource
+    description: Reference to Resource.
+
+  counterfactual_description:
+    range: string
+    description: Description of counterfactual scenario.
+
+  animal_bedding_percent:
+    range: decimal
+    description: Percentage used for animal bedding.
+
+  animal_bedding_source_id:
+    range: integer
+    description: Source for animal bedding data.
+
+  animal_feed_percent:
+    range: decimal
+    description: Percentage used for animal feed.
+
+  animal_feed_source_id:
+    range: integer
+    description: Source for animal feed data.
+
+  bioelectricty_percent:
+    range: decimal
+    description: Percentage used for bioelectricity.
+
+  bioelectricty_source_id:
+    range: integer
+    description: Source for bioelectricity data.
+
+  burn_percent:
+    range: decimal
+    description: Percentage burned.
+
+  burn_source_id:
+    range: integer
+    description: Source for burn data.
+
+  compost_percent:
+    range: decimal
+    description: Percentage composted.
+
+  compost_source_id:
+    range: integer
+    description: Source for compost data.
+
+  landfill_percent:
+    range: decimal
+    description: Percentage landfilled.
+
+  landfill_source_id:
+    range: integer
+    description: Source for landfill data.
+
+  counterfactual_date:
+    range: date
+    description: Date of counterfactual data.

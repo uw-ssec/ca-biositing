@@ -1,0 +1,36 @@
+id: https://w3id.org/ca_biositing/aim2_records/gasification_record
+name: gasification_record
+title: Gasification Record
+description: Gasification record.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - aim2_record_base
+
+classes:
+  GasificationRecord:
+    is_a: Aim2RecordBase
+    description: Gasification record.
+    slots:
+      - feedstock_mass
+      - bed_temperature
+      - gas_flow_rate
+
+slots:
+  feedstock_mass:
+    range: decimal
+    description: Mass of feedstock.
+  bed_temperature:
+    range: decimal
+    description: Bed temperature.
+  gas_flow_rate:
+    range: decimal
+    description: Gas flow rate.

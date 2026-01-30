@@ -1,0 +1,43 @@
+id: https://w3id.org/ca_biositing/resource_information/resource_availability
+name: resource_availability
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - resource
+  - ../places/geography
+default_range: string
+
+classes:
+  ResourceAvailability:
+    is_a: BaseEntity
+    description: Availability of a resource in a location.
+    slots:
+      - resource_id
+      - geoid
+      - from_month
+      - to_month
+      - year_round
+      - note
+
+slots:
+  resource_id:
+    range: Resource
+    description: Reference to Resource.
+
+  geoid:
+    range: Place
+    description: Reference to Place.
+
+  from_month:
+    range: integer
+    description: Start month of availability.
+
+  to_month:
+    range: integer
+    description: End month of availability.
+
+  year_round:
+    range: boolean
+    description: Whether available year-round.

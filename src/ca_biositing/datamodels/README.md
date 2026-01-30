@@ -9,13 +9,52 @@ etc.).
 
 The `ca_biositing.datamodels` package provides:
 
-- **Database Models**: SQLModel classes representing database tables for
-  biomass, geographic locations, experiments, samples, and more
+- **LinkML Schema**: The single source of truth for the data model, defined in
+  YAML.
+- **Generated Database Models**: SQLModel classes automatically generated from
+  the LinkML schema.
 - **Database Configuration**: Database connection and session management
-  utilities
+  utilities.
 - **Model Configuration**: Shared configuration for model behavior using
-  Pydantic Settings
-- **Type Safety**: Full type annotations for all models and fields
+  Pydantic Settings.
+- **Type Safety**: Full type annotations for all models and fields.
+
+## Schema Management Workflow
+
+We use **LinkML** as the source of truth for our data schema. The workflow for
+making schema changes is:
+
+1.  **Modify LinkML Schema**: Edit the YAML files in
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`.
+2.  **Update Schema**: Run the orchestration command to generate Python models,
+    rebuild services, and create a migration.
+    ```bash
+    pixi run update-schema -m "Description of changes"
+    ```
+    This command performs the following steps:
+    - Cleans the generated models directory.
+    - Generates new SQLAlchemy classes from the LinkML schema.
+    - Generated schemas are IN A SINGLE .py FILE
+      (datamodels/schemas/generate/ca_biositing)!
+    - Rebuilds the Docker services to include the new code.
+    - Starts the services.
+    - Generates an Alembic migration script.
+3.  **Apply Migration**: Apply the changes to the database.
+    ```bash
+    pixi run migrate
+    ```
+
+The generated Python models are saved in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`. **Do
+not edit these files directly.** Always modify the LinkML schema and regenerate.
+
+### Note on Unique Constraints
+
+LinkML's SQLAlchemy generator does not always preserve `UNIQUE` constraints or
+`identifier` status in a way that Alembic detects for all polymorphic tables.
+The `generate_sqla.py` script includes a post-processing step to manually inject
+`unique=True` for `record_id` on target classes (Observations and Aim Records)
+to ensure robust upsert support.
 
 ## Structure
 
@@ -24,20 +63,16 @@ src/ca_biositing/datamodels/
 ├── ca_biositing/
 │   └── datamodels/
 │       ├── __init__.py              # Package initialization and version
-│       ├── biomass.py               # Biomass-related models (FieldSample, Biomass, etc.)
 │       ├── config.py                # Model configuration
 │       ├── database.py              # Database connection setup
-│       ├── data_and_references.py   # Data and reference models
-│       ├── experiments_analysis.py  # Experiment analysis models
-│       ├── external_datasets.py     # External dataset models
-│       ├── geographic_locations.py  # Geographic location models
-│       ├── metadata_samples.py      # Sample metadata models
-│       ├── organizations.py         # Organization models
-│       ├── people_contacts.py       # People and contact models
-│       ├── sample_preprocessing.py  # Sample preprocessing models
-│       ├── specific_aalysis_results.py  # Analysis results models
-│       ├── user.py                  # User models
-│       └── templates/               # Model templates for new tables
+│       ├── linkml/                  # LinkML schema source files
+│       │   ├── ca_biositing.yaml    # Main schema entrypoint
+│       │   └── modules/             # Modular schema definitions
+│       ├── schemas/
+│       │   └── generated/           # Generated SQLAlchemy classes (DO NOT EDIT)
+│       └── utils/                   # Schema management scripts
+│           ├── generate_sqla.py     # Script to generate models from LinkML
+│           └── orchestrate_schema_update.py # Orchestration script
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                  # Pytest fixtures and configuration
@@ -76,44 +111,49 @@ pip install -e .
 
 ### Importing Models
 
+Models are generated into separate modules based on the LinkML schema structure.
+You should import them from `ca_biositing.datamodels.schemas.generated`.
+
 ```python
-from ca_biositing.datamodels.biomass import (
-    Biomass,
-    FieldSample,
-    BiomassType,
-    PrimaryProduct
+from ca_biositing.datamodels.schemas.generated.resource_information import (
+    Resource,
+    ResourceClass,
+    PrimaryCrop
 )
-from ca_biositing.datamodels.geographic_locations import (
-    GeographicLocation,
-    City,
-    State
+from ca_biositing.datamodels.schemas.generated.field_sampling import FieldSample
+from ca_biositing.datamodels.schemas.generated.places import (
+    Geography,
+    LocationAddress
 )
 
 # Create a model instance
 sample = FieldSample(
-    biomass_id=1,
-    sample_name="Sample-001",
-    amount_collected_kg=50.5
+    name="Sample-001",
+    resource_id=1,
+    amount_collected=50.5
 )
 ```
 
 ### Database Operations
 
 ```python
-from sqlmodel import Session, create_engine
-from ca_biositing.datamodels.biomass import Biomass
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker
+from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
 
 # Create engine and session
 engine = create_engine("postgresql://user:pass@localhost/dbname")
+Session = sessionmaker(bind=engine)
 
-# Use with SQLModel Session
-with Session(engine) as session:
+# Use with SQLAlchemy Session
+with Session() as session:
     # Query models
-    biomass_items = session.query(Biomass).all()
+    statement = select(Resource)
+    resources = session.execute(statement).scalars().all()
 
     # Add new records
-    new_biomass = Biomass(biomass_name="Corn Stover")
-    session.add(new_biomass)
+    new_resource = Resource(name="Corn Stover")
+    session.add(new_resource)
     session.commit()
 ```
 
@@ -142,42 +182,49 @@ pixi run pytest src/ca_biositing/datamodels --cov=ca_biositing.datamodels --cov-
 
 See `tests/README.md` for detailed information about the test suite.
 
-## Model Categories
+## Model Categories (LinkML Modules)
 
-### Biomass Models (`biomass.py`)
+The schema is organized into modular YAML files in `linkml/modules/`. Each
+module generates a corresponding Python file in `schemas/generated/`.
 
-Core models for biomass entities, field samples, and related data:
+### Core & Infrastructure
 
-- `Biomass`: Core biomass entity
-- `FieldSample`: Sample metadata collected in the field
-- `BiomassType`: Lookup table for biomass types
-- `PrimaryProduct`: Lookup table for primary products
-- `BiomassAvailability`: Seasonal and quantitative availability
-- `BiomassQuality`: Qualitative attributes
-- `BiomassPrice`: Pricing information
-- `HarvestMethod`, `CollectionMethod`, `FieldStorage`: Lookup tables
+- **`core.yaml`**: Base classes and shared types used across the schema.
+- **`infrastructure.yaml`**: Infrastructure-related entities (e.g.,
+  `InfrastructureType`, `Infrastructure`).
+- **`places.yaml`**: Geographic location models (`GeographicLocation`, `City`,
+  `State`, `County`, `Region`, `FIPS`).
+- **`people.yaml`**: People and contact information (`Person`, `ContactInfo`,
+  `Role`).
+- **`data_sources_metadata.yaml`**: Metadata about data sources and references
+  (`DataSource`, `Reference`).
 
-### Geographic Models (`geographic_locations.py`)
+### Biomass & Sampling
 
-Models for location data (can be anonymized):
+- **`resource_information.yaml`**: Core biomass entities (`Biomass`,
+  `BiomassType`, `PrimaryProduct`, `BiomassAvailability`, `BiomassQuality`,
+  `BiomassPrice`).
+- **`field_sampling.yaml`**: Field sampling data (`FieldSample`,
+  `HarvestMethod`, `CollectionMethod`, `FieldStorage`).
+- **`sample_preparation.yaml`**: Sample preprocessing steps
+  (`SamplePreprocessing`, `PreprocessingMethod`).
+- **`lineage.yaml`**: Tracking sample lineage (`SampleLineage`).
 
-- `GeographicLocation`: Main geographic location entity
-- `StreetAddress`, `City`, `Zip`, `County`, `State`, `Region`: Location
-  components
-- `FIPS`: FIPS codes
-- `LocationResolution`: Resolution types (GPS, county, etc.)
+### Experiments & Analysis
 
-### Other Model Files
+- **`experiment_equipment.yaml`**: Experimental setup and equipment
+  (`Experiment`, `Equipment`).
+- **`methods_parameters_units.yaml`**: Methods, parameters, and units (`Method`,
+  `Parameter`, `Unit`).
+- **`general_analysis.yaml`**: General analysis results (`AnalysisResult`,
+  `AnalysisType`).
+- **`aim1_records.yaml`**: Specific records for Aim 1 (`Aim1Record`).
+- **`aim2_records.yaml`**: Specific records for Aim 2 (`Aim2Record`).
 
-- `data_and_references.py`: Data sources and references
-- `experiments_analysis.py`: Experimental analysis data
-- `external_datasets.py`: External dataset integration
-- `metadata_samples.py`: Sample metadata
-- `organizations.py`: Organization information
-- `people_contacts.py`: People and contact information
-- `sample_preprocessing.py`: Sample preprocessing steps
-- `specific_aalysis_results.py`: Analysis results
-- `user.py`: User management
+### External Data
+
+- **`external_data.yaml`**: Integration with external datasets
+  (`ExternalDataset`).
 
 ## Dependencies
 
@@ -201,16 +248,12 @@ pixi run pre-commit run --files src/ca_biositing/datamodels/**/*
 
 ### Adding New Models
 
-1. Create or modify model files in `ca_biositing/datamodels/`
-2. Follow the existing patterns (use SQLModel, Field definitions, type hints)
-3. Add corresponding tests in `tests/`
-4. Generate Alembic migrations if needed (see main project documentation)
-5. Run tests and pre-commit checks
-
-### Model Templates
-
-Template files are available in `ca_biositing/datamodels/templates/` to help
-create new models following the project conventions.
+1.  **Modify LinkML**: Add the new class to the appropriate YAML file in
+    `linkml/modules/`.
+2.  **Update Schema**: Run `pixi run update-schema -m "Add new model"`.
+3.  **Verify**: Check the generated file in `schemas/generated/` to ensure it
+    looks correct.
+4.  **Apply**: Run `pixi run migrate` to update the database.
 
 ## Package Information
 

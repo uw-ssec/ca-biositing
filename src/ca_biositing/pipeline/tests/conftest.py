@@ -8,6 +8,9 @@ from sqlmodel import create_engine, Session, SQLModel
 def engine_fixture():
     """Create an in-memory SQLite engine for testing."""
     engine = create_engine("sqlite:///:memory:")
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord
+    # LandiqRecord.metadata contains all tables because they are in the same Base/Metadata
+    LandiqRecord.metadata.create_all(engine)
     SQLModel.metadata.create_all(engine)
     return engine
 

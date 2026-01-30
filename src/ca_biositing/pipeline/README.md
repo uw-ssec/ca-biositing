@@ -33,20 +33,20 @@ src/ca_biositing/pipeline/
 │       │   │   └── experiments.py
 │       │   ├── transform/           # Data transformation tasks
 │       │   │   └── products/
-│       │   │       └── primary_product.py
+│       │   │       └── primary_ag_product.py
 │       │   ├── load/                # Data loading tasks
 │       │   │   ├── analysis/
 │       │   │   └── products/
-│       │   │       └── primary_product.py
+│       │   │       └── primary_ag_product.py
 │       │   └── templates/           # ETL module templates
 │       ├── flows/                   # Prefect flow definitions
 │       │   ├── analysis_type.py
-│       │   └── primary_product.py
+│       │   └── primary_ag_product.py
 │       └── utils/                   # Utility functions
 │           ├── __init__.py
 │           ├── gsheet_to_pandas.py
 │           ├── lookup_utils.py
-│           └── run_pipeline.py
+│           └── ../../resources/prefect/run_prefect_flow.py
 ├── tests/                           # Test suite
 │   ├── __init__.py
 │   ├── conftest.py                  # Pytest fixtures
@@ -89,15 +89,12 @@ directory:
   on SQLModel changes
 - **Note:** Database models are now in the shared `ca-biositing-datamodels`
   package
-- **[See: docs/ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)**
 
 ### 3. ETL Pipeline Development (Prefect)
 
 - **Purpose:** Running the ETL pipeline and adding new data pipelines
 - **Details:** Using Prefect's flow orchestration with extract, transform, and
   load tasks
-- **[See: docs/ETL_WORKFLOW.md](./ETL_WORKFLOW.md)**
-- **[See: docs/PREFECT_WORKFLOW.md](./PREFECT_WORKFLOW.md)**
 
 ### 4. Google Cloud Setup
 
@@ -162,7 +159,7 @@ See `tests/README.md` for detailed information about the test suite.
 
 ```python
 from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
-from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+from ca_biositing.pipeline.flows.primary_ag_product import primary_ag_product_flow
 from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
 
 # Use in your code
@@ -172,10 +169,10 @@ from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
 ### Running Prefect Flows
 
 ```python
-from ca_biositing.pipeline.flows.primary_product import primary_product_flow
+from ca_biositing.pipeline.flows.primary_ag_product import primary_ag_product_flow
 
 # Run the flow
-primary_product_flow()
+primary_ag_product_flow()
 ```
 
 ### Using Utility Functions
@@ -232,7 +229,8 @@ docker-compose exec app alembic upgrade head
 **5. Run ETL Pipeline:**
 
 ```bash
-docker-compose exec app python utils/run_pipeline.py
+# This executes the master flow defined in resources/prefect/run_prefect_flow.py
+pixi run run-etl
 ```
 
 See `docs/DOCKER_WORKFLOW.md` and `docs/ETL_WORKFLOW.md` for detailed
@@ -249,17 +247,19 @@ instructions.
 
 **Transform:** Data cleaning and transformation using pandas
 
-- `transform/products/primary_product.py`: Transform primary product data
+- `transform/products/primary_ag_product.py`: Transform primary agricultural
+  product data
 
 **Load:** Load transformed data into PostgreSQL
 
-- `load/products/primary_product.py`: Load primary products into database
+- `load/products/primary_ag_product.py`: Load primary agricultural products into
+  database
 
 ### Prefect Flows
 
 Orchestrated workflows that combine ETL tasks:
 
-- `flows/primary_product.py`: Primary product ETL flow
+- `flows/primary_ag_product.py`: Primary agricultural product ETL flow
 - `flows/analysis_type.py`: Analysis type ETL flow
 
 ### Utility Functions
@@ -271,7 +271,9 @@ Orchestrated workflows that combine ETL tasks:
 
 **`gsheet_to_pandas.py`**: Google Sheets to pandas DataFrame conversion
 
-**`run_pipeline.py`**: Master script to run all ETL flows
+**`../../resources/prefect/run_prefect_flow.py`**: A resilient master flow that
+dynamically imports and runs all ETL flows, catching errors from individual
+flows.
 
 ## Dependencies
 
@@ -304,8 +306,7 @@ pixi run pre-commit run --files src/ca_biositing/pipeline/**/*
 5. **Tests:** Add tests in `tests/`
 6. **Run:** Execute the flow
 
-See `etl/templates/` for template files and `docs/ETL_WORKFLOW.md` for detailed
-instructions.
+See `etl/templates/` for template files
 
 ### Adding Database Models
 

@@ -1,0 +1,28 @@
+id: https://w3id.org/ca_biositing/methods_parameters_units/parameter
+name: parameter
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - unit
+default_range: string
+
+classes:
+  Parameter:
+    is_a: BaseEntity
+    description: Parameter being measured.
+    slots:
+      - name
+      - standard_unit_id
+      - calculated
+      - description
+
+slots:
+  standard_unit_id:
+    range: Unit
+    description: Reference to Unit.
+
+  calculated:
+    range: boolean
+    description: Whether the parameter is calculated.

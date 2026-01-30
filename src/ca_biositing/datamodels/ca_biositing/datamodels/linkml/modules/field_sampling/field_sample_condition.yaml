@@ -1,0 +1,43 @@
+id: https://w3id.org/ca_biositing/field_sampling/field_sample_condition
+name: field_sample_condition
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - field_sample
+  - ag_treatment
+  - processing_method
+default_range: string
+
+classes:
+  FieldSampleCondition:
+    is_a: BaseEntity
+    description: Condition of the field sample.
+    slots:
+      - field_sample_id
+      - ag_treatment_id
+      - last_application_date
+      - treatment_amount_per_acre
+      - processing_method_id
+
+slots:
+  field_sample_id:
+    range: FieldSample
+    description: Reference to FieldSample.
+
+  ag_treatment_id:
+    range: AgTreatment
+    description: Reference to AgTreatment.
+
+  last_application_date:
+    range: date
+    description: Date of last application.
+
+  treatment_amount_per_acre:
+    range: float
+    description: Amount of treatment per acre.
+
+  processing_method_id:
+    range: ProcessingMethod
+    description: Reference to ProcessingMethod.

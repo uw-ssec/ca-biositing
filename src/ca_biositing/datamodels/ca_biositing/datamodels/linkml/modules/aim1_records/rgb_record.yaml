@@ -1,0 +1,21 @@
+id: https://w3id.org/ca_biositing/aim1_records/rgb_record
+name: rgb_record
+title: RGB Record
+description: RGB analysis record.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - aim1_record_base
+
+classes:
+  RgbRecord:
+    is_a: Aim1RecordBase
+    description: RGB analysis record.

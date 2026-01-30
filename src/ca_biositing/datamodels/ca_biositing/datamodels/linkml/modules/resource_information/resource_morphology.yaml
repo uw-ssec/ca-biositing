@@ -1,0 +1,29 @@
+id: https://w3id.org/ca_biositing/resource_information/resource_morphology
+name: resource_morphology
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - resource
+default_range: string
+
+classes:
+  ResourceMorphology:
+    description: Morphology of a resource.
+    slots:
+      - id
+      - resource_id
+      - morphology_uri
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  resource_id:
+    range: Resource
+    description: Reference to Resource.
+
+  morphology_uri:
+    range: string
