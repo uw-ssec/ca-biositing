@@ -30,6 +30,7 @@ markdown_extensions:
 nav:
   - Home: README.md
   - Architecture: architecture.md
+  - Local Setup: ca_biositing_local_setup.md
   - Pipeline:
       - Overview: pipeline/README.md
       - ETL Workflow: pipeline/ETL_WORKFLOW.md
