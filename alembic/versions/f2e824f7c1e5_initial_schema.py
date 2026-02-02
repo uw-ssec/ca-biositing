@@ -978,6 +978,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['source_id'], ['data_source.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('aim1_record_base_id_seq')))
     op.create_table('aim1_record_base',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -991,7 +992,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('aim1_record_base_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1006,6 +1007,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('aim2_record_base_id_seq')))
     op.create_table('aim2_record_base',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1019,7 +1021,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('aim2_record_base_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1034,6 +1036,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('autoclave_record_id_seq')))
     op.create_table('autoclave_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1047,7 +1050,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('autoclave_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1062,6 +1065,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('calorimetry_record_id_seq')))
     op.create_table('calorimetry_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1075,7 +1079,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('calorimetry_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1090,6 +1094,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('compositional_record_id_seq')))
     op.create_table('compositional_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1103,7 +1108,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('compositional_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1154,6 +1159,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('fermentation_record_id_seq')))
     op.create_table('fermentation_record',
     sa.Column('strain_id', sa.Integer(), nullable=True),
     sa.Column('pretreatment_method_id', sa.Integer(), nullable=True),
@@ -1175,7 +1181,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('fermentation_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1190,6 +1196,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('ftnir_record_id_seq')))
     op.create_table('ftnir_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1203,7 +1210,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('ftnir_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1218,6 +1225,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('gasification_record_id_seq')))
     op.create_table('gasification_record',
     sa.Column('feedstock_mass', sa.Numeric(), nullable=True),
     sa.Column('bed_temperature', sa.Numeric(), nullable=True),
@@ -1234,7 +1242,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('gasification_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1249,6 +1257,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('icp_record_id_seq')))
     op.create_table('icp_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1262,7 +1271,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('icp_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1277,6 +1286,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('observation_id_seq')))
     op.create_table('observation',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1288,7 +1298,7 @@ def upgrade() -> None:
     sa.Column('dimension_value', sa.Numeric(), nullable=True),
     sa.Column('dimension_unit_id', sa.Integer(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('observation_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1314,6 +1324,13 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(
+        'unique_geom_dataset_md5',
+        'polygon',
+        [sa.text('md5(geom)'), 'dataset_id'],
+        unique=True,
+    )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('pretreatment_record_id_seq')))
     op.create_table('pretreatment_record',
     sa.Column('pretreatment_method_id', sa.Integer(), nullable=True),
     sa.Column('eh_method_id', sa.Integer(), nullable=True),
@@ -1333,7 +1350,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('pretreatment_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1348,6 +1365,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('proximate_record_id_seq')))
     op.create_table('proximate_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1361,7 +1379,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('proximate_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1376,6 +1394,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('rgb_record_id_seq')))
     op.create_table('rgb_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1389,7 +1408,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('rgb_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1404,6 +1423,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('ultimate_record_id_seq')))
     op.create_table('ultimate_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1417,7 +1437,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('ultimate_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1503,6 +1523,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['survey_program_id'], ['usda_survey_program.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('xrd_record_id_seq')))
     op.create_table('xrd_record',
     sa.Column('scan_low_nm', sa.Integer(), nullable=True),
     sa.Column('scan_high_nm', sa.Integer(), nullable=True),
@@ -1518,7 +1539,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('xrd_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1533,6 +1554,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('xrf_record_id_seq')))
     op.create_table('xrf_record',
     sa.Column('wavelength_nm', sa.Numeric(), nullable=True),
     sa.Column('intensity', sa.Numeric(), nullable=True),
@@ -1550,7 +1572,7 @@ def upgrade() -> None:
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
     sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('xrf_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1565,6 +1587,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('record_id')
     )
+    op.execute(sa.schema.CreateSequence(sa.Sequence('landiq_record_id_seq')))
     op.create_table('landiq_record',
     sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
@@ -1582,7 +1605,7 @@ def upgrade() -> None:
     sa.Column('pct2', sa.Float(), nullable=True),
     sa.Column('pct3', sa.Float(), nullable=True),
     sa.Column('pct4', sa.Float(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), server_default=sa.text("nextval('landiq_record_id_seq')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
@@ -1603,29 +1626,47 @@ def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('landiq_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('landiq_record_id_seq')))
     op.drop_table('xrf_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('xrf_record_id_seq')))
     op.drop_table('xrd_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('xrd_record_id_seq')))
     op.drop_table('usda_survey_record')
     op.drop_table('usda_market_record')
     op.drop_table('usda_census_record')
     op.drop_table('ultimate_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('ultimate_record_id_seq')))
     op.drop_table('rgb_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('rgb_record_id_seq')))
     op.drop_table('proximate_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('proximate_record_id_seq')))
     op.drop_table('pretreatment_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('pretreatment_record_id_seq')))
+    op.drop_index('unique_geom_dataset_md5', table_name='polygon')
     op.drop_table('polygon')
     op.drop_table('observation')
+    op.execute(sa.schema.DropSequence(sa.Sequence('observation_id_seq')))
     op.drop_table('icp_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('icp_record_id_seq')))
     op.drop_table('gasification_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('gasification_record_id_seq')))
     op.drop_table('ftnir_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('ftnir_record_id_seq')))
     op.drop_table('fermentation_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('fermentation_record_id_seq')))
     op.drop_table('facility_record')
     op.drop_table('experiment_prepared_sample')
     op.drop_table('experiment_method')
     op.drop_table('compositional_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('compositional_record_id_seq')))
     op.drop_table('calorimetry_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('calorimetry_record_id_seq')))
     op.drop_table('autoclave_record')
+    op.execute(sa.schema.DropSequence(sa.Sequence('autoclave_record_id_seq')))
     op.drop_table('aim2_record_base')
+    op.execute(sa.schema.DropSequence(sa.Sequence('aim2_record_base_id_seq')))
     op.drop_table('aim1_record_base')
+    op.execute(sa.schema.DropSequence(sa.Sequence('aim1_record_base_id_seq')))
     op.drop_table('usda_market_report')
     op.drop_table('prepared_sample')
     op.drop_table('physical_characteristic')
