@@ -50,6 +50,7 @@ target_metadata = Base.metadata
 
 def include_object(obj, name, type_, reflected, compare_to):
     """Filter objects for autogenerate."""
+    # Exclude PostGIS system tables
     if type_ == "table" and name in [
         "spatial_ref_sys",
         "geometry_columns",
@@ -58,6 +59,17 @@ def include_object(obj, name, type_, reflected, compare_to):
         "raster_overviews",
     ]:
         return False
+    # Exclude tables from non-public schemas (tiger, topology, etc.)
+    if type_ == "table" and hasattr(obj, "schema") and obj.schema is not None:
+        return False
+    # Ignore unique constraints on primary key columns (redundant, causes
+    # phantom diffs because PK already implies uniqueness).
+    if type_ == "unique_constraint" and obj is not None:
+        cols = [c.name for c in obj.columns]
+        table = obj.table
+        pk_cols = [c.name for c in table.primary_key.columns]
+        if cols == pk_cols:
+            return False
     return True
 
 
@@ -87,10 +99,15 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    config_section = config.get_section(config.config_ini_section, {})
+    # Restrict search_path so Alembic autogenerate does not reflect
+    # PostGIS tiger/topology tables that share the default search_path.
+    connect_args = {"options": "-c search_path=public"}
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        config_section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     with connectable.connect() as connection:

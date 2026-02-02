@@ -1,8 +1,8 @@
-"""test test test test test
+"""Initial schema
 
-Revision ID: 04f37f9dbb48
-Revises: 2b18e6e5e72d
-Create Date: 2026-01-07 21:06:50.957245
+Revision ID: f2e824f7c1e5
+Revises: 
+Create Date: 2026-02-02 12:56:24.472329
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '04f37f9dbb48'
-down_revision: Union[str, Sequence[str], None] = '2b18e6e5e72d'
+revision: str = 'f2e824f7c1e5'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -35,31 +35,11 @@ def upgrade() -> None:
     sa.Column('uri', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('base_entity',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('collection_method',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('uri', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('contact',
-    sa.Column('first_name', sa.Text(), nullable=True),
-    sa.Column('last_name', sa.Text(), nullable=True),
-    sa.Column('email', sa.Text(), nullable=True),
-    sa.Column('affiliation', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('dimension_type',
@@ -79,6 +59,7 @@ def upgrade() -> None:
     )
     op.create_table('etl_run',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('run_id', sa.Text(), nullable=True),
     sa.Column('started_at', sa.DateTime(), nullable=True),
     sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.Column('pipeline_name', sa.Text(), nullable=True),
@@ -93,16 +74,6 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('uri', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('geography',
-    sa.Column('geoid', sa.Text(), nullable=False),
-    sa.Column('state_name', sa.Text(), nullable=True),
-    sa.Column('state_fips', sa.Text(), nullable=True),
-    sa.Column('county_name', sa.Text(), nullable=True),
-    sa.Column('county_fips', sa.Text(), nullable=True),
-    sa.Column('region_name', sa.Text(), nullable=True),
-    sa.Column('agg_level_desc', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('geoid')
     )
     op.create_table('harvest_method',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -398,12 +369,6 @@ def upgrade() -> None:
     sa.Column('zipcode', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('plant_id')
     )
-    op.create_table('lineage_group',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('location_resolution',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=True),
@@ -446,11 +411,15 @@ def upgrade() -> None:
     sa.Column('uri', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('polygon',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('geoid', sa.Text(), nullable=True),
-    sa.Column('geom', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    op.create_table('place',
+    sa.Column('geoid', sa.Text(), nullable=False),
+    sa.Column('state_name', sa.Text(), nullable=True),
+    sa.Column('state_fips', sa.Text(), nullable=True),
+    sa.Column('county_name', sa.Text(), nullable=True),
+    sa.Column('county_fips', sa.Text(), nullable=True),
+    sa.Column('region_name', sa.Text(), nullable=True),
+    sa.Column('agg_level_desc', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('geoid')
     )
     op.create_table('preparation_method_abbreviation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -471,15 +440,6 @@ def upgrade() -> None:
     sa.Column('name', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('uri', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('provider',
-    sa.Column('codename', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('resource_class',
@@ -557,14 +517,44 @@ def upgrade() -> None:
     sa.Column('uri', sa.Text(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('base_entity',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('contact',
+    sa.Column('first_name', sa.Text(), nullable=True),
+    sa.Column('last_name', sa.Text(), nullable=True),
+    sa.Column('email', sa.Text(), nullable=True),
+    sa.Column('affiliation', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('data_source_type',
     sa.Column('source_type_id', sa.Integer(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['source_type_id'], ['source_type.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('lineage_group',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('location_address',
@@ -579,9 +569,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['geography_id'], ['geography.geoid'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geography_id'], ['place.geoid'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('parameter',
@@ -592,8 +583,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['standard_unit_id'], ['unit.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -607,9 +599,20 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['prep_method_abbrev_id'], ['preparation_method_abbreviation.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('provider',
+    sa.Column('codename', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('resource',
@@ -618,12 +621,12 @@ def upgrade() -> None:
     sa.Column('resource_class_id', sa.Integer(), nullable=True),
     sa.Column('resource_subclass_id', sa.Integer(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('test', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['primary_ag_product_id'], ['primary_ag_product.id'], ),
     sa.ForeignKeyConstraint(['resource_class_id'], ['resource_class.id'], ),
     sa.ForeignKeyConstraint(['resource_subclass_id'], ['resource_subclass.id'], ),
@@ -639,8 +642,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['usda_commodity_id'], ['usda_commodity.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -662,9 +666,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['energy_content_unit_id'], ['unit.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['production_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.ForeignKeyConstraint(['subclass_id'], ['resource_subclass.id'], ),
@@ -694,9 +699,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['data_source_type_id'], ['data_source_type.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['location_coverage_id'], ['location_resolution.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -719,9 +725,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['exper_duration_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['exper_location_id'], ['location_address.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -748,11 +755,12 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['amount_collected_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['collection_method_id'], ['collection_method.id'], ),
     sa.ForeignKeyConstraint(['collector_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['field_sample_storage_location_id'], ['location_address.id'], ),
     sa.ForeignKeyConstraint(['field_storage_duration_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['field_storage_location_id'], ['location_address.id'], ),
@@ -769,8 +777,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['location_id'], ['location_address.id'], ),
     sa.ForeignKeyConstraint(['soil_type_id'], ['soil_type.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -801,8 +810,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -822,8 +832,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['primary_ag_product_id'], ['primary_ag_product.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.ForeignKeyConstraint(['usda_commodity_id'], ['usda_commodity.id'], ),
@@ -839,8 +850,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['source_id'], ['data_source.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -860,25 +872,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('facility_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('facility_name', sa.Text(), nullable=True),
-    sa.Column('location_id', sa.Integer(), nullable=True),
-    sa.Column('capacity_mw', sa.Numeric(), nullable=True),
-    sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('operator', sa.Text(), nullable=True),
-    sa.Column('start_year', sa.Integer(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['location_id'], ['location_address.id'], ),
-    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('field_sample_condition',
     sa.Column('field_sample_id', sa.Integer(), nullable=True),
     sa.Column('ag_treatment_id', sa.Integer(), nullable=True),
@@ -888,9 +881,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['ag_treatment_id'], ['ag_treatment.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['field_sample_id'], ['field_sample.id'], ),
     sa.ForeignKeyConstraint(['processing_method_id'], ['processing_method.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -905,34 +899,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['data_source_id'], ['data_source.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('landiq_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('polygon_id', sa.Integer(), nullable=True),
-    sa.Column('main_crop', sa.Integer(), nullable=True),
-    sa.Column('secondary_crop', sa.Integer(), nullable=True),
-    sa.Column('tertiary_crop', sa.Integer(), nullable=True),
-    sa.Column('quaternary_crop', sa.Integer(), nullable=True),
-    sa.Column('confidence', sa.Integer(), nullable=True),
-    sa.Column('irrigated', sa.Boolean(), nullable=True),
-    sa.Column('acres', sa.Float(), nullable=True),
-    sa.Column('version', sa.Text(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['main_crop'], ['primary_ag_product.id'], ),
-    sa.ForeignKeyConstraint(['polygon_id'], ['polygon.id'], ),
-    sa.ForeignKeyConstraint(['quaternary_crop'], ['primary_ag_product.id'], ),
-    sa.ForeignKeyConstraint(['secondary_crop'], ['primary_ag_product.id'], ),
-    sa.ForeignKeyConstraint(['tertiary_crop'], ['primary_ag_product.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('method',
@@ -946,35 +916,13 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['method_abbrev_id'], ['method_abbrev.id'], ),
     sa.ForeignKeyConstraint(['method_category_id'], ['method_category.id'], ),
     sa.ForeignKeyConstraint(['method_standard_id'], ['method_standard.id'], ),
     sa.ForeignKeyConstraint(['source_id'], ['data_source.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('observation',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('record_type', sa.Text(), nullable=True),
-    sa.Column('record_id', sa.Integer(), nullable=True),
-    sa.Column('parameter_id', sa.Integer(), nullable=True),
-    sa.Column('value', sa.Numeric(), nullable=True),
-    sa.Column('unit_id', sa.Integer(), nullable=True),
-    sa.Column('dimension_type_id', sa.Integer(), nullable=True),
-    sa.Column('dimension_value', sa.Numeric(), nullable=True),
-    sa.Column('dimension_unit_id', sa.Integer(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['dimension_type_id'], ['dimension_type.id'], ),
-    sa.ForeignKeyConstraint(['dimension_unit_id'], ['unit.id'], ),
-    sa.ForeignKeyConstraint(['parameter_id'], ['parameter.id'], ),
-    sa.ForeignKeyConstraint(['unit_id'], ['unit.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('physical_characteristic',
@@ -986,8 +934,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['field_sample_id'], ['field_sample.id'], ),
     sa.ForeignKeyConstraint(['particle_unit_id'], ['unit.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -1002,27 +951,12 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['field_sample_id'], ['field_sample.id'], ),
     sa.ForeignKeyConstraint(['prep_method_id'], ['preparation_method.id'], ),
     sa.ForeignKeyConstraint(['preparer_id'], ['contact.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('usda_census_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('geoid', sa.Text(), nullable=True),
-    sa.Column('commodity_code', sa.Integer(), nullable=True),
-    sa.Column('year', sa.Integer(), nullable=True),
-    sa.Column('source_reference', sa.Text(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('usda_market_report',
@@ -1037,152 +971,152 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['office_city_id'], ['location_address.id'], ),
     sa.ForeignKeyConstraint(['source_id'], ['data_source.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('usda_survey_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('geoid', sa.Text(), nullable=True),
-    sa.Column('commodity_code', sa.Integer(), nullable=True),
-    sa.Column('year', sa.Integer(), nullable=True),
-    sa.Column('survey_program_id', sa.Integer(), nullable=True),
-    sa.Column('survey_period', sa.Text(), nullable=True),
-    sa.Column('reference_month', sa.Text(), nullable=True),
-    sa.Column('seasonal_flag', sa.Boolean(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['survey_program_id'], ['usda_survey_program.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('aim1_record_base',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('aim2_record_base',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
-    sa.Column('calc_method_id', sa.Integer(), nullable=True),
-    sa.Column('calc_analyst_id', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('method_id', sa.Integer(), nullable=True),
+    sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
+    sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('autoclave_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
-    sa.Column('calc_method_id', sa.Integer(), nullable=True),
-    sa.Column('calc_analyst_id', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('method_id', sa.Integer(), nullable=True),
+    sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
+    sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('calorimetry_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('compositional_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('experiment_method',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -1200,6 +1134,26 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('facility_record',
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('facility_name', sa.Text(), nullable=True),
+    sa.Column('location_id', sa.Integer(), nullable=True),
+    sa.Column('capacity_mw', sa.Numeric(), nullable=True),
+    sa.Column('resource_id', sa.Integer(), nullable=True),
+    sa.Column('operator', sa.Text(), nullable=True),
+    sa.Column('start_year', sa.Integer(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['location_id'], ['location_address.id'], ),
+    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('fermentation_record',
     sa.Column('strain_id', sa.Integer(), nullable=True),
     sa.Column('pretreatment_method_id', sa.Integer(), nullable=True),
@@ -1209,102 +1163,155 @@ def upgrade() -> None:
     sa.Column('agitation_rpm', sa.Numeric(), nullable=True),
     sa.Column('vessel_id', sa.Integer(), nullable=True),
     sa.Column('analyte_detection_equipment_id', sa.Integer(), nullable=True),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
-    sa.Column('calc_method_id', sa.Integer(), nullable=True),
-    sa.Column('calc_analyst_id', sa.Integer(), nullable=True),
-    sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
-    sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
-    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('ftnir_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('experiment_id', sa.Integer(), nullable=True),
-    sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('ftnir_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('experiment_id', sa.Integer(), nullable=True),
+    sa.Column('resource_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('method_id', sa.Integer(), nullable=True),
+    sa.Column('analyst_id', sa.Integer(), nullable=True),
+    sa.Column('raw_data_id', sa.Integer(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
+    sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
+    sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
+    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('gasification_record',
     sa.Column('feedstock_mass', sa.Numeric(), nullable=True),
     sa.Column('bed_temperature', sa.Numeric(), nullable=True),
     sa.Column('gas_flow_rate', sa.Numeric(), nullable=True),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
-    sa.Column('calc_method_id', sa.Integer(), nullable=True),
-    sa.Column('calc_analyst_id', sa.Integer(), nullable=True),
-    sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
-    sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
-    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
-    sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
-    sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
-    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('icp_record',
-    sa.Column('dataset_id', sa.Integer(), nullable=True),
-    sa.Column('experiment_id', sa.Integer(), nullable=True),
-    sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('icp_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('experiment_id', sa.Integer(), nullable=True),
+    sa.Column('resource_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('method_id', sa.Integer(), nullable=True),
+    sa.Column('analyst_id', sa.Integer(), nullable=True),
+    sa.Column('raw_data_id', sa.Integer(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
+    sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
+    sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
+    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('observation',
+    sa.Column('record_id', sa.Text(), nullable=False),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('record_type', sa.Text(), nullable=True),
+    sa.Column('parameter_id', sa.Integer(), nullable=True),
+    sa.Column('value', sa.Numeric(), nullable=True),
+    sa.Column('unit_id', sa.Integer(), nullable=True),
+    sa.Column('dimension_type_id', sa.Integer(), nullable=True),
+    sa.Column('dimension_value', sa.Numeric(), nullable=True),
+    sa.Column('dimension_unit_id', sa.Integer(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['dimension_type_id'], ['dimension_type.id'], ),
+    sa.ForeignKeyConstraint(['dimension_unit_id'], ['unit.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['parameter_id'], ['parameter.id'], ),
+    sa.ForeignKeyConstraint(['unit_id'], ['unit.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('polygon',
+    sa.Column('geoid', sa.Text(), nullable=True),
+    sa.Column('geom', sa.Text(), nullable=True),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('pretreatment_record',
@@ -1314,101 +1321,132 @@ def upgrade() -> None:
     sa.Column('block_position', sa.Text(), nullable=True),
     sa.Column('temperature', sa.Numeric(), nullable=True),
     sa.Column('replicate_no', sa.Integer(), nullable=True),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
-    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
-    sa.Column('calc_method_id', sa.Integer(), nullable=True),
-    sa.Column('calc_analyst_id', sa.Integer(), nullable=True),
+    sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
+    sa.Column('method_id', sa.Integer(), nullable=True),
+    sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
+    sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('proximate_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('rgb_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('ultimate_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('usda_census_record',
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('geoid', sa.Text(), nullable=True),
+    sa.Column('commodity_code', sa.Integer(), nullable=True),
+    sa.Column('year', sa.Integer(), nullable=True),
+    sa.Column('source_reference', sa.Text(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('usda_market_record',
@@ -1435,69 +1473,128 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['commodity_id'], ['usda_commodity.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['price_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['report_id'], ['usda_market_report.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('usda_survey_record',
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('geoid', sa.Text(), nullable=True),
+    sa.Column('commodity_code', sa.Integer(), nullable=True),
+    sa.Column('year', sa.Integer(), nullable=True),
+    sa.Column('survey_program_id', sa.Integer(), nullable=True),
+    sa.Column('survey_period', sa.Text(), nullable=True),
+    sa.Column('reference_month', sa.Text(), nullable=True),
+    sa.Column('seasonal_flag', sa.Boolean(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['survey_program_id'], ['usda_survey_program.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('xrd_record',
     sa.Column('scan_low_nm', sa.Integer(), nullable=True),
     sa.Column('scan_high_nm', sa.Integer(), nullable=True),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
     )
     op.create_table('xrf_record',
     sa.Column('wavelength_nm', sa.Numeric(), nullable=True),
     sa.Column('intensity', sa.Numeric(), nullable=True),
     sa.Column('energy_slope', sa.Numeric(), nullable=True),
     sa.Column('energy_offset', sa.Numeric(), nullable=True),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.Column('experiment_id', sa.Integer(), nullable=True),
     sa.Column('resource_id', sa.Integer(), nullable=True),
-    sa.Column('sample_id', sa.Integer(), nullable=True),
+    sa.Column('prepared_sample_id', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_no', sa.Integer(), nullable=True),
     sa.Column('technical_replicate_total', sa.Integer(), nullable=True),
     sa.Column('method_id', sa.Integer(), nullable=True),
     sa.Column('analyst_id', sa.Integer(), nullable=True),
     sa.Column('raw_data_id', sa.Integer(), nullable=True),
-    sa.Column('qc_pass', sa.Boolean(), nullable=True),
+    sa.Column('qc_pass', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('etl_run_id', sa.Text(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['analyst_id'], ['contact.id'], ),
-    sa.ForeignKeyConstraint(['dataset_id'], ['data_source.id'], ),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.ForeignKeyConstraint(['experiment_id'], ['experiment.id'], ),
     sa.ForeignKeyConstraint(['method_id'], ['method.id'], ),
+    sa.ForeignKeyConstraint(['prepared_sample_id'], ['prepared_sample.id'], ),
     sa.ForeignKeyConstraint(['raw_data_id'], ['file_object_metadata.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('record_id')
+    )
+    op.create_table('landiq_record',
+    sa.Column('record_id', sa.Text(), nullable=False),
+    sa.Column('dataset_id', sa.Integer(), nullable=True),
+    sa.Column('polygon_id', sa.Integer(), nullable=True),
+    sa.Column('main_crop', sa.Integer(), nullable=True),
+    sa.Column('secondary_crop', sa.Integer(), nullable=True),
+    sa.Column('tertiary_crop', sa.Integer(), nullable=True),
+    sa.Column('quaternary_crop', sa.Integer(), nullable=True),
+    sa.Column('confidence', sa.Integer(), nullable=True),
+    sa.Column('irrigated', sa.Boolean(), nullable=True),
+    sa.Column('acres', sa.Float(), nullable=True),
+    sa.Column('version', sa.Text(), nullable=True),
+    sa.Column('note', sa.Text(), nullable=True),
+    sa.Column('pct1', sa.Float(), nullable=True),
+    sa.Column('pct2', sa.Float(), nullable=True),
+    sa.Column('pct3', sa.Float(), nullable=True),
+    sa.Column('pct4', sa.Float(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['main_crop'], ['primary_ag_product.id'], ),
+    sa.ForeignKeyConstraint(['polygon_id'], ['polygon.id'], ),
+    sa.ForeignKeyConstraint(['quaternary_crop'], ['primary_ag_product.id'], ),
+    sa.ForeignKeyConstraint(['secondary_crop'], ['primary_ag_product.id'], ),
+    sa.ForeignKeyConstraint(['tertiary_crop'], ['primary_ag_product.id'], ),
+    sa.PrimaryKeyConstraint('record_id')
     )
     # ### end Alembic commands ###
 
@@ -1505,17 +1602,23 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('landiq_record')
     op.drop_table('xrf_record')
     op.drop_table('xrd_record')
+    op.drop_table('usda_survey_record')
     op.drop_table('usda_market_record')
+    op.drop_table('usda_census_record')
     op.drop_table('ultimate_record')
     op.drop_table('rgb_record')
     op.drop_table('proximate_record')
     op.drop_table('pretreatment_record')
+    op.drop_table('polygon')
+    op.drop_table('observation')
     op.drop_table('icp_record')
     op.drop_table('gasification_record')
     op.drop_table('ftnir_record')
     op.drop_table('fermentation_record')
+    op.drop_table('facility_record')
     op.drop_table('experiment_prepared_sample')
     op.drop_table('experiment_method')
     op.drop_table('compositional_record')
@@ -1523,17 +1626,12 @@ def downgrade() -> None:
     op.drop_table('autoclave_record')
     op.drop_table('aim2_record_base')
     op.drop_table('aim1_record_base')
-    op.drop_table('usda_survey_record')
     op.drop_table('usda_market_report')
-    op.drop_table('usda_census_record')
     op.drop_table('prepared_sample')
     op.drop_table('physical_characteristic')
-    op.drop_table('observation')
     op.drop_table('method')
-    op.drop_table('landiq_record')
     op.drop_table('file_object_metadata')
     op.drop_table('field_sample_condition')
-    op.drop_table('facility_record')
     op.drop_table('experiment_equipment')
     op.drop_table('experiment_analysis')
     op.drop_table('dataset')
@@ -1550,10 +1648,14 @@ def downgrade() -> None:
     op.drop_table('billion_ton2023_record')
     op.drop_table('usda_term_map')
     op.drop_table('resource')
+    op.drop_table('provider')
     op.drop_table('preparation_method')
     op.drop_table('parameter')
     op.drop_table('location_address')
+    op.drop_table('lineage_group')
     op.drop_table('data_source_type')
+    op.drop_table('contact')
+    op.drop_table('base_entity')
     op.drop_table('usda_survey_program')
     op.drop_table('usda_statistic_category')
     op.drop_table('usda_domain')
@@ -1564,18 +1666,16 @@ def downgrade() -> None:
     op.drop_table('soil_type')
     op.drop_table('resource_subclass')
     op.drop_table('resource_class')
-    op.drop_table('provider')
     op.drop_table('processing_method')
     op.drop_table('primary_ag_product')
     op.drop_table('preparation_method_abbreviation')
-    op.drop_table('polygon')
+    op.drop_table('place')
     op.drop_table('parameter_category')
     op.drop_table('method_standard')
     op.drop_table('method_category')
     op.drop_table('method_abbrev')
     op.drop_table('lookup_base')
     op.drop_table('location_resolution')
-    op.drop_table('lineage_group')
     op.drop_table('infrastructure_wastewater_treatment_plants')
     op.drop_table('infrastructure_saf_and_renewable_diesel_plants')
     op.drop_table('infrastructure_msw_to_energy_anaerobic_digesters')
@@ -1589,14 +1689,11 @@ def downgrade() -> None:
     op.drop_table('infrastructure_biosolids_facilities')
     op.drop_table('infrastructure_biodiesel_plants')
     op.drop_table('harvest_method')
-    op.drop_table('geography')
     op.drop_table('field_storage_method')
     op.drop_table('etl_run')
     op.drop_table('entity_lineage')
     op.drop_table('dimension_type')
-    op.drop_table('contact')
     op.drop_table('collection_method')
-    op.drop_table('base_entity')
     op.drop_table('analysis_type')
     op.drop_table('ag_treatment')
     # ### end Alembic commands ###
