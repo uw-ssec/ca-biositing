@@ -4,9 +4,8 @@ from unittest.mock import MagicMock, patch
 from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import transform_field_sample
 from sqlalchemy import Column, String, Integer
 
-@patch("ca_biositing.pipeline.utils.engine.engine")
-@patch("ca_biositing.pipeline.utils.name_id_swap.Session")
-def test_transform_field_sample(mock_session, mock_engine):
+@patch("ca_biositing.pipeline.etl.transform.field_sampling.field_sample.normalize_dataframes")
+def test_transform_field_sample(mock_normalize):
     # 1. Setup Mock Data
     metadata_raw = pd.DataFrame({
         "Field_Sample_Name": ["Pos-Alf033", "Pos-Alf033"],
@@ -35,74 +34,19 @@ def test_transform_field_sample(mock_session, mock_engine):
         "provider_info": provider_raw
     }
 
-    # 2. Mock DB responses for normalization
-    mock_db = MagicMock()
-    mock_session.return_value.__enter__.return_value = mock_db
+    # 2. Mock normalize_dataframes to return a DF with expected ID columns
+    def side_effect(df, normalize_columns):
+        df_norm = df.copy()
+        df_norm["resource_id"] = 1
+        df_norm["provider_codename_id"] = 10
+        df_norm["primary_collector_id"] = 100
+        df_norm["dataset_id"] = 500
+        return df_norm
 
-    def mock_execute(query):
-        mock_result = MagicMock()
-        query_str = str(query).lower()
-
-        if "resource" in query_str:
-            mock_result.all.return_value = [("alfalfa", 1)]
-        elif "provider" in query_str:
-            if "type" in query_str:
-                mock_result.all.return_value = [("farmer", 11)]
-            else:
-                mock_result.all.return_value = [("possessive", 10)]
-        elif "contact" in query_str:
-            mock_result.all.return_value = [("ziad nasef", 100), ("xihui kang", 101)]
-        elif "dataset" in query_str:
-            mock_result.all.return_value = [("biocirv", 500)]
-        elif "location_address" in query_str:
-            if "county" in query_str:
-                mock_result.all.return_value = [("san joaquin", 1000)]
-            else:
-                mock_result.all.return_value = [("address a", 1001)]
-        elif "primary_ag_product" in query_str:
-            mock_result.all.return_value = [("alfalfa", 2000)]
-        elif "prepared_sample" in query_str:
-            mock_result.all.return_value = [("sample a", 3000), ("sample b", 3001)]
-        elif "method" in query_str:
-            mock_result.all.return_value = [("method a", 4000), ("method b", 4001)]
-        else:
-            mock_result.all.return_value = []
-        return mock_result
-
-    mock_db.execute.side_effect = mock_execute
+    mock_normalize.side_effect = side_effect
 
     # 3. Run Transform
-    # We need to mock the models to have real SQLAlchemy Column objects to satisfy normalize_dataframes
-    with patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Contact') as MockContact, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.LocationAddress') as MockLoc, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Provider') as MockProv, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Resource') as MockRes, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.PreparedSample') as MockPrep, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Method') as MockMeth, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Dataset') as MockDS, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.PrimaryAgProduct') as MockAg, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.SoilType') as MockSoil, \
-         patch('ca_biositing.datamodels.schemas.generated.ca_biositing.Unit') as MockUnit:
-
-        for m in [MockContact, MockLoc, MockProv, MockRes, MockPrep, MockMeth, MockDS, MockAg, MockSoil, MockUnit]:
-            m.__table__ = MagicMock()
-            pk_col = Column('id', Integer, primary_key=True)
-            m.__table__.primary_key.columns = [pk_col]
-
-        MockContact.name = Column('name', String)
-        MockLoc.county = Column('county', String)
-        MockLoc.full_address = Column('full_address', String)
-        MockProv.type = Column('type', String)
-        MockProv.codename = Column('codename', String)
-        MockRes.name = Column('name', String)
-        MockPrep.name = Column('name', String)
-        MockMeth.name = Column('name', String)
-        MockDS.name = Column('name', String)
-        MockAg.name = Column('name', String)
-        MockSoil.name = Column('name', String)
-        MockUnit.name = Column('name', String)
-
-        result_df = transform_field_sample.fn(data_sources, etl_run_id=123, lineage_group_id=456)
+    result_df = transform_field_sample.fn(data_sources, etl_run_id=123, lineage_group_id=456)
 
     # 4. Assertions
     assert result_df is not None

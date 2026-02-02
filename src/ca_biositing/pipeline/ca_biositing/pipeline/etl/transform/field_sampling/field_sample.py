@@ -41,7 +41,8 @@ def transform_field_sample(
         LocationAddress,
         PrimaryAgProduct,
         PreparedSample,
-        Method
+        Method,
+        FieldStorageMethod
     )
 
     # 1. Input Validation
@@ -99,7 +100,9 @@ def transform_field_sample(
         'sample_unit': (Unit, 'name'),
         'prepared_sample': (PreparedSample, 'name'),
         'soil_type': (SoilType, 'name'),
-        'storage_mode': (Method, 'name'),
+        'storage_mode': (FieldStorageMethod, 'name'),
+        'field_storage_method': (FieldStorageMethod, 'name'),
+        'field_storage_mode': (FieldStorageMethod, 'name'),
         'county': (LocationAddress, 'county'),
         'primary_ag_product': (PrimaryAgProduct, 'name'),
         'provider_type': (Provider, 'type'),
@@ -121,6 +124,8 @@ def transform_field_sample(
         'sample_unit_id': 'amount_collected_unit_id',
         'county_id': 'sampling_location_id',
         'storage_mode_id': 'field_storage_method_id',
+        'field_storage_method_id': 'field_storage_method_id',
+        'field_storage_mode_id': 'field_storage_method_id',
         'storage_dur_value': 'field_storage_duration_value',
         'storage_dur_units_id': 'field_storage_duration_unit_id',
         'field_storage_location_id': 'field_storage_location_id',
