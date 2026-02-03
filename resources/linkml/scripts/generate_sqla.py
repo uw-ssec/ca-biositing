@@ -99,7 +99,7 @@ def generate_sqla():
     script_dir = Path(__file__).parent
     linkml_dir = script_dir.parent  # resources/linkml/
     project_root = linkml_dir.parent.parent  # ca-biositing/
-    
+
     modules_dir = linkml_dir / "modules"
     output_dir = project_root / "src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated"
 

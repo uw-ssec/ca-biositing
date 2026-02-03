@@ -111,8 +111,8 @@ To use notebooks with correct imports:
 
 This project uses **LinkML** as the source of truth for the data model. The
 schemas are maintained in the `resources/linkml/` directory, separate from the
-installable Python package. Due to macOS Docker filesystem performance issues,
-a specific local workflow is required.
+installable Python package. Due to macOS Docker filesystem performance issues, a
+specific local workflow is required.
 
 ### 1. LinkML Source of Truth
 
