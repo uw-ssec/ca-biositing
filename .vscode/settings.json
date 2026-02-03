@@ -1,19 +1,15 @@
 {
-  // Add the distribution roots for the PEP 420 namespace packages so that VS Code (and Jupyter notebooks) can resolve imports.
-  // This sets PYTHONPATH for terminals and for the Jupyter extension.
-  "terminal.integrated.env.osx": {
-    "PYTHONPATH": "${workspaceFolder}/src/ca_biositing/pipeline:${workspaceFolder}/src/ca_biositing/datamodels:${workspaceFolder}/src/ca_biositing/webservice"
-  },
-  // For the Python language server / IntelliSense in VS Code.
+  // For the Python language server / IntelliSense in VS Code.
+  // These are NOT runtime PYTHONPATH entries — they help the language server
+  // resolve imports across the PEP 420 namespace packages.
   "python.analysis.extraPaths": [
     "${workspaceFolder}/src/ca_biositing/pipeline",
     "${workspaceFolder}/src/ca_biositing/datamodels",
     "${workspaceFolder}/src/ca_biositing/webservice"
   ],
-  // Ensure the Jupyter extension starts notebooks with the same environment.
-  "jupyter.notebookFileRoot": "${workspaceFolder}",
-  // Optional: use the Pixi environment’s Python interpreter.
-  "jupyter.kernelspecPath": ["${env:HOME}/Library/Jupyter/kernels"]
+  // Ensure the Jupyter extension starts notebooks with the workspace as root.
+  "jupyter.notebookFileRoot": "${workspaceFolder}"
+  // Optional: use the Pixi environment's Python interpreter.
   // If you have installed the Pixi environment, the interpreter path will be something like:
   // "python.defaultInterpreterPath": ".pixi/envs/default/bin/python"
   // Uncomment and adjust if needed.

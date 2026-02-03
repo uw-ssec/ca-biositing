@@ -92,20 +92,19 @@ The repository uses PEP 420 namespace packages. The top-level namespace
 - `src/ca_biositing/pipeline`
 - `src/ca_biositing/webservice`
 
-### PYTHONPATH Configuration
-
-For Python to locate sub-packages, the **distribution root** must be on
-`PYTHONPATH`. The required `PYTHONPATH` composition is:
-`${workspaceFolder}/src/ca_biositing/pipeline:${workspaceFolder}/src/ca_biositing/datamodels:${workspaceFolder}/src/ca_biositing/webservice`
+All three are installed as editable PyPI packages into the Pixi environment via
+`pixi.toml` feature dependencies. No `PYTHONPATH` manipulation is needed — after
+`pixi install`, all packages are importable within any `pixi run` command.
 
 ### Jupyter Notebooks
 
-To use notebooks with correct imports:
+This project uses [pixi-kernel](https://github.com/renan-r-santos/pixi-kernel)
+for Jupyter integration. The kernel runs code inside the Pixi environment, so
+all installed packages are available without any path configuration.
 
-1. Register the kernel:
-   `./src/ca_biositing/pipeline/ca_biositing/pipeline/utils/register_pixi_kernel.sh`
-2. Select the **"ca-biositing (Pixi)"** kernel in VS Code.
-3. See [`docs/notebook_setup.md`](docs/notebook_setup.md) for detailed guidance.
+1. Run `pixi install` to set up the environment (includes `pixi-kernel`).
+2. In VS Code or JupyterLab, select the **Pixi** kernel for your notebook.
+3. All `ca_biositing` namespace packages are importable directly.
 
 ## Schema Management & Migrations (CRITICAL)
 
@@ -196,8 +195,8 @@ The API layer.
 
 ## Common Pitfalls
 
-- **Import Errors**: Ensure you are using the Pixi kernel or have set
-  `PYTHONPATH` correctly.
+- **Import Errors**: Ensure you are running inside the Pixi environment
+  (`pixi run ...`) or using the Pixi kernel in Jupyter.
 - **macOS Geospatial Library Conflicts**: On macOS (especially Apple Silicon),
   you may encounter `PROJ` database version mismatch errors when using
   `geopandas` or `pyogrio`.

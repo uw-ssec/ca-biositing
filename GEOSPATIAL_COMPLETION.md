@@ -22,7 +22,7 @@ of naming patterns and multi-format support.
 
 ### 2. Documentation & Examples
 
-- **`src/ca_biositing/pipeline/ca_biositing/pipeline/utils/geospatial_cleaning.ipynb`**
+- **`src/ca_biositing/pipeline/docs/tutorials/geospatial_cleaning.ipynb`**
   (Reference notebook)
   - 7 markdown sections explaining each function
   - 6 executable code examples
@@ -39,7 +39,7 @@ of naming patterns and multi-format support.
   - Package now exports 9 total functions
 
 - **Updated
-  `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/etl_notebook.ipynb`**
+  `src/ca_biositing/pipeline/docs/tutorials/etl_notebook.ipynb`**
   - Added geospatial section with usage examples
   - Demonstrates integration into ETL workflows
 
@@ -191,12 +191,12 @@ def standardize_coordinates(df: pd.DataFrame) -> pd.DataFrame:
    - Usage patterns
    - Future enhancements
 
-3. **Reference Notebook:** `geospatial_cleaning.ipynb`
+3. **Reference Notebook:** `docs/tutorials/geospatial_cleaning.ipynb`
    - Interactive examples
    - Real-world scenarios
    - Pattern documentation
 
-4. **ETL Integration:** `etl_notebook.ipynb`
+4. **ETL Integration:** `docs/tutorials/etl_notebook.ipynb`
    - Shows integration with cleaning pipeline
    - Example with mixed format data
 

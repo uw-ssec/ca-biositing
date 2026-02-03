@@ -18,7 +18,7 @@ refactoring.
    - Multi-format parsing (comma, space, semicolon, pipe, tab delimiters)
    - Standardization workflow
 
-2. **`src/ca_biositing/pipeline/ca_biositing/pipeline/utils/geospatial_cleaning.ipynb`**
+2. **`src/ca_biositing/pipeline/docs/tutorials/geospatial_cleaning.ipynb`**
    - Reference notebook with comprehensive examples
    - Documents all functions and usage patterns
    - Shows real-world scenarios with mixed formats
@@ -30,7 +30,7 @@ refactoring.
      `standardize_latlon`
    - Package now exports 9 functions total (was 6)
 
-2. **`src/ca_biositing/pipeline/ca_biositing/pipeline/utils/etl_notebook.ipynb`**
+2. **`src/ca_biositing/pipeline/docs/tutorials/etl_notebook.ipynb`**
    - Added geospatial section with usage examples
    - Demonstrates auto-detection and standardization workflow
 
@@ -227,13 +227,13 @@ print(df_clean[['desc_lat', 'desc_lon']])
 ## Documentation
 
 - **Reference Notebook:**
-  `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/geospatial_cleaning.ipynb`
+  `src/ca_biositing/pipeline/docs/tutorials/geospatial_cleaning.ipynb`
   - Comprehensive examples and usage patterns
   - Real-world scenarios with mixed formats
   - All supported naming patterns documented
 
 - **ETL Integration:**
-  `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/etl_notebook.ipynb`
+  `src/ca_biositing/pipeline/docs/tutorials/etl_notebook.ipynb`
   - Shows how to use geospatial module in ETL workflows
   - Example with mixed format data
 

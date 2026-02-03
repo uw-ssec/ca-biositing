@@ -122,9 +122,9 @@ def my_etl_flow():
 
 ### Issue: Import errors with namespace package
 
-**Solution:** Ensure `ca_biositing/` does **NOT** have `__init__.py`. Ensure
-distribution roots are on `PYTHONPATH`. See root `AGENTS.md` for pathing
-details.
+**Solution:** Ensure `ca_biositing/` does **NOT** have `__init__.py`. Ensure you
+are running inside the Pixi environment (`pixi run ...`) where all namespace
+packages are installed. See root `AGENTS.md` for details.
 
 ### Issue: Prefect flows or tasks hanging indefinitely
 

@@ -95,7 +95,7 @@ print(f"Combined columns: {detected['combined']}")
 See the full reference notebook:
 
 - **Location:**
-  `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/geospatial_cleaning.ipynb`
+  `src/ca_biositing/pipeline/docs/tutorials/geospatial_cleaning.ipynb`
 - **Content:** Comprehensive examples with sample data, error handling, all
   naming patterns
 

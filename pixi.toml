@@ -179,7 +179,7 @@ migrate = { cmd = [
     "alembic",
     "upgrade",
     "head",
-], description = "Apply database migrations locally to the Docker database.", env = { PYTHONPATH = "./src/ca_biositing/datamodels", DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+], description = "Apply database migrations locally to the Docker database.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
 generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", description = "Generate SQLAlchemy models from LinkML schemas." }
 
@@ -242,11 +242,11 @@ frontend-dev = { cmd = "npm run dev", cwd = "frontend", description = "Run front
 frontend-build = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
 
 # Kernel Dependencies
-# This is to enable Jupyter Notebooks with IPython kernel
-[feature.kernel.dependencies]
-jupyter = ">=1.0.0,<2"
-ipykernel = ">=7.1.0,<8"
-ipython = ">=9.0.0,<10"
+# pixi-kernel provides a Jupyter kernel that runs code in a pixi environment,
+# so all installed packages (including our namespace packages) are available
+# without any PYTHONPATH manipulation.
+[feature.kernel.pypi-dependencies]
+pixi-kernel = "*"
 
 # Datamodels Dependencies
 [feature.datamodels.pypi-dependencies]
@@ -322,8 +322,6 @@ cwd = "deployment/cloud/gcp/infrastructure"
 [feature.gis.pypi-dependencies]
 geopandas = "*"
 matplotlib = "*"
-ipykernel = "*"
-jupyter = "*"
 
 [pypi-dependencies]
 linkml = ">=1.9.3, <2"

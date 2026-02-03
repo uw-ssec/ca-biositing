@@ -1,52 +1,35 @@
 # Notebook Setup and Namespace Package Integration
 
-This PR introduces a standardized workflow for using Jupyter Notebooks within
-the project's PEP 420 namespace package structure.
+> **Note (Phase 10/11 update):** The PYTHONPATH manipulation, `register_pixi_kernel.sh`,
+> `import_helper.py`, and `universal_import_helper.py` described in the original
+> version of this document have been removed. The current approach uses `pixi-kernel`
+> and editable PyPI installs. See `docs/notebook_setup.md` for the current guide.
 
-## The Challenge: PEP 420 Namespaces
+## Current Setup
 
-The repository is split into three independent distributions that share the
-`ca_biositing` namespace:
+The repository uses three namespace packages installed as editable PyPI
+dependencies via `pixi.toml`. No `PYTHONPATH` manipulation is needed.
 
-- `src/ca_biositing/datamodels`
-- `src/ca_biositing/pipeline`
-- `src/ca_biositing/webservice`
+### Jupyter Integration
 
-For Python to correctly resolve imports like
-`from ca_biositing.pipeline import ...`, the **distribution roots** must be
-explicitly added to the `PYTHONPATH`.
+- **pixi-kernel** (PyPI package) provides a Jupyter kernel that runs code
+  inside the pixi environment natively
+- All three namespace packages (`datamodels`, `pipeline`, `webservice`) are
+  available via standard imports: `from ca_biositing.pipeline import ...`
 
-## The Solution: Pixi-Managed Kernels
+### VS Code Integration
 
-We have implemented a robust solution to automate environment configuration for
-all developers:
+- `python.analysis.extraPaths` in `.vscode/settings.json` provides IntelliSense
+  support (IDE-only, does not affect runtime)
 
-1.  **Kernel Registration Script**: A new utility, `register_pixi_kernel.sh`,
-    automates the creation of a Jupyter kernel named **"ca-biositing (Pixi)"**.
-2.  **Automated PYTHONPATH**: The registered kernel automatically injects the
-    correct `PYTHONPATH` (comprising all three distribution roots) into the
-    Jupyter environment.
-3.  **VS Code Integration**: We have updated `.vscode/settings.json` to ensure
-    that the Python language server and integrated terminals also inherit these
-    paths, providing a seamless "Go to Definition" and linting experience.
-4.  **Import Helper**: For environments outside of VS Code, a
-    `ca_biositing.pipeline.utils.import_helper` is provided to dynamically
-    adjust `sys.path` at runtime.
+### Notebooks
 
-## Benefits
+Notebooks have been moved out of the shipped codebase into documentation directories:
 
-- **Clean Imports**: Developers can use standard `from ca_biositing...` imports
-  without complex path manipulation in every notebook.
-- **Reproducibility**: The environment is managed by Pixi, ensuring that all
-  developers (and CI) are using the exact same dependency versions and path
-  configurations.
-- **Onboarding**: New contributors can get a fully functional notebook
-  environment by running a single registration script.
+- **Tutorials:** `src/ca_biositing/pipeline/docs/tutorials/`
+- **Dev references:** `src/ca_biositing/pipeline/docs/dev-references/`
 
 ## Relevant Files
 
-- `docs/notebook_setup.md`: Comprehensive guide for developers.
-- `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/register_pixi_kernel.sh`:
-  The automation script.
-- `src/ca_biositing/pipeline/ca_biositing/pipeline/utils/import_helper.py`:
-  Runtime path adjustment utility.
+- `docs/notebook_setup.md`: Comprehensive setup guide for developers.
+- `pixi.toml`: Defines editable PyPI installs and `pixi-kernel` dependency.
