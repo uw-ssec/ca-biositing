@@ -7,11 +7,8 @@
     "${workspaceFolder}/src/ca_biositing/datamodels",
     "${workspaceFolder}/src/ca_biositing/webservice"
   ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default/bin/python",
+  "python-envs.defaultEnvManager": "ms-python.python:system",
   // Ensure the Jupyter extension starts notebooks with the workspace as root.
   "jupyter.notebookFileRoot": "${workspaceFolder}"
-  // Optional: use the Pixi environment's Python interpreter.
-  // If you have installed the Pixi environment, the interpreter path will be something like:
-  // "python.defaultInterpreterPath": ".pixi/envs/default/bin/python"
-  // Uncomment and adjust if needed.
-  // "python.defaultInterpreterPath": ".pixi/envs/default/bin/python"
 }
