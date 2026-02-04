@@ -35,6 +35,8 @@ classes:
       - pct2
       - pct3
       - pct4
+      - county
+      - tileset_id
 
 slots:
   record_id:
@@ -97,3 +99,11 @@ slots:
   pct4:
     range: float
     description: Percentage of quaternary crop.
+
+  county:
+    range: string
+    description: County name.
+
+  tileset_id:
+    range: integer
+    description: Reference to tileset tracking.

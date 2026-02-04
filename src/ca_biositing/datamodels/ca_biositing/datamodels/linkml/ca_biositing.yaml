@@ -33,6 +33,7 @@ imports:
   - modules/external_data/billion_ton_2023_record
   - modules/external_data/landiq_record
   - modules/external_data/polygon
+  - modules/external_data/landiq_resource_mapping
   - modules/external_data/resource_usda_commodity_map
   - modules/external_data/usda_census_record
   - modules/external_data/usda_commodity
@@ -57,6 +58,7 @@ imports:
   - modules/general_analysis/dataset
   - modules/general_analysis/dimension_type
   - modules/general_analysis/observation
+  - modules/general_analysis/tileset_tracking
   - modules/infrastructure/facility_record
   - modules/infrastructure/infrastructure_biodiesel_plants
   - modules/infrastructure/infrastructure_biosolids_facilities

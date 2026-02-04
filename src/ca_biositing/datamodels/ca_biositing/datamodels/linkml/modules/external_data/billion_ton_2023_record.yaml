@@ -30,6 +30,7 @@ classes:
       - energy_content_unit_id
       - product_density_dtpersqmi
       - land_source
+      - tileset_id
 
 slots:
   subclass_id:
@@ -87,3 +88,7 @@ slots:
   land_source:
     range: string
     description: Source of land data.
+
+  tileset_id:
+    range: integer
+    description: Reference to tileset tracking.

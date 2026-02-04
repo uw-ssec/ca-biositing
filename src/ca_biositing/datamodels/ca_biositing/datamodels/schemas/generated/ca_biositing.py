@@ -1165,7 +1165,7 @@ class BillionTon2023Record(BaseEntity):
 
 
     def __repr__(self):
-        return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},tileset_id={self.tileset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2030,6 +2030,37 @@ class Observation(BaseEntity):
 
 
 
+class TilesetTracking(BaseEntity):
+    """
+    Metadata for tracking generated tilesets and their export status.
+    """
+    __tablename__ = 'tileset_tracking'
+
+    name = Column(Text())
+    tileset_type = Column(Text())
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
+    last_cut = Column(DateTime())
+    data_size_mb = Column(Float())
+    id = Column(Integer(), primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"TilesetTracking(name={self.name},tileset_type={self.tileset_type},dataset_id={self.dataset_id},last_cut={self.last_cut},data_size_mb={self.data_size_mb},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class FacilityRecord(BaseEntity):
     """
     Facility record.
@@ -2053,7 +2084,7 @@ class FacilityRecord(BaseEntity):
 
 
     def __repr__(self):
-        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},tileset_id={self.tileset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

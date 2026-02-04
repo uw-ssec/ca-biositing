@@ -1,0 +1,38 @@
+id: https://w3id.org/ca_biositing/general_analysis/tileset_tracking
+name: tileset_tracking
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - dataset
+default_range: string
+
+classes:
+  TilesetTracking:
+    is_a: BaseEntity
+    description:
+      Metadata for tracking generated tilesets and their export status.
+    slots:
+      - name
+      - tileset_type
+      - dataset_id
+      - last_cut
+      - data_size_mb
+
+slots:
+  name:
+    range: string
+    description: Name of the tileset.
+  tileset_type:
+    range: string
+    description: Type of tileset (e.g., geom, point).
+  dataset_id:
+    range: Dataset
+    description: Reference to the source Dataset.
+  last_cut:
+    range: datetime
+    description: Timestamp of the last time the tileset was exported/processed.
+  data_size_mb:
+    range: float
+    description: Size of the tileset data in MB.

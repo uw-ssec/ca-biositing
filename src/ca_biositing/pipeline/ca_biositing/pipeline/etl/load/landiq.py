@@ -149,18 +149,7 @@ def load_landiq_record(df: pd.DataFrame):
     import logging
     import sys
 
-    print("DEBUG: Entering load_landiq_record task (optimized)")
-
-    # Ensure we have a logger that works even if Prefect's logger fails
-    try:
-        logger = get_run_logger()
-    except Exception:
-        logger = logging.getLogger("prefect.task_runs")
-        if not logger.handlers:
-            handler = logging.StreamHandler(sys.stdout)
-            logger.addHandler(handler)
-            logger.setLevel(logging.INFO)
-
+    logger = get_run_logger()
     if df is None or df.empty:
         logger.info("No Land IQ record data to load.")
         return
@@ -168,66 +157,40 @@ def load_landiq_record(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} Land IQ records...")
 
     try:
-        print("DEBUG: Importing models and utils...")
-        try:
-            from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord, Dataset, PrimaryAgProduct
-            from ca_biositing.pipeline.utils.lookup_utils import fetch_lookup_ids
-            print("DEBUG: Imports successful")
-        except Exception as import_err:
-            print(f"DEBUG: IMPORT ERROR: {import_err}")
-            import traceback
-            print(traceback.format_exc())
-            raise
+        from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord, Dataset, PrimaryAgProduct, Polygon
+        from ca_biositing.pipeline.utils.lookup_utils import fetch_lookup_ids
 
         now = datetime.now(timezone.utc)
-        print("DEBUG: Getting engine...")
         engine = get_local_engine()
 
-        print("DEBUG: Attempting to connect to engine...")
         with engine.connect() as conn:
-            print("DEBUG: Connected to database")
             with Session(bind=conn, autoflush=False) as session:
-                print("DEBUG: Session created")
-                # 1. Fetch IDs for Crops and Datasets first (needed for Polygon dataset_id)
-                # Fetch Crop IDs (main, secondary, tertiary, quaternary)
+                # 1. Fetch IDs for Crops and Datasets
                 crop_cols = ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']
                 crop_names = pd.concat([
                     df[col] for col in crop_cols if col in df.columns
                 ]).unique().tolist()
                 crop_map = fetch_lookup_ids(session, PrimaryAgProduct, crop_names)
 
-                # Fetch Dataset IDs
                 dataset_names = df['dataset_id'].unique().tolist() if 'dataset_id' in df.columns else []
                 dataset_map = fetch_lookup_ids(session, Dataset, dataset_names)
-                print(f"DEBUG: Lookups fetched. Crops: {len(crop_map)}, Datasets: {len(dataset_map)}")
 
-                # 2. Bulk Insert Polygons (Ignore duplicates)
+                # 2. Bulk Insert Polygons
                 geoms = df['geometry'].apply(lambda x: x.wkt if hasattr(x, 'wkt') else x).tolist()
                 etl_run_id = df['etl_run_id'].iloc[0] if 'etl_run_id' in df.columns else None
                 lineage_group_id = df['lineage_group_id'].iloc[0] if 'lineage_group_id' in df.columns else None
-
-                # Get the dataset_id for polygons (assuming one dataset per load)
-                poly_dataset_id = None
-                if dataset_names and dataset_map:
-                    poly_dataset_id = dataset_map.get(dataset_names[0])
+                poly_dataset_id = dataset_map.get(dataset_names[0]) if dataset_names else None
 
                 unique_geoms_list = list(set(geoms))
-                logger.info(f"Bulk inserting {len(unique_geoms_list)} unique polygons...")
                 bulk_insert_polygons_ignore(session, unique_geoms_list, etl_run_id, lineage_group_id, poly_dataset_id)
-                print("DEBUG: Polygons inserted/ignored")
 
                 # 3. Fetch IDs for Polygons
-                # We need to fetch polygons that match BOTH geom AND dataset_id
-                if not geoms:
-                    poly_map = {}
-                else:
-                    from ca_biositing.datamodels.schemas.generated.ca_biositing import Polygon
+                poly_map = {}
+                if geoms:
                     unique_geoms = list(set(g.strip() if hasattr(g, 'strip') else g for g in geoms if g))
-                    poly_map = {}
                     chunk_size = 1000
                     for i in range(0, len(unique_geoms), chunk_size):
                         chunk = unique_geoms[i:i + chunk_size]
-                        # Use direct geom match with dataset_id filter
                         stmt = select(Polygon.id, Polygon.geom).where(
                             Polygon.geom.in_(chunk),
                             Polygon.dataset_id == poly_dataset_id
@@ -236,53 +199,30 @@ def load_landiq_record(df: pd.DataFrame):
                         for row in result:
                             poly_map[row.geom.strip() if hasattr(row.geom, 'strip') else row.geom] = row.id
 
-                if not poly_map:
-                    print(f"DEBUG: poly_map is empty for dataset_id {poly_dataset_id}!")
-                    from ca_biositing.datamodels.schemas.generated.ca_biositing import Polygon
-                    count = session.query(Polygon).filter(Polygon.dataset_id == poly_dataset_id).count()
-                    print(f"DEBUG: Total polygons in DB for this dataset: {count}")
-
-                # 4. Prepare LandiqRecord data
+                # 4. Prepare LandiqRecord data (Vectorized)
                 table_columns = {c.name for c in LandiqRecord.__table__.columns if c.name != 'id'}
+                prep_df = df.copy()
+                prep_df['geom_wkt'] = prep_df['geometry'].apply(lambda x: x.wkt if hasattr(x, 'wkt') else str(x)).str.strip()
+                prep_df['polygon_id'] = prep_df['geom_wkt'].map(poly_map)
 
-                records_to_upsert = []
-                for idx, row in df.iterrows():
-                    geom_wkt = row['geometry'].wkt if hasattr(row['geometry'], 'wkt') else row['geometry']
-                    if hasattr(geom_wkt, 'strip'):
-                        geom_wkt = geom_wkt.strip()
+                for col in crop_cols:
+                    if col in prep_df.columns:
+                        prep_df[col] = prep_df[col].map(crop_map)
 
-                    record = row.replace({np.nan: None}).to_dict()
-                    record['polygon_id'] = poly_map.get(geom_wkt)
-                    if record['polygon_id'] is None:
-                         print(f"DEBUG: WARNING - No polygon ID found for geom starting with: {geom_wkt[:50]}...")
+                if 'dataset_id' in prep_df.columns:
+                    prep_df['dataset_id'] = prep_df['dataset_id'].map(dataset_map)
 
-                    # Map crop names to IDs
-                    for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
-                        if col in row and row[col] is not None:
-                            record[col] = crop_map.get(row[col])
+                prep_df['updated_at'] = now
+                prep_df['created_at'] = now
 
-                    # Map dataset name to ID
-                    if 'dataset_id' in row and row['dataset_id'] is not None:
-                        record['dataset_id'] = dataset_map.get(row['dataset_id'])
+                available_cols = [c for c in prep_df.columns if c in table_columns]
+                records_to_upsert = prep_df[available_cols].replace({np.nan: None}).to_dict('records')
 
-                    record['updated_at'] = now
-                    if record.get('created_at') is None:
-                        record['created_at'] = now
-
-                    # Filter to valid columns
-                    clean_record = {k: v for k, v in record.items() if k in table_columns}
-                    records_to_upsert.append(clean_record)
-
-                # 5. Bulk Upsert LandiqRecords
-                logger.info(f"Bulk upserting {len(records_to_upsert)} LandiqRecords...")
-                print(f"DEBUG: Upserting {len(records_to_upsert)} records")
+                # 5. Bulk Upsert
                 upsert_count = bulk_upsert_landiq_records(session, records_to_upsert)
-                print(f"DEBUG: Upsert complete. Count: {upsert_count}")
-
                 session.commit()
-                print("DEBUG: Session committed")
 
-        logger.info(f"Successfully loaded {upsert_count} Land IQ records (upserted/updated).")
+        logger.info(f"Successfully loaded {upsert_count} Land IQ records.")
     except Exception as e:
         import traceback
         error_msg = f"Failed to load Land IQ records: {str(e)}\n{traceback.format_exc()}"

@@ -8,7 +8,7 @@ AVAILABLE_FLOWS = {
     #"primary_ag_product": "ca_biositing.pipeline.flows.primary_ag_product.primary_ag_product_flow",
     #"analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
     "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
-    #"landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
+    "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
     "resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
     #"field_sample": "ca_biositing.pipeline.flows.field_sample_etl.field_sample_etl_flow",
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
