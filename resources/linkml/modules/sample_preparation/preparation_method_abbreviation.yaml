@@ -1,0 +1,13 @@
+id: https://w3id.org/ca_biositing/sample_preparation/preparation_method_abbreviation
+name: preparation_method_abbreviation
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+default_range: string
+
+classes:
+  PreparationMethodAbbreviation:
+    is_a: LookupBase
+    description: Abbreviation for preparation method.

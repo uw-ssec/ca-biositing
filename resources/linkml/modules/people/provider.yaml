@@ -1,0 +1,24 @@
+id: https://w3id.org/ca_biositing/people/provider
+name: provider
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+default_range: string
+
+classes:
+  Provider:
+    is_a: BaseEntity
+    description: Provider information.
+    slots:
+      - codename
+    slot_usage:
+      id:
+        identifier: true
+        range: integer
+
+slots:
+  codename:
+    range: string
+    description: Codename for the provider.

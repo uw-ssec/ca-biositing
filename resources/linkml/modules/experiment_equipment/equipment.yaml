@@ -1,0 +1,21 @@
+id: https://w3id.org/ca_biositing/experiment_equipment/equipment
+name: equipment
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/lookup_base
+  - ../places/location_address
+default_range: string
+
+classes:
+  Equipment:
+    is_a: LookupBase
+    description: Equipment used in experiments.
+    slots:
+      - equipment_location_id
+
+slots:
+  equipment_location_id:
+    range: LocationAddress
+    description: Reference to LocationAddress.

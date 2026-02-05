@@ -2,10 +2,10 @@
 
 
 def test_primary_product_flow_import():
-    """Test that primary_product_flow can be imported."""
-    from ca_biositing.pipeline.flows.primary_product import primary_product_flow
-    assert primary_product_flow is not None
-    assert callable(primary_product_flow)
+    """Test that primary_ag_product_flow can be imported."""
+    from ca_biositing.pipeline.flows.primary_ag_product import primary_ag_product_flow
+    assert primary_ag_product_flow is not None
+    assert callable(primary_ag_product_flow)
 
 
 def test_analysis_type_flow_import():

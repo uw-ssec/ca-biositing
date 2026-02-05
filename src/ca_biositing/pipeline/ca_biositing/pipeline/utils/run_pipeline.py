@@ -4,9 +4,6 @@ import importlib
 from typing import Callable, Optional, Dict, List
 import pandas as pd
 
-# Add the project's 'src' directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-
 def run_etl_pipeline(
     extract_funcs: Dict[str, Callable[[], Optional[pd.DataFrame]]],
     transform_func: Callable[[Dict[str, pd.DataFrame]], Optional[pd.DataFrame]],

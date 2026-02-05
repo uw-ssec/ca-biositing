@@ -5,17 +5,17 @@ import pandas as pd
 
 
 def test_extract_basic_sample_info_import():
-    """Test that extract_basic_sample_info can be imported."""
-    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
-    assert extract_basic_sample_info is not None
-    assert callable(extract_basic_sample_info.fn)  # Prefect task has .fn attribute
+    """Test that extract can be imported."""
+    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract
+    assert extract is not None
+    assert callable(extract.fn)  # Prefect task has .fn attribute
 
 
 @patch("ca_biositing.pipeline.etl.extract.basic_sample_info.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.basic_sample_info.gsheet_to_df")
 def test_extract_basic_sample_info_success(mock_gsheet_to_df, mock_logger):
     """Test successful extraction of basic sample info."""
-    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
+    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract
 
     # Mock the logger to avoid Prefect context issues
     mock_logger.return_value.info = lambda msg: None
@@ -29,7 +29,7 @@ def test_extract_basic_sample_info_success(mock_gsheet_to_df, mock_logger):
     mock_gsheet_to_df.return_value = test_data
 
     # Call the function directly (not as a Prefect task)
-    result = extract_basic_sample_info.fn()
+    result = extract.fn()
 
     # Verify results
     assert result is not None
@@ -42,7 +42,7 @@ def test_extract_basic_sample_info_success(mock_gsheet_to_df, mock_logger):
 @patch("ca_biositing.pipeline.etl.extract.basic_sample_info.gsheet_to_df")
 def test_extract_basic_sample_info_failure(mock_gsheet_to_df, mock_logger):
     """Test extraction failure handling."""
-    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract_basic_sample_info
+    from ca_biositing.pipeline.etl.extract.basic_sample_info import extract
 
     # Mock the logger to avoid Prefect context issues
     mock_logger.return_value.info = lambda msg: None
@@ -52,7 +52,7 @@ def test_extract_basic_sample_info_failure(mock_gsheet_to_df, mock_logger):
     mock_gsheet_to_df.return_value = None
 
     # Call the function directly (not as a Prefect task)
-    result = extract_basic_sample_info.fn()
+    result = extract.fn()
 
     # Verify it returns None on failure
     assert result is None

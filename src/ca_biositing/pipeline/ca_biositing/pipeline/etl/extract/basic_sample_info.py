@@ -1,10 +1,34 @@
+"""
+ETL Extract Template
+---
+
+This module provides a template for extracting data from a Google Sheet.
+
+To use this template:
+1.  Copy this file to the appropriate subdirectory in `src/etl/extract/`.
+    For example: `src/etl/extract/new_module/new_data.py`
+2.  Update the configuration constants (`GSHEET_NAME`, `WORKSHEET_NAME`).
+3.  Ensure the `CREDENTIALS_PATH` is correct.
+"""
+
 from typing import Optional
+import os
 import pandas as pd
 from prefect import task, get_run_logger
-from ca_biositing.pipeline.utils.gsheet_to_pandas import gsheet_to_df
+from ...utils.gsheet_to_pandas import gsheet_to_df
+
+# --- CONFIGURATION ---
+# TODO: Replace with the name of the Google Sheet file.
+GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
+
+# TODO: Replace with the exact name of the worksheet/tab to extract data from.
+WORKSHEET_NAME = "01-BasicSampleInfo"
+
+# The path to the credentials file. This is typically kept in the project root.
+CREDENTIALS_PATH = "credentials.json"
 
 @task
-def extract_basic_sample_info() -> Optional[pd.DataFrame]:
+def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     """
     Extracts the raw data from the '01-BasicSampleInfo' worksheet in the Google Sheet.
 
@@ -21,7 +45,13 @@ def extract_basic_sample_info() -> Optional[pd.DataFrame]:
     WORKSHEET_NAME = "01-BasicSampleInfo"
     CREDENTIALS_PATH = "credentials.json"
 
-    raw_df = gsheet_to_df(GSHEET_NAME, WORKSHEET_NAME, CREDENTIALS_PATH)
+    # If project_root is provided (e.g., from a notebook), construct an absolute path
+    # Otherwise, use the default relative path (for the main pipeline)
+    credentials_path = CREDENTIALS_PATH
+    if project_root:
+        credentials_path = os.path.join(project_root, CREDENTIALS_PATH)
+
+    raw_df = gsheet_to_df(GSHEET_NAME, WORKSHEET_NAME, credentials_path)
 
     if raw_df is None:
         logger.error("Failed to extract data. Aborting.")

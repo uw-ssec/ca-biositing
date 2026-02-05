@@ -1,0 +1,103 @@
+id: https://w3id.org/ca_biositing/external_data/landiq_record
+name: landiq_record
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../general_analysis/dataset
+  - polygon
+  - ../resource_information/primary_ag_product
+default_range: string
+
+classes:
+  LandiqRecord:
+    is_a: BaseEntity
+    description: LandIQ record.
+    unique_keys:
+      unique_record_id:
+        unique_key_slots:
+          - record_id
+    slots:
+      - record_id
+      - dataset_id
+      - polygon_id
+      - main_crop
+      - secondary_crop
+      - tertiary_crop
+      - quaternary_crop
+      - confidence
+      - irrigated
+      - acres
+      - county
+      - version
+      - note
+      - pct1
+      - pct2
+      - pct3
+      - pct4
+
+slots:
+  record_id:
+    range: string
+    description: Unique identifier for the record.
+
+  dataset_id:
+    range: Dataset
+    description: Reference to Dataset.
+
+  polygon_id:
+    range: Polygon
+    description: Reference to Polygon.
+
+  main_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  secondary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  tertiary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  quaternary_crop:
+    range: PrimaryAgProduct
+    description: Reference to PrimaryAgProduct.
+
+  confidence:
+    range: integer
+    description: Confidence level.
+
+  irrigated:
+    range: boolean
+    description: Whether the land is irrigated.
+
+  acres:
+    range: float
+    description: Number of acres.
+
+  county:
+    range: string
+    description: County name.
+
+  version:
+    range: string
+    description: Version of the data source.
+
+  pct1:
+    range: float
+    description: Percentage of main crop.
+
+  pct2:
+    range: float
+    description: Percentage of secondary crop.
+
+  pct3:
+    range: float
+    description: Percentage of tertiary crop.
+
+  pct4:
+    range: float
+    description: Percentage of quaternary crop.

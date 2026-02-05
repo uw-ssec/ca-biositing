@@ -1,86 +1,102 @@
-"""
-ETL Load Template
----
-
-This module provides a template for loading transformed data into the database.
-
-To use this template:
-1.  Copy this file to the appropriate subdirectory in `src/etl/load/`.
-    For example: `src/etl/load/new_module/new_data.py`
-2.  Import the correct SQLModel class from `src/models/`.
-3.  Update the placeholder variables and logic in the `load` function.
-"""
-
 import pandas as pd
+import numpy as np
+from datetime import datetime, timezone
 from prefect import task, get_run_logger
-from sqlmodel import Session, select
-from pipeline.database import engine
+from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 
-# --- MODEL IMPORT ---
-# TODO: Import the specific SQLModel class that corresponds to the data being loaded.
-# from pipeline.models.your_model import YourModelClass
-from pipeline.models.biomass import PrimaryProduct # Placeholder, replace with your model
+def get_local_engine():
+    """
+    Creates a SQLAlchemy engine based on the environment (Docker vs Local).
+    """
+    import os
+    # Hardcode the URL for the container environment to bypass any settings.py hangs
+    if os.path.exists('/.dockerenv'):
+        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
+    else:
+        from ca_biositing.datamodels.config import settings
+        db_url = settings.database_url
+        if "db:5432" in db_url:
+            db_url = db_url.replace("db:5432", "localhost:5432")
 
+    return create_engine(
+        db_url,
+        pool_size=5,
+        max_overflow=0,
+        pool_pre_ping=True,
+        connect_args={"connect_timeout": 10}
+    )
 
 @task
-def load(df: pd.DataFrame):
+def load_data_template(df: pd.DataFrame):
     """
-    Loads the transformed data into the corresponding database table.
+    Upserts records into the database.
 
-    This function serves as the 'Load' step in an ETL pipeline.
-
-    Args:
-        df (pd.DataFrame): The transformed data ready for database insertion.
+    Template Instructions:
+    1. Replace 'YourModel' with the actual SQLAlchemy model class.
+    2. Update 'index_elements' with the unique constraint column (e.g., 'record_id').
+    3. Adjust 'update_dict' exclusions as needed.
     """
-    logger = get_run_logger()
+    try:
+        logger = get_run_logger()
+    except Exception:
+        import logging
+        logger = logging.getLogger(__name__)
 
-    # --- CONFIGURATION ---
-    # TODO: Replace `YourModelClass` with the actual name of your imported model.
-    YourModelClass = PrimaryProduct # Placeholder, replace with your model
-
-    # TODO: Replace `unique_db_column` with the actual column name in your DB model
-    # that should be used for checking for existing records.
-    unique_db_column = "primary_product_name" # Placeholder
-
-    # TODO: Replace `df_column_name` with the corresponding column name in the DataFrame.
-    df_column_name = "primary_product_name" # Placeholder
-
-    # --- 1. Input Validation ---
     if df is None or df.empty:
-        logger.info("No data to load. Skipping database insertion.")
+        logger.info("No data to load.")
         return
 
-    if df_column_name not in df.columns:
-        logger.error(f"Column '{df_column_name}' not found in the DataFrame. Aborting load.")
-        return
+    logger.info(f"Upserting {len(df)} records...")
 
-    logger.info(f"Attempting to load {len(df)} records into the database...")
+    try:
+        # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
+        # from ca_biositing.datamodels.schemas.generated.ca_biositing import YourModel
+        from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation as YourModel # Placeholder
 
-    # --- 2. Database Loading ---
-    with Session(engine) as session:
-        # Get existing records from the database to prevent duplicates
-        statement = select(getattr(YourModelClass, unique_db_column))
-        existing_records = session.exec(statement).all()
-        existing_ids = set(existing_records)
+        now = datetime.now(timezone.utc)
 
-        records_to_add = []
-        for index, row in df.iterrows():
-            record_id = row[df_column_name]
-            if record_id not in existing_ids:
-                # --- DATA MAPPING ---
-                # TODO: Create an instance of your model, mapping DataFrame columns
-                # to the model's attributes.
-                new_record = YourModelClass(
-                    # example_attribute=row['dataframe_column_name'],
-                    primary_product_name=row['primary_product_name'] # Placeholder
-                )
-                records_to_add.append(new_record)
-                # Add the new ID to our set to handle duplicates within the DataFrame
-                existing_ids.add(record_id)
+        # Filter columns to match the table schema
+        table_columns = {c.name for c in YourModel.__table__.columns}
+        records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        if records_to_add:
-            session.add_all(records_to_add)
-            session.commit()
-            logger.info(f"Successfully committed {len(records_to_add)} new records to the database.")
-        else:
-            logger.info("No new records to add. All records already exist in the database.")
+        engine = get_local_engine()
+        with engine.connect() as conn:
+            with Session(bind=conn) as session:
+                for i, record in enumerate(records):
+                    # Optional: Add progress logging for larger datasets (from landiq.py)
+                    if i > 0 and i % 500 == 0:
+                        logger.info(f"Processed {i} records...")
+
+                    # Clean record to only include valid table columns
+                    clean_record = {k: v for k, v in record.items() if k in table_columns}
+
+                    # Handle timestamps
+                    clean_record['updated_at'] = now
+                    if clean_record.get('created_at') is None:
+                        clean_record['created_at'] = now
+
+                    # Build Upsert Statement (PostgreSQL specific)
+                    stmt = insert(YourModel).values(clean_record)
+
+                    # Define columns to update on conflict
+                    # Exclude primary keys and creation timestamps
+                    update_dict = {
+                        c.name: stmt.excluded[c.name]
+                        for c in YourModel.__table__.columns
+                        if c.name not in ['id', 'created_at', 'record_id']
+                    }
+
+                    upsert_stmt = stmt.on_conflict_do_update(
+                        index_elements=['record_id'], # Replace with your unique constraint column
+                        set_=update_dict
+                    )
+
+                    session.execute(upsert_stmt)
+
+                session.commit()
+        logger.info("Successfully upserted records.")
+    except Exception as e:
+        logger.error(f"Failed to load records: {e}")
+        raise

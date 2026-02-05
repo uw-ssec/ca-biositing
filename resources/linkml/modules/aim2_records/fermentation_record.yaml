@@ -1,0 +1,58 @@
+id: https://w3id.org/ca_biositing/aim2_records/fermentation_record
+name: fermentation_record
+title: Fermentation Record
+description: Fermentation record.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - aim2_record_base
+  - ../methods_parameters_units/method
+  - ../experiment_equipment/equipment
+
+classes:
+  FermentationRecord:
+    is_a: Aim2RecordBase
+    description: Fermentation record.
+    slots:
+      - strain_id
+      - pretreatment_method_id
+      - eh_method_id
+      - well_position
+      - temperature
+      - agitation_rpm
+      - vessel_id
+      - analyte_detection_equipment_id
+
+slots:
+  strain_id:
+    range: integer
+    description: Reference to Strain.
+  pretreatment_method_id:
+    range: integer
+    description: Reference to Method (pretreatment).
+  eh_method_id:
+    range: integer
+    description: Reference to Method (enzymatic hydrolysis).
+  well_position:
+    range: string
+    description: Position in the well.
+  temperature:
+    range: decimal
+    description: Temperature.
+  agitation_rpm:
+    range: decimal
+    description: Agitation in RPM.
+  vessel_id:
+    range: integer
+    description: Reference to Equipment (vessel).
+  analyte_detection_equipment_id:
+    range: integer
+    description: Reference to Equipment (detection).

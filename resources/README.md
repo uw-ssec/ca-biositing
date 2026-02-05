@@ -14,6 +14,11 @@ resources/
 │   ├── create_prefect_db.sql # Database initialization script
 │   ├── docker-compose.yml   # Service orchestration configuration
 │   └── pipeline.dockerfile  # Multi-stage build for production
+├── linkml/          # LinkML schema source of truth
+│   ├── ca_biositing.yaml    # Main schema entrypoint
+│   ├── modules/             # Domain-organized YAML modules
+│   ├── scripts/             # Generation and orchestration scripts
+│   └── test_schemas/        # Test schemas for validation
 └── prefect/         # Prefect workflow orchestration files
     ├── deploy.py            # Deployment automation script
     ├── prefect.yaml         # Prefect deployment configuration
@@ -34,6 +39,24 @@ running the ETL pipeline:
 - **create_prefect_db.sql**: Initializes the Prefect metadata database
 - **.env.example**: Template for required environment variables
 - **.env**: Local environment configuration (not tracked in git)
+
+### LinkML Resources (`linkml/`)
+
+The `linkml/` directory contains the **source of truth** for the database
+schema:
+
+- **ca_biositing.yaml**: Main schema entrypoint that imports all modules
+- **modules/**: Domain-organized YAML files defining database entities
+- **scripts/**: Generation scripts that transform YAML into SQLAlchemy models
+  - `generate_sqla.py`: Generates SQLAlchemy ORM classes
+  - `orchestrate_schema_update.py`: Full workflow (generate, rebuild, migrate)
+  - `generate_test_sqla.py`: Test schema generation
+- **test_schemas/**: Test YAML schemas for validation
+
+All schema changes must be made to the YAML files in `modules/`. Generated
+SQLAlchemy code lives in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/` and
+should never be edited manually.
 
 ### Prefect Resources (`prefect/`)
 

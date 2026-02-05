@@ -6,14 +6,14 @@ requires-pixi = ">=0.55,<1.0"
 authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
-platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64"]
+platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
 version = "0.1.0"
 
 [environments]
-default = ["datamodels", "pipeline", "webservice", "kernel"]
+default = ["datamodels", "pipeline", "webservice", "kernel", "gis"]
 py312 = ["py312", "datamodels", "pipeline", "webservice"]
 py313 = ["py313", "datamodels", "pipeline", "webservice"]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+gis = { features = ["qgis", "raster", "vector", "kernel"], solve-group = "default" }
 etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
 webservice = { features = [
     "datamodels",
@@ -24,6 +24,7 @@ frontend = { features = [
 ], no-default-feature = true, solve-group = "default" }
 docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
 deployment = { features = ["cloud"], solve-group = "default" }
+
 [dependencies]
 python = "~=3.12"
 pre-commit = ">=4.2.0,<5"
@@ -34,6 +35,11 @@ docker-compose = ">=2.39.2,<3"
 docker-cli = ">=28.3.1,<29"
 testcontainers = ">=4.13.2,<5"
 python-dotenv = ">=1.2.1,<2"
+asyncpg = ">=0.29.0,<0.30"
+pydrive2 = ">=1.21.3,<2"
+geopandas = ">=1.1.2,<2"
+pyogrio = ">=0.10.0"
+proj = "*"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -59,9 +65,7 @@ start-services = { cmd = [
     "resources/docker/docker-compose.yml",
     "up",
     "-d",
-], description = "Start required services using Docker Compose.", depends-on = [
-    "initial-migration",
-] }
+], description = "Start required services using Docker Compose." }
 teardown-services = { cmd = [
     "docker-compose",
     "-f",
@@ -144,6 +148,7 @@ access-db = { cmd = [
     "biocirv_user",
     "-d",
     "biocirv_db",
+    "-c",
 ], description = "Access the application database with psql." }
 access-prefect-db = { cmd = [
     "docker-compose",
@@ -170,6 +175,16 @@ restart-prefect-worker = { cmd = [
     "restart",
     "prefect-worker",
 ], description = "Restart the Prefect worker service." }
+
+migrate = { cmd = [
+    "alembic",
+    "upgrade",
+    "head",
+], description = "Apply database migrations locally to the Docker database.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+
+generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", description = "Generate SQLAlchemy models from LinkML schemas." }
+
+update-schema = { cmd = "python resources/linkml/scripts/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
@@ -205,6 +220,8 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+proj = "*"
+geopandas = "*"
 
 # Python Dependencies for specific versions
 
@@ -226,18 +243,21 @@ frontend-dev = { cmd = "npm run dev", cwd = "frontend", description = "Run front
 frontend-build = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
 
 # Kernel Dependencies
-# This is to enable Jupyter Notebooks with IPython kernel
-[feature.kernel.dependencies]
-ipykernel = ">=7.1.0,<8"
-ipython = ">=9.0.0,<10"
+# pixi-kernel provides a Jupyter kernel that runs code in a pixi environment,
+# so all installed packages (including our namespace packages) are available
+# without any PYTHONPATH manipulation.
+[feature.kernel.pypi-dependencies]
+pixi-kernel = "*"
 
 # Datamodels Dependencies
 [feature.datamodels.pypi-dependencies]
-ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels" }
+ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels", editable = true }
 
 # Pipeline Dependencies
 [feature.pipeline.pypi-dependencies]
-ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline" }
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
+# Alembic is required for generating migrations inside the worker container
+alembic = ">=1.13.2,<2"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -245,14 +265,14 @@ args = [
     { "arg" = "env_file", "default" = "../docker/.env" },
 ]
 cwd = "resources/prefect"
-cmd = "./deploy.py --env-file {{ env_file }} {{ deployment_name }}"
+cmd = ["python", "deploy.py", "--env-file", "{{ env_file }}", "{{ deployment_name }}"]
 description = "Deploy the ETL pipeline to Prefect."
 depends-on = [{ task = "start-services" }]
 
 
 # Webservice Dependencies
 [feature.webservice.pypi-dependencies]
-ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
+ca-biositing-webservice = { path = "./src/ca_biositing/webservice", editable = true }
 fastapi = ">=0.111.0,<0.115.0"
 pydantic = ">=2.5,<3.0"
 
@@ -299,3 +319,11 @@ cwd = "deployment/cloud/gcp/infrastructure"
 [feature.cloud.tasks.cloud-destroy]
 cmd = "tofu destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+
+[feature.gis.pypi-dependencies]
+geopandas = "*"
+matplotlib = "*"
+
+[pypi-dependencies]
+linkml = ">=1.9.3, <2"
+sqlalchemy = ">=2.0.44, <3"

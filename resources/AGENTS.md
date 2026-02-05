@@ -39,6 +39,11 @@ resources/
 │   ├── create_prefect_db.sql        # Prefect DB initialization
 │   ├── docker-compose.yml           # Service orchestration
 │   └── pipeline.dockerfile          # Multi-stage production Dockerfile
+├── linkml/                          # LinkML schema source of truth
+│   ├── ca_biositing.yaml            # Main schema entrypoint
+│   ├── modules/                     # Domain-organized YAML modules
+│   ├── scripts/                     # Generation and orchestration scripts
+│   └── test_schemas/                # Test schemas for script validation
 └── prefect/                         # Prefect configuration
     ├── deploy.py                    # Deployment automation script
     ├── prefect.yaml                 # Flow deployment definitions
@@ -85,6 +90,148 @@ resources/
   - `DATABASE_URL`: Application database connection string
   - `PREFECT_API_DATABASE_CONNECTION_URL`: Prefect metadata DB
   - `PREFECT_API_URL`: Prefect server endpoint
+
+### Docker Workflow Commands
+
+**ALWAYS use Pixi tasks from the project root directory:**
+
+```bash
+# Start all services
+pixi run start-services
+
+# Stop services
+pixi run teardown-services
+
+# Stop and remove volumes (CAUTION: deletes all data)
+pixi run teardown-services-volumes
+
+# View logs
+pixi run service-logs
+
+# Rebuild after code/dependency changes
+pixi run rebuild-services
+
+# Restart all services
+pixi run restart-services
+
+# Check service status
+pixi run service-status
+
+# Execute command in Prefect worker container
+pixi run exec-prefect-worker <command>
+
+# Execute command in database container
+pixi run exec-db <command>
+```
+
+### Common Docker Operations
+
+**Running Alembic Migrations:**
+
+```bash
+# Apply migrations (runs automatically via setup-db service)
+pixi run exec-prefect-worker alembic upgrade head
+
+# Generate new migration (from outside container)
+pixi run exec-prefect-worker alembic revision --autogenerate -m "description"
+```
+
+**Accessing Database:**
+
+```bash
+# PostgreSQL application database
+pixi run access-db
+
+# Prefect metadata database
+pixi run access-prefect-db
+```
+
+**Inspecting Services:**
+
+```bash
+# Check service status
+pixi run service-status
+
+# Check database health
+pixi run check-db-health
+
+# Check container health with docker inspect
+docker inspect BioCirV_ETL_db | grep -A 5 Health
+```
+
+## LinkML Resources (`resources/linkml/`)
+
+### Directory Purpose
+
+This directory contains the **source of truth** for the database schema:
+
+- **LinkML YAML schemas**: Define all database entities, relationships, and
+  constraints
+- **Generation scripts**: Transform YAML into SQLAlchemy ORM classes
+
+### Key Files
+
+**ca_biositing.yaml**
+
+- Main schema entrypoint
+- Imports all module definitions
+- Defines prefixes and default settings
+
+**modules/**
+
+- Organized subdirectories by domain (core, aim1_records, external_data, etc.)
+- Each YAML file defines one or more classes
+- Subdirectories:
+  - `aim1_records/`: AIM 1 related record types
+  - `aim2_records/`: AIM 2 related record types
+  - `core/`: Core domain entities (people, places, datasets)
+  - `data_sources_metadata/`: Data source and metadata definitions
+  - `experiment_equipment/`: Laboratory equipment specifications
+  - `external_data/`: External geospatial data (LandIQ, etc.)
+  - `field_sampling/`: Field sample collection records
+  - `general_analysis/`: General analysis workflows
+  - `infrastructure/`: ETL and system infrastructure
+  - `lineage/`: Data lineage and provenance
+  - `methods_parameters_units/`: Methods, parameters, and units
+  - `people/`: Person and organization entities
+  - `places/`: Location and spatial entities
+  - `resource_information/`: Resource metadata
+  - `sample_preparation/`: Sample preparation protocols
+
+**scripts/**
+
+- `generate_sqla.py`: Transforms LinkML to SQLAlchemy models
+- `generate_test_sqla.py`: Generates test schemas for validation
+- `orchestrate_schema_update.py`: Full workflow (generate → rebuild → migrate)
+
+**test_schemas/**
+
+- Test YAML schemas for script validation
+- Used during development to verify generation logic
+
+### Usage
+
+```bash
+# Generate models only (does not touch database or Docker)
+pixi run generate-models
+
+# Full schema update workflow (generate, rebuild, create migration)
+pixi run update-schema -m "Your migration message"
+
+# After update, apply the migration
+pixi run migrate
+```
+
+### Workflow Notes
+
+1. **Source of Truth**: All schema changes MUST be made in the YAML files under
+   `modules/`.
+2. **No Manual Edits**: Never edit the generated SQLAlchemy files in
+   `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`.
+3. **Local Generation**: The generation scripts run locally (not in containers)
+   to avoid import hangs on macOS.
+4. **Migration Creation**: Migrations are also created locally to avoid Docker
+   filesystem performance issues on macOS.
 
 ## Prefect Resources (`resources/prefect/`)
 

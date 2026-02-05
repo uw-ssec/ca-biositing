@@ -3,55 +3,38 @@
 This document outlines the steps to start, run, and monitor the ETL pipeline
 using Prefect and Docker.
 
-## Prerequisites
-
-- Docker and Docker Compose must be installed and running on your system.
-
 ## 1. Start the Prefect Environment
 
-All services (Postgres database, Prefect server, Prefect worker, and the
-application environment) are managed via Docker Compose.
+All services (Postgres database, Prefect server, and Prefect worker) are managed
+via Docker Compose through Pixi tasks.
 
-To start all services in detached mode, navigate to the project root directory
-and run:
+To start all services in detached mode:
 
 ```bash
-docker-compose up -d
+pixi run start-services
 ```
 
 This command will:
 
 - Build the Docker images if they don't exist.
-- Start the containers for the database, the Prefect server, the Prefect worker,
-  and the main application.
+- Start the containers for the database, the Prefect server, and the Prefect
+  worker.
 - The Prefect worker will automatically connect to the server and its work pool.
 
-You can check the status of the containers with `docker-compose ps`.
+You can check the status of the containers with `pixi run service-status`.
 
 ## 2. Deploy the ETL Flow(s)
 
 Before you can run the pipeline, you need to deploy your flow(s) to the Prefect
 server. This registers the flow and makes it available to be run by a worker.
 
-To deploy the flow(s), run the following command from the project root
-directory:
+To deploy the flow(s):
 
 ```bash
-docker-compose exec app pixi run prefect deploy
+pixi run deploy
 ```
 
-### A Note on First-Time Deployment
-
-The first time you run `prefect deploy`, it will be an interactive process where
-you confirm the flow to deploy. This action creates the `prefect.yaml` file,
-which stores your deployment configurations.
-
-After choosing a deployment, answering no the following questions is encouraged
-if seeking easy deployment.
-
-**This is a one-time setup.** For any subsequent user, or for any future
-deployments, running `prefect deploy` will be non-interactive and will simply
-apply the configurations defined in `prefect.yaml`.
+This command uses the configuration defined in `resources/prefect/prefect.yaml`.
 
 ## 3. Run the ETL Pipeline
 
@@ -60,52 +43,15 @@ pipeline run.
 
 ### Running the Master Pipeline
 
-To run the entire ETL process, which orchestrates all the sub-flows, use the
-following command:
+To run the entire ETL process, which orchestrates all the sub-flows:
 
 ```bash
-docker-compose exec app pixi run prefect deployment run 'Master ETL Flow/master-etl-deployment'
+pixi run run-etl
 ```
 
 This command instructs the Prefect server to create a new flow run for the
 master deployment. The Prefect worker will pick up this run and execute the
 entire pipeline.
-
-### Running Individual Pipelines
-
-To run a sub-pipeline individually (e.g., only the `primary_product` ETL), you
-first need to define a deployment for it in your `prefect.yaml` file.
-
-For example, to create a deployment for the `primary_product_flow`, you would
-add the following to the `deployments` section of `prefect.yaml`:
-
-```yaml
-# prefect.yaml
-
-deployments:
-  - name: master-etl-deployment
-    # ... (existing configuration) ...
-
-  - name: primary-product-deployment
-    version: 1.0
-    tags: ["etl", "product"]
-    description: A flow for the primary product ETL pipeline.
-    entrypoint: src/flows/primary_product.py:primary_product_flow
-    work_pool:
-      name: biocirv_dev_work_pool
-```
-
-After adding this configuration, run `prefect deploy` again to register it:
-
-```bash
-docker-compose exec app pixi run prefect deploy
-```
-
-Then, you can run just that pipeline with its specific command:
-
-```bash
-docker-compose exec app pixi run prefect deployment run 'Primary Product ETL/primary-product-deployment'
-```
 
 ## 4. Monitor the Pipeline
 
@@ -116,22 +62,20 @@ real-time through the Prefect UI.
 
 From the UI, you can see:
 
-- The DAG (Directed Acyclic Graph) of your flow.
 - The status of each task (running, completed, failed).
 - Detailed logs for each task.
 - A history of all flow runs.
 
 ## 5. Stopping the Environment
 
-To stop all running Docker containers, use the following command:
+To stop all running Docker containers:
 
 ```bash
-docker-compose down
+pixi run teardown-services
 ```
 
-If you also want to remove the PostgreSQL data volume, you can add the `-v`
-flag:
+If you also want to remove the PostgreSQL data volume (deletes all data):
 
 ```bash
-docker-compose down -v
+pixi run teardown-services-volumes
 ```

@@ -1,0 +1,21 @@
+id: https://w3id.org/ca_biositing/aim1_records/compositional_record
+name: compositional_record
+title: Compositional Record
+description: Compositional analysis record.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - aim1_record_base
+
+classes:
+  CompositionalRecord:
+    is_a: Aim1RecordBase
+    description: Compositional analysis record.

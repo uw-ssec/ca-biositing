@@ -1,87 +1,125 @@
 """
-ETL Transform Template (Advanced)
+ETL Transform Template
 ---
 
-This module provides a template for transforming data from one or more sources.
-
-To use this template:
-1.  Copy this file to the appropriate subdirectory in `src/etl/transform/`.
-    For example: `src/etl/transform/new_module/new_data.py`
-2.  Update `EXTRACT_SOURCES` to list the names of the extract modules that
-    this transformation depends on.
-3.  Update the placeholder logic in the `transform` function to implement the
-    specific data validation and transformation required.
+This module provides a template for transforming raw data from multiple sources.
+It includes standard cleaning, coercion, and normalization patterns used in the pipeline.
 """
 
-from typing import Optional, Dict, List
 import pandas as pd
+import numpy as np
+from typing import List, Optional, Dict
 from prefect import task, get_run_logger
+from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
+from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
+from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 
 # --- CONFIGURATION ---
-# TODO: List the names of the extract modules this transform depends on.
-# The pipeline runner will provide the output of these extract functions
-# in the `data_sources` dictionary.
-EXTRACT_SOURCES: List[str] = ["source_one", "source_two"]
-
+# List the names of the extract modules this transform depends on.
+# The pipeline runner provides these in the `data_sources` dictionary.
+EXTRACT_SOURCES: List[str] = ["source_one"]
 
 @task
-def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
+def transform(
+    data_sources: Dict[str, pd.DataFrame],
+    etl_run_id: int = None,
+    lineage_group_id: int = None
+) -> Optional[pd.DataFrame]:
     """
-    Transforms raw data from multiple sources into a structured and clean format.
-
-    This function serves as the 'Transform' step in an ETL pipeline.
+    Transforms raw data from multiple sources into a structured format.
 
     Args:
-        data_sources (Dict[str, pd.DataFrame]): A dictionary where keys are the
-                      names of the extract sources and values are the
-                      DataFrames they produced.
-
-    Returns:
-        A DataFrame containing the transformed and cleaned data, ready for
-        loading, or None if validation fails.
+        data_sources: Dictionary where keys are source names and values are DataFrames.
+        etl_run_id: ID of the current ETL run.
+        lineage_group_id: ID of the lineage group.
     """
-    logger = get_run_logger()
-    logger.info("Transforming raw data from multiple sources...")
+    try:
+        logger = get_run_logger()
+    except Exception:
+        import logging
+        logger = logging.getLogger(__name__)
 
-    # --- 1. Input Validation ---
-    # Check if all required data sources are present
+    # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
+    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+        Dataset,
+        # Add other models needed for normalization here (e.g., Resource, Unit)
+    )
+
+    # 1. Input Validation
     for source_name in EXTRACT_SOURCES:
         if source_name not in data_sources:
             logger.error(f"Required data source '{source_name}' not found.")
             return None
 
-    # TODO: Define the columns required from each data source.
-    required_columns = {
-        "source_one": ["column_a", "column_b"],
-        "source_two": ["column_c", "column_d"],
+    logger.info(f"Transforming data from sources: {EXTRACT_SOURCES}")
+
+    # 2. Cleaning & Coercion
+    processed_dfs = []
+    for source_name in EXTRACT_SOURCES:
+        df = data_sources[source_name].copy()
+
+        if df.empty:
+            continue
+
+        # Standardize column names (snake_case) and basic string cleaning
+        cleaned_df = cleaning_mod.standard_clean(df)
+
+        # Add lineage tracking metadata
+        cleaned_df['etl_run_id'] = etl_run_id
+        cleaned_df['lineage_group_id'] = lineage_group_id
+
+        # Coerce data types (Update these lists based on your schema)
+        coerced_df = coercion_mod.coerce_columns(
+            cleaned_df,
+            int_cols=[],
+            float_cols=[],
+            datetime_cols=['created_at', 'updated_at']
+        )
+        processed_dfs.append(coerced_df)
+
+    if not processed_dfs:
+        return pd.DataFrame()
+
+    # Combine sources if necessary, or handle them individually
+    combined_df = pd.concat(processed_dfs, ignore_index=True)
+
+    # 3. Normalization (Name-to-ID Swapping)
+    # Format: 'dataframe_column': (SQLAlchemyModel, 'lookup_field_in_db')
+    normalize_columns = {
+        'dataset': (Dataset, 'name'),
+        # Example: 'unit': (Unit, 'name'),
     }
 
-    # Check if all required columns exist in their respective DataFrames
-    for source_name, columns in required_columns.items():
-        df = data_sources[source_name]
-        for col in columns:
-            if col not in df.columns:
-                logger.error(f"Required column '{col}' not found in source '{source_name}'.")
-                return None
+    logger.info("Normalizing data (swapping names for IDs)...")
+    normalized_df = normalize_dataframes(combined_df, normalize_columns)
 
-    # --- 2. Data Transformation ---
-    # TODO: Implement the specific data transformation logic here.
-    # This may include:
-    #   - Merging or joining DataFrames from different sources.
-    #   - Renaming columns.
-    #   - Handling missing values.
-    #   - Creating new, calculated columns.
+    # 4. Column Renaming
+    # TODO: Update this dictionary to match your source-to-target mapping
+    rename_columns = {
+        # 'source_col': 'target_col',
+    }
+    normalized_df = normalized_df.rename(columns=rename_columns)
 
-    # Example placeholder logic:
-    # df1 = data_sources['source_one']
-    # df2 = data_sources['source_two']
-    # merged_df = pd.merge(df1, df2, on='common_join_key', how='inner')
-    # transformed_df = merged_df.copy()
+    # 5. Final Mapping & Selection
+    # TODO: Update this list to match the columns in your target database table
+    try:
+        # Ensure lineage columns exist even if not provided in input
+        if etl_run_id:
+            normalized_df['etl_run_id'] = etl_run_id
+        if lineage_group_id:
+            normalized_df['lineage_group_id'] = lineage_group_id
 
-    # For this template, we will just return the first DataFrame as is.
-    # Replace this with your actual transformation logic.
-    transformed_df = data_sources[EXTRACT_SOURCES[0]].copy()
+        final_df = normalized_df[[
+            'record_id',
+            'dataset_id',
+            # Add other columns here...
+            'etl_run_id',
+            'lineage_group_id'
+        ]].copy()
 
-    logger.info(f"Successfully transformed data. Result has {len(transformed_df)} records.")
+        logger.info(f"Successfully transformed {len(final_df)} records.")
+        return final_df
 
-    return transformed_df
+    except KeyError as e:
+        logger.error(f"Missing required column during transform: {e}")
+        return normalized_df

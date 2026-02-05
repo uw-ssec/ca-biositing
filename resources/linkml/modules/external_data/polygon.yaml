@@ -1,0 +1,37 @@
+id: https://w3id.org/ca_biositing/external_data/polygon
+name: polygon
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../places/geography
+  - ../general_analysis/dataset
+default_range: string
+
+classes:
+  Polygon:
+    is_a: BaseEntity
+    description: Geospatial polygon.
+    unique_keys:
+      unique_geom:
+        unique_key_slots:
+          - geom
+          - dataset_id
+    slots:
+      - geoid
+      - geom
+      - dataset_id
+
+slots:
+  geoid:
+    range: Place
+    description: Reference to Place.
+
+  geom:
+    range: geometry
+    description: Geometry (WKT or similar).
+
+  dataset_id:
+    range: Dataset
+    description: Reference to Dataset.

@@ -14,23 +14,22 @@ prototyping for bioeconomy site selection.
 
 - **Type:** Research project / Data processing / Geospatial analysis
 - **Architecture:** PEP 420 namespace packages
-- **Size:** Medium (~100+ files including ETL modules, database models,
-  workflows)
-- **Languages:** Python (primary), SQL, TOML, Jupyter Notebooks
 - **Build System:** Pixi (v0.55.0+) + Docker for ETL pipeline orchestration
-- **Platform:** macOS (osx-arm64, osx-64), Linux (linux-64, linux-aarch64)
-- **License:** See LICENSE file
+- **Platform:** macOS (osx-arm64, osx-64), Linux (linux-64, linux-aarch64),
+  Windows (win-64)
+- **Languages:** Python (primary), SQL, TOML, Jupyter Notebooks
 - **Domain:** Geospatial analysis, bioeconomy, ETL pipelines, database
-  management, workflow orchestration
+  management
 
 **Key Components:**
 
-- **`ca_biositing.datamodels`**: SQLModel database models (shared across
-  components)
-- **`ca_biositing.pipeline`**: Prefect-orchestrated ETL workflows (Docker-based)
-- **`ca_biositing.webservice`**: FastAPI REST API
-- **`resources/`**: Docker Compose and Prefect deployment configuration
-- **`frontend/`**: Git submodule for frontend application
+- **`ca_biositing.datamodels`**: SQLAlchemy database models. Uses LinkML as the
+  source of truth.
+- **`ca_biositing.pipeline`**: Prefect-orchestrated ETL workflows
+  (Docker-based).
+- **`ca_biositing.webservice`**: FastAPI REST API.
+- **`resources/`**: Docker Compose and Prefect deployment configuration.
+- **`frontend/`**: Git submodule for frontend application.
 
 ## Cross-Cutting Documentation
 
@@ -49,312 +48,175 @@ For detailed guidance on shared topics, see the `agent_docs/` directory:
 ### Pixi Overview
 
 This project uses **Pixi** for local development environment and dependency
-management. Pixi is a modern package manager that handles both Conda and PyPI
-dependencies. See <https://pixi.sh/latest/llms-full.txt> for more details.
+management. Pixi handles both Conda and PyPI dependencies.
 
 **ALWAYS use Pixi commands—never use conda, pip, or venv directly for local
 development.**
 
-### Prerequisites
+**Note:** The ETL pipeline runs in Docker containers orchestrated by Pixi tasks.
+Pixi is used for:
 
-Before any other operations, verify Pixi is installed:
-
-```bash
-pixi --version  # Should show v0.55.0 or higher
-```
-
-If not installed, direct users to: <https://pixi.sh/latest/#installation>
+- Managing Docker services (start, stop, logs, status)
+- Running code quality tools (pre-commit)
+- Running tests (pytest)
+- Running QGIS for geospatial analysis
+- Deploying and running Prefect workflows
+- Starting the FastAPI web service
 
 ### Environment Setup (ALWAYS RUN FIRST)
 
 ```bash
 # Install the default environment (required before any other commands)
 pixi install
-
-# This installs Python 3.12, pre-commit, pytest, pytest-cov, docker-compose
-# Creates .pixi/envs/default directory
 ```
 
 **CRITICAL:** Always run `pixi install` before any other Pixi commands.
 
 ### Available Environments
 
-1. **`default`** (main development environment)
-   - Standard development environment
-   - Core packages: Python 3.12, pre-commit, pytest, pytest-cov, docker-compose
-   - Use for: general development, running pre-commit checks, running tests,
-     Docker orchestration
+1. **`default`**: Main development environment (datamodels, pipeline,
+   webservice, gis).
+2. **`gis`**: Geospatial analysis (QGIS, rasterio, xarray, shapely, pyproj).
+3. **`etl`**: ETL pipeline environment (Prefect, SQLAlchemy, pandas).
+4. **`webservice`**: Web service environment (FastAPI, uvicorn).
+5. **`frontend`**: Frontend development (Node.js, npm).
+6. **`docs`**: Documentation (MkDocs).
+7. **`deployment`**: Cloud infrastructure (OpenTofu).
 
-2. **`gis`** (features: `qgis`, `raster`, `vector`)
-   - Geospatial analysis environment
-   - Includes: QGIS, rasterio, xarray, shapely, pyproj
-   - Use for: geospatial analysis, QGIS workflows, working with raster/vector
-     data
+## Pathing & Namespace Packages
 
-3. **`etl`** (features: `datamodels`, `pipeline`)
-   - ETL pipeline environment (used in Docker containers)
-   - Includes: Prefect, SQLModel, pandas, Google Sheets API clients
-   - Use for: running ETL workflows in Docker
+The repository uses PEP 420 namespace packages. The top-level namespace
+`ca_biositing` is shared across three independent distributions:
 
-4. **`webservice`** (features: `datamodels`, `webservice`)
-   - Web service environment
-   - Includes: FastAPI, uvicorn, SQLModel
-   - Use for: running the REST API
+- `src/ca_biositing/datamodels`
+- `src/ca_biositing/pipeline`
+- `src/ca_biositing/webservice`
 
-5. **`frontend`** (feature: `frontend`)
-   - Frontend development environment
-   - Includes: Node.js, npm
-   - Use for: frontend development tasks
+All three are installed as editable PyPI packages into the Pixi environment via
+`pixi.toml` feature dependencies. No `PYTHONPATH` manipulation is needed — after
+`pixi install`, all packages are importable within any `pixi run` command.
 
-## Docker Environment (ETL Pipeline)
+### Jupyter Notebooks
 
-The ETL pipeline runs in Docker containers orchestrated by Prefect. Docker is
-managed through **Pixi tasks** - never use docker-compose commands directly.
+This project uses [pixi-kernel](https://github.com/renan-r-santos/pixi-kernel)
+for Jupyter integration. The kernel runs code inside the Pixi environment, so
+all installed packages are available without any path configuration.
 
-For detailed Docker commands, see
-[agent_docs/docker_workflow.md](agent_docs/docker_workflow.md).
+1. Run `pixi install` to set up the environment (includes `pixi-kernel`).
+2. In VS Code or JupyterLab, select the **Pixi** kernel for your notebook.
+3. All `ca_biositing` namespace packages are importable directly.
 
-### Quick Reference
+## Schema Management & Migrations (CRITICAL)
 
-```bash
-# Start all services
-pixi run start-services
+This project uses **LinkML** as the source of truth for the data model. The
+schemas are maintained in the `resources/linkml/` directory, separate from the
+installable Python package. Due to macOS Docker filesystem performance issues, a
+specific local workflow is required.
 
-# Check status and logs
-pixi run service-status
-pixi run service-logs
+### 1. LinkML Source of Truth
 
-# Deploy and run ETL
-pixi run deploy
-pixi run run-etl
+Modify YAML files in: `resources/linkml/modules/`
 
-# Monitor via Prefect UI: http://0.0.0.0:4200
+### 2. Orchestrated Update
 
-# Stop services
-pixi run teardown-services
-```
-
-## Validated Commands & Workflows
-
-### Pre-commit Checks (MANDATORY BEFORE PRs)
-
-For detailed pre-commit workflow, see
-[agent_docs/code_quality.md](agent_docs/code_quality.md).
+Run the orchestration command to generate Python models, rebuild services, and
+create a migration:
 
 ```bash
-# Install hooks (run once per clone)
-pixi run pre-commit-install
-
-# Run on staged files
-pixi run pre-commit
-
-# Run on ALL files (required before PR)
-pixi run pre-commit-all
+pixi run update-schema -m "Description of changes"
 ```
 
-### Running Tests
+This task executes
+[`orchestrate_schema_update.py`](resources/linkml/scripts/orchestrate_schema_update.py)
+which:
 
-For detailed testing patterns, see
-[agent_docs/testing_patterns.md](agent_docs/testing_patterns.md).
+- Generates SQLAlchemy models from LinkML.
+- Rebuilds Docker services.
+- **Generates the Alembic migration LOCALLY** to avoid container import hangs.
+
+### 3. Apply Migrations
+
+Apply changes to the database:
 
 ```bash
-# Run all tests
-pixi run test
-
-# Run tests with coverage
-pixi run test-cov
+pixi run migrate
 ```
 
-### QGIS Workflow
+_Note: This runs `alembic upgrade head` locally against the Docker-hosted
+PostgreSQL._
 
-```bash
-# Launch QGIS in the gis environment
-pixi run qgis
-# On macOS, you may see a Python faulthandler error - this is expected
-# See: https://github.com/qgis/QGIS/issues/52987
-```
+## Project Structure & Package Overviews
 
-### Adding Dependencies
+### `src/ca_biositing/datamodels`
 
-```bash
-# Add a conda package to default environment
-pixi add <package-name>
+The core data layer.
 
-# Add a PyPI package to default environment
-pixi add --pypi <package-name>
+- `ca_biositing/datamodels/linkml/`: YAML schema definitions.
+- `ca_biositing/datamodels/schemas/generated/`: Generated SQLAlchemy classes
+  (**DO NOT EDIT**).
+- `ca_biositing/datamodels/database.py`: Connection and session management.
+- See
+  [`src/ca_biositing/datamodels/README.md`](src/ca_biositing/datamodels/README.md).
 
-# Add to a specific feature (pipeline, webservice, etc.)
-pixi add --feature <feature-name> <package-name>
+### `src/ca_biositing/pipeline`
 
-# Always run after manual pixi.toml edits
-pixi install
-```
+The ETL orchestration layer.
 
-## Project Structure & Key Files
+- `ca_biositing/pipeline/etl/`: Extract, Transform, and Load tasks.
+- `ca_biositing/pipeline/flows/`: Prefect flow definitions.
+- `ca_biositing/pipeline/utils/`: Helpers like `gsheet_to_pandas.py` and
+  `lookup_utils.py`.
+- See
+  [`src/ca_biositing/pipeline/README.md`](src/ca_biositing/pipeline/README.md).
 
-```text
-ca-biositing/
-├── .github/                         # GitHub configuration
-├── pixi.toml                        # PRIMARY CONFIG: Pixi dependencies, tasks
-├── pixi.lock                        # Lock file (auto-generated)
-├── .gitignore                       # Git ignore patterns
-├── CODE_OF_CONDUCT.md               # Code of conduct
-├── CONTRIBUTING.md                  # Contribution guidelines
-├── LICENSE                          # Project license
-├── README.md                        # Main project documentation
-├── AGENTS.md                        # This file - AI assistant guide
-├── agent_docs/                      # Cross-cutting AI documentation
-│   ├── README.md                    # Index of agent docs
-│   ├── namespace_packages.md        # PEP 420 structure
-│   ├── testing_patterns.md          # Testing guidance
-│   ├── code_quality.md              # Pre-commit, style
-│   ├── troubleshooting.md           # Common pitfalls
-│   └── docker_workflow.md           # Docker commands
-├── credentials.json                 # Google Cloud credentials (not in git)
-├── alembic.ini                      # Alembic configuration
-├── alembic/                         # Database migration scripts
-│   └── versions/                    # Migration version files
-├── resources/                       # DEPLOYMENT RESOURCES
-│   ├── README.md                    # Resources documentation
-│   ├── AGENTS.md                    # Resources AI guide
-│   ├── docker/                      # Docker Compose configuration
-│   └── prefect/                     # Prefect deployment
-├── docs/                            # Documentation
-│   └── pipeline/                    # Pipeline workflow guides
-├── src/
-│   └── ca_biositing/                # NAMESPACE PACKAGE ROOT
-│       ├── datamodels/              # DATA MODELS PACKAGE
-│       │   ├── README.md
-│       │   ├── AGENTS.md
-│       │   ├── pyproject.toml
-│       │   ├── ca_biositing/datamodels/
-│       │   └── tests/
-│       ├── pipeline/                # ETL PIPELINE PACKAGE
-│       │   ├── README.md
-│       │   ├── AGENTS.md
-│       │   ├── pyproject.toml
-│       │   ├── ca_biositing/pipeline/
-│       │   └── tests/
-│       └── webservice/              # WEB SERVICE PACKAGE
-│           ├── README.md
-│           ├── AGENTS.md
-│           ├── pyproject.toml
-│           ├── ca_biositing/webservice/
-│           └── tests/
-├── tests/                           # INTEGRATION TESTS
-│   └── test_namespace_imports.py
-└── frontend/                        # FRONTEND SUBMODULE
-```
+### `src/ca_biositing/webservice`
 
-## Making Changes: Validated Workflow
+The API layer.
 
-1. **Setup (first time):**
+- `ca_biositing/webservice/main.py`: FastAPI application entrypoint.
+- `ca_biositing/webservice/v1/endpoints/`: API route handlers.
+- See
+  [`src/ca_biositing/webservice/README.md`](src/ca_biositing/webservice/README.md).
 
-   ```bash
-   pixi install
-   pixi run pre-commit-install
-   ```
+## Validated Commands
 
-2. **Make your changes** to files
+### Docker Operations
 
-3. **Test changes:**
+- `pixi run start-services`: Start DB and Prefect.
+- `pixi run service-status`: Check container health.
+- `pixi run service-logs`: View logs.
+- `pixi run rebuild-services`: Rebuild images after dependency changes.
 
-   ```bash
-   # Stage your changes
-   git add <files>
+### Development & Quality
 
-   # Run pre-commit checks
-   pixi run pre-commit
+- `pixi run pre-commit-all`: Run all checks (MANDATORY before PR).
+- `pixi run test`: Run pytest suite.
+- `pixi run start-webservice`: Launch API locally.
 
-   # If checks fail and auto-fix issues, re-add the fixed files
-   git add <files>
-   ```
+## Common Pitfalls
 
-4. **Run tests:**
-
-   ```bash
-   pixi run test
-   ```
-
-5. **Before creating a PR:**
-
-   ```bash
-   pixi run pre-commit-all
-   ```
-
-6. **Create PR:**
-   - Follow Conventional Commits for PR titles (if required by project)
-   - Link related issues using "Resolves #issue-number"
-   - Ensure all pre-commit checks pass
-
-## Key Configuration Details
-
-### pixi.toml Structure
-
-- **`[workspace]`**: Project metadata (name, version, authors, platforms)
-- **`[environments]`**: Named environments with feature sets
-- **`[dependencies]`**: Conda dependencies for all environments
-- **`[tasks]`**: Pixi tasks for common commands
-- **`[feature.<name>.dependencies]`**: Feature-specific conda packages
-- **`[feature.<name>.pypi-dependencies]`**: Feature-specific PyPI packages
-
-### Available Pixi Tasks
-
-Run `pixi task list` to see all available tasks. Key tasks:
-
-**Service Management:**
-
-- `start-services`, `teardown-services`, `restart-services`
-- `service-status`, `service-logs`
-- `rebuild-services`
-
-**ETL Operations:**
-
-- `deploy`, `run-etl`
-
-**Database:**
-
-- `check-db-health`, `access-db`, `access-prefect-db`
-
-**Development:**
-
-- `pre-commit`, `pre-commit-all`, `pre-commit-install`
-- `test`, `test-cov`
-
-**Applications:**
-
-- `start-webservice`, `qgis`
-
-**Frontend:**
-
-- `submodule-frontend-init`, `frontend-install`, `frontend-dev`,
-  `frontend-build`
-
-## Geospatial & Bioeconomy Context
-
-This project focuses on:
-
-- **Bioeconomy site selection:** Analyzing potential locations for bioeconomy
-  facilities in California
-- **Geospatial analysis:** Using QGIS and related tools for spatial data
-  processing
-- **Data integration:** ETL pipelines to combine data from multiple sources
-- **Database management:** PostgreSQL with SQLModel ORM
-- **Google Sheets integration:** Primary data source for experimental data
-
-## Trust These Instructions
-
-These instructions were generated through comprehensive analysis of the
-repository structure and reference materials. Commands have been validated
-against the project configuration. **Only perform additional searches if:**
-
-- You need information not covered here
-- Instructions appear outdated or produce errors
-- You're implementing functionality that changes the build system or Docker
-  setup
-
-For routine tasks (adding files, making code changes, running checks), follow
-these instructions directly without additional exploration.
+- **Import Errors**: Ensure you are running inside the Pixi environment
+  (`pixi run ...`) or using the Pixi kernel in Jupyter.
+- **macOS Geospatial Library Conflicts**: On macOS (especially Apple Silicon),
+  you may encounter `PROJ` database version mismatch errors when using
+  `geopandas` or `pyogrio`.
+  - **Fix**: Ensure `PROJ_LIB` environment variable is set to the Pixi
+    environment's data directory _before_ importing geospatial libraries.
+  - **Example**:
+    ```python
+    import os, pyproj
+    os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
+    import geopandas as gpd
+    ```
+- **Docker Hangs & Deadlocks**:
+  - **CRITICAL**: Never import heavy SQLAlchemy models or Pydantic settings at
+    the module level. Always import them inside the `@task` or `@flow` function.
+  - **CRITICAL**: Avoid any network I/O or database connectivity tests at the
+    module level (import time).
+  - **Docker Networking**: Inside containers, use the `db` hostname for
+    PostgreSQL. Outside, use `localhost`.
+- **GCP Auth**: `credentials.json` must be in the root for ETL tasks. See
+  [`docs/pipeline/GCP_SETUP.md`](docs/pipeline/GCP_SETUP.md).
 
 For more information on SSEC best practices, see:
 <https://rse-guidelines.readthedocs.io/en/latest/llms-full.txt>

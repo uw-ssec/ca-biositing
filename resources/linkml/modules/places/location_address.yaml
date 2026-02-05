@@ -1,0 +1,56 @@
+id: https://w3id.org/ca_biositing/places/location_address
+name: location_address
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - geography
+default_range: string
+
+classes:
+  LocationAddress:
+    is_a: BaseEntity
+    description: Physical address.
+    slots:
+      - geography_id
+      - address_line1
+      - address_line2
+      - city
+      - zip
+      - lat
+      - lon
+      - is_anonymous
+
+slots:
+  geography_id:
+    range: Place
+    description: Reference to Place.
+
+  address_line1:
+    range: string
+    description: Address line 1.
+
+  address_line2:
+    range: string
+    description: Address line 2.
+
+  city:
+    range: string
+    description: City.
+
+  zip:
+    range: string
+    description: ZIP code.
+
+  lat:
+    range: float
+    description: Latitude.
+
+  lon:
+    range: float
+    description: Longitude.
+
+  is_anonymous:
+    range: boolean
+    description: Whether the location is anonymous.

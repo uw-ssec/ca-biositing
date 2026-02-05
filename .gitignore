@@ -33,12 +33,23 @@ venv/
 # Local Data
 data/interim/
 data/processed/
+data/landiq/*.shp
+data/landiq/*.shx
+data/landiq/*.dbf
+data/landiq/*.prj
+data/landiq/*.cpg
+data/landiq/*.xml
+*.csv
+!src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq/*.csv
 
 # Credentials
 credentials.json
 
 # macOS
 .DS_Store
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
 
 # OpenTofu
 .terraform/

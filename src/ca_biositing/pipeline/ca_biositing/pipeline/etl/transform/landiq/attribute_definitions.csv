@@ -1,0 +1,97 @@
+column,definition
+FID,Internal feature number.
+Shape,Feature geometry.
+UniqueID,Unique Identifier for each polygon
+ACRES,"Total land acreage for each individual polygon, given in U.S. acres. Note that land acres are not necessarily equal to the summation of crop acres if multiple crops were planted through the year."
+COUNTY,Indicates the county that the centroid of each crop field resides in. Due to the size of the urban areas we did not attribute the county/counties for these features because some extended beyond a single county.
+YR_PLANTED,The year the orchard / grove was planted (vineyards were not analyzed)
+HYDRO_RGN,Indicates the hydrologic region that the centroid of each crop field resides in. Due to the size of the urban areas we did not attribute the region/regions for these features because some extended beyond a single region.
+REGION,DWR Regional Office associated with the polygon.
+DataStatus,Indicates the status of the dataset. (e.g. Provisional)
+SEN_CROP,"Indicates a senescing crop at the beginning of the water year. Crops listed indicate that at the beginning of the water year (October 2022), crop activity was detected from a crop that reached peak NDVI in the previous water year (WY2022), thus was a senescing crop. This is included to account for water use of crop growth periods that span multiple water years and are not exclusive to a single water year. Crops listed in the ‘SEN_CROP’ attribute are also captured in the CROPTYP 1 through 4 sequence of the previous water year (WY2022). These crops are not included in the WY2023 UCF_ATT code as their peak NDVI occurred in the previous water year."
+ADOY_SEN,This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to SEN_CROP
+EMRG_CROP,"Indicates an emerging crop at the end of the water year. Crops listed indicate that at the end of the water year (September 2023), crop activity was detected from a crop that reached peak NDVI in the following water year (WY2024), thus was an emerging crop. This is included to account for water use of crop growth periods that span multiple water years and are not exclusive to a single water year. Crops listed in the ‘EMRG_CROP’ attribute will also be captured as CROPTYP1 in the following water year (WY2024). These crops are not included in the WY2023 UCF_ATT code as their peak NDVI occurred in the following water year."
+ADOY_EMRG,This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to EMRG_CROP
+CTYP1_NOTE,"A notes field that indicates where a DWR land use subclass is known. Provided to add more specificity to the remote sensing mapping when additional information exists about a field.
+
+For example:
+   Remote Sensing Legend: C** = Citrus
+
+   Standard Land Use Legend: C2 = Lemons"
+CTYP2_NOTE,See CTYP1_NOTE for more details
+CTYP3_NOTE,See CTYP1_NOTE for more details
+CTYP4_NOTE,See CTYP1_NOTE for more details
+DWR_REVISE,Indicator that the original polygon classification was revised or modified by DWR Regional Land Use staff. Revised polygons are indicated by the letter 'r'.
+SYMB_CLASS,CLASS2 used as class code  symbology.
+MULTIUSE,This field indicates whether sequential or concurrent land uses are mapped within the area represented by a polygon.
+CLASS1,"Originally this was the class for the first land use group on the field, and the first level of detail for land use identification. All class codes are letters, not numerals. In the statewide data set: (1) all Main Season summer crop data begins in column CLASS2; only multicropped fields (MULTIUSE = 'D', ‘T’, or ‘Q’, or Mixed Use fields (MULTIUSE = 'M') will have a code in CLASS1. All agricultural class codes except for 'YP' are right justified with a leading space. All non-agricultural codes are left justified, and may have a trailing space. (2) all Single cropped data has a crop in CLASS2. Therefore, all Single cropped fields will have no attribute in CLASS1, but all Double, Triple, and Quadruple crops will begin their sequence in CLASS1, with sequential crops in CLASS2, CLASS3 and CLASS 4 (for double, triple, and quadruple crops)."
+SUBCLASS1,"This is the subclass associated with the CLASS1, in combination, CLASS and SUBCLASS provide the most specific level of detail for land use identification in the DWR Standard Land Use Legend. It is not mandatory to have a subclass code after a CLASS code. All subclasses are text numerals, and associated with each class. A specific subclass value represents different crops or other land uses depending upon the class associated with it. The subclass list was extended to accommodate Land IQ classifications for remote-sensing purposes. "
+SPECOND1,"SPECIAL CONDITIONS (only one can be used per parcel). This is a special condition for the first land use, which is a single character."
+IRR_TYP1PA,This field is the irrigation status for the first land use (either irrigated or non-irrigated).
+IRR_TYP1PB,This field is the type of irrigation system.
+PCNT1,"This is the percentage of cropped area associated with the first land use, using text numerals.  "
+CLASS2,"The second crop class in the water year for Double, Triple, and Quadruple cropped fields. The only crop classified on the field for Single cropped fields (also considered the main crop when it is single cropped)."
+SUBCLASS2,See SUBCLASS1 for details.
+SPECOND2,See SPECOND1 for details.
+IRR_TYP2PA,See IRR_TYP1PA for details.
+IRR_TYP2PB,See IRR_TYP1PB for details.
+PCNT2,Percentage of the area covered by the crop for CLASS2 crop.
+CLASS3,This field is the third crop or other land use identified on a field. (See CLASS1 for list details and descriptions)
+SUBCLASS3,See SUBCLASS1 for details.
+SPECOND3,See SPECOND1 for details.
+IRR_TYP3PA,See IRR_TYP1PA for details.
+IRR_TYP3PB,See IRR_TYP1PB for details.
+PCNT3,Percentage of the area covered by the crop for CLASS3 crop.
+CLASS4,The fourth crop or other land use identified on a field. (See CLASS1 for list details and descriptions)
+SUBCLASS4,See SUBCLASS1 for details.
+SPECOND4,See SPECOND1 for details.
+IRR_TYP4PA,See IRR_TYP1PA for details.
+IRR_TYP4PB,See IRR_TYP1PB for details.
+PCNT4,Percentage of the area covered by the crop for CLASS4 crop.
+UCF_ATT,"This field is 41 characters string concatenation of all field survey attributes starting from the MULTIUSE field to the PCNT4 field.  The summary string is used for analysis and review in the QA/QC process and for processing data in some raster formats. Beginning character positions of attribute substrings within the UCF_ATT text are listed below:
+
+  1   MULTIUSE
+  2   CLASS1
+  4  SUBCLASS1
+  6   SPECOND1
+  7   IRR_TYP1PA
+  8   IRR_TYP1PB
+  9   PCNT1
+11   CLASS2
+13   SUBCLASS2
+15   SPECOND2
+16   IRR_TYP2PA
+17   IRR_TYP2PB
+18   PCNT2
+20   CLASS3
+22   SUBCLASS3
+24   SPECOND3
+25   IRR_TYP3PA
+26   IRR_TYP3PB
+27   PCNT3
+29   CLASS4
+31   SUBCLASS4
+33   SPECOND4
+34   IRR_TYP4PA
+35   IRR_TYP4PB
+36   PCNT4
+Columns CLASS 2 through PCNT2 reflect attributes for single cropped fields, as well as the second crop on the field for multicropped fields. "
+CROPTYP1,"This field is a four character string from the concatenation of CLASS1 and SUBCLASS1, stripped of all spaces and asterisks (**)."
+ADOY1,"This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to CROPTYP1. Negative numbers represent year 2022 peak dates, and positive numbers represent year 2023 peak date. For example:
+-92 = Crop peak NDVI date of October 1, 2022
+-1 = Crop peak NDVI date of December 31, 2022
+1 = Crop peak NDVI date of January 1, 2023
+273 = Crop peak NDVI date of September 30, 2023
+
+A <NULL> value was used when no peak date was determined by Land IQ. "
+CROPTYP2,"This field is a four character string from the concatenation of CLASS2 and SUBCLASS2, stripped of all spaces and asterisks (**)."
+ADOY2,This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date received by Land IQ. The date This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to CROPTYP2. See ADOY1 for detail.
+CROPTYP3,"This field is a four character string from the concatenation of CLASS3 and SUBCLASS3, stripped of all spaces and asterisks (**)."
+ADOY3,This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date received by Land IQ. The date This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to CROPTYP3. See ADOY1 for detail.
+CROPTYP4,"This field is a four character string from the concatenation of CLASS4 and SUBCLASS4, stripped of all spaces and asterisks (**)."
+ADOY4,This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date received by Land IQ. The date This is a number value representing the Adjusted Day Of Year for peak NDVI (Normalized Difference Vegetation Index) date corresponding to CROPTYP4. See ADOY1 for detail.
+LIQ_REPORT,"This is a 20 character string concatenation of the multicropping classification by Land IQ for Water Year 2023. Each crop is represented by four characters based on the combination of CLASS and SUBCLASS stripped of all ‘*’ and ‘ ‘ (space) characters, with a ‘ ‘ (space) between each crop. The code ‘****’ represents no crop reported by Land IQ for that season. Original Land IQ classifications reported for each polygon are preserved for comparison. "
+MAIN_CROP,Main Season Crop represents the crop grown during the dominant growing season. The dominant growing season was identified for each county based on cropping patterns and prevalence. The county associated with each field was determined as that within which the polygon centroid (inside the polygon) lies.
+MAIN_CROP_,NA
+Shape_Leng,NA
+Shape_Area,Area of feature in internal units squared.
