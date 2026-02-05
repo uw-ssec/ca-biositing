@@ -1,8 +1,8 @@
-"""Final fixed initial migration with county and single PK
+"""initial migration
 
-Revision ID: 5bc682554f31
+Revision ID: 6fb7ecebb55f
 Revises:
-Create Date: 2026-02-04 20:04:48.858074
+Create Date: 2026-02-05 09:30:17.848260
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5bc682554f31'
+revision: str = '6fb7ecebb55f'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -1324,6 +1324,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('unique_geom_dataset_md5', 'polygon', [sa.literal_column('md5(geom)'), 'dataset_id'], unique=True)
     op.create_table('pretreatment_record',
     sa.Column('pretreatment_method_id', sa.Integer(), nullable=True),
     sa.Column('eh_method_id', sa.Integer(), nullable=True),
@@ -1593,7 +1594,6 @@ def upgrade() -> None:
     sa.Column('irrigated', sa.Boolean(), nullable=True),
     sa.Column('acres', sa.Float(), nullable=True),
     sa.Column('county', sa.Text(), nullable=True),
-    sa.Column('testing', sa.Text(), nullable=True),
     sa.Column('version', sa.Text(), nullable=True),
     sa.Column('note', sa.Text(), nullable=True),
     sa.Column('pct1', sa.Float(), nullable=True),
@@ -1631,6 +1631,7 @@ def downgrade() -> None:
     op.drop_table('rgb_record')
     op.drop_table('proximate_record')
     op.drop_table('pretreatment_record')
+    op.drop_index('unique_geom_dataset_md5', table_name='polygon')
     op.drop_table('polygon')
     op.drop_table('observation')
     op.drop_table('icp_record')
