@@ -10,6 +10,7 @@ AVAILABLE_FLOWS = {
     "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
     "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
     "resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
+    "usda_etl": "ca_biositing.pipeline.flows.usda_etl.usda_etl_flow",
 }
 
 @flow(name="Master ETL Flow", log_prints=True)
