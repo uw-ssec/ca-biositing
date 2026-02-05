@@ -29,6 +29,7 @@ classes:
       - confidence
       - irrigated
       - acres
+      - county
       - version
       - note
       - pct1
@@ -40,7 +41,6 @@ slots:
   record_id:
     range: string
     description: Unique identifier for the record.
-    identifier: true
 
   dataset_id:
     range: Dataset
@@ -77,6 +77,10 @@ slots:
   acres:
     range: float
     description: Number of acres.
+
+  county:
+    range: string
+    description: County name.
 
   version:
     range: string

@@ -148,6 +148,7 @@ access-db = { cmd = [
     "biocirv_user",
     "-d",
     "biocirv_db",
+    "-c",
 ], description = "Access the application database with psql." }
 access-prefect-db = { cmd = [
     "docker-compose",
@@ -250,11 +251,11 @@ pixi-kernel = "*"
 
 # Datamodels Dependencies
 [feature.datamodels.pypi-dependencies]
-ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels" }
+ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels", editable = true }
 
 # Pipeline Dependencies
 [feature.pipeline.pypi-dependencies]
-ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline" }
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
 # Alembic is required for generating migrations inside the worker container
 alembic = ">=1.13.2,<2"
 
@@ -271,7 +272,7 @@ depends-on = [{ task = "start-services" }]
 
 # Webservice Dependencies
 [feature.webservice.pypi-dependencies]
-ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
+ca-biositing-webservice = { path = "./src/ca_biositing/webservice", editable = true }
 fastapi = ">=0.111.0,<0.115.0"
 pydantic = ">=2.5,<3.0"
 

@@ -67,17 +67,18 @@ def main():
     local_env["EDITOR"] = "true"
 
     # Find project root for cwd
-    # Script is now at: resources/linkml/scripts/orchestrate_schema_update.py
-    # 3 levels up: scripts/ -> linkml/ -> resources/ -> project root
-    project_root = Path(__file__).resolve().parent.parent.parent
+    # Script is at: resources/linkml/scripts/orchestrate_schema_update.py
+    # 4 levels up to reach project root: scripts/ -> linkml/ -> resources/ -> project root
+    project_root = Path(__file__).resolve().parent.parent.parent.parent
 
     cmd = [
         "pixi", "run", "alembic",
+        "-c", "alembic.ini",
         "revision", "--autogenerate",
         "-m", args.message
     ]
 
-    print("Running local migration generation via pixi environment...")
+    print(f"Running local migration generation in {project_root} via pixi environment...")
     try:
         subprocess.run(cmd, env=local_env, check=True, cwd=str(project_root))
     except subprocess.CalledProcessError as e:

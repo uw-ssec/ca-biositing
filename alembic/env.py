@@ -13,6 +13,10 @@ PROJECT_ROOT = HERE.parent.resolve()
 load_dotenv(dotenv_path=PROJECT_ROOT / ".env")  # Looks for .env in the project root by default
 
 # --- Import your models so Alembic knows about them ---
+# We import from the local src directory to ensure we use the freshly generated models
+# rather than the installed package in the Pixi environment.
+sys.path.insert(0, str(PROJECT_ROOT / "src/ca_biositing/datamodels"))
+
 from ca_biositing.datamodels.schemas.generated import ca_biositing
 from ca_biositing.datamodels.schemas.generated.ca_biositing import *
 # Import Base for target metadata

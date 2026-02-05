@@ -1,4 +1,5 @@
 from ...database import Base
+from sqlalchemy import text, Index
 
 
 from sqlalchemy import Column, Index, Table, ForeignKey
@@ -14,8 +15,9 @@ class BaseEntity(Base):
     Base entity included in all main entity tables.
     """
     __tablename__ = 'base_entity'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -35,8 +37,9 @@ class LookupBase(Base):
     Base class for enum/ontology-like tables.
     """
     __tablename__ = 'lookup_base'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -55,8 +58,9 @@ class ExperimentAnalysis(Base):
     Link between Experiment and AnalysisType.
     """
     __tablename__ = 'experiment_analysis'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     analysis_type_id = Column(Integer(), ForeignKey('analysis_type.id'))
 
@@ -74,8 +78,9 @@ class ExperimentEquipment(Base):
     Link between Experiment and Equipment.
     """
     __tablename__ = 'experiment_equipment'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     equipment_id = Column(Integer(), ForeignKey('equipment.id'))
 
@@ -93,8 +98,9 @@ class ExperimentMethod(Base):
     Link between Experiment and Method.
     """
     __tablename__ = 'experiment_method'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     method_id = Column(Integer(), ForeignKey('method.id'))
 
@@ -112,8 +118,9 @@ class ExperimentPreparedSample(Base):
     Link between Experiment and PreparedSample.
     """
     __tablename__ = 'experiment_prepared_sample'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     prepared_sample_id = Column(Integer(), ForeignKey('prepared_sample.id'))
 
@@ -131,6 +138,7 @@ class Place(Base):
     Geographic location.
     """
     __tablename__ = 'place'
+    __table_args__ = {'extend_existing': True}
 
     geoid = Column(Text(), primary_key=True, nullable=False )
     state_name = Column(Text())
@@ -154,6 +162,7 @@ class InfrastructureBiodieselPlants(Base):
     Biodiesel plants infrastructure.
     """
     __tablename__ = 'infrastructure_biodiesel_plants'
+    __table_args__ = {'extend_existing': True}
 
     biodiesel_plant_id = Column(Integer(), primary_key=True, nullable=False )
     company = Column(Text())
@@ -183,6 +192,7 @@ class InfrastructureBiosolidsFacilities(Base):
     Biosolids facilities infrastructure.
     """
     __tablename__ = 'infrastructure_biosolids_facilities'
+    __table_args__ = {'extend_existing': True}
 
     biosolid_facility_id = Column(Integer(), primary_key=True, nullable=False )
     report_submitted_date = Column(Date())
@@ -241,6 +251,7 @@ class InfrastructureCafoManureLocations(Base):
     CAFO manure locations infrastructure.
     """
     __tablename__ = 'infrastructure_cafo_manure_locations'
+    __table_args__ = {'extend_existing': True}
 
     cafo_manure_id = Column(Integer(), primary_key=True, nullable=False )
     latitude = Column(Numeric())
@@ -273,6 +284,7 @@ class InfrastructureCombustionPlants(Base):
     Combustion plants infrastructure.
     """
     __tablename__ = 'infrastructure_combustion_plants'
+    __table_args__ = {'extend_existing': True}
 
     combustion_fid = Column(Integer(), primary_key=True, nullable=False )
     objectid = Column(Integer())
@@ -306,6 +318,7 @@ class InfrastructureDistrictEnergySystems(Base):
     District energy systems infrastructure.
     """
     __tablename__ = 'infrastructure_district_energy_systems'
+    __table_args__ = {'extend_existing': True}
 
     des_fid = Column(Integer(), primary_key=True, nullable=False )
     cbg_id = Column(Integer())
@@ -343,6 +356,7 @@ class InfrastructureEthanolBiorefineries(Base):
     Ethanol biorefineries infrastructure.
     """
     __tablename__ = 'infrastructure_ethanol_biorefineries'
+    __table_args__ = {'extend_existing': True}
 
     ethanol_biorefinery_id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -368,6 +382,7 @@ class InfrastructureFoodProcessingFacilities(Base):
     Food processing facilities infrastructure.
     """
     __tablename__ = 'infrastructure_food_processing_facilities'
+    __table_args__ = {'extend_existing': True}
 
     processing_facility_id = Column(Integer(), primary_key=True, nullable=False )
     address = Column(Text())
@@ -401,6 +416,7 @@ class InfrastructureLandfills(Base):
     Landfills infrastructure.
     """
     __tablename__ = 'infrastructure_landfills'
+    __table_args__ = {'extend_existing': True}
 
     project_id = Column(Text(), primary_key=True, nullable=False )
     project_int_id = Column(Integer())
@@ -451,6 +467,7 @@ class InfrastructureLivestockAnaerobicDigesters(Base):
     Livestock anaerobic digesters infrastructure.
     """
     __tablename__ = 'infrastructure_livestock_anaerobic_digesters'
+    __table_args__ = {'extend_existing': True}
 
     digester_id = Column(Integer(), primary_key=True, nullable=False )
     project_name = Column(Text())
@@ -490,6 +507,7 @@ class InfrastructureMswToEnergyAnaerobicDigesters(Base):
     MSW to energy anaerobic digesters infrastructure.
     """
     __tablename__ = 'infrastructure_msw_to_energy_anaerobic_digesters'
+    __table_args__ = {'extend_existing': True}
 
     wte_id = Column(Integer(), primary_key=True, nullable=False )
     city = Column(Text())
@@ -522,6 +540,7 @@ class InfrastructureSafAndRenewableDieselPlants(Base):
     SAF and renewable diesel plants infrastructure.
     """
     __tablename__ = 'infrastructure_saf_and_renewable_diesel_plants'
+    __table_args__ = {'extend_existing': True}
 
     ibcc_index = Column(Integer(), primary_key=True, nullable=False )
     company = Column(Text())
@@ -551,6 +570,7 @@ class InfrastructureWastewaterTreatmentPlants(Base):
     Wastewater treatment plants infrastructure.
     """
     __tablename__ = 'infrastructure_wastewater_treatment_plants'
+    __table_args__ = {'extend_existing': True}
 
     plant_id = Column(Integer(), primary_key=True, nullable=False )
     name = Column(Text())
@@ -597,8 +617,9 @@ class LineageGroup(Base):
     Grouping for lineage information.
     """
     __tablename__ = 'lineage_group'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
     note = Column(Text())
 
@@ -616,8 +637,9 @@ class EntityLineage(Base):
     Lineage information for a specific entity.
     """
     __tablename__ = 'entity_lineage'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     lineage_group_id = Column(Integer())
     source_table = Column(Text())
     source_row_id = Column(Text())
@@ -637,8 +659,9 @@ class EtlRun(Base):
     Information about an ETL run.
     """
     __tablename__ = 'etl_run'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     run_id = Column(Text())
     started_at = Column(DateTime())
     completed_at = Column(DateTime())
@@ -661,8 +684,9 @@ class ParameterCategoryParameter(Base):
     Link between Parameter and ParameterCategory.
     """
     __tablename__ = 'parameter_category_parameter'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     parameter_category_id = Column(Integer(), ForeignKey('parameter_category.id'))
 
@@ -680,8 +704,9 @@ class ParameterUnit(Base):
     Link between Parameter and Unit (alternate units).
     """
     __tablename__ = 'parameter_unit'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
     alternate_unit_id = Column(Integer(), ForeignKey('unit.id'))
 
@@ -699,8 +724,9 @@ class ResourceMorphology(Base):
     Morphology of a resource.
     """
     __tablename__ = 'resource_morphology'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     resource_id = Column(Integer(), ForeignKey('resource.id'))
     morphology_uri = Column(Text())
 
@@ -718,6 +744,7 @@ class DataSource(BaseEntity):
     Source of data.
     """
     __tablename__ = 'data_source'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     description = Column(Text())
@@ -739,7 +766,7 @@ class DataSource(BaseEntity):
     license = Column(Text())
     uri = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -764,9 +791,10 @@ class DataSourceType(BaseEntity):
     Type of data source (e.g. database, literature).
     """
     __tablename__ = 'data_source_type'
+    __table_args__ = {'extend_existing': True}
 
     source_type_id = Column(Integer(), ForeignKey('source_type.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -791,6 +819,7 @@ class FileObjectMetadata(BaseEntity):
     Metadata for a file object.
     """
     __tablename__ = 'file_object_metadata'
+    __table_args__ = {'extend_existing': True}
 
     data_source_id = Column(Integer(), ForeignKey('data_source.id'))
     bucket_path = Column(Text())
@@ -798,7 +827,7 @@ class FileObjectMetadata(BaseEntity):
     file_size = Column(Integer())
     checksum_md5 = Column(Text())
     checksum_sha256 = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -823,8 +852,9 @@ class LocationResolution(LookupBase):
     Resolution of the location (e.g. nation, state, county).
     """
     __tablename__ = 'location_resolution'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -848,8 +878,9 @@ class SourceType(LookupBase):
     Type of source (e.g. database, literature).
     """
     __tablename__ = 'source_type'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -873,9 +904,10 @@ class Equipment(LookupBase):
     Equipment used in experiments.
     """
     __tablename__ = 'equipment'
+    __table_args__ = {'extend_existing': True}
 
     equipment_location_id = Column(Integer(), ForeignKey('location_address.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -899,6 +931,7 @@ class Experiment(BaseEntity):
     Experiment definition.
     """
     __tablename__ = 'experiment'
+    __table_args__ = {'extend_existing': True}
 
     analyst_id = Column(Integer(), ForeignKey('contact.id'))
     exper_start_date = Column(Date())
@@ -906,7 +939,7 @@ class Experiment(BaseEntity):
     exper_duration_unit_id = Column(Integer(), ForeignKey('unit.id'))
     exper_location_id = Column(Integer(), ForeignKey('location_address.id'))
     description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -931,8 +964,9 @@ class AnalysisType(LookupBase):
     Type of analysis.
     """
     __tablename__ = 'analysis_type'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -956,6 +990,7 @@ class Method(BaseEntity):
     method.
     """
     __tablename__ = 'method'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     method_abbrev_id = Column(Integer(), ForeignKey('method_abbrev.id'))
@@ -964,7 +999,7 @@ class Method(BaseEntity):
     description = Column(Text())
     detection_limits = Column(Text())
     source_id = Column(Integer(), ForeignKey('data_source.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -989,6 +1024,7 @@ class PreparedSample(BaseEntity):
     Sample that has been prepared.
     """
     __tablename__ = 'prepared_sample'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
@@ -996,7 +1032,7 @@ class PreparedSample(BaseEntity):
     prep_date = Column(Date())
     preparer_id = Column(Integer(), ForeignKey('contact.id'))
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1021,13 +1057,14 @@ class Resource(BaseEntity):
     Biomass resource definition.
     """
     __tablename__ = 'resource'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
     resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
     resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1052,8 +1089,9 @@ class ResourceSubclass(LookupBase):
     Sub-classification of resources.
     """
     __tablename__ = 'resource_subclass'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1077,8 +1115,9 @@ class Unit(LookupBase):
     Unit of measurement.
     """
     __tablename__ = 'unit'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1102,6 +1141,7 @@ class BillionTon2023Record(BaseEntity):
     Billion Ton 2023 record.
     """
     __tablename__ = 'billion_ton2023_record'
+    __table_args__ = {'extend_existing': True}
 
     subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -1117,7 +1157,7 @@ class BillionTon2023Record(BaseEntity):
     energy_content_unit_id = Column(Integer(), ForeignKey('unit.id'))
     product_density_dtpersqmi = Column(Numeric())
     land_source = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1142,6 +1182,7 @@ class Dataset(BaseEntity):
     Dataset definition.
     """
     __tablename__ = 'dataset'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     record_type = Column(Text())
@@ -1149,7 +1190,7 @@ class Dataset(BaseEntity):
     start_date = Column(Date())
     end_date = Column(Date())
     description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1174,11 +1215,15 @@ class Polygon(BaseEntity):
     Geospatial polygon.
     """
     __tablename__ = 'polygon'
+    __table_args__ = (
+        Index('unique_geom_dataset_md5', text('md5(geom)'), 'dataset_id', unique=True),
+        {'extend_existing': True}
+    )
 
     geoid = Column(Text())
     geom = Column(Text())
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1203,8 +1248,9 @@ class PrimaryAgProduct(LookupBase):
     Primary agricultural product definition.
     """
     __tablename__ = 'primary_ag_product'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1228,8 +1274,9 @@ class LandiqRecord(BaseEntity):
     LandIQ record.
     """
     __tablename__ = 'landiq_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False )
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     polygon_id = Column(Integer(), ForeignKey('polygon.id'))
     main_crop = Column(Integer(), ForeignKey('primary_ag_product.id'))
@@ -1239,13 +1286,14 @@ class LandiqRecord(BaseEntity):
     confidence = Column(Integer())
     irrigated = Column(Boolean())
     acres = Column(Float())
+    county = Column(Text())
     version = Column(Text())
     note = Column(Text())
     pct1 = Column(Float())
     pct2 = Column(Float())
     pct3 = Column(Float())
     pct4 = Column(Float())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1253,7 +1301,7 @@ class LandiqRecord(BaseEntity):
 
 
     def __repr__(self):
-        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},version={self.version},note={self.note},pct1={self.pct1},pct2={self.pct2},pct3={self.pct3},pct4={self.pct4},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LandiqRecord(record_id={self.record_id},dataset_id={self.dataset_id},polygon_id={self.polygon_id},main_crop={self.main_crop},secondary_crop={self.secondary_crop},tertiary_crop={self.tertiary_crop},quaternary_crop={self.quaternary_crop},confidence={self.confidence},irrigated={self.irrigated},acres={self.acres},county={self.county},version={self.version},note={self.note},pct1={self.pct1},pct2={self.pct2},pct3={self.pct3},pct4={self.pct4},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1270,11 +1318,12 @@ class UsdaCommodity(LookupBase):
     USDA commodity.
     """
     __tablename__ = 'usda_commodity'
+    __table_args__ = {'extend_existing': True}
 
     usda_source = Column(Text())
     usda_code = Column(Text())
     parent_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1298,13 +1347,14 @@ class ResourceUsdaCommodityMap(BaseEntity):
     Mapping between resources/crops and USDA commodities.
     """
     __tablename__ = 'resource_usda_commodity_map'
+    __table_args__ = {'extend_existing': True}
 
     resource_id = Column(Integer(), ForeignKey('resource.id'))
     primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
     usda_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     match_tier = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1329,6 +1379,7 @@ class UsdaCensusRecord(BaseEntity):
     USDA census record.
     """
     __tablename__ = 'usda_census_record'
+    __table_args__ = {'extend_existing': True}
 
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     geoid = Column(Text())
@@ -1336,7 +1387,7 @@ class UsdaCensusRecord(BaseEntity):
     year = Column(Integer())
     source_reference = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1361,8 +1412,9 @@ class UsdaDomain(LookupBase):
     USDA domain.
     """
     __tablename__ = 'usda_domain'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1386,6 +1438,7 @@ class UsdaMarketReport(BaseEntity):
     USDA market report.
     """
     __tablename__ = 'usda_market_report'
+    __table_args__ = {'extend_existing': True}
 
     slug_id = Column(Integer())
     slug_name = Column(Text())
@@ -1395,7 +1448,7 @@ class UsdaMarketReport(BaseEntity):
     office_city_id = Column(Integer(), ForeignKey('location_address.id'))
     office_state_fips = Column(Text())
     source_id = Column(Integer(), ForeignKey('data_source.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1420,6 +1473,7 @@ class UsdaMarketRecord(BaseEntity):
     USDA market record.
     """
     __tablename__ = 'usda_market_record'
+    __table_args__ = {'extend_existing': True}
 
     report_id = Column(Integer(), ForeignKey('usda_market_report.id'))
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
@@ -1441,7 +1495,7 @@ class UsdaMarketRecord(BaseEntity):
     price_unit_id = Column(Integer(), ForeignKey('unit.id'))
     freight = Column(Text())
     trans_mode = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1466,6 +1520,7 @@ class LocationAddress(BaseEntity):
     Physical address.
     """
     __tablename__ = 'location_address'
+    __table_args__ = {'extend_existing': True}
 
     geography_id = Column(Text(), ForeignKey('place.geoid'))
     address_line1 = Column(Text())
@@ -1475,7 +1530,7 @@ class LocationAddress(BaseEntity):
     lat = Column(Float())
     lon = Column(Float())
     is_anonymous = Column(Boolean())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1500,8 +1555,9 @@ class UsdaStatisticCategory(LookupBase):
     USDA statistic category.
     """
     __tablename__ = 'usda_statistic_category'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1525,8 +1581,9 @@ class UsdaSurveyProgram(LookupBase):
     USDA survey program.
     """
     __tablename__ = 'usda_survey_program'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1550,6 +1607,7 @@ class UsdaSurveyRecord(BaseEntity):
     USDA survey record.
     """
     __tablename__ = 'usda_survey_record'
+    __table_args__ = {'extend_existing': True}
 
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     geoid = Column(Text())
@@ -1560,7 +1618,7 @@ class UsdaSurveyRecord(BaseEntity):
     reference_month = Column(Text())
     seasonal_flag = Column(Boolean())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1585,6 +1643,7 @@ class UsdaTermMap(BaseEntity):
     Mapping of raw terms to USDA commodities.
     """
     __tablename__ = 'usda_term_map'
+    __table_args__ = {'extend_existing': True}
 
     source_system = Column(Text())
     source_context = Column(Text())
@@ -1592,7 +1651,7 @@ class UsdaTermMap(BaseEntity):
     usda_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
     is_verified = Column(Boolean())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1617,8 +1676,9 @@ class AgTreatment(LookupBase):
     Agricultural treatment.
     """
     __tablename__ = 'ag_treatment'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1642,8 +1702,9 @@ class CollectionMethod(LookupBase):
     Method of collection.
     """
     __tablename__ = 'collection_method'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1667,6 +1728,7 @@ class FieldSample(BaseEntity):
     Sample collected from the field.
     """
     __tablename__ = 'field_sample'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -1686,7 +1748,7 @@ class FieldSample(BaseEntity):
     harvest_date = Column(Date())
     field_sample_storage_location_id = Column(Integer(), ForeignKey('location_address.id'))
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1711,8 +1773,9 @@ class ProcessingMethod(LookupBase):
     Method of processing.
     """
     __tablename__ = 'processing_method'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1736,13 +1799,14 @@ class FieldSampleCondition(BaseEntity):
     Condition of the field sample.
     """
     __tablename__ = 'field_sample_condition'
+    __table_args__ = {'extend_existing': True}
 
     field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
     ag_treatment_id = Column(Integer(), ForeignKey('ag_treatment.id'))
     last_application_date = Column(Date())
     treatment_amount_per_acre = Column(Float())
     processing_method_id = Column(Integer(), ForeignKey('processing_method.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1767,8 +1831,9 @@ class FieldStorageMethod(LookupBase):
     Method of field storage.
     """
     __tablename__ = 'field_storage_method'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1792,8 +1857,9 @@ class HarvestMethod(LookupBase):
     Method of harvest.
     """
     __tablename__ = 'harvest_method'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1817,8 +1883,9 @@ class SoilType(LookupBase):
     Type of soil.
     """
     __tablename__ = 'soil_type'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1842,10 +1909,11 @@ class LocationSoilType(BaseEntity):
     Soil type at a location.
     """
     __tablename__ = 'location_soil_type'
+    __table_args__ = {'extend_existing': True}
 
     location_id = Column(Integer(), ForeignKey('location_address.id'))
     soil_type_id = Column(Integer(), ForeignKey('soil_type.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1870,13 +1938,14 @@ class PhysicalCharacteristic(BaseEntity):
     Physical characteristics of a sample.
     """
     __tablename__ = 'physical_characteristic'
+    __table_args__ = {'extend_existing': True}
 
     field_sample_id = Column(Integer(), ForeignKey('field_sample.id'))
     particle_length = Column(Numeric())
     particle_width = Column(Numeric())
     particle_height = Column(Numeric())
     particle_unit_id = Column(Integer(), ForeignKey('unit.id'))
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1901,8 +1970,9 @@ class DimensionType(LookupBase):
     Type of dimension.
     """
     __tablename__ = 'dimension_type'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -1926,8 +1996,9 @@ class Observation(BaseEntity):
     Observation data.
     """
     __tablename__ = 'observation'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     record_type = Column(Text())
     parameter_id = Column(Integer(), ForeignKey('parameter.id'))
@@ -1937,7 +2008,7 @@ class Observation(BaseEntity):
     dimension_value = Column(Numeric())
     dimension_unit_id = Column(Integer(), ForeignKey('unit.id'))
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1962,6 +2033,7 @@ class FacilityRecord(BaseEntity):
     Facility record.
     """
     __tablename__ = 'facility_record'
+    __table_args__ = {'extend_existing': True}
 
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     facility_name = Column(Text())
@@ -1971,7 +2043,7 @@ class FacilityRecord(BaseEntity):
     operator = Column(Text())
     start_year = Column(Integer())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -1996,8 +2068,9 @@ class MethodAbbrev(LookupBase):
     Abbreviation for method.
     """
     __tablename__ = 'method_abbrev'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2021,8 +2094,9 @@ class MethodCategory(LookupBase):
     Category of method.
     """
     __tablename__ = 'method_category'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2046,8 +2120,9 @@ class MethodStandard(LookupBase):
     Standard associated with the method.
     """
     __tablename__ = 'method_standard'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2071,12 +2146,13 @@ class Parameter(BaseEntity):
     Parameter being measured.
     """
     __tablename__ = 'parameter'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     standard_unit_id = Column(Integer(), ForeignKey('unit.id'))
     calculated = Column(Boolean())
     description = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2101,8 +2177,9 @@ class ParameterCategory(LookupBase):
     Category of parameter.
     """
     __tablename__ = 'parameter_category'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2126,12 +2203,13 @@ class Contact(BaseEntity):
     Contact information for a person.
     """
     __tablename__ = 'contact'
+    __table_args__ = {'extend_existing': True}
 
     first_name = Column(Text())
     last_name = Column(Text())
     email = Column(Text())
     affiliation = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2156,9 +2234,10 @@ class Provider(BaseEntity):
     Provider information.
     """
     __tablename__ = 'provider'
+    __table_args__ = {'extend_existing': True}
 
     codename = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2183,8 +2262,9 @@ class Aim1RecordBase(BaseEntity):
 
     """
     __tablename__ = 'aim1_record_base'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2196,7 +2276,7 @@ class Aim1RecordBase(BaseEntity):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2221,8 +2301,9 @@ class Aim2RecordBase(BaseEntity):
 
     """
     __tablename__ = 'aim2_record_base'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2234,7 +2315,7 @@ class Aim2RecordBase(BaseEntity):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2259,9 +2340,10 @@ class Strain(LookupBase):
     Strain used in fermentation.
     """
     __tablename__ = 'strain'
+    __table_args__ = {'extend_existing': True}
 
     parent_strain_id = Column(Integer())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2285,6 +2367,7 @@ class ResourceAvailability(BaseEntity):
     Availability of a resource in a location.
     """
     __tablename__ = 'resource_availability'
+    __table_args__ = {'extend_existing': True}
 
     resource_id = Column(Integer(), ForeignKey('resource.id'))
     geoid = Column(Text())
@@ -2292,7 +2375,7 @@ class ResourceAvailability(BaseEntity):
     to_month = Column(Integer())
     year_round = Column(Boolean())
     note = Column(Text())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2317,8 +2400,9 @@ class ResourceClass(LookupBase):
     Classification of resources.
     """
     __tablename__ = 'resource_class'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2342,6 +2426,7 @@ class PreparationMethod(BaseEntity):
     Method of sample preparation.
     """
     __tablename__ = 'preparation_method'
+    __table_args__ = {'extend_existing': True}
 
     name = Column(Text())
     description = Column(Text())
@@ -2349,7 +2434,7 @@ class PreparationMethod(BaseEntity):
     prep_temp_c = Column(Numeric())
     uri = Column(Text())
     drying_step = Column(Boolean())
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2374,8 +2459,9 @@ class PreparationMethodAbbreviation(LookupBase):
     Abbreviation for preparation method.
     """
     __tablename__ = 'preparation_method_abbreviation'
+    __table_args__ = {'extend_existing': True}
 
-    id = Column(Integer(), primary_key=True, nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
     uri = Column(Text())
@@ -2399,8 +2485,9 @@ class ProximateRecord(Aim1RecordBase):
     Proximate analysis record.
     """
     __tablename__ = 'proximate_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2412,7 +2499,7 @@ class ProximateRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2437,8 +2524,9 @@ class UltimateRecord(Aim1RecordBase):
     Ultimate analysis record.
     """
     __tablename__ = 'ultimate_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2450,7 +2538,7 @@ class UltimateRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2475,8 +2563,9 @@ class CompositionalRecord(Aim1RecordBase):
     Compositional analysis record.
     """
     __tablename__ = 'compositional_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2488,7 +2577,7 @@ class CompositionalRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2513,8 +2602,9 @@ class IcpRecord(Aim1RecordBase):
     ICP analysis record.
     """
     __tablename__ = 'icp_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2526,7 +2616,7 @@ class IcpRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2551,12 +2641,13 @@ class XrfRecord(Aim1RecordBase):
     XRF analysis record.
     """
     __tablename__ = 'xrf_record'
+    __table_args__ = {'extend_existing': True}
 
     wavelength_nm = Column(Numeric())
     intensity = Column(Numeric())
     energy_slope = Column(Numeric())
     energy_offset = Column(Numeric())
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2568,7 +2659,7 @@ class XrfRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2593,10 +2684,11 @@ class XrdRecord(Aim1RecordBase):
     XRD analysis record.
     """
     __tablename__ = 'xrd_record'
+    __table_args__ = {'extend_existing': True}
 
     scan_low_nm = Column(Integer())
     scan_high_nm = Column(Integer())
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2608,7 +2700,7 @@ class XrdRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2633,8 +2725,9 @@ class CalorimetryRecord(Aim1RecordBase):
     Calorimetry analysis record.
     """
     __tablename__ = 'calorimetry_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2646,7 +2739,7 @@ class CalorimetryRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2671,8 +2764,9 @@ class FtnirRecord(Aim1RecordBase):
     FT-NIR analysis record.
     """
     __tablename__ = 'ftnir_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2684,7 +2778,7 @@ class FtnirRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2709,8 +2803,9 @@ class RgbRecord(Aim1RecordBase):
     RGB analysis record.
     """
     __tablename__ = 'rgb_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2722,7 +2817,7 @@ class RgbRecord(Aim1RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2747,6 +2842,7 @@ class PretreatmentRecord(Aim2RecordBase):
     Pretreatment record.
     """
     __tablename__ = 'pretreatment_record'
+    __table_args__ = {'extend_existing': True}
 
     pretreatment_method_id = Column(Integer())
     eh_method_id = Column(Integer())
@@ -2754,7 +2850,7 @@ class PretreatmentRecord(Aim2RecordBase):
     block_position = Column(Text())
     temperature = Column(Numeric())
     replicate_no = Column(Integer())
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2766,7 +2862,7 @@ class PretreatmentRecord(Aim2RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2791,6 +2887,7 @@ class FermentationRecord(Aim2RecordBase):
     Fermentation record.
     """
     __tablename__ = 'fermentation_record'
+    __table_args__ = {'extend_existing': True}
 
     strain_id = Column(Integer())
     pretreatment_method_id = Column(Integer())
@@ -2800,7 +2897,7 @@ class FermentationRecord(Aim2RecordBase):
     agitation_rpm = Column(Numeric())
     vessel_id = Column(Integer())
     analyte_detection_equipment_id = Column(Integer())
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2812,7 +2909,7 @@ class FermentationRecord(Aim2RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2837,11 +2934,12 @@ class GasificationRecord(Aim2RecordBase):
     Gasification record.
     """
     __tablename__ = 'gasification_record'
+    __table_args__ = {'extend_existing': True}
 
     feedstock_mass = Column(Numeric())
     bed_temperature = Column(Numeric())
     gas_flow_rate = Column(Numeric())
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2853,7 +2951,7 @@ class GasificationRecord(Aim2RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
@@ -2878,8 +2976,9 @@ class AutoclaveRecord(Aim2RecordBase):
     Autoclave record.
     """
     __tablename__ = 'autoclave_record'
+    __table_args__ = {'extend_existing': True}
 
-    record_id = Column(Text(), primary_key=True, nullable=False , unique=True)
+    record_id = Column(Text(), nullable=False, unique=True)
     dataset_id = Column(Integer(), ForeignKey('dataset.id'))
     experiment_id = Column(Integer(), ForeignKey('experiment.id'))
     resource_id = Column(Integer(), ForeignKey('resource.id'))
@@ -2891,7 +2990,7 @@ class AutoclaveRecord(Aim2RecordBase):
     raw_data_id = Column(Integer(), ForeignKey('file_object_metadata.id'))
     qc_pass = Column(Text())
     note = Column(Text())
-    id = Column(Integer(), nullable=False )
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
     etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
