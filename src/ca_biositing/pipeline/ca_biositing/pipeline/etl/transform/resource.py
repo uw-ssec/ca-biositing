@@ -17,7 +17,7 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 # --- CONFIGURATION ---
 # List the names of the extract modules this transform depends on.
 # The pipeline runner provides these in the `data_sources` dictionary.
-EXTRACT_SOURCES: List[str] = ["basic_sample_info"]
+EXTRACT_SOURCES: List[str] = ["resources"]
 
 @task
 def transform(
@@ -102,6 +102,7 @@ def transform(
     # TODO: Update this dictionary to match your source-to-target mapping
     rename_columns = {
         'resource': 'name'
+
         # 'source_col': 'target_col',
     }
     normalized_df = normalized_df.rename(columns=rename_columns)
@@ -132,6 +133,8 @@ def transform(
             'primary_ag_product_id',
             'resource_class_id',
             'resource_subclass_id',
+            'description',
+            'resource_code'
             'note',
             # Add other columns here...
             'etl_run_id',

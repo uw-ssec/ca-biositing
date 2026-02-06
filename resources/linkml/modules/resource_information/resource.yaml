@@ -19,7 +19,8 @@ classes:
       - primary_ag_product_id
       - resource_class_id
       - resource_subclass_id
-      - note
+      - resource_code
+      - description
 
 slots:
   name:
@@ -39,9 +40,13 @@ slots:
     range: ResourceSubclass
     description: Reference to ResourceSubclass.
 
-  note:
+  resource_code:
     range: string
-    description: Additional notes about the resource.
+    description: Short code for the resource.
+
+  description:
+    range: string
+    description: Description of the resource.
 
   #test:
   # range: string

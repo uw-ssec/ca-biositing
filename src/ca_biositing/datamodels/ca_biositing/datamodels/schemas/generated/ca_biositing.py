@@ -1063,7 +1063,8 @@ class Resource(BaseEntity):
     primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
     resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
     resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
-    note = Column(Text())
+    resource_code = Column(Text())
+    description = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1072,7 +1073,7 @@ class Resource(BaseEntity):
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},resource_code={self.resource_code},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2205,6 +2206,7 @@ class Contact(BaseEntity):
     __tablename__ = 'contact'
     __table_args__ = {'extend_existing': True}
 
+    name = Column(Text())
     first_name = Column(Text())
     last_name = Column(Text())
     email = Column(Text())
@@ -2217,7 +2219,7 @@ class Contact(BaseEntity):
 
 
     def __repr__(self):
-        return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Contact(name={self.name},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
