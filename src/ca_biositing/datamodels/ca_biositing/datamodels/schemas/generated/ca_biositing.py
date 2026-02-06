@@ -1322,7 +1322,9 @@ class UsdaCommodity(LookupBase):
 
     usda_source = Column(Text())
     usda_code = Column(Text())
-    parent_commodity_id = Column(Integer(), ForeignKey('usda_commodity.id'))
+    api_name = Column(Text())
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     name = Column(Text())
     description = Column(Text())
@@ -1330,7 +1332,7 @@ class UsdaCommodity(LookupBase):
 
 
     def __repr__(self):
-        return f"UsdaCommodity(usda_source={self.usda_source},usda_code={self.usda_code},parent_commodity_id={self.parent_commodity_id},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
+        return f"UsdaCommodity(usda_source={self.usda_source},usda_code={self.usda_code},api_name={self.api_name},created_at={self.created_at},updated_at={self.updated_at},id={self.id},name={self.name},description={self.description},uri={self.uri},)"
 
 
 

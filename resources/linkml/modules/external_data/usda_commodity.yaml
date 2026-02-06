@@ -14,7 +14,9 @@ classes:
     slots:
       - usda_source
       - usda_code
-      - parent_commodity_id
+      - api_name
+      - created_at
+      - updated_at
 
 slots:
   usda_source:
@@ -25,6 +27,15 @@ slots:
     range: string
     description: Official USDA code.
 
-  parent_commodity_id:
-    range: UsdaCommodity
-    description: Reference to parent UsdaCommodity.
+  api_name:
+    range: string
+    description:
+      Official API commodity name for USDA NASS QuickStats API queries.
+
+  created_at:
+    range: datetime
+    description: Timestamp when the commodity record was created.
+
+  updated_at:
+    range: datetime
+    description: Timestamp when the commodity record was last updated.
