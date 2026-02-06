@@ -901,7 +901,7 @@ class SourceType(LookupBase):
 
 class Equipment(LookupBase):
     """
-    Provider information.
+    Equipment used in experiments.
     """
     __tablename__ = 'equipment'
     __table_args__ = {'extend_existing': True}
@@ -1165,7 +1165,7 @@ class BillionTon2023Record(BaseEntity):
 
 
     def __repr__(self):
-        return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},tileset_id={self.tileset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"BillionTon2023Record(subclass_id={self.subclass_id},resource_id={self.resource_id},geoid={self.geoid},county_square_miles={self.county_square_miles},model_name={self.model_name},scenario_name={self.scenario_name},price_offered_usd={self.price_offered_usd},production={self.production},production_unit_id={self.production_unit_id},btu_ton={self.btu_ton},production_energy_content={self.production_energy_content},energy_content_unit_id={self.energy_content_unit_id},product_density_dtpersqmi={self.product_density_dtpersqmi},land_source={self.land_source},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1407,9 +1407,9 @@ class UsdaCensusRecord(BaseEntity):
 
 
 
-class ResourceAvailability(BaseEntity):
+class UsdaDomain(LookupBase):
     """
-    Availability of a resource in a location.
+    USDA domain.
     """
     __tablename__ = 'usda_domain'
     __table_args__ = {'extend_existing': True}
@@ -1523,12 +1523,10 @@ class LocationAddress(BaseEntity):
     __table_args__ = {'extend_existing': True}
 
     geography_id = Column(Text(), ForeignKey('place.geoid'))
-    full_address = Column(Text())
     address_line1 = Column(Text())
     address_line2 = Column(Text())
     city = Column(Text())
     zip = Column(Text())
-    county = Column(Text())
     lat = Column(Float())
     lon = Column(Float())
     is_anonymous = Column(Boolean())
@@ -1540,7 +1538,7 @@ class LocationAddress(BaseEntity):
 
 
     def __repr__(self):
-        return f"LocationAddress(geography_id={self.geography_id},full_address={self.full_address},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},county={self.county},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"LocationAddress(geography_id={self.geography_id},address_line1={self.address_line1},address_line2={self.address_line2},city={self.city},zip={self.zip},lat={self.lat},lon={self.lon},is_anonymous={self.is_anonymous},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1606,7 +1604,7 @@ class UsdaSurveyProgram(LookupBase):
 
 class UsdaSurveyRecord(BaseEntity):
     """
-    Classification of resources.
+    USDA survey record.
     """
     __tablename__ = 'usda_survey_record'
     __table_args__ = {'extend_existing': True}
@@ -1642,7 +1640,7 @@ class UsdaSurveyRecord(BaseEntity):
 
 class UsdaTermMap(BaseEntity):
     """
-    Method of sample preparation.
+    Mapping of raw terms to USDA commodities.
     """
     __tablename__ = 'usda_term_map'
     __table_args__ = {'extend_existing': True}
@@ -1661,7 +1659,7 @@ class UsdaTermMap(BaseEntity):
 
 
     def __repr__(self):
-        return f"PreparationMethod(name={self.name},description={self.description},prep_method_abbrev_id={self.prep_method_abbrev_id},prep_temp_c={self.prep_temp_c},uri={self.uri},drying_step={self.drying_step},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"UsdaTermMap(source_system={self.source_system},source_context={self.source_context},raw_term={self.raw_term},usda_commodity_id={self.usda_commodity_id},is_verified={self.is_verified},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2030,37 +2028,6 @@ class Observation(BaseEntity):
 
 
 
-class TilesetTracking(BaseEntity):
-    """
-    Metadata for tracking generated tilesets and their export status.
-    """
-    __tablename__ = 'tileset_tracking'
-
-    name = Column(Text())
-    tileset_type = Column(Text())
-    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
-    last_cut = Column(DateTime())
-    data_size_mb = Column(Float())
-    id = Column(Integer(), primary_key=True, nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"TilesetTracking(name={self.name},tileset_type={self.tileset_type},dataset_id={self.dataset_id},last_cut={self.last_cut},data_size_mb={self.data_size_mb},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
 class FacilityRecord(BaseEntity):
     """
     Facility record.
@@ -2084,7 +2051,7 @@ class FacilityRecord(BaseEntity):
 
 
     def __repr__(self):
-        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},tileset_id={self.tileset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2238,7 +2205,8 @@ class Contact(BaseEntity):
     __tablename__ = 'contact'
     __table_args__ = {'extend_existing': True}
 
-    name = Column(Text())
+    first_name = Column(Text())
+    last_name = Column(Text())
     email = Column(Text())
     affiliation = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
@@ -2249,7 +2217,7 @@ class Contact(BaseEntity):
 
 
     def __repr__(self):
-        return f"Contact(name={self.name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2277,7 +2245,7 @@ class Provider(BaseEntity):
 
 
     def __repr__(self):
-        return f"Provider(codename={self.codename},type={self.type},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Provider(codename={self.codename},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2501,40 +2469,6 @@ class PreparationMethodAbbreviation(LookupBase):
 
     def __repr__(self):
         return f"PreparationMethodAbbreviation(id={self.id},name={self.name},description={self.description},uri={self.uri},)"
-
-
-
-
-    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
-    __mapper_args__ = {
-        'concrete': True
-    }
-
-
-
-class FacilityRecord(BaseEntity):
-    """
-    Facility record.
-    """
-    __tablename__ = 'facility_record'
-
-    dataset_id = Column(Integer())
-    facility_name = Column(Text())
-    location_id = Column(Integer())
-    capacity_mw = Column(Numeric())
-    resource_id = Column(Integer())
-    operator = Column(Text())
-    start_year = Column(Integer())
-    note = Column(Text())
-    id = Column(Integer(), nullable=False )
-    created_at = Column(DateTime())
-    updated_at = Column(DateTime())
-    etl_run_id = Column(Text())
-    lineage_group_id = Column(Integer())
-
-
-    def __repr__(self):
-        return f"FacilityRecord(dataset_id={self.dataset_id},facility_name={self.facility_name},location_id={self.location_id},capacity_mw={self.capacity_mw},resource_id={self.resource_id},operator={self.operator},start_year={self.start_year},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
