@@ -3,6 +3,8 @@ import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
+from alembic import autogenerate
+from alembic.operations import ops
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -38,6 +40,42 @@ if config.config_file_name is not None:
 
 # Set target metadata for autogenerate support
 target_metadata = Base.metadata
+
+writer = autogenerate.rewriter.Rewriter()
+
+@writer.rewrites(ops.CreateTableOp)
+def create_view(context, revision, op):
+    """
+    Check if the table is marked as a materialized view in its info dict.
+    If so, replace the CreateTable operation with a custom SQL execution.
+    """
+    table_info = op.info
+    if table_info and table_info.get('is_materialized_view'):
+        schema = op.schema
+        name = op.table_name
+        full_name = f"{schema}.{name}" if schema else name
+        sql_definition = table_info.get('sql_definition')
+
+        if sql_definition:
+            return ops.ExecuteSQLOp(
+                f"CREATE MATERIALIZED VIEW {full_name} AS {sql_definition}"
+            )
+    return op
+
+# We also need to handle drops
+@writer.rewrites(ops.DropTableOp)
+def drop_view(context, revision, op):
+    """
+    Handle dropping materialized views.
+    Since we don't easily have the 'info' dict on a DropTableOp for a reflected table,
+    we can check if it belongs to the ca_biositing schema or follows a naming convention.
+    For now, let's assume anything in ca_biositing schema that was handled as a view
+    should be dropped as one.
+    """
+    if op.schema == 'ca_biositing':
+        full_name = f"{op.schema}.{op.table_name}"
+        return ops.ExecuteSQLOp(f"DROP MATERIALIZED VIEW IF EXISTS {full_name}")
+    return op
 
 
 def include_object(obj, name, type_, reflected, compare_to):
@@ -112,6 +150,7 @@ def run_migrations_offline() -> None:
         dialect_opts={"paramstyle": "named"},
         render_item=render_item,
         include_object=include_object,
+        process_revision_directives=writer,
     )
 
     with context.begin_transaction():
@@ -141,6 +180,7 @@ def run_migrations_online() -> None:
             target_metadata=target_metadata,
             render_item=render_item,
             include_object=include_object,
+            process_revision_directives=writer,
         )
 
         with context.begin_transaction():

@@ -2366,6 +2366,41 @@ class Aim2RecordBase(BaseEntity):
 
 
 
+class LandiqRecordView(BaseEntity):
+    """
+    Denormalized LandIQ records with geometry.
+    """
+    __tablename__ = 'landiq_record_view'
+    __table_args__ = {'extend_existing': True}
+
+    record_id = Column(Text())
+    geom = Column(Text())
+    geoid = Column(Text())
+    crop_name = Column(Text())
+    acres = Column(Float())
+    irrigated = Column(Boolean())
+    confidence = Column(Integer())
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LandiqRecordView(record_id={self.record_id},geom={self.geom},geoid={self.geoid},crop_name={self.crop_name},acres={self.acres},irrigated={self.irrigated},confidence={self.confidence},dataset_id={self.dataset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class Strain(LookupBase):
     """
     Strain used in fermentation.

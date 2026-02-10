@@ -48,6 +48,7 @@ def test_load_resource_availability(mock_session_class, mock_get_engine):
         "to_month": [12, 12],
         "residue_factor_dry_tons_acre": [0.5, 1.2],
         "residue_factor_wet_tons_acre": [0.6, 1.5],
+        "geoid": ["06000", "06000"],
         "etl_run_id": [1, 1],
         "lineage_group_id": [100, 100]
     })

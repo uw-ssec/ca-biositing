@@ -115,6 +115,9 @@ def transform_static_resource_info(
     if 'resource_id' in normalized_df.columns:
         availability_df = normalized_df[available_cols].rename(columns=availability_rename_map).copy()
 
+        # Add default geoid "06000" for state of California
+        availability_df['geoid'] = "06000"
+
         if etl_run_id:
             availability_df['etl_run_id'] = etl_run_id
         if lineage_group_id:

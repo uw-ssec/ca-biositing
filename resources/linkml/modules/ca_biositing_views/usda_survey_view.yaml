@@ -1,0 +1,66 @@
+id: https://w3id.org/ca_biositing/ca_biositing_views/usda_survey_view
+name: usda_survey_view
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../general_analysis/observation
+  - ../external_data/usda_survey_record
+  - ../external_data/usda_commodity
+  - ../methods_parameters_units/parameter
+  - ../methods_parameters_units/unit
+  - ../general_analysis/dimension_type
+
+classes:
+  UsdaSurveyView:
+    is_a: BaseEntity
+    description: Denormalized USDA Survey records.
+    annotations:
+      sql_schema: ca_biositing
+      materialized: true
+      sql_definition: >
+        SELECT
+          obs.id,
+          uc.name as usda_crop,
+          p.geoid,
+          param.name as parameter,
+          obs.value,
+          u.name as unit,
+          dt.name as dimension,
+          obs.dimension_value,
+          du.name as dimension_unit
+        FROM public.observation obs JOIN public.usda_survey_record usr ON
+        obs.record_id = usr.id::text AND obs.record_type = 'usda_survey_record'
+        JOIN public.usda_commodity uc ON usr.commodity_code = uc.id JOIN
+        public.place p ON usr.geoid = p.geoid JOIN public.parameter param ON
+        obs.parameter_id = param.id JOIN public.unit u ON obs.unit_id = u.id
+        LEFT JOIN public.dimension_type dt ON obs.dimension_type_id = dt.id LEFT
+        JOIN public.unit du ON obs.dimension_unit_id = du.id
+    slots:
+      - usda_crop
+      - geoid
+      - parameter
+      - value
+      - unit
+      - dimension
+      - dimension_value
+      - dimension_unit
+
+slots:
+  usda_crop:
+    range: string
+  geoid:
+    range: string
+  parameter:
+    range: string
+  value:
+    range: float
+  unit:
+    range: string
+  dimension:
+    range: string
+  dimension_value:
+    range: float
+  dimension_unit:
+    range: string

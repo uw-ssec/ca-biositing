@@ -1,0 +1,46 @@
+id: https://w3id.org/ca_biositing/ca_biositing_views/landiq_tileset_view
+name: landiq_tileset_view
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../external_data/landiq_record
+  - ../external_data/polygon
+
+classes:
+  LandiqTilesetView:
+    is_a: BaseEntity
+    description: Denormalized LandIQ records for tileset export.
+    annotations:
+      sql_schema: ca_biositing
+      materialized: true
+      sql_definition: >
+        SELECT
+          lr.id,
+          p.geom::geometry as geom,
+          pap.name as main_crop,
+          lr.acres,
+          lr.county,
+          p.geoid,
+          lr.dataset_id as tileset_id
+        FROM public.landiq_record lr JOIN public.polygon p ON lr.polygon_id =
+        p.id JOIN public.primary_ag_product pap ON lr.main_crop = pap.id
+    slots:
+      - main_crop
+      - acres
+      - county
+      - geoid
+      - tileset_id
+
+slots:
+  main_crop:
+    range: string
+  acres:
+    range: float
+  county:
+    range: string
+  geoid:
+    range: string
+  tileset_id:
+    range: integer
