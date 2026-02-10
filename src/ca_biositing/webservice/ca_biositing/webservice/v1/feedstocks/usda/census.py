@@ -15,14 +15,14 @@ from ca_biositing.webservice.v1.feedstocks.schemas import (
     CensusListResponse,
 )
 
-router = APIRouter(prefix="/usda/census", tags=["USDA Census"])
+router = APIRouter(prefix="/census", tags=["Census"])
 
 
 @router.get(
     "/crops/{crop}/geoid/{geoid}/parameters/{parameter}",
     response_model=CensusDataResponse,
 )
-async def get_census_data_by_crop(
+def get_census_data_by_crop(
     session: SessionDep,
     crop: str = Path(..., description="USDA crop name (e.g., CORN, SOYBEANS)"),
     geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
@@ -54,7 +54,7 @@ async def get_census_data_by_crop(
     "/resources/{resource}/geoid/{geoid}/parameters/{parameter}",
     response_model=CensusDataResponse,
 )
-async def get_census_data_by_resource(
+def get_census_data_by_resource(
     session: SessionDep,
     resource: str = Path(..., description="Resource name (e.g., corn_grain, soybean_meal)"),
     geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
@@ -88,7 +88,7 @@ async def get_census_data_by_resource(
     "/crops/{crop}/geoid/{geoid}/parameters",
     response_model=CensusListResponse,
 )
-async def list_census_data_by_crop(
+def list_census_data_by_crop(
     session: SessionDep,
     crop: str = Path(..., description="USDA crop name (e.g., CORN, SOYBEANS)"),
     geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
@@ -118,7 +118,7 @@ async def list_census_data_by_crop(
     "/resources/{resource}/geoid/{geoid}/parameters",
     response_model=CensusListResponse,
 )
-async def list_census_data_by_resource(
+def list_census_data_by_resource(
     session: SessionDep,
     resource: str = Path(..., description="Resource name (e.g., corn_grain, soybean_meal)"),
     geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),

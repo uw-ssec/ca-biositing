@@ -153,6 +153,9 @@ class UsdaCensusService:
         if parameter_name:
             stmt = stmt.where(Parameter.name == parameter_name)
 
+        # Order by observation ID for deterministic results
+        stmt = stmt.order_by(Observation.id)
+
         results = session.execute(stmt).all()
 
         observations = []

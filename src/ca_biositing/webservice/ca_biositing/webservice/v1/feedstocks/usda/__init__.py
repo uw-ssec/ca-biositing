@@ -9,6 +9,6 @@ from fastapi import APIRouter
 
 from .census import router as census_router
 
-# Create USDA router and include census endpoints
-router = APIRouter()
+# Create USDA router with hierarchical prefix
+router = APIRouter(prefix="/usda", tags=["USDA"])
 router.include_router(census_router)
