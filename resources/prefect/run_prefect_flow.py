@@ -11,6 +11,7 @@ AVAILABLE_FLOWS = {
     "samples": "ca_biositing.pipeline.flows.samples_etl.samples_etl_flow",
     #"landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
     "resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
+    "static_resource_info": "ca_biositing.pipeline.flows.static_resource_info.static_resource_info_flow",
     #"field_sample": "ca_biositing.pipeline.flows.field_sample_etl.field_sample_etl_flow",
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
 }

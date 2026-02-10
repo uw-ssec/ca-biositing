@@ -43,6 +43,7 @@ imports:
   - modules/external_data/usda_survey_program
   - modules/external_data/usda_survey_record
   - modules/external_data/usda_term_map
+  - modules/external_data/landiq_resource_mapping
   - modules/field_sampling/ag_treatment
   - modules/field_sampling/collection_method
   - modules/field_sampling/field_sample

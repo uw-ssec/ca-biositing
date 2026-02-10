@@ -1672,6 +1672,35 @@ class UsdaTermMap(BaseEntity):
 
 
 
+class LandiqResourceMapping(BaseEntity):
+    """
+    Mapping between LandIQ crop names and internal Resource IDs.
+    """
+    __tablename__ = 'landiq_resource_mapping'
+    __table_args__ = {'extend_existing': True}
+
+    landiq_crop_name = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LandiqResourceMapping(landiq_crop_name={self.landiq_crop_name},resource_id={self.resource_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class AgTreatment(LookupBase):
     """
     Agricultural treatment.
@@ -2376,6 +2405,8 @@ class ResourceAvailability(BaseEntity):
     from_month = Column(Integer())
     to_month = Column(Integer())
     year_round = Column(Boolean())
+    residue_factor_dry_tons_acre = Column(Float())
+    residue_factor_wet_tons_acre = Column(Float())
     note = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -2385,7 +2416,7 @@ class ResourceAvailability(BaseEntity):
 
 
     def __repr__(self):
-        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},residue_factor_dry_tons_acre={self.residue_factor_dry_tons_acre},residue_factor_wet_tons_acre={self.residue_factor_wet_tons_acre},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
