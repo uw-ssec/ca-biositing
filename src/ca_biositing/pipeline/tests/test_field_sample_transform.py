@@ -8,17 +8,18 @@ from sqlalchemy import Column, String, Integer
 def test_transform_field_sample(mock_normalize):
     # 1. Setup Mock Data
     metadata_raw = pd.DataFrame({
-        "Field_Sample_Name": ["Pos-Alf033", "Pos-Alf033"],
-        "Resource": ["Alfalfa", "Alfalfa"],
-        "Provider_codename": ["possessive", "possessive"],
-        "FV_Date_Time": ["6/30/2025 10:30", "6/30/2025 10:30"],
-        "Sample_TS": ["6/30/2025 10:45", "6/30/2025 10:45"],
-        "Qty": ["1", "1"],
-        "Primary_Collector": ["Ziad Nasef", "Xihui Kang"],
-        "Sample_Notes": ["Note 1", "Note 2"],
-        "Sample_Source": ["Source A", "Source B"],
-        "Prepared_Sample": ["Sample A", "Sample B"],
-        "Storage_Mode": ["Method A", "Method B"]
+        "Field_Sample_Name": ["Pos-Alf033", "Pos-Alf033", "Not-Core"],
+        "Resource": ["Alfalfa", "Alfalfa", "Alfalfa"],
+        "Provider_codename": ["possessive", "possessive", "possessive"],
+        "FV_Date_Time": ["6/30/2025 10:30", "6/30/2025 10:30", "6/30/2025 10:30"],
+        "Sample_TS": ["6/30/2025 10:45", "6/30/2025 10:45", "6/30/2025 10:45"],
+        "Qty": ["1", "1", "1"],
+        "Primary_Collector": ["Ziad Nasef", "Xihui Kang", "Someone Else"],
+        "Sample_Notes": ["Note 1", "Note 2", "Note 3"],
+        "Sample_Source": ["Source A", "Source B", "Source C"],
+        "Prepared_Sample": ["Sample A", "Sample B", "Sample C"],
+        "Storage_Mode": ["Method A", "Method B", "Method C"],
+        "Sample_Unit": ["core", "Core", "not_core"]
     })
 
     provider_raw = pd.DataFrame({
@@ -51,6 +52,8 @@ def test_transform_field_sample(mock_normalize):
     # 4. Assertions
     assert result_df is not None
     assert not result_df.empty
+    # We had 3 records in mock data, 2 with same name "Pos-Alf033"
+    # deduplication should leave us with 2 unique names: "Pos-Alf033" and "Not-Core"
     assert len(result_df) == 2
 
     # Check columns (using the rename_map names)

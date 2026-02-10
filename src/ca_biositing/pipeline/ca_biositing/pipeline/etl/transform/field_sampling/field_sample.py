@@ -76,6 +76,14 @@ def transform_field_sample(
         datetime_cols=['fv_date_time', 'sample_ts', 'prod_date', 'created_at', 'updated_at']
     )
 
+    # Handle non-unique sample names by keeping only the first occurrence
+    if 'field_sample_name' in coerced_metadata.columns:
+        initial_count = len(coerced_metadata)
+        coerced_metadata = coerced_metadata.drop_duplicates(subset=['field_sample_name'], keep='first')
+        logger.info(f"Dropped duplicate field_sample_names. Records reduced from {initial_count} to {len(coerced_metadata)}")
+    else:
+        logger.warning("Column 'field_sample_name' not found in metadata; skipping deduplication.")
+
     # Coerce provider
     coerced_provider = coercion_mod.coerce_columns(
         clean_provider,
