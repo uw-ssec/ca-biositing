@@ -149,7 +149,10 @@ def load_landiq_record(df: pd.DataFrame):
     import logging
     import sys
 
-    logger = get_run_logger()
+    try:
+        logger = get_run_logger()
+    except Exception:
+        logger = logging.getLogger(__name__)
     if df is None or df.empty:
         logger.info("No Land IQ record data to load.")
         return

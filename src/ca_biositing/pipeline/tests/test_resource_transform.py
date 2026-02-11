@@ -18,7 +18,7 @@ def test_resource_transform(mock_session, mock_engine):
         "Updated At": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-01", "2024-01-01", "2024-01-01"]
     })
 
-    data_sources = {"basic_sample_info": raw_data}
+    data_sources = {"resources": raw_data}
 
     # 2. Mock DB responses for normalization
     mock_db = MagicMock()
