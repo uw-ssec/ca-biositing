@@ -1,21 +1,46 @@
 #!/usr/bin/env python3
 """
 Test USDA API availability for our specific commodities and counties
+
+NOTE: This script queries USDA NASS API for raw commodity data availability.
+Results are NOT filtered for specific parameters (like AREA BEARING vs AREA HARVESTED)
+or units of interest. This is a broad availability check only.
 """
 
 import requests
 import time
+import os
 
-API_KEY = "A95E83AA-D37A-37D7-8365-3C77DD57CE34"
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # Manual .env loading if dotenv not available - look in project root
+    import os
+    current_dir = os.path.dirname(__file__)
+    # Navigate up to project root: tests/USDA -> pipeline -> ca_biositing -> src -> root
+    env_path = os.path.join(current_dir, '..', '..', '..', '..', '..', '..', '.env')
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                if line.strip() and not line.startswith('#') and '=' in line:
+                    key, value = line.strip().split('=', 1)
+                    os.environ[key] = value
+
+API_KEY = os.getenv('USDA_NASS_API_KEY', 'A95E83AA-D37A-37D7-8365-3C77DD57CE34')
 BASE_URL = "https://quickstats.nass.usda.gov/api/api_GET"
 
 # Our target counties (NASS codes)
 COUNTIES = ["077", "099", "047"]  # San Joaquin, Stanislaus, Merced
 
-# Our mapped API names
+# All 16 commodities mapped in our ETL pipeline
 COMMODITIES = [
-    "WHEAT", "TOMATOES", "CUCUMBERS",  # These are the 3 working ones (codes 3, 4, 222)
-    "ALMONDS", "CORN", "COTTON", "HAY", "GRAPES", "PISTACHIOS"  # Test some others
+    "WHEAT", "TOMATOES", "CUCUMBERS",  # Working commodities (codes 3, 4, 222)
+    "ALMONDS", "GRAPES", "PISTACHIOS", "WALNUTS",  # Tree nuts and grapes
+    "PEACHES", "OLIVES",  # Other fruit commodities
+    "CORN", "COTTON", "HAY",  # Field crops
+    "RICE", "OATS", "BARLEY", "SILAGE"  # Additional crops
 ]
 
 def test_commodity_in_county(commodity, county_code):
@@ -55,7 +80,9 @@ def test_commodity_in_county(commodity, county_code):
 def main():
     print(f"🔍 Testing USDA API data availability for {len(COMMODITIES)} commodities in {len(COUNTIES)} counties...")
     print(f"Counties: San Joaquin (077), Stanislaus (099), Merced (047)")
-    print()
+    print("\n⚠️  NOTE: Results show raw data availability, NOT filtered for specific")
+    print("   parameters (AREA BEARING vs AREA HARVESTED) or units of interest.")
+    print("   This is a broad availability check only.\n")
 
     results = {}
 

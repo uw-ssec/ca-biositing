@@ -2,8 +2,26 @@
 import os
 from sqlalchemy import create_engine, text
 
-db_url = os.getenv('DATABASE_URL', 'postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db')
-engine = create_engine(db_url, echo=False)
+def get_database_engine():
+    """Try to connect to database on different ports."""
+    ports = [9090, 5432]  # Try containerized port first, then default
+
+    for port in ports:
+        try:
+            db_url = f'postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:{port}/biocirv_db'
+            engine = create_engine(db_url, echo=False)
+            # Test the connection
+            with engine.connect() as conn:
+                conn.execute(text('SELECT 1'))
+            print(f"✅ Connected to database on port {port}")
+            return engine
+        except Exception as e:
+            print(f"❌ Failed to connect on port {port}: {e}")
+            continue
+
+    raise Exception("Could not connect to database on any port")
+
+engine = get_database_engine()
 
 with engine.connect() as conn:
     print("🔍 Checking what commodities are in usda_census_record...")
@@ -35,10 +53,8 @@ with engine.connect() as conn:
 
     print("\n🔧 Testing get_mapped_commodity_ids function...")
     try:
-        # Add path to find the function
-        import sys
-        sys.path.append('src/ca_biositing/pipeline/ca_biositing/pipeline/utils')
-        from fetch_mapped_commodities import get_mapped_commodity_ids
+        # Import using the proper package structure
+        from ca_biositing.pipeline.utils.fetch_mapped_commodities import get_mapped_commodity_ids
 
         api_names = get_mapped_commodity_ids(engine=engine)
         print(f"get_mapped_commodity_ids() returns ({len(api_names) if api_names else 0} items): {api_names}")

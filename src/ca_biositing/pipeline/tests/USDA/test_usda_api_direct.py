@@ -5,6 +5,20 @@ import os
 import requests
 import json
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # Manual .env loading if dotenv not available
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                if line.strip() and not line.startswith('#') and '=' in line:
+                    key, value = line.strip().split('=', 1)
+                    os.environ[key] = value
+
 API_KEY = os.getenv("USDA_NASS_API_KEY", "")
 
 def test_commodity_query(commodity_name, county_code="077"):

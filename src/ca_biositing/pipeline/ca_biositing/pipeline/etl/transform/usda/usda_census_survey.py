@@ -51,27 +51,20 @@ def transform(
         Transformed DataFrame ready for load task
     """
     logger = get_run_logger()
-    logger.info("🟡 [USDA Transform] Starting...")
+    logger.info("[USDA Transform] Starting transform step...")
 
     if "usda" not in data_sources:
         logger.error("Missing 'usda' in data_sources")
         return None
 
     raw_data = data_sources['usda']
-    logger.info(f"🟡 [USDA Transform] Received {len(raw_data)} raw records")
+    logger.info(f"[USDA Transform] Processing {len(raw_data)} raw records")
 
     # 🔍 DIAGNOSTIC: Log raw data info
-    logger.info(f"📊 Raw data shape: {raw_data.shape}")
+    logger.info(f"Raw data shape: {raw_data.shape}")
     if 'commodity_desc' in raw_data.columns:
         commodities = raw_data['commodity_desc'].unique()
-        logger.info(f"🌾 Raw commodities: {len(commodities)}")
-        for comm in sorted(commodities):
-            count = len(raw_data[raw_data['commodity_desc'] == comm])
-            logger.info(f"  {comm}: {count} records")
-    if 'short_desc' in raw_data.columns:
-        logger.info(f"📈 Sample short_desc values:")
-        for sample in raw_data['short_desc'].head(5).values:
-            logger.info(f"  {sample}")
+        logger.info(f"Raw commodities: {len(commodities)} unique")
 
     raw_data = data_sources["usda"]
 
@@ -111,11 +104,6 @@ def transform(
         logger.error(f"Failed in Step 0b: {e}")
         raise
 
-    # 1. Ensure Parameter/Unit records exist
-    logger.info("🟡 [USDA Transform] Step 0b: Creating Parameter/Unit records if needed...")
-    _ensure_parameters_and_units(engine)
-    logger.info("🟡 [USDA Transform] Step 0b: Parameters/Units ready")
-
     # Build lookup maps (build once, use for all 6908 rows)
     logger.info("🟡 [USDA Transform] Step 0c: Building lookup maps from database...")
     commodity_map, parameter_id_map, unit_id_map = _build_lookup_maps()
@@ -150,9 +138,38 @@ def transform(
 
     # 6. Convert values to numeric
     logger.info("🟡 [USDA Transform] Step 5: Converting values to numeric...")
+
+    # 🔍 DIAGNOSTIC: Analyze non-numeric values before conversion
+    logger.info("📊 DIAGNOSTIC: Analyzing observation values before numeric conversion...")
+    if 'observation' in transformed_data.columns:
+        # Show unique observation values and their counts
+        obs_counts = transformed_data['observation'].value_counts()
+        logger.info(f"📊 Found {len(obs_counts)} unique observation values:")
+
+        # Show most common values (especially non-numeric ones)
+        for value, count in obs_counts.head(20).items():
+            logger.info(f"  '{value}': {count} occurrences")
+
+        # Specifically look for USDA special codes
+        special_codes = ['(D)', '(Z)', '(NA)', '', 'null', 'NULL', 'nan', 'NaN']
+        for code in special_codes:
+            code_count = (transformed_data['observation'] == code).sum()
+            if code_count > 0:
+                logger.warning(f"⚠️  Found {code_count} rows with USDA special code: '{code}'")
+
     transformed_data['value_numeric'] = _convert_to_numeric(
         transformed_data['observation']
     )
+
+    # 🔍 DIAGNOSTIC: Report conversion results
+    total_rows = len(transformed_data)
+    null_values = transformed_data['value_numeric'].isna().sum()
+    numeric_values = total_rows - null_values
+    logger.info(f"📊 Numeric conversion results:")
+    logger.info(f"  ✅ Successfully converted: {numeric_values}/{total_rows} ({100*numeric_values/total_rows:.1f}%)")
+    if null_values > 0:
+        logger.warning(f"  ❌ Failed conversion (now null): {null_values}/{total_rows} ({100*null_values/total_rows:.1f}%)")
+
     # Also store original value as text
     if 'observation' in transformed_data.columns:
         transformed_data['value_text'] = transformed_data['observation'].astype(str)
@@ -384,20 +401,24 @@ def transform(
 
     logger.info("  ✓ Required fields filtering complete")
 
-    # 🔍 DIAGNOSTIC: Save transformed data for inspection
-    try:
-        debug_csv_path = "/app/data/usda_transformed_debug.csv"
-        transformed_data.to_csv(debug_csv_path, index=False)
-        logger.info(f"💾 Debug: Transformed data saved to {debug_csv_path}")
-        logger.info(f"📊 Final shape: {transformed_data.shape} (rows x columns)")
+    # 🔍 DIAGNOSTIC: Save transformed data for inspection (OPTIONAL - uncomment to enable)
+    # Uncomment the following block to generate debug CSV files for troubleshooting
+    # try:
+    #     from datetime import datetime
+    #     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    #     debug_csv_path = f"/app/data/usda_transformed_debug_{timestamp}.csv"
+    #     transformed_data.to_csv(debug_csv_path, index=False)
+    #     logger.info(f"💾 Debug: Transformed data saved to {debug_csv_path}")
 
-        # Show unique commodity codes that made it through
-        unique_commodities = transformed_data['commodity_code'].value_counts()
-        logger.info(f"📈 Unique commodity codes in final data: {len(unique_commodities)}")
-        for commodity_code, count in unique_commodities.head(10).items():
-            logger.info(f"  Commodity {commodity_code}: {count} records")
-    except Exception as e:
-        logger.warning(f"Could not save debug CSV: {e}")
+    #     # Show unique commodity codes that made it through
+    #     unique_commodities = transformed_data['commodity_code'].value_counts()
+    #     logger.info(f"📈 Unique commodity codes in final data: {len(unique_commodities)}")
+    #     for commodity_code, count in unique_commodities.head(10).items():
+    #         logger.info(f"  Commodity {commodity_code}: {count} records")
+    # except Exception as e:
+    #     logger.warning(f"Could not save debug CSV: {e}")
+
+    logger.info(f"📊 Final shape: {transformed_data.shape} (rows x columns)")
 
     logger.info(f"🟢 [USDA Transform] Complete: {len(transformed_data)} records ready for load")
     return transformed_data

@@ -107,26 +107,29 @@ def extract() -> Optional[pd.DataFrame]:
     raw_df = pd.concat(all_dfs, ignore_index=True)
     logger.info(f"Successfully extracted {len(raw_df)} total records from USDA NASS API across {len(all_dfs)} counties.")
 
-    # 🔍 DIAGNOSTIC: Save raw extracted data for inspection
+    # 🔍 DIAGNOSTIC: Save raw extracted data for inspection (OPTIONAL - uncomment to enable)
+    # Uncomment the following block to generate debug CSV files for troubleshooting
+    """
     try:
-        debug_csv_path = "/app/data/usda_raw_extracted.csv"
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        debug_csv_path = f"/app/data/usda_raw_extracted_debug_{timestamp}.csv"
         raw_df.to_csv(debug_csv_path, index=False)
         logger.info(f"💾 Debug: Raw extracted data saved to {debug_csv_path}")
-        logger.info(f"📊 Raw data shape: {raw_df.shape}")
-        logger.info(f"📊 Columns: {list(raw_df.columns)}")
+    """
+    logger.info(f"📊 Raw data shape: {raw_df.shape}")
+    logger.info(f"📊 Columns: {list(raw_df.columns)}")
 
-        # Show what commodities and statistics are in the raw data
-        if 'commodity_desc' in raw_df.columns:
-            commodities = raw_df['commodity_desc'].unique()
-            logger.info(f"🌾 Commodities in raw data: {len(commodities)}")
-            for comm in sorted(commodities):
-                count = len(raw_df[raw_df['commodity_desc'] == comm])
-                logger.info(f"  {comm}: {count} records")
+    # Show what commodities and statistics are in the raw data
+    if 'commodity_desc' in raw_df.columns:
+        commodities = raw_df['commodity_desc'].unique()
+        logger.info(f"🌾 Commodities in raw data: {len(commodities)}")
+        for comm in sorted(commodities):
+            count = len(raw_df[raw_df['commodity_desc'] == comm])
+            logger.info(f"  {comm}: {count} records")
 
         if 'short_desc' in raw_df.columns:
             statistics = raw_df['short_desc'].str.extract(r'- (\w+(?:\s+\w+)?)\s*$')[0].unique()
             logger.info(f"📈 Statistics types in raw data: {len([s for s in statistics if s])}")
-    except Exception as e:
-        logger.warning(f"Could not save debug CSV: {e}")
 
     return raw_df
