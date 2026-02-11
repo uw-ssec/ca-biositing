@@ -58,8 +58,8 @@ gcloud config set project <PROJECT_ID>
 
 #### 1. Create the Pulumi state bucket (one-time)
 
-This creates a GCS bucket to store Pulumi state files. Only needs to be run
-once per project.
+This creates a GCS bucket to store Pulumi state files. Only needs to be run once
+per project.
 
 ```bash
 pixi run -e deployment cloud-bootstrap
