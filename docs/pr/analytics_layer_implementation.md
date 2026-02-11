@@ -40,8 +40,20 @@ in a new module: `resources/linkml/modules/ca_biositing_views/`.
     exports.
   - `usda_census_view.yaml` & `usda_survey_view.yaml`: Denormalized USDA
     agricultural statistics.
+  - `billion_ton_tileset_view.yaml`: Denormalized Billion Ton 2023 records for
+    county-level assessment.
 
-### 3. Automated Model Generation
+### 3. Analytical Aggregations
+
+To support high-level dashboarding and resource assessment, we have implemented
+an aggregation layer in the SQL orchestration script:
+
+- **`analysis_average_view`**: Automatically calculates the mean value and
+  standard deviation for every parameter, grouped by resource, geoid, and unit.
+  This provides an instant "state of the resource" snapshot without requiring
+  complex runtime calculations.
+
+### 4. Automated Model Generation
 
 The SQLAlchemy generator
 ([`src/ca_biositing/datamodels/utils/generate_sqla.py`](src/ca_biositing/datamodels/utils/generate_sqla.py))
@@ -52,7 +64,7 @@ has been enhanced to:
 - Store the SQL definition in the SQLAlchemy `info` dictionary, paving the way
   for future Alembic automation.
 
-### 4. Standalone View Orchestration
+### 5. Standalone View Orchestration
 
 To enable rapid testing and deployment, we have established a standalone
 orchestration script:
@@ -73,6 +85,8 @@ orchestration script:
 - **Data Types**: Implemented explicit casting (e.g., `record_id::text`) to
   resolve type mismatches between generic observation fields and source primary
   keys.
+- **Geospatial Consistency**: Applied a blanket geoid of `'06000'` to analysis
+  data to represent the state-level scope of currently loaded samples.
 - **Schema Detection**: Documented current challenges with Alembic's automatic
   detection of view-specific metadata in
   [`docs/pr/alembic_materialized_view_automation.md`](docs/pr/alembic_materialized_view_automation.md).
@@ -80,7 +94,12 @@ orchestration script:
 ## Verification Results
 
 - **Schema successfully created.**
-- **5 Materialized Views successfully deployed.**
+- **7 Materialized Views successfully deployed.**
 - **Verified Data Population**:
-  - `analysis_data_view`: 1,750 records populated with resource names.
+  - `analysis_data_view`: 1,750 records populated with resource names and
+    blanket geoid.
+  - `analysis_average_view`: 146 unique resource-parameter pairs aggregated with
+    mean and standard deviation.
   - `landiq_tileset_view`: 156,638 records with spatial indices.
+  - `billion_ton_tileset_view`: Successfully created and ready for assessment
+    data.

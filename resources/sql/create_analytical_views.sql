@@ -23,7 +23,7 @@ JOIN public.primary_ag_product pap ON lr.main_crop = pap.id;
 CREATE INDEX IF NOT EXISTS idx_landiq_record_view_geom ON ca_biositing.landiq_record_view USING GIST (geom);
 
 -- View: analysis_data_view
-DROP MATERIALIZED VIEW IF EXISTS ca_biositing.analysis_data_view;
+DROP MATERIALIZED VIEW IF EXISTS ca_biositing.analysis_data_view CASCADE;
 
 CREATE MATERIALIZED VIEW ca_biositing.analysis_data_view AS
 SELECT
@@ -96,10 +96,28 @@ SELECT
   geoid,
   parameter,
   AVG(value) as average_value,
+  STDDEV(value) as standard_deviation,
   unit,
   COUNT(*) as observation_count
 FROM ca_biositing.analysis_data_view
 GROUP BY resource, geoid, parameter, unit;
+
+-- View: billion_ton_tileset_view
+DROP MATERIALIZED VIEW IF EXISTS ca_biositing.billion_ton_tileset_view;
+
+CREATE MATERIALIZED VIEW ca_biositing.billion_ton_tileset_view AS
+SELECT
+  btr.id,
+  r.name as resource,
+  p.county_name as county,
+  'production'::text as parameter,
+  btr.production::float as value,
+  u.name as unit,
+  btr.etl_run_id as tileset_id
+FROM public.billion_ton2023_record btr
+JOIN public.resource r ON btr.resource_id = r.id
+JOIN public.place p ON btr.geoid = p.geoid
+JOIN public.unit u ON btr.production_unit_id = u.id;
 
 -- View: usda_survey_view
 DROP MATERIALIZED VIEW IF EXISTS ca_biositing.usda_survey_view;

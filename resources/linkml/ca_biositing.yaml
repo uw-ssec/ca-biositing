@@ -103,6 +103,7 @@ imports:
   - modules/ca_biositing_views/landiq_tileset_view
   - modules/ca_biositing_views/usda_census_view
   - modules/ca_biositing_views/usda_survey_view
+  - modules/ca_biositing_views/billion_ton_tileset_view
   - modules/aim2_records/pretreatment_record
   - modules/aim2_records/fermentation_record
   - modules/aim2_records/gasification_record
