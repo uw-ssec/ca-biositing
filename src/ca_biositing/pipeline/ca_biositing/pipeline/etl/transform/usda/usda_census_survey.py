@@ -57,7 +57,21 @@ def transform(
         logger.error("Missing 'usda' in data_sources")
         return None
 
-    logger.info(f"🟡 [USDA Transform] Received {len(data_sources['usda'])} raw records")
+    raw_data = data_sources['usda']
+    logger.info(f"🟡 [USDA Transform] Received {len(raw_data)} raw records")
+
+    # 🔍 DIAGNOSTIC: Log raw data info
+    logger.info(f"📊 Raw data shape: {raw_data.shape}")
+    if 'commodity_desc' in raw_data.columns:
+        commodities = raw_data['commodity_desc'].unique()
+        logger.info(f"🌾 Raw commodities: {len(commodities)}")
+        for comm in sorted(commodities):
+            count = len(raw_data[raw_data['commodity_desc'] == comm])
+            logger.info(f"  {comm}: {count} records")
+    if 'short_desc' in raw_data.columns:
+        logger.info(f"📈 Sample short_desc values:")
+        for sample in raw_data['short_desc'].head(5).values:
+            logger.info(f"  {sample}")
 
     raw_data = data_sources["usda"]
 
@@ -148,12 +162,125 @@ def transform(
     logger.info("🟡 [USDA Transform] Step 6: Mapping IDs...")
     # Uppercase the columns before mapping for case-insensitive lookup
     logger.info("  → Mapping commodities...")
+
+    # 🔍 DETAILED DIAGNOSTIC: Show complete commodity mapping analysis
+    logger.info("📋 COMPLETE commodity mapping analysis:")
+    logger.info(f"📊 Available commodity mapping keys ({len(commodity_map)} total):")
+    for key, value in commodity_map.items():
+        logger.info(f"  DB: '{key}' → ID {value}")
+
+    unique_commodities = transformed_data['commodity'].fillna('').unique()
+    logger.info(f"📊 Unique commodity values in raw data ({len(unique_commodities)} total):")
+    for commodity in unique_commodities:
+        upper_commodity = str(commodity).upper()
+        mapped_value = commodity_map.get(upper_commodity, 'NOT_FOUND')
+        count = len(transformed_data[transformed_data['commodity'] == commodity])
+        status = "✅" if mapped_value != 'NOT_FOUND' else "❌"
+        logger.info(f"  {status} '{commodity}' → '{upper_commodity}' → {mapped_value} ({count} rows)")
+
+    # 🔍 FRUIT/NUT SPECIFIC ANALYSIS
+    fruit_nuts = ['almonds', 'grapes', 'olives', 'peaches', 'pistachios', 'walnuts']
+    logger.info("🍎 FRUIT/NUT commodity analysis:")
+    for fruit in fruit_nuts:
+        fruit_rows = transformed_data[transformed_data['commodity'].str.lower() == fruit]
+        if len(fruit_rows) > 0:
+            logger.info(f"  🔍 Found {len(fruit_rows)} rows for '{fruit}'")
+            sample_statistic = fruit_rows['statistic'].iloc[0] if len(fruit_rows) > 0 else 'N/A'
+            sample_unit = fruit_rows['unit'].iloc[0] if len(fruit_rows) > 0 else 'N/A'
+            logger.info(f"     Sample statistic: '{sample_statistic}'")
+            logger.info(f"     Sample unit: '{sample_unit}'")
+        else:
+            logger.info(f"  ❌ No rows found for '{fruit}'")
+
+    # Perform the actual mapping
     transformed_data['commodity_code'] = transformed_data['commodity'].fillna('').str.upper().map(commodity_map)
+
+    # 🔍 MAPPING RESULTS BY COMMODITY
+    commodity_mapping_summary = transformed_data.groupby(['commodity', 'commodity_code']).size().reset_index(name='count')
+    logger.info("📊 DETAILED mapping results by commodity:")
+    for _, row in commodity_mapping_summary.iterrows():
+        status = "✅ MAPPED" if pd.notna(row['commodity_code']) else "❌ UNMAPPED"
+        logger.info(f"  {status} '{row['commodity']}' → ID {row['commodity_code']} ({row['count']} rows)")
+
+    successful_mappings = transformed_data['commodity_code'].notna().sum()
+    total_rows = len(transformed_data)
+    logger.info(f"📈 SUMMARY: {successful_mappings}/{total_rows} rows successfully mapped commodity codes")
+
+    # 🔍 DETAILED UNMAPPED ANALYSIS
+    unmapped = transformed_data[transformed_data['commodity_code'].isna()]
+    if len(unmapped) > 0:
+        logger.warning(f"⚠️  {len(unmapped)} rows failed commodity mapping!")
+        unmapped_commodities = unmapped['commodity'].value_counts()
+        logger.warning("❌ Unmapped commodities breakdown:")
+        for commodity, count in unmapped_commodities.items():
+            logger.warning(f"   '{commodity}': {count} rows")
+            # Show sample statistics and units for unmapped commodities
+            sample_data = unmapped[unmapped['commodity'] == commodity].iloc[0]
+            logger.warning(f"      Sample statistic: '{sample_data.get('statistic', 'N/A')}'")
+            logger.warning(f"      Sample unit: '{sample_data.get('unit', 'N/A')}'")
+
     logger.info("  → Mapping parameters...")
+
+    # 🔍 PARAMETER MAPPING DIAGNOSTICS
+    logger.info("📋 Available parameter mapping keys:")
+    for key, value in parameter_id_map.items():
+        logger.info(f"  PARAM: '{key}' → ID {value}")
+
+    unique_statistics = transformed_data['statistic'].fillna('').unique()
+    logger.info(f"📊 Unique statistics in data ({len(unique_statistics)} total):")
+    for statistic in unique_statistics:
+        upper_stat = str(statistic).upper()
+        mapped_value = parameter_id_map.get(upper_stat, 'NOT_FOUND')
+        count = len(transformed_data[transformed_data['statistic'] == statistic])
+        status = "✅" if mapped_value != 'NOT_FOUND' else "❌"
+        logger.info(f"  {status} '{statistic}' → '{upper_stat}' → {mapped_value} ({count} rows)")
+
     transformed_data['parameter_id'] = transformed_data['statistic'].fillna('').str.upper().map(parameter_id_map)
+
+    # 🔍 PARAMETER MAPPING RESULTS
+    param_mapping_summary = transformed_data.groupby(['statistic', 'parameter_id']).size().reset_index(name='count')
+    logger.info("📊 Parameter mapping results:")
+    for _, row in param_mapping_summary.iterrows():
+        status = "✅ MAPPED" if pd.notna(row['parameter_id']) else "❌ UNMAPPED"
+        logger.info(f"  {status} '{row['statistic']}' → ID {row['parameter_id']} ({row['count']} rows)")
+
     logger.info("  → Mapping units...")
+
+    # 🔍 UNIT MAPPING DIAGNOSTICS
+    logger.info("📋 Available unit mapping keys:")
+    for key, value in unit_id_map.items():
+        logger.info(f"  UNIT: '{key}' → ID {value}")
+
+    unique_units = transformed_data['unit'].fillna('').unique()
+    logger.info(f"📊 Unique units in data ({len(unique_units)} total):")
+    for unit in unique_units:
+        upper_unit = str(unit).upper()
+        mapped_value = unit_id_map.get(upper_unit, 'NOT_FOUND')
+        count = len(transformed_data[transformed_data['unit'] == unit])
+        status = "✅" if mapped_value != 'NOT_FOUND' else "❌"
+        logger.info(f"  {status} '{unit}' → '{upper_unit}' → {mapped_value} ({count} rows)")
+
     transformed_data['unit_id'] = transformed_data['unit'].fillna('').str.upper().map(unit_id_map)
-    logger.info("  ✓ All IDs mapped")
+
+    # 🔍 UNIT MAPPING RESULTS
+    unit_mapping_summary = transformed_data.groupby(['unit', 'unit_id']).size().reset_index(name='count')
+    logger.info("📊 Unit mapping results:")
+    for _, row in unit_mapping_summary.iterrows():
+        status = "✅ MAPPED" if pd.notna(row['unit_id']) else "❌ UNMAPPED"
+        logger.info(f"  {status} '{row['unit']}' → ID {row['unit_id']} ({row['count']} rows)")
+
+    logger.info("  ✓ All ID mappings attempted")
+
+    # 🔍 COMBINED MAPPING SUCCESS ANALYSIS
+    successful_commodity = transformed_data['commodity_code'].notna().sum()
+    successful_parameter = transformed_data['parameter_id'].notna().sum()
+    successful_unit = transformed_data['unit_id'].notna().sum()
+    total_rows = len(transformed_data)
+
+    logger.info(f"📈 MAPPING SUCCESS RATES:")
+    logger.info(f"   Commodities: {successful_commodity}/{total_rows} ({100*successful_commodity/total_rows:.1f}%)")
+    logger.info(f"   Parameters:  {successful_parameter}/{total_rows} ({100*successful_parameter/total_rows:.1f}%)")
+    logger.info(f"   Units:       {successful_unit}/{total_rows} ({100*successful_unit/total_rows:.1f}%)")
 
     # 8. Add record type discriminator
     logger.info("🟡 [USDA Transform] Step 7: Adding record type...")
@@ -196,8 +323,81 @@ def transform(
     # 13. Filter required fields
     logger.info("🟡 [USDA Transform] Step 12: Filtering required fields...")
     required = ['geoid', 'year', 'commodity_code', 'parameter_id', 'unit_id', 'value_numeric']
+
+    # 🔍 DETAILED ANALYSIS BEFORE FILTERING
+    rows_before = len(transformed_data)
+    logger.info(f"📊 BEFORE filtering: {rows_before} rows")
+
+    # Check each required field for null values
+    for field in required:
+        null_count = transformed_data[field].isna().sum()
+        if null_count > 0:
+            logger.warning(f"⚠️  Field '{field}' has {null_count} null values")
+            # Show which commodities have null values for this field
+            null_data = transformed_data[transformed_data[field].isna()]
+            commodity_nulls = null_data.groupby('commodity').size().reset_index(name='count')
+            logger.warning(f"   Commodities with null '{field}':")
+            for _, row in commodity_nulls.iterrows():
+                logger.warning(f"     '{row['commodity']}': {row['count']} rows")
+        else:
+            logger.info(f"✅ Field '{field}' has no null values")
+
+    # 🔍 FRUIT/NUT ANALYSIS BEFORE FILTERING
+    fruit_nuts = ['almonds', 'grapes', 'olives', 'peaches', 'pistachios', 'walnuts']
+    logger.info("🍎 FRUIT/NUT analysis before filtering:")
+    for fruit in fruit_nuts:
+        fruit_rows = transformed_data[transformed_data['commodity'].str.lower() == fruit]
+        if len(fruit_rows) > 0:
+            logger.info(f"  🔍 '{fruit}': {len(fruit_rows)} rows")
+            for field in required:
+                null_count = fruit_rows[field].isna().sum()
+                if null_count > 0:
+                    logger.warning(f"     ❌ '{field}' has {null_count} nulls")
+                else:
+                    logger.info(f"     ✅ '{field}' OK")
+
+    # Perform the filtering
     transformed_data = transformed_data.dropna(subset=required)
-    logger.info("  ✓ Required fields filtered")
+
+    # 🔍 DETAILED ANALYSIS AFTER FILTERING
+    rows_after = len(transformed_data)
+    rows_filtered = rows_before - rows_after
+    logger.info(f"📊 AFTER filtering: {rows_after} rows ({rows_filtered} filtered out)")
+
+    if rows_filtered > 0:
+        logger.warning(f"⚠️  FILTERED OUT {rows_filtered} rows due to missing required fields")
+
+    # Check which commodities survived filtering
+    surviving_commodities = transformed_data['commodity'].value_counts()
+    logger.info(f"📊 Surviving commodities after filtering ({len(surviving_commodities)} total):")
+    for commodity, count in surviving_commodities.items():
+        logger.info(f"  ✅ '{commodity}': {count} rows")
+
+    # 🔍 FRUIT/NUT SURVIVAL ANALYSIS
+    logger.info("🍎 FRUIT/NUT survival analysis:")
+    for fruit in fruit_nuts:
+        fruit_rows_after = transformed_data[transformed_data['commodity'].str.lower() == fruit]
+        if len(fruit_rows_after) > 0:
+            logger.info(f"  ✅ '{fruit}': {len(fruit_rows_after)} rows survived")
+        else:
+            logger.warning(f"  ❌ '{fruit}': COMPLETELY FILTERED OUT")
+
+    logger.info("  ✓ Required fields filtering complete")
+
+    # 🔍 DIAGNOSTIC: Save transformed data for inspection
+    try:
+        debug_csv_path = "/app/data/usda_transformed_debug.csv"
+        transformed_data.to_csv(debug_csv_path, index=False)
+        logger.info(f"💾 Debug: Transformed data saved to {debug_csv_path}")
+        logger.info(f"📊 Final shape: {transformed_data.shape} (rows x columns)")
+
+        # Show unique commodity codes that made it through
+        unique_commodities = transformed_data['commodity_code'].value_counts()
+        logger.info(f"📈 Unique commodity codes in final data: {len(unique_commodities)}")
+        for commodity_code, count in unique_commodities.head(10).items():
+            logger.info(f"  Commodity {commodity_code}: {count} records")
+    except Exception as e:
+        logger.warning(f"Could not save debug CSV: {e}")
 
     logger.info(f"🟢 [USDA Transform] Complete: {len(transformed_data)} records ready for load")
     return transformed_data
@@ -214,8 +414,8 @@ def _build_lookup_maps():
     unit_map = {}
 
     with engine.connect() as conn:
-        # Commodities
-        result = conn.execute(text("SELECT id, name FROM usda_commodity"))
+        # Commodities - use api_name instead of name since that's what USDA API returns
+        result = conn.execute(text("SELECT id, api_name FROM usda_commodity"))
         for row in result:
             commodity_map[row[1].upper()] = row[0]
 
@@ -301,8 +501,18 @@ def _ensure_parameters_and_units(engine):
         'PRODUCTION': 'Total production quantity',
         'AREA HARVESTED': 'Area harvested',
         'AREA PLANTED': 'Area planted',
+        'AREA BEARING': 'Area with bearing trees/vines (fruit/nut specific)',
+        'AREA NON-BEARING': 'Area with non-bearing trees/vines (fruit/nut specific)',
+        'AREA BEARING & NON-BEARING': 'Total area with bearing and non-bearing trees/vines',
+        'OPERATIONS': 'Number of farming operations/establishments',
         'PRICE RECEIVED': 'Price received by farmer',
         'PRICE PAID': 'Price paid by farmer',
+        'SALES': 'Sales value or operations with sales',
+        # Additional parameters found in USDA data
+        'AREA PLANTED, NET': 'Net area planted',
+        'ACTIVE GINS': 'Number of active cotton gins',
+        'GINNED BALES': 'Cotton bales ginned',
+        'AREA IN PRODUCTION': 'Area in production',
     }
 
     UNIT_CONFIGS = {
@@ -312,6 +522,23 @@ def _ensure_parameters_and_units(engine):
         'DOLLARS': 'US dollars',
         'DOLLARS PER BUSHEL': 'US dollars per bushel',
         'DOLLARS PER TON': 'US dollars per ton',
+        'OPERATIONS': 'Number of farming operations/establishments',
+        # Additional units found in USDA data
+        'BU': 'US bushels (abbreviated)',
+        '$': 'US dollars (symbol)',
+        'LB': 'Pounds',
+        'BU / ACRE': 'Bushels per acre (yield)',
+        'BU / NET PLANTED ACRE': 'Bushels per net planted acre',
+        'TONS / ACRE': 'Tons per acre (yield)',
+        'LB / ACRE': 'Pounds per acre (yield)',
+        'LB / NET PLANTED ACRE': 'Pounds per net planted acre',
+        'BALES': 'Cotton bales',
+        '480 LB BALES': 'Cotton bales (480 lb standard)',
+        'RUNNING BALES': 'Running bales (cotton)',
+        'LB / BALE, AVG': 'Average pounds per bale',
+        'NUMBER': 'Count/number',
+        'CWT': 'Hundredweight (100 pounds)',
+        'SQ FT': 'Square feet',
     }
 
     with Session(engine) as session:

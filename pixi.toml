@@ -148,7 +148,6 @@ access-db = { cmd = [
     "biocirv_user",
     "-d",
     "biocirv_db",
-    "-c",
 ], description = "Access the application database with psql." }
 access-prefect-db = { cmd = [
     "docker-compose",

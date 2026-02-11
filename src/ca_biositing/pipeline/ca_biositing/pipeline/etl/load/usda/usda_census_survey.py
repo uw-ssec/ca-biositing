@@ -341,6 +341,16 @@ def _load_observations(engine, transformed_df, dataset_map, etl_run_id,
         value_numeric = float(row['value_numeric']) if pd.notna(row['value_numeric']) else None
 
         if not all([commodity_code, parameter_id, unit_id, value_numeric]):
+            # 🔍 DIAGNOSTIC: Log why records are being filtered
+            missing_fields = []
+            if commodity_code is None: missing_fields.append("commodity_code")
+            if parameter_id is None: missing_fields.append("parameter_id")
+            if unit_id is None: missing_fields.append("unit_id")
+            if value_numeric is None: missing_fields.append("value_numeric")
+
+            if len(obs_records) < 5:  # Only log first few for brevity
+                logger.info(f"❌ Skipping record due to missing: {missing_fields}")
+                logger.info(f"   Row values: commodity='{row.get('commodity', 'N/A')}', statistic='{row.get('statistic', 'N/A')}', unit='{row.get('unit', 'N/A')}', value='{row.get('value_numeric', 'N/A')}'")
             continue
 
         source_type = 'CENSUS' if row['source_type'] == 'CENSUS' else 'SURVEY'

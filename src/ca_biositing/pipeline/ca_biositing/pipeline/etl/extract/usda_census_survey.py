@@ -68,10 +68,11 @@ def extract() -> Optional[pd.DataFrame]:
     logger.info(f"🔵 [USDA Extract] Got {len(commodity_ids) if commodity_ids else 0} commodities: {commodity_ids}")
 
     if not commodity_ids:
-        logger.warning(
-            "No commodity mappings found in resource_usda_commodity_map. "
-            "Please run bootstrap_usda_commodities flow to populate commodities, "
-            "then create mappings for your crops."
+        logger.error(
+            "No commodity mappings found. This could mean:\n"
+            "1. Resource and primary_ag_product tables are empty (run full ETL pipeline first)\n"
+            "2. The CSV mapping file is missing or corrupted\n"
+            "3. Auto-seeding failed (check logs above for details)"
         )
         return None
 
@@ -105,4 +106,27 @@ def extract() -> Optional[pd.DataFrame]:
     # Combine all counties
     raw_df = pd.concat(all_dfs, ignore_index=True)
     logger.info(f"Successfully extracted {len(raw_df)} total records from USDA NASS API across {len(all_dfs)} counties.")
+
+    # 🔍 DIAGNOSTIC: Save raw extracted data for inspection
+    try:
+        debug_csv_path = "/app/data/usda_raw_extracted.csv"
+        raw_df.to_csv(debug_csv_path, index=False)
+        logger.info(f"💾 Debug: Raw extracted data saved to {debug_csv_path}")
+        logger.info(f"📊 Raw data shape: {raw_df.shape}")
+        logger.info(f"📊 Columns: {list(raw_df.columns)}")
+
+        # Show what commodities and statistics are in the raw data
+        if 'commodity_desc' in raw_df.columns:
+            commodities = raw_df['commodity_desc'].unique()
+            logger.info(f"🌾 Commodities in raw data: {len(commodities)}")
+            for comm in sorted(commodities):
+                count = len(raw_df[raw_df['commodity_desc'] == comm])
+                logger.info(f"  {comm}: {count} records")
+
+        if 'short_desc' in raw_df.columns:
+            statistics = raw_df['short_desc'].str.extract(r'- (\w+(?:\s+\w+)?)\s*$')[0].unique()
+            logger.info(f"📈 Statistics types in raw data: {len([s for s in statistics if s])}")
+    except Exception as e:
+        logger.warning(f"Could not save debug CSV: {e}")
+
     return raw_df
