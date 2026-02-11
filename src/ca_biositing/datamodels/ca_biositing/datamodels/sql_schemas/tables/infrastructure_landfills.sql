@@ -1,0 +1,41 @@
+--
+-- Name: infrastructure_landfills; Type: TABLE; Schema: -; Owner: -
+--
+
+CREATE TABLE IF NOT EXISTS infrastructure_landfills (
+    project_id text,
+    project_int_id integer,
+    ghgrp_id text,
+    landfill_id integer,
+    landfill_name text,
+    state text,
+    physical_address text,
+    city text,
+    county text,
+    zip_code text,
+    latitude numeric,
+    longitude numeric,
+    ownership_type text,
+    landfill_owner_orgs text,
+    landfill_opened_year date,
+    landfill_closure_year date,
+    landfill_status text,
+    waste_in_place integer,
+    waste_in_place_year date,
+    lfg_system_in_place boolean,
+    lfg_collected numeric,
+    lfg_flared numeric,
+    project_status text,
+    project_name text,
+    project_start_date date,
+    project_shutdown_date date,
+    project_type_category text,
+    lfg_energy_project_type text,
+    rng_delivery_method text,
+    actual_mw_generation numeric,
+    rated_mw_capacity numeric,
+    lfg_flow_to_project numeric,
+    direct_emission_reductions numeric,
+    avoided_emission_reductions numeric,
+    CONSTRAINT infrastructure_landfills_pkey PRIMARY KEY (project_id)
+);

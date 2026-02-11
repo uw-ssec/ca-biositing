@@ -185,6 +185,23 @@ generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", de
 
 update-schema = { cmd = "python resources/linkml/scripts/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
 
+# SQL-First Workflow Tasks (pgschema)
+# These tasks manage the database schema using raw SQL files as the source of truth.
+schema-dump = { cmd = "pgschema dump --host localhost --port 5432 --user biocirv_user --db biocirv_db --multi-file --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password", description = "Dump the current database schema to the local SQL files." }
+
+# Public Schema Management
+schema-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema public", description = "Plan changes for the 'public' schema." }
+schema-apply = { cmd = "pgschema apply --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --schema public", description = "Apply changes to the 'public' schema." }
+
+# Analytics Schema Management (ca_biositing)
+schema-analytics-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema ca_biositing", description = "Plan changes for the 'ca_biositing' analytics schema." }
+schema-analytics-apply = { cmd = "pgschema apply --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --schema ca_biositing", description = "Apply changes to the 'ca_biositing' analytics schema." }
+
+# Materialized View Utilities
+# Materialized View Utilities
+schema-analytics-refresh = { cmd = "pixi run access-db -c \"REFRESH MATERIALIZED VIEW ca_biositing.landiq_record_view; REFRESH MATERIALIZED VIEW ca_biositing.analysis_data_view; REFRESH MATERIALIZED VIEW ca_biositing.landiq_tileset_view; REFRESH MATERIALIZED VIEW ca_biositing.usda_census_view; REFRESH MATERIALIZED VIEW ca_biositing.analysis_average_view; REFRESH MATERIALIZED VIEW ca_biositing.billion_ton_tileset_view; REFRESH MATERIALIZED VIEW ca_biositing.usda_survey_view;\"", description = "Refresh all materialized views in the analytics layer." }
+schema-analytics-list = { cmd = "pixi run access-db -c \"SELECT schemaname, matviewname, ispopulated FROM pg_matviews\"", description = "List all materialized views in the database." }
+
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
 

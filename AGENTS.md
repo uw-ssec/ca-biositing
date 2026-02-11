@@ -24,7 +24,8 @@ prototyping for bioeconomy site selection.
 **Key Components:**
 
 - **`ca_biositing.datamodels`**: SQLAlchemy database models. Uses LinkML as the
-  source of truth.
+  long-term source of truth, but supports a **SQL-first development path** for
+  rapid iteration.
 - **`ca_biositing.pipeline`**: Prefect-orchestrated ETL workflows
   (Docker-based).
 - **`ca_biositing.webservice`**: FastAPI REST API.
@@ -35,13 +36,14 @@ prototyping for bioeconomy site selection.
 
 For detailed guidance on shared topics, see the `agent_docs/` directory:
 
-| Topic              | Document                                                             | Description                        |
-| ------------------ | -------------------------------------------------------------------- | ---------------------------------- |
-| Namespace Packages | [agent_docs/namespace_packages.md](agent_docs/namespace_packages.md) | PEP 420 structure, import patterns |
-| Testing Patterns   | [agent_docs/testing_patterns.md](agent_docs/testing_patterns.md)     | pytest fixtures, test commands     |
-| Code Quality       | [agent_docs/code_quality.md](agent_docs/code_quality.md)             | Pre-commit, style, imports         |
-| Troubleshooting    | [agent_docs/troubleshooting.md](agent_docs/troubleshooting.md)       | Common pitfalls and solutions      |
-| Docker Workflow    | [agent_docs/docker_workflow.md](agent_docs/docker_workflow.md)       | Docker/Pixi service commands       |
+| Topic              | Document                                                                       | Description                        |
+| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------- |
+| Namespace Packages | [agent_docs/namespace_packages.md](agent_docs/namespace_packages.md)           | PEP 420 structure, import patterns |
+| Testing Patterns   | [agent_docs/testing_patterns.md](agent_docs/testing_patterns.md)               | pytest fixtures, test commands     |
+| Code Quality       | [agent_docs/code_quality.md](agent_docs/code_quality.md)                       | Pre-commit, style, imports         |
+| Troubleshooting    | [agent_docs/troubleshooting.md](agent_docs/troubleshooting.md)                 | Common pitfalls and solutions      |
+| Docker Workflow    | [agent_docs/docker_workflow.md](agent_docs/docker_workflow.md)                 | Docker/Pixi service commands       |
+| SQL-First Workflow | [docs/datamodels/SQL_FIRST_WORKFLOW.md](docs/datamodels/SQL_FIRST_WORKFLOW.md) | Rapid schema iteration path        |
 
 ## Build System & Environment Management
 
@@ -108,10 +110,24 @@ all installed packages are available without any path configuration.
 
 ## Schema Management & Migrations (CRITICAL)
 
-This project uses **LinkML** as the source of truth for the data model. The
-schemas are maintained in the `resources/linkml/` directory, separate from the
-installable Python package. Due to macOS Docker filesystem performance issues, a
-specific local workflow is required.
+This project uses a hybrid schema management approach. **LinkML** is the
+long-term source of truth for the data model, while **pgschema** provides a
+SQL-first shortcut for rapid development iteration.
+
+### SQL-First Development Shortcut
+
+For rapid iteration, modify SQL files directly and use `pgschema` to update the
+local database:
+
+1.  **Modify SQL**: Edit files in
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/`.
+2.  **Plan**: `pixi run schema-plan`.
+3.  **Apply**: `pixi run schema-apply`.
+
+### Steady State (LinkML Source of Truth)
+
+Once the schema stabilizes, sync changes back to LinkML and generate SQLAlchemy
+models:
 
 ### 1. LinkML Source of Truth
 

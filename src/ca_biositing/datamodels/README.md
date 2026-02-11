@@ -1,6 +1,6 @@
 # CA Biositing Data Models
 
-This package contains the SQLModel-based database models for the CA Biositing
+This package contains the SQLAlchemy-based database models for the CA Biositing
 project. It is implemented as a PEP 420 namespace package that can be shared
 across multiple components of the application (ETL pipelines, API services,
 etc.).
@@ -11,7 +11,7 @@ The `ca_biositing.datamodels` package provides:
 
 - **LinkML Schema**: The single source of truth for the data model, defined in
   YAML.
-- **Generated Database Models**: SQLModel classes automatically generated from
+- **Generated Database Models**: SQLAlchemy classes automatically generated from
   the LinkML schema.
 - **Database Configuration**: Database connection and session management
   utilities.
@@ -21,12 +21,32 @@ The `ca_biositing.datamodels` package provides:
 
 ## Schema Management Workflow
 
-We use **LinkML** as the source of truth for our data schema. The workflow for
-making schema changes is:
+This package supports a **hybrid workflow** to balance development speed with
+long-term stability.
+
+### SQL-First (Rapid Development)
+
+During active development, you can modify the database schema directly using SQL
+and `pgschema`. This bypasses the LinkML generation step for faster iteration.
+
+1.  **Modify SQL**: Edit the `.sql` files in
+    `ca_biositing/datamodels/sql_schemas/`.
+2.  **Plan**: `pixi run schema-plan`.
+3.  **Apply**: `pixi run schema-apply`.
+
+See
+[docs/datamodels/SQL_FIRST_WORKFLOW.md](../../../docs/datamodels/SQL_FIRST_WORKFLOW.md)
+for the full guide.
+
+### LinkML (Steady State)
+
+Once the schema stabilizes, sync the changes back to the LinkML YAML definitions
+to maintain the long-term source of truth and regenerate Python models.
 
 1.  **Modify LinkML Schema**: Edit the YAML files in
-    `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`.
-2.  **Update Schema**: Run the orchestration command to generate Python models,
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/` to
+    match your SQL changes.
+2.  **Update Models**: Run the orchestration command to generate Python models,
     rebuild services, and create a migration.
     ```bash
     pixi run update-schema -m "Description of changes"
@@ -68,11 +88,13 @@ src/ca_biositing/datamodels/
 │       ├── linkml/                  # LinkML schema source files
 │       │   ├── ca_biositing.yaml    # Main schema entrypoint
 │       │   └── modules/             # Modular schema definitions
+│       ├── sql_schemas/             # SQL-first desired state (Development)
 │       ├── schemas/
 │       │   └── generated/           # Generated SQLAlchemy classes (DO NOT EDIT)
 │       └── utils/                   # Schema management scripts
 │           ├── generate_sqla.py     # Script to generate models from LinkML
-│           └── orchestrate_schema_update.py # Orchestration script
+│           ├── orchestrate_schema_update.py # Orchestration script
+│           └── reorder_sql_main.py  # Utility to sort SQL dependencies
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                  # Pytest fixtures and configuration
@@ -230,7 +252,7 @@ module generates a corresponding Python file in `schemas/generated/`.
 
 Core dependencies (defined in `pyproject.toml`):
 
-- **SQLModel** >= 0.0.19: SQL database interaction with Python type hints
+- **SQLAlchemy** >= 2.0.0: SQL database interaction with Python type hints
 - **Alembic** >= 1.13.2: Database migration tool
 - **psycopg2** >= 2.9.9: PostgreSQL adapter for Python
 - **Pydantic** >= 2.0.0: Data validation using Python type annotations

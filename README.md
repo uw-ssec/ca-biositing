@@ -10,7 +10,7 @@ data access.
 This project uses a **PEP 420 namespace package** structure with three main
 components:
 
-- **`ca_biositing.datamodels`**: Shared LinkML/SQLModel database models and
+- **`ca_biositing.datamodels`**: Shared LinkML/SQLAlchemy database models and
   database configuration
 - **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
   via Docker
@@ -21,7 +21,7 @@ components:
 ```text
 ca-biositing/
 ├── src/ca_biositing/           # Namespace package root
-│   ├── datamodels/             # Database models (SQLModel)
+│   ├── datamodels/             # Database models (SQLAlchemy)
 │   ├── pipeline/               # ETL pipelines (Prefect)
 │   └── webservice/             # REST API (FastAPI)
 ├── resources/                  # Deployment resources
@@ -29,7 +29,7 @@ ca-biositing/
 │   └── prefect/                # Prefect deployment files
 ├── tests/                      # Integration tests
 ├── pixi.toml                   # Pixi dependencies and tasks
-└── pixi.lock                   # Dependency lock file
+│   └── pixi.lock               # Dependency lock file
 ```
 
 ## Quick Start
@@ -40,6 +40,10 @@ ca-biositing/
   [Installation Guide](https://pixi.sh/latest/#installation)
 - **Docker**: For running the ETL pipeline
 - **Google Cloud credentials**: For Google Sheets access (optional)
+- **pgschema**: For schema management (Development)
+  ```bash
+  brew tap pgplex/pgschema && brew install pgschema
+  ```
 
 ### Installation
 
@@ -66,21 +70,25 @@ environment file from the template:
 cp resources/docker/.env.example resources/docker/.env
 ```
 
+**CRITICAL (PostgreSQL 15 Upgrade)**: If you are upgrading from a version prior
+to Feb 2026, you must wipe your local volumes to support the PostgreSQL 15
+image:
+
+```bash
+pixi run teardown-services-volumes
+```
+
 Then start and use the services:
 
 ```bash
-# 1. Create the initial database migration script
-# (This is only needed once for a new database)
-pixi run initial-migration
-
-# 2. Start all services (PostgreSQL, Prefect server, worker)
+# 1. Start all services (PostgreSQL, Prefect server, worker)
 # This will also automatically apply any pending database migrations.
 pixi run start-services
 
-# 3. Deploy flows to Prefect
+# 2. Deploy flows to Prefect
 pixi run deploy
 
-# Run the ETL pipeline
+# 3. Run the ETL pipeline
 pixi run run-etl
 
 # Monitor via Prefect UI: http://localhost:4200
@@ -152,7 +160,7 @@ Key tasks:
 - **Development**: `test`, `test-cov`, `pre-commit`, `pre-commit-all`
 - **Applications**: `start-webservice`, `qgis`
 - **Database**: `access-db`, `check-db-health`
-- **Datamodels**: `update-schema`, `migrate`
+- **Datamodels**: `update-schema`, `migrate`, `schema-plan`, `schema-apply`
 
 ## Architecture
 
@@ -178,20 +186,21 @@ Pipeline architecture:
 
 1. **Extract**: Pull data from Google Sheets
 2. **Transform**: Clean and normalize data with pandas
-3. **Load**: Insert/update records in PostgreSQL via SQLModel
+3. **Load**: Insert/update records in PostgreSQL via SQLAlchemy
 
 ### Database Models
 
-We use a **LinkML-first approach** for defining our data schema. The workflow
-is:
+This project uses a hybrid schema management approach to balance long-term
+stability with development speed:
 
-1.  **LinkML Schema**: The schema is defined in YAML files (source of truth).
-2.  **SQLAlchemy Generation**: Python classes are automatically generated from
-    LinkML.
-3.  **Alembic Migrations**: Database migrations are generated from the Python
-    classes.
+1.  **LinkML (Steady State)**: The primary source of truth, used for generating
+    type-safe SQLAlchemy models and formal migrations.
+2.  **SQL-First (Development)**: A rapid iteration shortcut using `pgschema` to
+    apply changes directly from SQL files during active development.
 
-SQLModel-based models provide:
+See [SQL-First Workflow](docs/datamodels/SQL_FIRST_WORKFLOW.md) for details.
+
+SQLAlchemy-based models provide:
 
 - Type-safe database operations
 - Automatic schema generation (via Alembic)

@@ -54,3 +54,6 @@ credentials.json
 # OpenTofu
 .terraform/
 *.tfstate*
+
+# Tools
+pgschema
