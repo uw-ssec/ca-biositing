@@ -51,6 +51,8 @@ credentials.json
 # Jupyter Notebooks
 .ipynb_checkpoints/
 
-# OpenTofu
-.terraform/
-*.tfstate*
+# Pulumi
+.pulumi/
+
+# Agents Braindump
+.agents/
