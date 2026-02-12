@@ -21,7 +21,7 @@ def engine_fixture():
 
         dbapi_connection.create_function("md5", 1, sqlite_md5, deterministic=True)
 
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord
+    from ca_biositing.datamodels.models import LandiqRecord
     # LandiqRecord.metadata contains all tables because they are in the same Base/Metadata
     LandiqRecord.metadata.create_all(engine)
     SQLModel.metadata.create_all(engine)

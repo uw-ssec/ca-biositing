@@ -19,8 +19,8 @@ def test_pipeline_import():
 
 def test_model_imports():
     """Test that models can be imported from datamodels."""
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import FieldSample, PrimaryAgProduct
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import AnalysisType
+    from ca_biositing.datamodels.models import FieldSample, PrimaryAgProduct
+    from ca_biositing.datamodels.models import AnalysisType
 
     assert FieldSample.__tablename__ == "field_sample"
     assert PrimaryAgProduct.__tablename__ == "primary_ag_product"

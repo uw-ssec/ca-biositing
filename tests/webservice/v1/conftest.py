@@ -12,8 +12,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from ca_biositing.datamodels.database import get_session
-from ca_biositing.datamodels.schemas.generated.ca_biositing import (
-    Base,
+from sqlmodel import SQLModel
+from ca_biositing.datamodels.models import (
     DimensionType,
     Observation,
     Parameter,

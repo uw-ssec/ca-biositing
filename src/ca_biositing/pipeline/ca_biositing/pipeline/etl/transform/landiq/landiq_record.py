@@ -30,7 +30,7 @@ def transform_landiq_record(
     Returns:
         A pandas DataFrame formatted for the landiq_record table.
     """
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Dataset,
         Polygon,
         PrimaryAgProduct,

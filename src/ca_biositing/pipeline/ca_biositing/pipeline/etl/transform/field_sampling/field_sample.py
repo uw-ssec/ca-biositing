@@ -31,7 +31,7 @@ def transform_field_sample(
         logger = logging.getLogger(__name__)
 
     # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Resource,
         Provider,
         Contact,

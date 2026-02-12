@@ -46,7 +46,7 @@ def load_observation(df: pd.DataFrame):
         now = datetime.now(timezone.utc)
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation
+        from ca_biositing.datamodels.models import Observation
         print("DEBUG: Getting local engine...")
         engine = get_local_engine()
         print(f"DEBUG: load_observation session starting for {len(records)} records")

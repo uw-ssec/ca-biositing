@@ -11,7 +11,7 @@ from typing import Optional
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Session, aliased
 
-from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+from ca_biositing.datamodels.models import (
     DimensionType,
     Observation,
     Parameter,

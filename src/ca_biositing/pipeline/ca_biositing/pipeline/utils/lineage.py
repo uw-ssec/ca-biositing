@@ -10,7 +10,7 @@ def create_etl_run_record(pipeline_name: str) -> str:
     """
     Creates an EtlRun record in the database using the Prefect run_id.
     """
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import EtlRun
+    from ca_biositing.datamodels.models import EtlRun
 
     ctx = FlowRunContext.get()
     if not ctx:
@@ -44,7 +44,7 @@ def create_lineage_group(etl_run_id: str, note: Optional[str] = None) -> int:
     Creates a LineageGroup record associated with an EtlRun.
     Returns the integer ID of the new lineage group.
     """
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import LineageGroup
+    from ca_biositing.datamodels.models import LineageGroup
 
     logger = get_run_logger()
 

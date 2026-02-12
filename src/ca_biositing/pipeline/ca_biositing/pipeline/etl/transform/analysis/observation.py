@@ -4,7 +4,7 @@ from typing import List
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
-# from ca_biositing.datamodels.schemas.generated.ca_biositing import *
+# from ca_biositing.datamodels.models import *
 
 @task
 def transform_observation(
@@ -13,7 +13,7 @@ def transform_observation(
     lineage_group_id: int = None
 ) -> pd.DataFrame:
     print("DEBUG: transform_observation task execution started")
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
         Method,

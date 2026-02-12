@@ -45,7 +45,7 @@ def load_landiq_resource_mapping(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} LandIQ resource mapping records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqResourceMapping
+        from ca_biositing.datamodels.models import LandiqResourceMapping
 
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in LandiqResourceMapping.__table__.columns}
@@ -101,7 +101,7 @@ def load_resource_availability(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} resource availability records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import ResourceAvailability
+        from ca_biositing.datamodels.models import ResourceAvailability
 
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in ResourceAvailability.__table__.columns}

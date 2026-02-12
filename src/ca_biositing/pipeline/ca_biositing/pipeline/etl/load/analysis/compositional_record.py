@@ -37,7 +37,7 @@ def load_compositional_record(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} Compositional records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import CompositionalRecord
+        from ca_biositing.datamodels.models import CompositionalRecord
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in CompositionalRecord.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')

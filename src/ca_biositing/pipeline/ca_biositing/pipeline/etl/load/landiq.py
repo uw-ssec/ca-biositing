@@ -34,7 +34,7 @@ def bulk_insert_polygons_ignore(session: Session, geoms: list[str], etl_run_id: 
     if not geoms:
         return
 
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import Polygon
+    from ca_biositing.datamodels.models import Polygon
     now = datetime.now(timezone.utc)
 
     # Ensure IDs are standard Python ints, not numpy.int64
@@ -85,7 +85,7 @@ def fetch_polygon_ids_by_geoms(session: Session, geoms: list[str]) -> dict[str, 
     if not geoms:
         return {}
 
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import Polygon
+    from ca_biositing.datamodels.models import Polygon
     unique_geoms = list(set(g for g in geoms if g))
 
     if not unique_geoms:
@@ -116,7 +116,7 @@ def bulk_upsert_landiq_records(session: Session, records: list[dict]) -> int:
     if not records:
         return 0
 
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord
+    from ca_biositing.datamodels.models import LandiqRecord
 
     stmt = insert(LandiqRecord).values(records)
 
@@ -160,7 +160,7 @@ def load_landiq_record(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} Land IQ records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord, Dataset, PrimaryAgProduct, Polygon
+        from ca_biositing.datamodels.models import LandiqRecord, Dataset, PrimaryAgProduct, Polygon
         from ca_biositing.pipeline.utils.lookup_utils import fetch_lookup_ids
 
         now = datetime.now(timezone.utc)

@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from unittest.mock import patch
 from ca_biositing.pipeline.etl.load.field_sample import load_field_sample
-from ca_biositing.datamodels.schemas.generated.ca_biositing import FieldSample
+from ca_biositing.datamodels.models import FieldSample
 
 @patch("ca_biositing.pipeline.etl.load.field_sample.get_local_engine")
 def test_load_field_sample_insert(mock_get_engine, session, engine):

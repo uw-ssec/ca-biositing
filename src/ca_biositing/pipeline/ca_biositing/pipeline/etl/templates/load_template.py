@@ -52,8 +52,8 @@ def load_data_template(df: pd.DataFrame):
 
     try:
         # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-        # from ca_biositing.datamodels.schemas.generated.ca_biositing import YourModel
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation as YourModel # Placeholder
+        # from ca_biositing.datamodels.models import YourModel
+        from ca_biositing.datamodels.models import Observation as YourModel # Placeholder
 
         now = datetime.now(timezone.utc)
 
