@@ -6,5 +6,3 @@ from typing import Optional
 
 class ProximateRecord(Aim1RecordBase, table=True):
     __tablename__ = "proximate_record"
-
-

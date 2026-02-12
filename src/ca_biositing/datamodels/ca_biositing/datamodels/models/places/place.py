@@ -12,4 +12,3 @@ class Place(SQLModel, table=True):
     county_fips: Optional[str] = Field(default=None)
     region_name: Optional[str] = Field(default=None)
     agg_level_desc: Optional[str] = Field(default=None)
-

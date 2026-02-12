@@ -13,4 +13,3 @@ class LandiqResourceMapping(BaseEntity, table=True):
     # Relationships
     landiq_crop: Optional["PrimaryAgProduct"] = Relationship()
     resource: Optional["Resource"] = Relationship()
-

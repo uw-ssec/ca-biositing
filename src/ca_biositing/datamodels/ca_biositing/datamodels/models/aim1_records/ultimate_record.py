@@ -6,5 +6,3 @@ from typing import Optional
 
 class UltimateRecord(Aim1RecordBase, table=True):
     __tablename__ = "ultimate_record"
-
-

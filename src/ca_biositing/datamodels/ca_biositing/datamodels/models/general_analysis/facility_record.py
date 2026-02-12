@@ -21,4 +21,3 @@ class FacilityRecord(BaseEntity, table=True):
     dataset: Optional["Dataset"] = Relationship()
     location: Optional["LocationAddress"] = Relationship()
     resource: Optional["Resource"] = Relationship()
-

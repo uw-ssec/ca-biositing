@@ -8,4 +8,3 @@ class Provider(BaseEntity, table=True):
     __tablename__ = "provider"
 
     codename: Optional[str] = Field(default=None)
-

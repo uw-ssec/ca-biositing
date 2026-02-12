@@ -1,7 +1,7 @@
 # Schema Validation with pgschema
 
-This document describes how `pgschema` is used for **validation only** in the
-CA Biositing project. All operational schema management (creating tables, adding
+This document describes how `pgschema` is used for **validation only** in the CA
+Biositing project. All operational schema management (creating tables, adding
 columns, modifying constraints) is handled by **Alembic migrations** generated
 from SQLModel class definitions.
 
@@ -17,8 +17,8 @@ for verifying that migrations have been applied correctly.
 
 ### Install pgschema (optional)
 
-`pgschema` is a Go-based binary. It is only needed if you want to run
-validation diffs:
+`pgschema` is a Go-based binary. It is only needed if you want to run validation
+diffs:
 
 ```bash
 # macOS (Homebrew)
@@ -44,8 +44,8 @@ brew install pgschema
 
 ### Optional: pgschema Validation (Diff Only)
 
-These tasks compare the live database state against reference SQL files. They
-do **not** modify the database.
+These tasks compare the live database state against reference SQL files. They do
+**not** modify the database.
 
 #### Diff the public schema:
 
@@ -90,13 +90,13 @@ pixi run refresh-views
 The following pixi tasks have been removed as part of the migration to
 Alembic-managed schemas:
 
-| Removed Task                | Replacement                          |
-| --------------------------- | ------------------------------------ |
-| `generate-models`           | Models are now hand-written          |
-| `update-schema`             | `migrate-autogenerate` + `migrate`   |
-| `schema-apply`              | `migrate`                            |
-| `schema-analytics-apply`    | `migrate`                            |
-| `schema-analytics-refresh`  | `refresh-views`                      |
+| Removed Task               | Replacement                        |
+| -------------------------- | ---------------------------------- |
+| `generate-models`          | Models are now hand-written        |
+| `update-schema`            | `migrate-autogenerate` + `migrate` |
+| `schema-apply`             | `migrate`                          |
+| `schema-analytics-apply`   | `migrate`                          |
+| `schema-analytics-refresh` | `refresh-views`                    |
 
 ## Reference SQL Files
 

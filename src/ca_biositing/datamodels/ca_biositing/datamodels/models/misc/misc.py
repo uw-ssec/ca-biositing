@@ -75,4 +75,3 @@ class InfrastructureWastewaterTreatmentPlants(SQLModel, table=True):
     latitude: Optional[Decimal] = Field(default=None)
     longitude: Optional[Decimal] = Field(default=None)
     zipcode: Optional[str] = Field(default=None)
-

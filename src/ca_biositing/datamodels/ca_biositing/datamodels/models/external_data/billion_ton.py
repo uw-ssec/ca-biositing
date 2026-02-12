@@ -33,4 +33,3 @@ class BillionTon2023Record(BaseEntity, table=True):
     energy_content_unit: Optional["Unit"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[BillionTon2023Record.energy_content_unit_id]"}
     )
-

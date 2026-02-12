@@ -23,4 +23,3 @@ class LocationAddress(BaseEntity, table=True):
 
     # Relationships
     geography: Optional["Place"] = Relationship()
-

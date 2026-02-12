@@ -18,4 +18,3 @@ class FieldSampleCondition(BaseEntity, table=True):
     field_sample: Optional["FieldSample"] = Relationship()
     ag_treatment: Optional["AgTreatment"] = Relationship()
     processing_method: Optional["ProcessingMethod"] = Relationship()
-

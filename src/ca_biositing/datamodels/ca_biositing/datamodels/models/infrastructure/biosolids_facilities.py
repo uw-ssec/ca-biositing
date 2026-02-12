@@ -49,4 +49,3 @@ class InfrastructureBiosolidsFacilities(SQLModel, table=True):
     other: Optional[int] = Field(default=None)
     name_of_other: Optional[str] = Field(default=None)
     incineration: Optional[int] = Field(default=None)
-

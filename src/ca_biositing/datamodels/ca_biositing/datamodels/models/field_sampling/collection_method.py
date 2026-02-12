@@ -5,5 +5,3 @@ from typing import Optional
 
 class CollectionMethod(LookupBase, table=True):
     __tablename__ = "collection_method"
-
-

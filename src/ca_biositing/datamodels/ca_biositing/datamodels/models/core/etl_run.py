@@ -14,4 +14,3 @@ class EtlRun(SQLModel, table=True):
     status: Optional[str] = Field(default=None)
     records_ingested: Optional[int] = Field(default=None)
     note: Optional[str] = Field(default=None)
-

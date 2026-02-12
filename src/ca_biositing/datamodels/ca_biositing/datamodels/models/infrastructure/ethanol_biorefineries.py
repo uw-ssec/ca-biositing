@@ -14,4 +14,3 @@ class InfrastructureEthanolBiorefineries(SQLModel, table=True):
     capacity_mgy: Optional[int] = Field(default=None)
     production_mgy: Optional[int] = Field(default=None)
     constr_exp: Optional[int] = Field(default=None)
-

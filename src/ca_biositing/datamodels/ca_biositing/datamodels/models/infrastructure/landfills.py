@@ -41,4 +41,3 @@ class InfrastructureLandfills(SQLModel, table=True):
     lfg_flow_to_project: Optional[Decimal] = Field(default=None)
     direct_emission_reductions: Optional[Decimal] = Field(default=None)
     avoided_emission_reductions: Optional[Decimal] = Field(default=None)
-

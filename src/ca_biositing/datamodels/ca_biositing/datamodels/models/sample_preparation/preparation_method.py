@@ -21,5 +21,3 @@ class PreparationMethod(BaseEntity, table=True):
 
 class PreparationMethodAbbreviation(LookupBase, table=True):
     __tablename__ = "preparation_method_abbreviation"
-
-

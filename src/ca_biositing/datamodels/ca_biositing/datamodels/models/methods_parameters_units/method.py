@@ -34,5 +34,3 @@ class MethodCategory(LookupBase, table=True):
 
 class MethodStandard(LookupBase, table=True):
     __tablename__ = "method_standard"
-
-

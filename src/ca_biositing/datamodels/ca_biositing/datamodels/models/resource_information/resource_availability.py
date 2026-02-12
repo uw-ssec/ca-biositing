@@ -19,4 +19,3 @@ class ResourceAvailability(BaseEntity, table=True):
     # Relationships
     resource: Optional["Resource"] = Relationship()
     place: Optional["Place"] = Relationship()
-

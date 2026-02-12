@@ -6,5 +6,3 @@ from typing import Optional
 
 class FtnirRecord(Aim1RecordBase, table=True):
     __tablename__ = "ftnir_record"
-
-

@@ -17,4 +17,3 @@ class Dataset(BaseEntity, table=True):
 
     # Relationships
     source: Optional["DataSource"] = Relationship()
-

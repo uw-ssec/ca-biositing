@@ -10,4 +10,3 @@ class Equipment(LookupBase, table=True):
 
     # Relationships
     equipment_location: Optional["LocationAddress"] = Relationship()
-

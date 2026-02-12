@@ -19,4 +19,3 @@ class PreparedSample(BaseEntity, table=True):
     field_sample: Optional["FieldSample"] = Relationship()
     prep_method: Optional["PreparationMethod"] = Relationship()
     preparer: Optional["Contact"] = Relationship()
-

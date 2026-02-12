@@ -19,4 +19,3 @@ class Polygon(BaseEntity, table=True):
 
     # Relationships
     dataset: Optional["Dataset"] = Relationship()
-

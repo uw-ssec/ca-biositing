@@ -14,4 +14,3 @@ class PretreatmentRecord(Aim2RecordBase, table=True):
     block_position: Optional[str] = Field(default=None)
     temperature: Optional[Decimal] = Field(default=None)
     replicate_no: Optional[int] = Field(default=None)
-

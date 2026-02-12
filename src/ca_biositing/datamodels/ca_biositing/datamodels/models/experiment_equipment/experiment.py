@@ -20,4 +20,3 @@ class Experiment(BaseEntity, table=True):
     analyst: Optional["Contact"] = Relationship()
     exper_duration_unit: Optional["Unit"] = Relationship()
     exper_location: Optional["LocationAddress"] = Relationship()
-

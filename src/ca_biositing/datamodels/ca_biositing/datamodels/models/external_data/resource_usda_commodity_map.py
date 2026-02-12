@@ -17,4 +17,3 @@ class ResourceUsdaCommodityMap(BaseEntity, table=True):
     resource: Optional["Resource"] = Relationship()
     primary_ag_product: Optional["PrimaryAgProduct"] = Relationship()
     usda_commodity: Optional["UsdaCommodity"] = Relationship()
-

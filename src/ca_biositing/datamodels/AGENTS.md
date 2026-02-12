@@ -6,9 +6,9 @@ This file provides guidance to AI assistants when working with the
 ## Package Overview
 
 This is the **ca-biositing-datamodels** package, a PEP 420 namespace package
-containing SQLModel database models for the CA Biositing project. It is
-designed to be shared across multiple components (ETL pipelines, API services,
-analysis tools) of the parent ca-biositing project.
+containing SQLModel database models for the CA Biositing project. It is designed
+to be shared across multiple components (ETL pipelines, API services, analysis
+tools) of the parent ca-biositing project.
 
 **Package Stats:**
 
@@ -108,9 +108,9 @@ migrations**. There is no code generation step.
 
 ### Materialized Views
 
-Seven views are defined in `views.py` as SQLAlchemy Core `select()`
-expressions. They are created/modified through manual Alembic migrations.
-Refresh after data loads:
+Seven views are defined in `views.py` as SQLAlchemy Core `select()` expressions.
+They are created/modified through manual Alembic migrations. Refresh after data
+loads:
 
 ```bash
 pixi run refresh-views

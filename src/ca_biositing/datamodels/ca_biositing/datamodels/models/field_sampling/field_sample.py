@@ -50,4 +50,3 @@ class FieldSample(BaseEntity, table=True):
     field_sample_storage_location: Optional["LocationAddress"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[FieldSample.field_sample_storage_location_id]"}
     )
-

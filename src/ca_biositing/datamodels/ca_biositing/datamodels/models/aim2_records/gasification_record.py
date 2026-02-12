@@ -11,4 +11,3 @@ class GasificationRecord(Aim2RecordBase, table=True):
     feedstock_mass: Optional[Decimal] = Field(default=None)
     bed_temperature: Optional[Decimal] = Field(default=None)
     gas_flow_rate: Optional[Decimal] = Field(default=None)
-

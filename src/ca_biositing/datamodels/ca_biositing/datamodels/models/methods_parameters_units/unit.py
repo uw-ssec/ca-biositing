@@ -5,5 +5,3 @@ from typing import Optional
 
 class Unit(LookupBase, table=True):
     __tablename__ = "unit"
-
-

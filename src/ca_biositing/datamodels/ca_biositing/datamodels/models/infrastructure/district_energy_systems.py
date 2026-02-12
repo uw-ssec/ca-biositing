@@ -27,4 +27,3 @@ class InfrastructureDistrictEnergySystems(SQLModel, table=True):
     geom: Optional[str] = Field(default=None)
     latitude: Optional[Decimal] = Field(default=None)
     longitude: Optional[Decimal] = Field(default=None)
-

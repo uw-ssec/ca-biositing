@@ -6,5 +6,3 @@ from typing import Optional
 
 class RgbRecord(Aim1RecordBase, table=True):
     __tablename__ = "rgb_record"
-
-

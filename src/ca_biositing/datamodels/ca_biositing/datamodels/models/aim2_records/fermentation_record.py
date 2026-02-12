@@ -16,4 +16,3 @@ class FermentationRecord(Aim2RecordBase, table=True):
     agitation_rpm: Optional[Decimal] = Field(default=None)
     vessel_id: Optional[int] = Field(default=None)
     analyte_detection_equipment_id: Optional[int] = Field(default=None)
-

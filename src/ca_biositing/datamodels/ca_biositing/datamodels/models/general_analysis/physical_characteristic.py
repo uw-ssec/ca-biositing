@@ -17,4 +17,3 @@ class PhysicalCharacteristic(BaseEntity, table=True):
     # Relationships
     field_sample: Optional["FieldSample"] = Relationship()
     particle_unit: Optional["Unit"] = Relationship()
-

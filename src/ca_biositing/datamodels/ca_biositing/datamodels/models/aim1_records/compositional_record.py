@@ -6,5 +6,3 @@ from typing import Optional
 
 class CompositionalRecord(Aim1RecordBase, table=True):
     __tablename__ = "compositional_record"
-
-

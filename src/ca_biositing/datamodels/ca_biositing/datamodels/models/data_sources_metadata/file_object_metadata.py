@@ -16,4 +16,3 @@ class FileObjectMetadata(BaseEntity, table=True):
 
     # Relationships
     data_source: Optional["DataSource"] = Relationship()
-

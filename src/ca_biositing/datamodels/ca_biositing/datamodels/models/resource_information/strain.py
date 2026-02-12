@@ -7,4 +7,3 @@ class Strain(LookupBase, table=True):
     __tablename__ = "strain"
 
     parent_strain_id: Optional[int] = Field(default=None)
-

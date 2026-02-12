@@ -21,4 +21,3 @@ class EntityLineage(SQLModel, table=True):
     source_table: Optional[str] = Field(default=None)
     source_row_id: Optional[str] = Field(default=None)
     note: Optional[str] = Field(default=None)
-

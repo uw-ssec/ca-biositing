@@ -6,5 +6,3 @@ from typing import Optional
 
 class CalorimetryRecord(Aim1RecordBase, table=True):
     __tablename__ = "calorimetry_record"
-
-

@@ -12,4 +12,3 @@ class Contact(BaseEntity, table=True):
     last_name: Optional[str] = Field(default=None)
     email: Optional[str] = Field(default=None)
     affiliation: Optional[str] = Field(default=None)
-

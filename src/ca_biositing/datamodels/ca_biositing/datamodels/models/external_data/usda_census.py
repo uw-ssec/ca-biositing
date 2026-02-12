@@ -38,5 +38,3 @@ class UsdaDomain(LookupBase, table=True):
 
 class UsdaStatisticCategory(LookupBase, table=True):
     __tablename__ = "usda_statistic_category"
-
-

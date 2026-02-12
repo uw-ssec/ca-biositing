@@ -5,5 +5,3 @@ from typing import Optional
 
 class ProcessingMethod(LookupBase, table=True):
     __tablename__ = "processing_method"
-
-

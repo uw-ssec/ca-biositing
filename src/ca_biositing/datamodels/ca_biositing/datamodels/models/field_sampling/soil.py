@@ -18,4 +18,3 @@ class LocationSoilType(BaseEntity, table=True):
     # Relationships
     location: Optional["LocationAddress"] = Relationship()
     soil_type: Optional["SoilType"] = Relationship()
-

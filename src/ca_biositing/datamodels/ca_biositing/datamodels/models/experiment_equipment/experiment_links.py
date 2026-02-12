@@ -48,4 +48,3 @@ class ExperimentPreparedSample(SQLModel, table=True):
     # Relationships
     experiment: Optional["Experiment"] = Relationship()
     prepared_sample: Optional["PreparedSample"] = Relationship()
-

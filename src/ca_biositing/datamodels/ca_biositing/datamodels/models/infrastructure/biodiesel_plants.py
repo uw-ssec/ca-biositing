@@ -20,4 +20,3 @@ class InfrastructureBiodieselPlants(SQLModel, table=True):
     latitude: Optional[Decimal] = Field(default=None)
     longitude: Optional[Decimal] = Field(default=None)
     source: Optional[str] = Field(default=None)
-

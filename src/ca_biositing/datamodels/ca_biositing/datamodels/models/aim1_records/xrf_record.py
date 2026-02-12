@@ -12,4 +12,3 @@ class XrfRecord(Aim1RecordBase, table=True):
     intensity: Optional[Decimal] = Field(default=None)
     energy_slope: Optional[Decimal] = Field(default=None)
     energy_offset: Optional[Decimal] = Field(default=None)
-

@@ -44,5 +44,3 @@ class DataSourceType(BaseEntity, table=True):
 
 class SourceType(LookupBase, table=True):
     __tablename__ = "source_type"
-
-

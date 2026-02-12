@@ -90,4 +90,3 @@ class UsdaTermMap(BaseEntity, table=True):
 
     # Relationships
     usda_commodity: Optional["UsdaCommodity"] = Relationship()
-

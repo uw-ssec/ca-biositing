@@ -30,4 +30,3 @@ class InfrastructureLivestockAnaerobicDigesters(SQLModel, table=True):
     methane_emission_reductions: Optional[int] = Field(default=None)
     latitude: Optional[Decimal] = Field(default=None)
     longitude: Optional[Decimal] = Field(default=None)
-

@@ -189,8 +189,9 @@ Pipeline architecture:
 ### Database Models
 
 Database models are **hand-written SQLModel classes** organized into 15 domain
-subdirectories under `src/ca_biositing/datamodels/ca_biositing/datamodels/models/`.
-All schema changes are managed through Alembic migrations.
+subdirectories under
+`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`. All schema
+changes are managed through Alembic migrations.
 
 **Development workflow:**
 

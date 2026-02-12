@@ -42,5 +42,3 @@ class Parameter(BaseEntity, table=True):
 
 class ParameterCategory(LookupBase, table=True):
     __tablename__ = "parameter_category"
-
-

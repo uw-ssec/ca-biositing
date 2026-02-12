@@ -29,4 +29,3 @@ class Observation(BaseEntity, table=True):
     dimension_unit: Optional["Unit"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[Observation.dimension_unit_id]"}
     )
-

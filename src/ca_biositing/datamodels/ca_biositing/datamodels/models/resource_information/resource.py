@@ -38,5 +38,3 @@ class ResourceSubclass(LookupBase, table=True):
 
 class ResourceClass(LookupBase, table=True):
     __tablename__ = "resource_class"
-
-

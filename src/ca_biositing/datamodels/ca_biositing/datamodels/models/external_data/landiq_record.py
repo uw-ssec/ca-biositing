@@ -40,4 +40,3 @@ class LandiqRecord(BaseEntity, table=True):
     quaternary_crop_product: Optional["PrimaryAgProduct"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[LandiqRecord.quaternary_crop]"}
     )
-

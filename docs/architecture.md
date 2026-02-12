@@ -432,7 +432,8 @@ Environments:
 ### Key Development Tasks
 
 - **Service Management**: Start/stop/monitor Docker services
-- **Schema Changes**: Edit SQLModel classes, then `migrate-autogenerate` + `migrate`
+- **Schema Changes**: Edit SQLModel classes, then `migrate-autogenerate` +
+  `migrate`
 - **Materialized Views**: Refresh after data loads with `refresh-views`
 - **ETL Operations**: Deploy and run data pipelines
 - **Testing**: Comprehensive test suites with coverage

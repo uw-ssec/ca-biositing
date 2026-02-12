@@ -23,4 +23,3 @@ class InfrastructureCafoManureLocations(SQLModel, table=True):
     manure_total_solids: Optional[Decimal] = Field(default=None)
     source: Optional[str] = Field(default=None)
     date_accessed: Optional[date] = Field(default=None)
-
