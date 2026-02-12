@@ -4,7 +4,6 @@ This package contains USDA census and survey data endpoints.
 """
 
 from __future__ import annotations
-
 from fastapi import APIRouter
 
 from .census import router as census_router

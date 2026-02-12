@@ -81,7 +81,7 @@ pixi install
 4. **`webservice`**: Web service environment (FastAPI, uvicorn).
 5. **`frontend`**: Frontend development (Node.js, npm).
 6. **`docs`**: Documentation (MkDocs).
-7. **`deployment`**: Cloud infrastructure (OpenTofu).
+7. **`deployment`**: Cloud infrastructure (Pulumi).
 
 ## Pathing & Namespace Packages
 

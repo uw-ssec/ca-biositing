@@ -5,7 +5,6 @@ USDA census/survey data and feedstock analysis.
 """
 
 from __future__ import annotations
-
 from fastapi import APIRouter
 
 from .usda import router as usda_router
