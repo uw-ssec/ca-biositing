@@ -660,6 +660,7 @@ def upgrade() -> None:
     sa.Column('land_source', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.ForeignKeyConstraint(['energy_content_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geoid'], ['place.geoid'], ),
     sa.ForeignKeyConstraint(['production_unit_id'], ['unit.id'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.ForeignKeyConstraint(['subclass_id'], ['resource_subclass.id'], ),
@@ -818,6 +819,34 @@ def upgrade() -> None:
     sa.Column('residue_factor_wet_tons_acre', sa.Float(), nullable=True),
     sa.Column('note', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geoid'], ['place.geoid'], ),
+    sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('resource_counterfactual',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('etl_run_id', sa.Integer(), nullable=True),
+    sa.Column('lineage_group_id', sa.Integer(), nullable=True),
+    sa.Column('geoid', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('resource_id', sa.Integer(), nullable=True),
+    sa.Column('counterfactual_description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('animal_bedding_percent', sa.Numeric(), nullable=True),
+    sa.Column('animal_bedding_source_id', sa.Integer(), nullable=True),
+    sa.Column('animal_feed_percent', sa.Numeric(), nullable=True),
+    sa.Column('animal_feed_source_id', sa.Integer(), nullable=True),
+    sa.Column('bioelectricty_percent', sa.Numeric(), nullable=True),
+    sa.Column('bioelectricty_source_id', sa.Integer(), nullable=True),
+    sa.Column('burn_percent', sa.Numeric(), nullable=True),
+    sa.Column('burn_source_id', sa.Integer(), nullable=True),
+    sa.Column('compost_percent', sa.Numeric(), nullable=True),
+    sa.Column('compost_source_id', sa.Integer(), nullable=True),
+    sa.Column('landfill_percent', sa.Numeric(), nullable=True),
+    sa.Column('landfill_source_id', sa.Integer(), nullable=True),
+    sa.Column('counterfactual_date', sa.Date(), nullable=True),
+    sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geoid'], ['place.geoid'], ),
     sa.ForeignKeyConstraint(['resource_id'], ['resource.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -1265,7 +1294,7 @@ def upgrade() -> None:
     sa.Column('etl_run_id', sa.Integer(), nullable=True),
     sa.Column('lineage_group_id', sa.Integer(), nullable=True),
     sa.Column('geoid', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('geom', geoalchemy2.types.Geometry(), nullable=True),
+    sa.Column('geom', geoalchemy2.types.Geometry(spatial_index=False), nullable=True),
     sa.Column('dataset_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
@@ -1409,6 +1438,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geoid'], ['place.geoid'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('usda_market_record',
@@ -1462,6 +1492,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['commodity_code'], ['usda_commodity.id'], ),
     sa.ForeignKeyConstraint(['dataset_id'], ['dataset.id'], ),
     sa.ForeignKeyConstraint(['etl_run_id'], ['etl_run.id'], ),
+    sa.ForeignKeyConstraint(['geoid'], ['place.geoid'], ),
     sa.ForeignKeyConstraint(['survey_program_id'], ['usda_survey_program.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
