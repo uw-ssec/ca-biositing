@@ -2,7 +2,17 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
+from geoalchemy2.elements import WKBElement, WKTElement
+from geoalchemy2.shape import to_shape
+from shapely import force_2d
 from sqlalchemy import create_engine, select, text
+
+
+def _geom_to_wkt(geom) -> str:
+    """Convert a geometry result (WKBElement, WKTElement, or string) to WKT."""
+    if isinstance(geom, (WKBElement, WKTElement)):
+        return to_shape(geom).wkt
+    return str(geom).strip()
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -66,7 +76,7 @@ def bulk_insert_polygons_ignore(session: Session, geoms: list[str], etl_run_id: 
     # The unique index is named 'unique_geom_dataset_md5'
     # Note: We use the functional expression directly to match the index
     # We must use the exact text that matches the index definition
-    stmt = stmt.on_conflict_do_nothing(index_elements=[text("(md5(geom))"), "dataset_id"])
+    stmt = stmt.on_conflict_do_nothing(index_elements=[text("(md5(geom::text))"), "dataset_id"])
 
     print(f"DEBUG: Executing bulk polygon insert for {len(poly_data)} items")
     try:
@@ -101,9 +111,9 @@ def fetch_polygon_ids_by_geoms(session: Session, geoms: list[str]) -> dict[str, 
         print(f"DEBUG: Fetching IDs for chunk of {len(chunk)} geoms")
         result = session.execute(stmt).all()
         for row in result:
-            # Ensure we handle potential trailing spaces or formatting differences
-            geom_key = row.geom.strip() if hasattr(row.geom, 'strip') else row.geom
-            poly_map[geom_key] = row.id
+            # Convert geometry result to WKT for consistent key matching
+            wkt_key = _geom_to_wkt(row.geom)
+            poly_map[wkt_key] = row.id
 
     print(f"DEBUG: Fetched {len(poly_map)} polygon IDs")
     return poly_map
@@ -179,7 +189,7 @@ def load_landiq_record(df: pd.DataFrame):
                 dataset_map = fetch_lookup_ids(session, Dataset, dataset_names)
 
                 # 2. Bulk Insert Polygons
-                geoms = df['geometry'].apply(lambda x: x.wkt if hasattr(x, 'wkt') else x).tolist()
+                geoms = df['geometry'].apply(lambda x: force_2d(x).wkt if hasattr(x, 'wkt') else x).tolist()
                 etl_run_id = df['etl_run_id'].iloc[0] if 'etl_run_id' in df.columns else None
                 lineage_group_id = df['lineage_group_id'].iloc[0] if 'lineage_group_id' in df.columns else None
                 poly_dataset_id = dataset_map.get(dataset_names[0]) if dataset_names else None
@@ -200,12 +210,14 @@ def load_landiq_record(df: pd.DataFrame):
                         )
                         result = session.execute(stmt).all()
                         for row in result:
-                            poly_map[row.geom.strip() if hasattr(row.geom, 'strip') else row.geom] = row.id
+                            # Convert geometry result to WKT for consistent key matching
+                            wkt_key = _geom_to_wkt(row.geom)
+                            poly_map[wkt_key] = row.id
 
                 # 4. Prepare LandiqRecord data (Vectorized)
                 table_columns = {c.name for c in LandiqRecord.__table__.columns if c.name != 'id'}
                 prep_df = df.copy()
-                prep_df['geom_wkt'] = prep_df['geometry'].apply(lambda x: x.wkt if hasattr(x, 'wkt') else str(x)).str.strip()
+                prep_df['geom_wkt'] = prep_df['geometry'].apply(lambda x: force_2d(x).wkt if hasattr(x, 'wkt') else str(x)).str.strip()
                 prep_df['polygon_id'] = prep_df['geom_wkt'].map(poly_map)
 
                 for col in crop_cols:
