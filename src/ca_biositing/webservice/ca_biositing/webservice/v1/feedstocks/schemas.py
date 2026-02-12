@@ -19,7 +19,7 @@ class DataItemResponse(BaseModel):
     """
 
     parameter: str = Field(..., description="Parameter name")
-    value: float = Field(..., description="Parameter value")
+    value: Optional[float] = Field(None, description="Parameter value (may be null if not available)")
     unit: str = Field(..., description="Unit of measurement")
     dimension: Optional[str] = Field(None, description="Dimension name (if applicable)")
     dimension_value: Optional[float] = Field(
@@ -40,7 +40,7 @@ class CensusDataResponse(BaseModel):
     resource: Optional[str] = Field(None, description="Resource name (if queried by resource)")
     geoid: str = Field(..., description="Geographic identifier")
     parameter: str = Field(..., description="Parameter name")
-    value: float = Field(..., description="Parameter value")
+    value: Optional[float] = Field(None, description="Parameter value (may be null if not available)")
     unit: str = Field(..., description="Unit of measurement")
     dimension: Optional[str] = Field(None, description="Dimension name (if applicable)")
     dimension_value: Optional[float] = Field(
@@ -74,7 +74,7 @@ class SurveyDataResponse(BaseModel):
     resource: Optional[str] = Field(None, description="Resource name (if queried by resource)")
     geoid: str = Field(..., description="Geographic identifier")
     parameter: str = Field(..., description="Parameter name")
-    value: float = Field(..., description="Parameter value")
+    value: Optional[float] = Field(None, description="Parameter value (may be null if not available)")
     unit: str = Field(..., description="Unit of measurement")
     dimension: Optional[str] = Field(None, description="Dimension name (if applicable)")
     dimension_value: Optional[float] = Field(
@@ -110,7 +110,7 @@ class AnalysisDataResponse(BaseModel):
     resource: str = Field(..., description="Resource name")
     geoid: str = Field(..., description="Geographic identifier")
     parameter: str = Field(..., description="Parameter name")
-    value: float = Field(..., description="Parameter value")
+    value: Optional[float] = Field(None, description="Parameter value (may be null if not available)")
     unit: str = Field(..., description="Unit of measurement")
 
 
