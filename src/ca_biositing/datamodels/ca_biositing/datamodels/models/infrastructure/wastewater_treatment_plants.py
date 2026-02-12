@@ -3,45 +3,6 @@ from sqlmodel import Field, SQLModel
 from typing import Optional
 
 
-class InfrastructureMswToEnergyAnaerobicDigesters(SQLModel, table=True):
-    __tablename__ = "infrastructure_msw_to_energy_anaerobic_digesters"
-
-    wte_id: Optional[int] = Field(default=None, primary_key=True)
-    city: Optional[str] = Field(default=None)
-    county: Optional[str] = Field(default=None)
-    equivalent_generation: Optional[Decimal] = Field(default=None)
-    feedstock: Optional[str] = Field(default=None)
-    dayload: Optional[Decimal] = Field(default=None)
-    dayload_bdt: Optional[Decimal] = Field(default=None)
-    facility_type: Optional[str] = Field(default=None)
-    status: Optional[str] = Field(default=None)
-    notes: Optional[str] = Field(default=None)
-    source: Optional[str] = Field(default=None)
-    type: Optional[str] = Field(default=None)
-    wkt_geom: Optional[str] = Field(default=None)
-    geom: Optional[str] = Field(default=None)
-    latitude: Optional[Decimal] = Field(default=None)
-    longitude: Optional[Decimal] = Field(default=None)
-
-
-class InfrastructureSafAndRenewableDieselPlants(SQLModel, table=True):
-    __tablename__ = "infrastructure_saf_and_renewable_diesel_plants"
-
-    ibcc_index: Optional[int] = Field(default=None, primary_key=True)
-    company: Optional[str] = Field(default=None)
-    city: Optional[str] = Field(default=None)
-    state: Optional[str] = Field(default=None)
-    country: Optional[str] = Field(default=None)
-    capacity: Optional[str] = Field(default=None)
-    feedstock: Optional[str] = Field(default=None)
-    products: Optional[str] = Field(default=None)
-    status: Optional[str] = Field(default=None)
-    address: Optional[str] = Field(default=None)
-    coordinates: Optional[str] = Field(default=None)
-    latitude: Optional[Decimal] = Field(default=None)
-    longitude: Optional[Decimal] = Field(default=None)
-
-
 class InfrastructureWastewaterTreatmentPlants(SQLModel, table=True):
     __tablename__ = "infrastructure_wastewater_treatment_plants"
 

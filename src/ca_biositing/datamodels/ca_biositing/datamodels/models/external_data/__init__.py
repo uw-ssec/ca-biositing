@@ -2,7 +2,6 @@ from .billion_ton import BillionTon2023Record
 from .landiq_record import LandiqRecord
 from .landiq_resource_mapping import LandiqResourceMapping
 from .polygon import Polygon
-from .primary_ag_product import PrimaryAgProduct
 from .resource_usda_commodity_map import ResourceUsdaCommodityMap
 from .usda_census import UsdaCensusRecord
 from .usda_census import UsdaCommodity

@@ -1,12 +1,7 @@
-from ..base import BaseEntity, LookupBase
+from ..base import BaseEntity
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional
-
-
-class LocationResolution(LookupBase, table=True):
-    __tablename__ = "location_resolution"
-
 
 
 class LocationAddress(BaseEntity, table=True):

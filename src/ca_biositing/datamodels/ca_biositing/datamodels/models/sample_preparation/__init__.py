@@ -1,4 +1,3 @@
 from .preparation_method import PreparationMethod
 from .preparation_method import PreparationMethodAbbreviation
 from .prepared_sample import PreparedSample
-from .processing_method import ProcessingMethod
