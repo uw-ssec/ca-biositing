@@ -90,11 +90,11 @@ Example test with database session:
 ```python
 def test_my_function_with_db(session):
     """Test function that uses database."""
-    from ca_biositing.datamodels.biomass import Biomass
+    from ca_biositing.datamodels.models import Resource
 
     # Create test data
-    biomass = Biomass(biomass_name="Test")
-    session.add(biomass)
+    resource = Resource(name="Test Resource")
+    session.add(resource)
     session.commit()
 
     # Test your function

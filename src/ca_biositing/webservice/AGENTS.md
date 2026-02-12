@@ -211,19 +211,19 @@ app.include_router(router)
 The API depends on `ca-biositing-datamodels` for database models:
 
 ```python
-from ca_biositing.datamodels.biomass import Biomass, BiomassType
+from ca_biositing.datamodels.models import Resource
 from ca_biositing.datamodels.database import get_session
 from sqlmodel import Session, select
 from fastapi import Depends
 
-@app.get("/biomass", response_model=list[Biomass])
-async def list_biomass(
+@app.get("/resources", response_model=list[Resource])
+async def list_resources(
     session: Session = Depends(get_session),
 ):
-    """List all biomass records."""
-    statement = select(Biomass)
-    biomass_list = session.exec(statement).all()
-    return biomass_list
+    """List all resource records."""
+    statement = select(Resource)
+    resource_list = session.exec(statement).all()
+    return resource_list
 ```
 
 ## API Design Guidelines
@@ -318,7 +318,7 @@ GET    /items/{id}/details  # Get item details (sub-resource)
 1. **Import datamodels**:
 
    ```python
-   from ca_biositing.datamodels.biomass import Biomass
+   from ca_biositing.datamodels.models import Resource
    from ca_biositing.datamodels.database import get_session
    from sqlmodel import Session, select
    from fastapi import Depends
@@ -327,15 +327,15 @@ GET    /items/{id}/details  # Get item details (sub-resource)
 2. **Use dependency injection**:
 
    ```python
-   @app.get("/biomass/{biomass_id}")
-   async def read_biomass(
-       biomass_id: int,
+   @app.get("/resources/{resource_id}")
+   async def read_resource(
+       resource_id: int,
        session: Session = Depends(get_session),
    ):
-       biomass = session.get(Biomass, biomass_id)
-       if not biomass:
+       resource = session.get(Resource, resource_id)
+       if not resource:
            raise HTTPException(status_code=404, detail="Not found")
-       return biomass
+       return resource
    ```
 
 ### Adding CORS Support
