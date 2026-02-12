@@ -3,9 +3,8 @@
 import pulumi
 import pulumi_gcp as gcp
 
-config = pulumi.Config()
-project_id = config.get("project_id") or "biocirv-470318"
-region = config.get("region") or "us-west1"
+gcp_config = pulumi.Config("gcp")
+region = gcp_config.require("region")
 
 # Cloud SQL instance for staging environment
 staging_db_instance = gcp.sql.DatabaseInstance(
