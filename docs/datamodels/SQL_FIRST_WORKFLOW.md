@@ -1,22 +1,24 @@
-# SQL-First Schema Development Workflow
+# Schema Validation with pgschema
 
-This document outlines the **SQL-first** development path for database schema
-modifications in the CA Biositing project. This workflow allows for rapid
-iteration by working directly in SQL, while maintaining LinkML as the long-term
-source of truth for "steady state" synchronization.
+This document describes how `pgschema` is used for **validation only** in the CA
+Biositing project. All operational schema management (creating tables, adding
+columns, modifying constraints) is handled by **Alembic migrations** generated
+from SQLModel class definitions.
 
-## 🚀 Overview
+## Overview
 
-The project uses `pgschema`, a declarative schema management tool, to
-synchronize your local SQL "Desired State" with the PostgreSQL database. This
-bypasses the LinkML -> SQLAlchemy -> Alembic pipeline during the active
-development phase.
+The project previously used `pgschema` as the primary tool for applying schema
+changes during development. That workflow has been replaced by a standard
+SQLModel + Alembic migration pipeline. The `pgschema` tool is retained solely
+for **diffing** the live database against reference SQL files, which is useful
+for verifying that migrations have been applied correctly.
 
-## 🛠 Prerequisites
+## Prerequisites
 
-### 1. Install `pgschema`
+### Install pgschema (optional)
 
-`pgschema` is a Go-based binary and must be installed manually on your system:
+`pgschema` is a Go-based binary. It is only needed if you want to run validation
+diffs:
 
 ```bash
 # macOS (Homebrew)
@@ -24,111 +26,81 @@ brew tap pgplex/pgschema
 brew install pgschema
 ```
 
-### 2. Infrastructure Upgrade
+## The Current Workflow
 
-The project has been upgraded to **PostgreSQL 15**. If you are upgrading from an
-older version, you must wipe your local data volumes:
+### Primary: SQLModel + Alembic (All Schema Changes)
 
-```bash
-pixi run teardown-services-volumes
-pixi run start-services
-```
+1.  **Edit Models**: Modify SQLModel classes in
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/models/`.
+2.  **Auto-Generate Migration**:
+    ```bash
+    pixi run migrate-autogenerate -m "Description of changes"
+    ```
+3.  **Review**: Check the generated script in `alembic/versions/`.
+4.  **Apply Migration**:
+    ```bash
+    pixi run migrate
+    ```
 
-## 🔄 The Development Cycle
+### Optional: pgschema Validation (Diff Only)
 
-### 1. Edit SQL Files
+These tasks compare the live database state against reference SQL files. They do
+**not** modify the database.
 
-Schema definitions are organized by schema:
-
-- **Public Schema** (Core Tables):
-  `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/tables/`
-- **Analytics Schema** (Materialized Views):
-  `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/ca_biositing/views/`
-
-Modify the `.sql` files to reflect your desired state.
-
-### 2. Plan Changes
-
-Choose the appropriate command based on which schema you are modifying:
-
-#### For Core Tables (public schema):
+#### Diff the public schema:
 
 ```bash
 pixi run schema-plan
 ```
 
-#### For Analytical Views (ca_biositing schema):
+#### Diff the analytics schema (materialized views):
 
 ```bash
 pixi run schema-analytics-plan
 ```
 
-Review the output to ensure it matches your intentions and doesn't contain
-destructive changes you didn't expect.
-
-### 3. Apply Changes
-
-#### For Core Tables:
-
-```bash
-pixi run schema-apply
-```
-
-#### For Analytical Views:
-
-```bash
-pixi run schema-analytics-apply
-```
-
-### 4. Refreshing Data
-
-Materialized views do not update automatically. After loading new data into the
-public tables, refresh the analytical layer:
-
-```bash
-pixi run schema-analytics-refresh
-```
-
-To see the status of your views:
+#### List materialized views:
 
 ```bash
 pixi run schema-analytics-list
 ```
 
-### 4. Baseline (Optional)
-
-If you've made manual changes to the database and want to bring them into your
-SQL files:
+#### Dump current DB state to SQL files:
 
 ```bash
 pixi run schema-dump
 ```
 
-_Note: This will overwrite your local SQL files with the current state of the
-database._
+**Note:** `schema-dump` will overwrite the local SQL files in `sql_schemas/`
+with the current state of the database.
 
-## 🏁 Reaching Steady State
+### Materialized Views
 
-Once your schema changes have reached a stable point and you are ready to "sync
-back" to the primary data model:
+Materialized views are defined in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/views.py` as SQLAlchemy
+Core `select()` expressions. They are created via Alembic migrations and
+refreshed after data loads:
 
-1.  **Update LinkML**: Manually update the LinkML YAML files in
-    `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/` to
-    match your new SQL schema.
-2.  **Generate Models**: Run the standard orchestration task to update the
-    SQLAlchemy models and create a formal Alembic migration for production
-    tracking:
-    ```bash
-    pixi run update-schema -m "Syncing SQL-first development changes"
-    ```
+```bash
+pixi run refresh-views
+```
 
-## ⚠️ Important Rules
+## Removed Tasks
 
-1.  **Do Not Edit `generated/` files**: SQLAlchemy models in the `generated/`
-    folder are still managed by LinkML. They will only reflect your SQL changes
-    _after_ you perform a Steady State sync.
-2.  **Git Tracking**: Always commit your changes to `sql_schemas/` as they
-    represent the source of truth during development.
-3.  **Data Loss**: Be aware that `pgschema apply` may perform destructive
-    operations (like dropping columns) if they are removed from your SQL files.
-    Always check `schema-plan` first.
+The following pixi tasks have been removed as part of the migration to
+Alembic-managed schemas:
+
+| Removed Task               | Replacement                        |
+| -------------------------- | ---------------------------------- |
+| `generate-models`          | Models are now hand-written        |
+| `update-schema`            | `migrate-autogenerate` + `migrate` |
+| `schema-apply`             | `migrate`                          |
+| `schema-analytics-apply`   | `migrate`                          |
+| `schema-analytics-refresh` | `refresh-views`                    |
+
+## Reference SQL Files
+
+The SQL files in `sql_schemas/` are retained as a reference for pgschema
+validation. They are **not** the source of truth for the database schema. The
+source of truth is the SQLModel classes in `models/` combined with the Alembic
+migration chain in `alembic/versions/`.

@@ -46,7 +46,7 @@ def load_field_sample(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} FieldSample records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import FieldSample
+        from ca_biositing.datamodels.models import FieldSample
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in FieldSample.__table__.columns}
 

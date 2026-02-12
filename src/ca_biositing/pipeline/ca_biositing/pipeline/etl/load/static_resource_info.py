@@ -27,6 +27,38 @@ def get_local_engine():
         connect_args={"connect_timeout": 10}
     )
 
+# California FIPS codes used by the static resource info pipeline.
+# GEOID format: 2-digit state FIPS + 3-digit county FIPS ("000" = state-level).
+_KNOWN_PLACES = {
+    "06000": {
+        "geoid": "06000",
+        "state_name": "CALIFORNIA",
+        "state_fips": "06",
+        "county_name": None,
+        "county_fips": "000",
+        "region_name": None,
+        "agg_level_desc": "STATE",
+    },
+}
+
+
+def _get_place_metadata(geoid: str) -> dict:
+    """Return Place attributes for a GEOID.
+
+    Uses a static lookup for well-known codes.  Falls back to parsing the
+    GEOID into state/county FIPS components so that every Place record has
+    at minimum its FIPS fields populated.
+    """
+    if geoid in _KNOWN_PLACES:
+        return _KNOWN_PLACES[geoid]
+    # Fallback: parse the 5-character GEOID into state + county FIPS.
+    return {
+        "geoid": geoid,
+        "state_fips": geoid[:2] if len(geoid) >= 2 else None,
+        "county_fips": geoid[2:] if len(geoid) >= 5 else None,
+    }
+
+
 @task
 def load_landiq_resource_mapping(df: pd.DataFrame):
     """
@@ -45,7 +77,7 @@ def load_landiq_resource_mapping(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} LandIQ resource mapping records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqResourceMapping
+        from ca_biositing.datamodels.models import LandiqResourceMapping
 
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in LandiqResourceMapping.__table__.columns}
@@ -101,7 +133,7 @@ def load_resource_availability(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} resource availability records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import ResourceAvailability
+        from ca_biositing.datamodels.models import Place, ResourceAvailability
 
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in ResourceAvailability.__table__.columns}
@@ -110,6 +142,18 @@ def load_resource_availability(df: pd.DataFrame):
         engine = get_local_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
+                # Ensure referenced Place records exist before inserting availability.
+                # Place is a reference table with no dedicated ETL; records are
+                # upserted here so the FK constraint is satisfied.
+                geoids = {r['geoid'] for r in records if r.get('geoid')}
+                for geoid in geoids:
+                    existing_place = session.query(Place).filter(Place.geoid == geoid).first()
+                    if not existing_place:
+                        place_data = _get_place_metadata(geoid)
+                        session.add(Place(**place_data))
+                        logger.info(f"Created Place record for geoid={geoid}")
+                session.flush()
+
                 for i, record in enumerate(records):
                     if i > 0 and i % 500 == 0:
                         logger.info(f"Processed {i} availability records...")

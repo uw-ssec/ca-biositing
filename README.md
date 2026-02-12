@@ -10,8 +10,8 @@ data access.
 This project uses a **PEP 420 namespace package** structure with three main
 components:
 
-- **`ca_biositing.datamodels`**: Shared LinkML/SQLAlchemy database models and
-  database configuration
+- **`ca_biositing.datamodels`**: Hand-written SQLModel database models,
+  materialized views, and database configuration
 - **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
   via Docker
 - **`ca_biositing.webservice`**: FastAPI REST API for data access
@@ -21,7 +21,7 @@ components:
 ```text
 ca-biositing/
 ├── src/ca_biositing/           # Namespace package root
-│   ├── datamodels/             # Database models (SQLAlchemy)
+│   ├── datamodels/             # Database models (SQLModel) and Alembic migrations
 │   ├── pipeline/               # ETL pipelines (Prefect)
 │   └── webservice/             # REST API (FastAPI)
 ├── resources/                  # Deployment resources
@@ -40,10 +40,6 @@ ca-biositing/
   [Installation Guide](https://pixi.sh/latest/#installation)
 - **Docker**: For running the ETL pipeline
 - **Google Cloud credentials**: For Google Sheets access (optional)
-- **pgschema**: For schema management (Development)
-  ```bash
-  brew tap pgplex/pgschema && brew install pgschema
-  ```
 
 ### Installation
 
@@ -160,7 +156,9 @@ Key tasks:
 - **Development**: `test`, `test-cov`, `pre-commit`, `pre-commit-all`
 - **Applications**: `start-webservice`, `qgis`
 - **Database**: `access-db`, `check-db-health`
-- **Datamodels**: `update-schema`, `migrate`, `schema-plan`, `schema-apply`
+- **Schema Management**: `migrate`, `migrate-autogenerate`, `refresh-views`
+- **Validation (pgschema)**: `schema-plan`, `schema-analytics-plan`,
+  `schema-dump`, `schema-analytics-list`
 
 ## Architecture
 
@@ -190,22 +188,26 @@ Pipeline architecture:
 
 ### Database Models
 
-This project uses a hybrid schema management approach to balance long-term
-stability with development speed:
+Database models are **hand-written SQLModel classes** organized into 15 domain
+subdirectories under
+`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`. All schema
+changes are managed through Alembic migrations.
 
-1.  **LinkML (Steady State)**: The primary source of truth, used for generating
-    type-safe SQLAlchemy models and formal migrations.
-2.  **SQL-First (Development)**: A rapid iteration shortcut using `pgschema` to
-    apply changes directly from SQL files during active development.
+**Development workflow:**
 
-See [SQL-First Workflow](docs/datamodels/SQL_FIRST_WORKFLOW.md) for details.
+1.  Edit SQLModel classes in `models/`
+2.  Auto-generate a migration: `pixi run migrate-autogenerate -m "Description"`
+3.  Apply the migration: `pixi run migrate`
 
-SQLAlchemy-based models provide:
+SQLModel-based models provide:
 
-- Type-safe database operations
-- Automatic schema generation (via Alembic)
+- Type-safe database operations (SQLAlchemy + Pydantic in one class)
+- Versioned schema migrations (via Alembic)
 - Shared models across ETL and API components
-- Pydantic validation
+- Built-in Pydantic validation
+
+Seven materialized views are defined in `views.py` and managed through Alembic
+migrations. Refresh them after loading data with `pixi run refresh-views`.
 
 ## Project Components
 
@@ -236,10 +238,10 @@ Prefect-orchestrated workflows for:
 
 **Guides**:
 
-- [Docker Workflow](src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md)
-- [ETL Development](src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md)
-- [Database Migrations](src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md)
+- [Docker Workflow](docs/pipeline/DOCKER_WORKFLOW.md)
+- [Prefect Workflow](docs/pipeline/PREFECT_WORKFLOW.md)
+- [ETL Development](docs/pipeline/ETL_WORKFLOW.md)
+- [Database Migrations](docs/pipeline/ALEMBIC_WORKFLOW.md)
 
 ### 3. Web Service (`ca_biositing.webservice`)
 

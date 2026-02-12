@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from unittest.mock import patch
 from ca_biositing.pipeline.etl.load.prepared_sample import load_prepared_sample
-from ca_biositing.datamodels.schemas.generated.ca_biositing import PreparedSample
+from ca_biositing.datamodels.models import PreparedSample
 
 @patch("ca_biositing.pipeline.etl.load.prepared_sample.get_local_engine")
 def test_load_prepared_sample_insert(mock_get_engine, session, engine):

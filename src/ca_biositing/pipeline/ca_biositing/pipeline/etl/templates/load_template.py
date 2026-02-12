@@ -34,7 +34,7 @@ def load_data_template(df: pd.DataFrame):
     Upserts records into the database.
 
     Template Instructions:
-    1. Replace 'YourModel' with the actual SQLAlchemy model class.
+    1. Replace 'YourModel' with the actual SQLModel class.
     2. Update 'index_elements' with the unique constraint column (e.g., 'record_id').
     3. Adjust 'update_dict' exclusions as needed.
     """
@@ -52,8 +52,8 @@ def load_data_template(df: pd.DataFrame):
 
     try:
         # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-        # from ca_biositing.datamodels.schemas.generated.ca_biositing import YourModel
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation as YourModel # Placeholder
+        # from ca_biositing.datamodels.models import YourModel
+        from ca_biositing.datamodels.models import Observation as YourModel # Placeholder
 
         now = datetime.now(timezone.utc)
 

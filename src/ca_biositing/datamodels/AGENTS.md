@@ -6,9 +6,9 @@ This file provides guidance to AI assistants when working with the
 ## Package Overview
 
 This is the **ca-biositing-datamodels** package, a PEP 420 namespace package
-containing SQLAlchemy database models for the CA Biositing project. It is
-designed to be shared across multiple components (ETL pipelines, API services,
-analysis tools) of the parent ca-biositing project.
+containing SQLModel database models for the CA Biositing project. It is designed
+to be shared across multiple components (ETL pipelines, API services, analysis
+tools) of the parent ca-biositing project.
 
 **Package Stats:**
 
@@ -19,7 +19,7 @@ analysis tools) of the parent ca-biositing project.
 - **Python:** >= 3.12
 - **Build System:** Hatchling
 - **License:** BSD License
-- **Domain:** Database models, SQLAlchemy, PostgreSQL, LinkML
+- **Domain:** Database models, SQLModel, PostgreSQL, Alembic
 
 ## Cross-Cutting Documentation
 
@@ -37,11 +37,18 @@ src/ca_biositing/datamodels/
 ├── ca_biositing/              # No __init__.py at this level (namespace)
 │   └── datamodels/            # Package implementation
 │       ├── __init__.py        # Package initialization
-│       ├── database.py        # Connection and session management
-│       ├── linkml/            # LinkML source of truth (YAML)
-│       ├── schemas/
-│       │   └── generated/     # Generated SQLAlchemy classes (DO NOT EDIT)
-│       └── utils/             # Orchestration and generation scripts
+│       ├── database.py        # SQLModel engine and session management
+│       ├── config.py          # Pydantic Settings configuration
+│       ├── views.py           # Materialized view definitions (7 views)
+│       ├── models/            # Hand-written SQLModel classes
+│       │   ├── __init__.py    # Central re-export of all 91 models
+│       │   ├── base.py        # Base classes (BaseEntity, LookupBase, etc.)
+│       │   ├── aim1_records/  # Aim 1 analytical records
+│       │   ├── aim2_records/  # Aim 2 processing records
+│       │   ├── core/          # ETL lineage and run tracking
+│       │   ├── external_data/ # LandIQ, USDA, Billion Ton records
+│       │   └── ...            # (+ 10 more domain subdirectories)
+│       └── sql_schemas/       # Reference SQL files (for pgschema validation)
 ├── tests/                     # Test suite
 ├── pyproject.toml            # Package metadata
 └── README.md                 # Documentation
@@ -50,81 +57,72 @@ src/ca_biositing/datamodels/
 **CRITICAL:** The `ca_biositing/` directory does **NOT** have an `__init__.py`
 file. This allows multiple packages to share the `ca_biositing` namespace.
 
-### Model Architecture (Hybrid Workflow)
+### Model Architecture
 
-This project uses a hybrid schema management approach:
+Models are **hand-written SQLModel classes** organized into 15 domain
+subdirectories under `models/`. All models are re-exported from
+`models/__init__.py` for convenient imports.
 
-1.  **SQL-First (Development)**: Rapidly iterate by modifying SQL files in
-    `sql_schemas/` and using `pgschema`.
-2.  **LinkML (Steady State)**: Once stable, changes are synced back to LinkML
-    YAML definitions for long-term tracking and model generation.
+**Import pattern:**
 
-- **SQL Source**:
-  `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/`
-- **LinkML Source**:
-  `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`
-- **Generated Models**:
-  `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`
+```python
+# Preferred: import from the models package
+from ca_biositing.datamodels.models import Resource, FieldSample, Place
 
-**DO NOT EDIT the generated Python files directly.**
+# Also valid: import from specific domain submodule
+from ca_biositing.datamodels.models.resource_information import Resource
+```
 
-### Note on Unique Constraints
+**Database operations:**
 
-LinkML's SQLAlchemy generator does not always preserve `UNIQUE` constraints or
-`identifier` status in a way that Alembic detects for all polymorphic tables.
-The `generate_sqla.py` script includes a post-processing step to manually inject
-`unique=True` for `record_id` on target classes (Observations and Aim Records)
-to ensure robust upsert support.
+```python
+from sqlmodel import Session, select
+from ca_biositing.datamodels.database import get_engine
+from ca_biositing.datamodels.models import Resource
+
+engine = get_engine()
+with Session(engine) as session:
+    resources = session.exec(select(Resource)).all()
+```
 
 ## Schema Management Workflow (CRITICAL)
 
-### Development Shortcut (SQL-First)
+All schema changes are managed through **SQLModel classes** and **Alembic
+migrations**. There is no code generation step.
 
-For rapid iteration, work directly in SQL:
+### Making Schema Changes
 
-1.  **Modify SQL**: Edit `.sql` files in
-    `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/`.
-2.  **Plan**: `pixi run schema-plan`.
-3.  **Apply**: `pixi run schema-apply`.
+1.  **Edit Models**: Modify or add SQLModel classes in the appropriate
+    subdirectory under `models/`.
+2.  **Re-Export**: If adding a new model, add the import to
+    `models/__init__.py`.
+3.  **Auto-Generate Migration**:
+    ```bash
+    pixi run migrate-autogenerate -m "Description of changes"
+    ```
+4.  **Review**: Check the generated script in `alembic/versions/`.
+5.  **Apply Migration**:
+    ```bash
+    pixi run migrate
+    ```
 
-See
-[docs/datamodels/SQL_FIRST_WORKFLOW.md](../../../docs/datamodels/SQL_FIRST_WORKFLOW.md)
-for details.
+### Materialized Views
 
-### Steady State Sync (LinkML)
-
-Once the schema stabilizes, sync back to the main data model.
-
-### 1. Update LinkML
-
-Modify the YAML files in the `linkml/modules/` directory to match the SQL state.
-
-### 2. Orchestrate Update
-
-Run the following command from the project root:
-
-```bash
-pixi run update-schema -m "Description of changes"
-```
-
-This task executes
-[`orchestrate_schema_update.py`](src/ca_biositing/datamodels/utils/orchestrate_schema_update.py)
-which:
-
-- Generates SQLAlchemy models from LinkML.
-- Rebuilds Docker services.
-- **Generates the Alembic migration LOCALLY** to avoid container import hangs.
-
-### 3. Apply Migrations
-
-Apply changes to the database:
+Seven views are defined in `views.py` as SQLAlchemy Core `select()` expressions.
+They are created/modified through manual Alembic migrations. Refresh after data
+loads:
 
 ```bash
-pixi run migrate
+pixi run refresh-views
 ```
 
-_Note: This runs `alembic upgrade head` locally against the Docker-hosted
-PostgreSQL._
+### Validation with pgschema (Optional)
+
+The `pgschema` tool can be used for diffing the live DB against reference SQL
+files (validation only):
+
+- `pixi run schema-plan`: Diff public schema.
+- `pixi run schema-analytics-plan`: Diff analytics schema.
 
 ## Dependencies & Environment
 
@@ -132,11 +130,11 @@ PostgreSQL._
 
 From `pyproject.toml`:
 
+- **SQLModel**: Combines SQLAlchemy + Pydantic for typed ORM models
 - **SQLAlchemy** (>=2.0.0): SQL database ORM
+- **GeoAlchemy2**: PostGIS geometry column support
 - **Alembic** (>=1.13.2, <2): Database migrations
 - **psycopg2-binary** (>=2.9.6, <3): PostgreSQL adapter
-- **LinkML** (>=1.8.0): Data modeling framework
-- **Pydantic** (>=2.0.0): Data validation
 - **Pydantic Settings** (>=2.0.0): Configuration management
 
 ### Development Environment
@@ -171,11 +169,11 @@ from datetime import datetime
 from typing import Optional
 
 # Third-party
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, UniqueConstraint
 
-# Local (Generated models)
-from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
+# Local (models package)
+from ca_biositing.datamodels.models import Resource, FieldSample
 ```
 
 ## Common Pitfalls & Solutions
@@ -188,9 +186,14 @@ packages are installed. See root `AGENTS.md` for details.
 
 ### Issue: Alembic hangs in Docker
 
-**Solution:** Always use `pixi run update-schema` and `pixi run migrate`. These
-are configured to run locally to bypass Docker Desktop performance issues on
-macOS.
+**Solution:** Always use `pixi run migrate-autogenerate` and `pixi run migrate`.
+These are configured to run locally to bypass Docker Desktop performance issues
+on macOS.
+
+### Issue: New model not detected by Alembic autogenerate
+
+**Solution:** Ensure the new model is imported in `models/__init__.py`. Alembic
+reads `SQLModel.metadata`, which only includes models that have been imported.
 
 ## Related Documentation
 

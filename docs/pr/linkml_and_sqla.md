@@ -1,4 +1,10 @@
-# LinkML and SQLAlchemy Integration
+> **Historical Document**: This PR description is preserved for reference. The
+> LinkML code generation workflow described below has been replaced by
+> hand-written SQLModel classes with Alembic migrations. See the
+> [datamodels README](../../src/ca_biositing/datamodels/README.md) for the
+> current workflow.
+
+# LinkML and SQLAlchemy Integration (Archived)
 
 This PR introduces a robust, schema-first approach to data modeling using
 **LinkML** as the source of truth. This architecture ensures that our database

@@ -50,7 +50,7 @@ def load_prepared_sample(df: pd.DataFrame):
 
     try:
         # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import PreparedSample
+        from ca_biositing.datamodels.models import PreparedSample
 
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in PreparedSample.__table__.columns}

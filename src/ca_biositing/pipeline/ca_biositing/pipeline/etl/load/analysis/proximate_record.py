@@ -37,7 +37,7 @@ def load_proximate_record(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} Proximate records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import ProximateRecord
+        from ca_biositing.datamodels.models import ProximateRecord
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in ProximateRecord.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')

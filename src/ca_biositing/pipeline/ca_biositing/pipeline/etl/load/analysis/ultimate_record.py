@@ -37,7 +37,7 @@ def load_ultimate_record(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} Ultimate records...")
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import UltimateRecord
+        from ca_biositing.datamodels.models import UltimateRecord
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in UltimateRecord.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
