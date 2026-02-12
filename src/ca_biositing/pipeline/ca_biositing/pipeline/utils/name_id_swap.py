@@ -42,7 +42,7 @@ def replace_name_with_id_df(
   final_column_name: str,
 ) -> tuple[pd.DataFrame, int]:
   """
-  Replace a DataFrame name column with foreign key IDs from a SQLAlchemy table.
+  Replace a DataFrame name column with foreign key IDs from a database table.
   Creates missing reference records if needed.
 
   Returns:

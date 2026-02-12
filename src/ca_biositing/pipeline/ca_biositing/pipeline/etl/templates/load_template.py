@@ -34,7 +34,7 @@ def load_data_template(df: pd.DataFrame):
     Upserts records into the database.
 
     Template Instructions:
-    1. Replace 'YourModel' with the actual SQLAlchemy model class.
+    1. Replace 'YourModel' with the actual SQLModel class.
     2. Update 'index_elements' with the unique constraint column (e.g., 'record_id').
     3. Adjust 'update_dict' exclusions as needed.
     """
