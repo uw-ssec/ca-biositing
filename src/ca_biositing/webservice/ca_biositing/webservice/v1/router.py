@@ -7,9 +7,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from ca_biositing.webservice.v1.feedstocks import router as feedstocks_router
+
 # Create the main v1 router
 router = APIRouter(prefix="/v1")
 
 # Include all endpoint routers
-# Note: Most endpoints have been removed as they were outdated.
-# Re-add them as they are rebuilt with the new data models.
+router.include_router(feedstocks_router)

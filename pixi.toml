@@ -313,28 +313,38 @@ description = "Build documentation for ReadTheDocs"
 
 
 # ==== Deployment environment ====
-[feature.cloud.dependencies]
-opentofu = ">1.10.6"
+[feature.cloud.tasks.install-pulumi]
+cmd = "curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX"
+outputs = ["**/bin/pulumi"]
 
-[feature.cloud.tasks]
-# empty for now
+[feature.cloud.pypi-dependencies]
+pulumi = ">=3.0.0,<4"
+pulumi-gcp = ">=9.0.0,<10"
 
-# OpenTofu tasks
-[feature.cloud.tasks.cloud-deploy]
-cmd = "tofu fmt -recursive && tofu apply"
-cwd = "deployment/cloud/gcp/infrastructure"
+# Pulumi tasks
+[feature.cloud.tasks.cloud-bootstrap]
+cmd = "gcloud storage buckets create gs://biocirv-470318-pulumi-state --location=us-west1 --uniform-bucket-level-access --public-access-prevention && gcloud storage buckets update gs://biocirv-470318-pulumi-state --versioning"
+description = "Create the Pulumi state bucket in GCS (one-time setup)."
 
 [feature.cloud.tasks.cloud-init]
-cmd = "tofu init"
+cmd = "pulumi login gs://biocirv-470318-pulumi-state"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Login to the Pulumi GCS backend for state management."
 
 [feature.cloud.tasks.cloud-plan]
-cmd = "tofu fmt -recursive && tofu plan"
+cmd = "pulumi preview"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Preview pending infrastructure changes."
+
+[feature.cloud.tasks.cloud-deploy]
+cmd = "pulumi up"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Deploy infrastructure changes to GCP."
 
 [feature.cloud.tasks.cloud-destroy]
-cmd = "tofu destroy"
+cmd = "pulumi destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Destroy all managed GCP infrastructure."
 
 [feature.gis.pypi-dependencies]
 geopandas = "*"
