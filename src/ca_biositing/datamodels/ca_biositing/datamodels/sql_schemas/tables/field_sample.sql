@@ -1,0 +1,42 @@
+--
+-- Name: field_sample; Type: TABLE; Schema: -; Owner: -
+--
+
+CREATE TABLE IF NOT EXISTS field_sample (
+    name text,
+    resource_id integer,
+    provider_id integer,
+    collector_id integer,
+    sample_collection_source text,
+    amount_collected numeric,
+    amount_collected_unit_id integer,
+    sampling_location_id integer,
+    field_storage_method_id integer,
+    field_storage_duration_value numeric,
+    field_storage_duration_unit_id integer,
+    field_storage_location_id integer,
+    collection_timestamp timestamp,
+    collection_method_id integer,
+    harvest_method_id integer,
+    harvest_date date,
+    field_sample_storage_location_id integer,
+    note text,
+    id SERIAL,
+    created_at timestamp,
+    updated_at timestamp,
+    etl_run_id integer,
+    lineage_group_id integer,
+    CONSTRAINT field_sample_pkey PRIMARY KEY (id),
+    CONSTRAINT field_sample_amount_collected_unit_id_fkey FOREIGN KEY (amount_collected_unit_id) REFERENCES unit (id),
+    CONSTRAINT field_sample_collection_method_id_fkey FOREIGN KEY (collection_method_id) REFERENCES collection_method (id),
+    CONSTRAINT field_sample_collector_id_fkey FOREIGN KEY (collector_id) REFERENCES contact (id),
+    CONSTRAINT field_sample_etl_run_id_fkey FOREIGN KEY (etl_run_id) REFERENCES etl_run (id),
+    CONSTRAINT field_sample_field_sample_storage_location_id_fkey FOREIGN KEY (field_sample_storage_location_id) REFERENCES location_address (id),
+    CONSTRAINT field_sample_field_storage_duration_unit_id_fkey FOREIGN KEY (field_storage_duration_unit_id) REFERENCES unit (id),
+    CONSTRAINT field_sample_field_storage_location_id_fkey FOREIGN KEY (field_storage_location_id) REFERENCES location_address (id),
+    CONSTRAINT field_sample_field_storage_method_id_fkey FOREIGN KEY (field_storage_method_id) REFERENCES field_storage_method (id),
+    CONSTRAINT field_sample_harvest_method_id_fkey FOREIGN KEY (harvest_method_id) REFERENCES harvest_method (id),
+    CONSTRAINT field_sample_provider_id_fkey FOREIGN KEY (provider_id) REFERENCES provider (id),
+    CONSTRAINT field_sample_resource_id_fkey FOREIGN KEY (resource_id) REFERENCES resource (id),
+    CONSTRAINT field_sample_sampling_location_id_fkey FOREIGN KEY (sampling_location_id) REFERENCES location_address (id)
+);

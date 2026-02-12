@@ -51,6 +51,9 @@ credentials.json
 # Jupyter Notebooks
 .ipynb_checkpoints/
 
+# Tools
+pgschema
+
 # Pulumi
 .pulumi/
 

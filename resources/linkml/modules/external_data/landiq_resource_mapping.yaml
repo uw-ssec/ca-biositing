@@ -1,0 +1,27 @@
+id: https://w3id.org/ca_biositing/external_data/landiq_resource_mapping
+name: landiq_resource_mapping
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../resource_information/resource
+  - ../resource_information/primary_ag_product
+default_range: string
+
+classes:
+  LandiqResourceMapping:
+    is_a: BaseEntity
+    description: Mapping between LandIQ crop names and internal Resource IDs.
+    slots:
+      - landiq_crop_name
+      - resource_id
+
+slots:
+  landiq_crop_name:
+    range: PrimaryAgProduct
+    description: The crop name as it appears in LandIQ data.
+
+  resource_id:
+    range: Resource
+    description: Reference to the internal Resource.

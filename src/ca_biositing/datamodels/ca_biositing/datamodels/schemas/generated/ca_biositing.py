@@ -1063,7 +1063,8 @@ class Resource(BaseEntity):
     primary_ag_product_id = Column(Integer(), ForeignKey('primary_ag_product.id'))
     resource_class_id = Column(Integer(), ForeignKey('resource_class.id'))
     resource_subclass_id = Column(Integer(), ForeignKey('resource_subclass.id'))
-    note = Column(Text())
+    resource_code = Column(Text())
+    description = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
     updated_at = Column(DateTime())
@@ -1072,7 +1073,7 @@ class Resource(BaseEntity):
 
 
     def __repr__(self):
-        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Resource(name={self.name},primary_ag_product_id={self.primary_ag_product_id},resource_class_id={self.resource_class_id},resource_subclass_id={self.resource_subclass_id},resource_code={self.resource_code},description={self.description},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -1671,6 +1672,35 @@ class UsdaTermMap(BaseEntity):
 
 
 
+class LandiqResourceMapping(BaseEntity):
+    """
+    Mapping between LandIQ crop names and internal Resource IDs.
+    """
+    __tablename__ = 'landiq_resource_mapping'
+    __table_args__ = {'extend_existing': True}
+
+    landiq_crop_name = Column(Integer(), ForeignKey('primary_ag_product.id'))
+    resource_id = Column(Integer(), ForeignKey('resource.id'))
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LandiqResourceMapping(landiq_crop_name={self.landiq_crop_name},resource_id={self.resource_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class AgTreatment(LookupBase):
     """
     Agricultural treatment.
@@ -2205,6 +2235,7 @@ class Contact(BaseEntity):
     __tablename__ = 'contact'
     __table_args__ = {'extend_existing': True}
 
+    name = Column(Text())
     first_name = Column(Text())
     last_name = Column(Text())
     email = Column(Text())
@@ -2217,7 +2248,7 @@ class Contact(BaseEntity):
 
 
     def __repr__(self):
-        return f"Contact(first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"Contact(name={self.name},first_name={self.first_name},last_name={self.last_name},email={self.email},affiliation={self.affiliation},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 
@@ -2335,6 +2366,41 @@ class Aim2RecordBase(BaseEntity):
 
 
 
+class LandiqRecordView(BaseEntity):
+    """
+    Denormalized LandIQ records with geometry.
+    """
+    __tablename__ = 'landiq_record_view'
+    __table_args__ = {'extend_existing': True}
+
+    record_id = Column(Text())
+    geom = Column(Text())
+    geoid = Column(Text())
+    crop_name = Column(Text())
+    acres = Column(Float())
+    irrigated = Column(Boolean())
+    confidence = Column(Integer())
+    dataset_id = Column(Integer(), ForeignKey('dataset.id'))
+    id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
+    created_at = Column(DateTime())
+    updated_at = Column(DateTime())
+    etl_run_id = Column(Integer(), ForeignKey('etl_run.id'))
+    lineage_group_id = Column(Integer())
+
+
+    def __repr__(self):
+        return f"LandiqRecordView(record_id={self.record_id},geom={self.geom},geoid={self.geoid},crop_name={self.crop_name},acres={self.acres},irrigated={self.irrigated},confidence={self.confidence},dataset_id={self.dataset_id},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+
+
+
+
+    # Using concrete inheritance: see https://docs.sqlalchemy.org/en/14/orm/inheritance.html
+    __mapper_args__ = {
+        'concrete': True
+    }
+
+
+
 class Strain(LookupBase):
     """
     Strain used in fermentation.
@@ -2374,6 +2440,8 @@ class ResourceAvailability(BaseEntity):
     from_month = Column(Integer())
     to_month = Column(Integer())
     year_round = Column(Boolean())
+    residue_factor_dry_tons_acre = Column(Float())
+    residue_factor_wet_tons_acre = Column(Float())
     note = Column(Text())
     id = Column(Integer(), autoincrement=True, primary_key=True, nullable=False )
     created_at = Column(DateTime())
@@ -2383,7 +2451,7 @@ class ResourceAvailability(BaseEntity):
 
 
     def __repr__(self):
-        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
+        return f"ResourceAvailability(resource_id={self.resource_id},geoid={self.geoid},from_month={self.from_month},to_month={self.to_month},year_round={self.year_round},residue_factor_dry_tons_acre={self.residue_factor_dry_tons_acre},residue_factor_wet_tons_acre={self.residue_factor_wet_tons_acre},note={self.note},id={self.id},created_at={self.created_at},updated_at={self.updated_at},etl_run_id={self.etl_run_id},lineage_group_id={self.lineage_group_id},)"
 
 
 

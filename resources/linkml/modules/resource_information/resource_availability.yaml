@@ -19,6 +19,8 @@ classes:
       - from_month
       - to_month
       - year_round
+      - residue_factor_dry_tons_acre
+      - residue_factor_wet_tons_acre
       - note
 
 slots:
@@ -41,3 +43,11 @@ slots:
   year_round:
     range: boolean
     description: Whether available year-round.
+
+  residue_factor_dry_tons_acre:
+    range: float
+    description: Dry tons per acre residue factor.
+
+  residue_factor_wet_tons_acre:
+    range: float
+    description: Wet tons per acre residue factor.

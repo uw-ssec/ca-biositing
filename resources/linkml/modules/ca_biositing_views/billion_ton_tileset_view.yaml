@@ -1,0 +1,52 @@
+id: https://w3id.org/ca_biositing/ca_biositing_views/billion_ton_tileset_view
+name: billion_ton_tileset_view
+prefixes:
+  linkml: https://w3id.org/linkml/
+imports:
+  - linkml:types
+  - ../core/base_entity
+  - ../external_data/billion_ton_2023_record
+  - ../resource_information/resource
+  - ../places/geography
+  - ../methods_parameters_units/unit
+
+classes:
+  BillionTonTilesetView:
+    is_a: BaseEntity
+    description: Denormalized Billion Ton records for tileset export.
+    annotations:
+      sql_schema: ca_biositing
+      materialized: true
+      sql_definition: >
+        SELECT
+          btr.id,
+          r.name as resource,
+          p.county_name as county,
+          'production'::text as parameter,
+          btr.production::float as value,
+          u.name as unit,
+          btr.etl_run_id as tileset_id
+        FROM public.billion_ton2023_record btr JOIN public.resource r ON
+        btr.resource_id = r.id JOIN public.place p ON btr.geoid = p.geoid JOIN
+        public.unit u ON btr.production_unit_id = u.id
+    slots:
+      - resource
+      - county
+      - parameter
+      - value
+      - unit
+      - tileset_id
+
+slots:
+  resource:
+    range: string
+  county:
+    range: string
+  parameter:
+    range: string
+  value:
+    range: float
+  unit:
+    range: string
+  tileset_id:
+    range: integer

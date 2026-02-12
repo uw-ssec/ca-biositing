@@ -43,6 +43,7 @@ imports:
   - modules/external_data/usda_survey_program
   - modules/external_data/usda_survey_record
   - modules/external_data/usda_term_map
+  - modules/external_data/landiq_resource_mapping
   - modules/field_sampling/ag_treatment
   - modules/field_sampling/collection_method
   - modules/field_sampling/field_sample
@@ -97,6 +98,12 @@ imports:
   - modules/aim1_records/ftnir_record
   - modules/aim1_records/rgb_record
   - modules/aim2_records/aim2_record_base
+  - modules/ca_biositing_views/landiq_record_view
+  - modules/ca_biositing_views/analysis_data_view
+  - modules/ca_biositing_views/landiq_tileset_view
+  - modules/ca_biositing_views/usda_census_view
+  - modules/ca_biositing_views/usda_survey_view
+  - modules/ca_biositing_views/billion_ton_tileset_view
   - modules/aim2_records/pretreatment_record
   - modules/aim2_records/fermentation_record
   - modules/aim2_records/gasification_record

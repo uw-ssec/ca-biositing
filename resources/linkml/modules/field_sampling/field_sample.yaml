@@ -19,6 +19,10 @@ classes:
   FieldSample:
     is_a: BaseEntity
     description: Sample collected from the field.
+    unique_keys:
+      unique_field_sample_name:
+        unique_key_slots:
+          - name
     slots:
       - name
       - resource_id

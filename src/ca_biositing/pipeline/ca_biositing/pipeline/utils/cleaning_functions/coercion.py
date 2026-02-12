@@ -14,10 +14,21 @@ def _coerce_int(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
     return df
 
 
-def _coerce_float(df: pd.DataFrame, cols: Iterable[str], float_dtype=np.float32) -> pd.DataFrame:
+def _coerce_float(df: pd.DataFrame, cols: Iterable[str], float_dtype=np.float64) -> pd.DataFrame:
     for c in cols:
         if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce").astype(float_dtype)
+            # Force conversion to string to handle any mixed types or weird objects
+            # Then remove commas and whitespace
+            s = df[c].astype(str)
+            # Remove commas
+            s = s.str.replace(",", "", regex=False)
+            # Remove all whitespace
+            s = s.str.replace(r"\s+", "", regex=True)
+            # Replace various null-like strings with actual NaN
+            s = s.replace(["", "nan", "None", "NaN", "null"], np.nan)
+
+            # Convert to numeric
+            df[c] = pd.to_numeric(s, errors="coerce").astype(float_dtype)
     return df
 
 
@@ -29,9 +40,23 @@ def _coerce_datetime(df: pd.DataFrame, cols: Iterable[str], **kwargs) -> pd.Data
 
 
 def _coerce_bool(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
-    mapping = {True: True, False: False, "true": True, "false": False, "1": True, "0": False}
+    mapping = {
+        True: True,
+        False: False,
+        "true": True,
+        "false": False,
+        "1": True,
+        "0": False,
+        "yes": True,
+        "no": False,
+        "y": True,
+        "n": False,
+    }
     for c in cols:
         if c in df.columns:
+            # Convert to lowercase if string to match mapping
+            if df[c].dtype == "object":
+                df[c] = df[c].str.lower()
             df[c] = df[c].map(mapping).astype("boolean")
     return df
 
@@ -76,7 +101,7 @@ def coerce_columns(
     category_cols: Optional[Iterable[str]] = None,
     geometry_cols: Optional[Iterable[str]] = None,
     dtype_map: Optional[dict] = None,
-    float_dtype=np.float32,
+    float_dtype=np.float64,
     geometry_format: str = "wkt",
 ) -> pd.DataFrame:
     """Coerce groups of columns to target types.

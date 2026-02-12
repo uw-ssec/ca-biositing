@@ -50,18 +50,23 @@ src/ca_biositing/datamodels/
 **CRITICAL:** The `ca_biositing/` directory does **NOT** have an `__init__.py`
 file. This allows multiple packages to share the `ca_biositing` namespace.
 
-### Model Architecture (LinkML Source of Truth)
+### Model Architecture (Hybrid Workflow)
 
-This project uses **LinkML** as the primary source of truth for the data model.
-SQLAlchemy models are automatically generated from LinkML YAML definitions.
+This project uses a hybrid schema management approach:
 
-- **Source YAML**:
+1.  **SQL-First (Development)**: Rapidly iterate by modifying SQL files in
+    `sql_schemas/` and using `pgschema`.
+2.  **LinkML (Steady State)**: Once stable, changes are synced back to LinkML
+    YAML definitions for long-term tracking and model generation.
+
+- **SQL Source**:
+  `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/`
+- **LinkML Source**:
   `src/ca_biositing/datamodels/ca_biositing/datamodels/linkml/modules/`
 - **Generated Models**:
   `src/ca_biositing/datamodels/ca_biositing/datamodels/schemas/generated/`
 
-**DO NOT EDIT the generated Python files directly.** Always modify the LinkML
-YAML and run the update task.
+**DO NOT EDIT the generated Python files directly.**
 
 ### Note on Unique Constraints
 
@@ -73,12 +78,26 @@ to ensure robust upsert support.
 
 ## Schema Management Workflow (CRITICAL)
 
-Due to macOS Docker filesystem performance issues, a specific local workflow is
-required for schema updates.
+### Development Shortcut (SQL-First)
+
+For rapid iteration, work directly in SQL:
+
+1.  **Modify SQL**: Edit `.sql` files in
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/`.
+2.  **Plan**: `pixi run schema-plan`.
+3.  **Apply**: `pixi run schema-apply`.
+
+See
+[docs/datamodels/SQL_FIRST_WORKFLOW.md](../../../docs/datamodels/SQL_FIRST_WORKFLOW.md)
+for details.
+
+### Steady State Sync (LinkML)
+
+Once the schema stabilizes, sync back to the main data model.
 
 ### 1. Update LinkML
 
-Modify the YAML files in the `linkml/modules/` directory.
+Modify the YAML files in the `linkml/modules/` directory to match the SQL state.
 
 ### 2. Orchestrate Update
 
