@@ -201,6 +201,7 @@ schema-analytics-apply = { cmd = "pgschema apply --host localhost --port 5432 --
 # Materialized View Utilities
 schema-analytics-refresh = { cmd = "pixi run access-db -c \"REFRESH MATERIALIZED VIEW ca_biositing.landiq_record_view; REFRESH MATERIALIZED VIEW ca_biositing.analysis_data_view; REFRESH MATERIALIZED VIEW ca_biositing.landiq_tileset_view; REFRESH MATERIALIZED VIEW ca_biositing.usda_census_view; REFRESH MATERIALIZED VIEW ca_biositing.analysis_average_view; REFRESH MATERIALIZED VIEW ca_biositing.billion_ton_tileset_view; REFRESH MATERIALIZED VIEW ca_biositing.usda_survey_view;\"", description = "Refresh all materialized views in the analytics layer." }
 schema-analytics-list = { cmd = "pixi run access-db -c \"SELECT schemaname, matviewname, ispopulated FROM pg_matviews\"", description = "List all materialized views in the database." }
+refresh-views = { cmd = "python -c \"from ca_biositing.datamodels.views import refresh_all_views; from ca_biositing.datamodels.database import get_engine; refresh_all_views(get_engine())\"", description = "Refresh all materialized views using SQLAlchemy.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
