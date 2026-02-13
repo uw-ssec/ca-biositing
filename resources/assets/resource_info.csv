@@ -1,0 +1,95 @@
+resource,resource_code,landiq_crop_name,residue_type,collected,from_month,to_month,residue_yield_wet_ton_per_ac,moisture_content,residue_yield_dry_ton_per_ac
+Alfalfa,Alf,Alfalfa & Mixtures,Ag Residue,FALSE,4,10,1,11%,0.9
+Almond Branches,AlmBr,Almonds,Ag Residue,FALSE,11,1,2.5,40%,1.5
+Almond Hulls,AlmHu,Almonds ,Processing Waste,TRUE,8,11,2.5,40%,1.5
+Almond Shells,AlmSh,Almonds (D12),Processing Waste,TRUE,8,11,2.5,40%,1.5
+Almond Shells and Hulls mix,AlMix,Almonds (D12),Processing Waste,TRUE,8,11,2.5,40%,1.5
+Almond stick char,AlmSC,Almonds (D12),Processing Waste,TRUE,1,12,2.5,40%,1.5
+Almond woodchips,AlmWC,Almonds (D12),Ag Residue,FALSE,11,1,2.5,40%,1.5
+Apricot off-spec canned products,ApOSC,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot peels,ApPl,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot pomace,ApPo,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot rejects,ApRj,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot screening waste,ApSW,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot seeds,ApSd,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Apricot stems / leaves,ApSt,Apricots (D2),Processing Waste,TRUE,5,7,2.5,40%,1.5
+Blend,Ble,No Match,N/A,FALSE,-,-,-,-,-
+Compost overs,Compo,No Match,Ag Residue,FALSE,1,12,-,-,-
+Corn stover cobs,CnSC,"Corn, Sorghum (F16)",Processing Waste,TRUE,9,11,2.9,20%,2.3
+Corn stover husks,CnSH,"Corn, Sorghum (F16)",Processing Waste,TRUE,9,11,2.9,20%,2.3
+Corn stover stalks,CnSS,"Corn, Sorghum (F16)",Ag Residue,FALSE,9,11,2.9,20%,2.3
+Corn stover whole,CnSW,"Corn, Sorghum (F16)",Ag Residue,FALSE,9,11,2.9,20%,2.3
+Cotton stem mix,CotSM,Cotton (F1),Ag Residue,FALSE,10,12,1.5,14%,1.3
+Cucumber culls,CuCu,Melons/Squash (T9),Processing Waste,TRUE,6,9,1.2,80%,0.2
+Dairy manure,DaMa,No Match,N/A,TRUE,1,12,-,-,-
+Diatomaceous earth (wine),DiErW,Grapes (V),Processing Waste,TRUE,8,10,2,45%,1.1
+Grape pomace,GpPm,Grapes (V),Processing Waste,TRUE,8,10,2,45%,1.1
+Grape stem,GpSt,Grapes (V),Processing Waste,TRUE,8,10,2,45%,1.1
+Grape vines,GpVn,Grapes (V),Ag Residue,FALSE,12,2,2,45%,1.1
+Lees,Lees,Grapes (V),Processing Waste,TRUE,8,10,2,45%,1.1
+Municipal solid waste paper rich,MSWp,No Match,N/A,TRUE,1,12,-,-,-
+Nectarine off-spec canned,NcOSC,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine peels,NcPl,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine pomace,NcPo,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine rejects,NcRj,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine screening waste,NcSW,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine seeds,NcSd,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Nectarine stems / leaves,NcSt,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Olive pomace,Olpm,Olives (C6),Processing Waste,TRUE,9,11,1.1,43%,0.7
+Olive prunings,OlPr,Olives (C6),Ag Residue,FALSE,1,3,1.1,43%,0.7
+Olive stems / leaves,OlSt,Olives (C6),Processing Waste,TRUE,9,11,1.1,43%,0.7
+Orange peel,OrPl,Oranges (C3),Processing Waste,TRUE,11,6,2,45%,1.1
+Orange pomace,OP,Oranges (C3),Processing Waste,TRUE,11,6,2,45%,1.1
+Peach off-spec canned products,PchOSC,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach peels,PchPl,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach pomace,PchPo,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach rejects,PchRj,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach screening waste,PchSW,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach seeds,PchSd,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Peach stems / leaves,PchSt,Peaches/Nect. (D5),Processing Waste,TRUE,5,9,2.3,43%,1.3
+Pear off-spec canned products,PrOSC,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear peels,PrPl,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear pomace,PrPo,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear rejects,PrRj,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear screening waste,PrSW,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear seeds,PrSd,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pear stems / leaves,PrSt,Pears (D6),Processing Waste,TRUE,7,9,2.3,40%,1.4
+Pistachio hulls,PiHu,Pistachios (D14),Processing Waste,TRUE,9,11,1,43%,0.6
+Pistachio shells,Pis,Pistachios (D14),Processing Waste,TRUE,9,11,1,43%,0.6
+Pistachio stems & leaves,PiSL,Pistachios (D14),Processing Waste,TRUE,9,11,1,43%,0.6
+Plum off-spec canned products,PlmOSC,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum peels,PlmPl,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum pomace,PlmPo,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum rejects,PlmRj,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum screening waste,PlmSW,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum seeds,PlmSd,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Plum stems / leaves,PlmSt,Plums (D7),Processing Waste,TRUE,6,8,1.5,43%,0.9
+Pluot off-spec canned products,PltOSC,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot peels,PltPl,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot pomace,PltPo,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot rejects,PltRj,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot screening waste,PltSW,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot seeds,PltSd,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Pluot stems / leaves,PltSt,Misc. Deciduous (D10),Processing Waste,TRUE,6,8,1.6,43%,0.9
+Potato culls,PoCu,Potatoes (T12),Processing Waste,TRUE,7,10,1.2,80%,0.2
+Potato culls-red,PoCuR,Potatoes (T12),Processing Waste,TRUE,7,10,1.2,80%,0.2
+Potato culls-white,PoCuW,Potatoes (T12),Processing Waste,TRUE,7,10,1.2,80%,0.2
+Potato culls-yellow,PoCuY,Potatoes (T12),Processing Waste,TRUE,7,10,1.2,80%,0.2
+Rice hulls,RiHu,Rice (R1),Processing Waste,TRUE,9,11,Missing,Missing,Missing
+Rice straw,RiSt,Rice (R1),Ag Residue,FALSE,9,11,Missing,Missing,Missing
+Sargassum,Sarg,No Match,N/A,FALSE,-,-,-,-,-
+Spent oak chips,SpOk,Grapes (V),Processing Waste,TRUE,1,12,2,45%,1.1
+Spent oak stick,SpOS,Grapes (V),Processing Waste,TRUE,1,12,2,45%,1.1
+Spent yeast,SpYe,Grapes (V),Processing Waste,TRUE,1,12,2,45%,1.1
+Sweet potato culls,SPCul,Sweet Potatoes (T13),Processing Waste,TRUE,8,11,1.2,80%,0.2
+Tomato pomace,TmPm,Tomatoes Proc. (T15),Processing Waste,TRUE,7,10,1.3,80%,0.3
+Unused oak stick,UnOk,Grapes (V),Processing Waste,TRUE,1,12,2,45%,1.1
+Walnut hulling discharge,WaHD,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Walnut Hulls,WaHu,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Walnut shelling debris,WaShD,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Walnut shelling fines,WaShF,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Walnut Shells,WaSh,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Walnut tree sticks,WaTrSt,Walnuts (D13),Ag Residue,FALSE,11,1,1,43%,0.6
+Walnut waste kernels,WaWk,Walnuts (D13),Processing Waste,TRUE,9,11,1,43%,0.6
+Wheat hay,WHy,Wheat (G2),Ag Residue,FALSE,6,8,1.2,14%,1
+Wheat straw,WSt,Wheat (G2),Ag Residue,FALSE,6,8,1.2,14%,1

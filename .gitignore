@@ -41,6 +41,7 @@ data/landiq/*.cpg
 data/landiq/*.xml
 *.csv
 !src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq/*.csv
+!resources/assets/*.csv
 
 # Credentials
 credentials.json
