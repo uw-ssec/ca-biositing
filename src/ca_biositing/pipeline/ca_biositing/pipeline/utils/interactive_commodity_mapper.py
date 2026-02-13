@@ -430,32 +430,29 @@ def lookup_manual_commodity_code(commodity_code: str) -> Optional[Dict]:
     Lookup a USDA commodity by code in the database.
     Returns commodity dict if found, None if not found.
     """
-    from ca_biositing.datamodels.database import get_session_local
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import UsdaCommodity
+    from ca_biositing.datamodels.database import get_session
+    from ca_biositing.datamodels.models import UsdaCommodity
 
     try:
-        session = get_session_local()()  # Get actual session instance
+        with get_session() as session:  # Use get_session context manager
+            # Look up commodity by code
+            commodity = session.query(UsdaCommodity).filter(
+                UsdaCommodity.usda_code == commodity_code
+            ).first()
 
-        # Look up commodity by code
-        commodity = session.query(UsdaCommodity).filter(
-            UsdaCommodity.usda_code == commodity_code
-        ).first()
-
-        if commodity:
-            return {
-                'code': commodity.usda_code,
-                'name': commodity.name,
-                'description': commodity.name,  # Using name as description
-                'source': 'manual_lookup'
-            }
-        else:
-            return None
+            if commodity:
+                return {
+                    'code': commodity.usda_code,
+                    'name': commodity.name,
+                    'description': commodity.name,  # Using name as description
+                    'source': 'manual_lookup'
+                }
+            else:
+                return None
 
     except Exception as e:
         print(f"Database error during manual lookup: {e}")
         return None
-    finally:
-        session.close()
 
 
 def find_best_matches(resource_name: str, usda_commodities: List[Dict], top_n: int = 8) -> List[Dict]:

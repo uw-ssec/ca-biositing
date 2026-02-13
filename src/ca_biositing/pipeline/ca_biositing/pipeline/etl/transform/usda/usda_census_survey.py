@@ -85,7 +85,7 @@ def transform(
         raise
 
     try:
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+        from ca_biositing.datamodels.models import (
             Parameter, Unit
         )
         logger.info("🟡 [USDA Transform] Step 0a.2: Models imported")
@@ -515,7 +515,7 @@ def _convert_to_numeric(series):
 def _ensure_parameters_and_units(engine):
     """Create Parameter/Unit records if they don't exist (idempotent)"""
     from sqlmodel import Session, select
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import Parameter, Unit
+    from ca_biositing.datamodels.models import Parameter, Unit
 
     PARAMETER_CONFIGS = {
         'YIELD': 'Yield per unit area',
