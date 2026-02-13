@@ -15,6 +15,30 @@ import pandas as pd
 from sqlalchemy import text, create_engine
 
 
+def get_local_engine():
+    """Creates a SQLAlchemy engine, following ETL patterns to avoid settings.py hangs in Docker."""
+    # Hardcode the URL for the container environment to bypass any settings.py hangs
+    if os.path.exists('/.dockerenv'):
+        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
+    else:
+        from ca_biositing.datamodels.config import settings
+        db_url = settings.database_url
+        # For local development, replace container host and port with localhost
+        # Docker exposes port 5432 internally but maps to different port locally (like 9090)
+        if "db:5432" in db_url:
+            # Use POSTGRES_PORT from settings for the local port mapping
+            local_port = settings.POSTGRES_PORT
+            db_url = db_url.replace("db:5432", f"localhost:{local_port}")
+
+    return create_engine(
+        db_url,
+        pool_size=5,
+        max_overflow=0,
+        pool_pre_ping=True,
+        connect_args={"connect_timeout": 10}
+    )
+
+
 def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
     """
     Seed usda_commodity and resource_usda_commodity_map tables from CSV mapping file.
@@ -29,16 +53,12 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
 
     try:
         if engine is None:
-            db_url = os.getenv(
-                "DATABASE_URL",
-                "postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db"
-            )
-            engine = create_engine(db_url, echo=False)
+            engine = get_local_engine()
 
-        # Default CSV path
+        # Default CSV path (name-based format)
         if csv_path is None:
             current_dir = os.path.dirname(__file__)
-            csv_path = os.path.join(current_dir, "commodity_mappings_corrected.csv")
+            csv_path = os.path.join(current_dir, "commodity_mappings.csv")
 
         if not os.path.exists(csv_path):
             print(f"❌ Mapping CSV file not found: {csv_path}")
@@ -59,53 +79,83 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
             try:
                 # 1. Seed usda_commodity table (unique commodities only)
                 print("🌱 Seeding usda_commodity table...")
-                unique_commodities = mapped_df.drop_duplicates('usda_commodity_id')[
-                    ['usda_commodity_id', 'commodity_name', 'api_name', 'usda_code', 'uri']
+                unique_commodities = mapped_df.drop_duplicates('commodity_name')[
+                    ['commodity_name', 'api_name', 'usda_code']
                 ].copy()
 
                 for _, row in unique_commodities.iterrows():
-                    conn.execute(text("""
-                        INSERT INTO usda_commodity (id, name, api_name, usda_code, uri, created_at, updated_at)
-                        VALUES (:id, :name, :api_name, :usda_code, :uri, NOW(), NOW())
-                        ON CONFLICT (id) DO UPDATE SET
-                            name = EXCLUDED.name,
-                            api_name = EXCLUDED.api_name,
-                            usda_code = EXCLUDED.usda_code,
-                            uri = EXCLUDED.uri,
-                            updated_at = NOW()
-                    """), {
-                        'id': int(row['usda_commodity_id']),
-                        'name': row['commodity_name'],
-                        'api_name': row['api_name'],  # Use correct api_name from CSV
-                        'usda_code': int(row['usda_code']),  # Ensure integer
-                        'uri': row['uri']
-                    })
+                    # First check if commodity already exists
+                    existing_result = conn.execute(text(
+                        "SELECT id FROM usda_commodity WHERE name = :name"
+                    ), {'name': row['commodity_name']})
+                    existing_row = existing_result.fetchone()
+
+                    if existing_row:
+                        # Update existing record
+                        conn.execute(text("""
+                            UPDATE usda_commodity
+                            SET api_name = :api_name, usda_code = :usda_code, updated_at = NOW()
+                            WHERE name = :name
+                        """), {
+                            'name': row['commodity_name'],
+                            'api_name': row['api_name'],
+                            'usda_code': int(row['usda_code'])
+                        })
+                    else:
+                        # Insert new record
+                        conn.execute(text("""
+                            INSERT INTO usda_commodity (name, api_name, usda_code, created_at, updated_at)
+                            VALUES (:name, :api_name, :usda_code, NOW(), NOW())
+                        """), {
+                            'name': row['commodity_name'],
+                            'api_name': row['api_name'],
+                            'usda_code': int(row['usda_code'])
+                        })
 
                 print(f"✅ Seeded {len(unique_commodities)} USDA commodities")
 
-                # 2. Seed resource_usda_commodity_map table
+                # 2. Seed resource_usda_commodity_map table (name-based lookups)
                 print("🌱 Seeding resource_usda_commodity_map table...")
 
+                # Clear existing mappings first
+                conn.execute(text("DELETE FROM resource_usda_commodity_map"))
+
                 for _, row in mapped_df.iterrows():
+                    # Lookup resource_id by name
+                    resource_result = conn.execute(text(
+                        "SELECT id FROM resource WHERE name = :resource_name"
+                    ), {'resource_name': row['resource_name']})
+                    resource_row = resource_result.fetchone()
+
+                    if not resource_row:
+                        print(f"⚠️  Resource '{row['resource_name']}' not found - skipping")
+                        continue
+
+                    resource_id = resource_row[0]
+
+                    # Lookup commodity_id by name
+                    commodity_result = conn.execute(text(
+                        "SELECT id FROM usda_commodity WHERE name = :commodity_name"
+                    ), {'commodity_name': row['commodity_name']})
+                    commodity_row = commodity_result.fetchone()
+
+                    if not commodity_row:
+                        print(f"⚠️  Commodity '{row['commodity_name']}' not found - skipping")
+                        continue
+
+                    commodity_id = commodity_row[0]
+
+                    # Insert mapping with runtime-resolved IDs
                     conn.execute(text("""
                         INSERT INTO resource_usda_commodity_map (
-                            id, resource_id, usda_commodity_id, match_tier, note, created_at, updated_at
+                            resource_id, usda_commodity_id, match_tier, note, created_at, updated_at
                         )
-                        VALUES (:id, :resource_id, :usda_commodity_id, :match_tier, :note, :created_at, :updated_at)
-                        ON CONFLICT (id) DO UPDATE SET
-                            resource_id = EXCLUDED.resource_id,
-                            usda_commodity_id = EXCLUDED.usda_commodity_id,
-                            match_tier = EXCLUDED.match_tier,
-                            note = EXCLUDED.note,
-                            updated_at = EXCLUDED.updated_at
+                        VALUES (:resource_id, :usda_commodity_id, :match_tier, :note, NOW(), NOW())
                     """), {
-                        'id': int(row['id']),
-                        'resource_id': int(row['resource_id']),
-                        'usda_commodity_id': int(row['usda_commodity_id']),
+                        'resource_id': resource_id,
+                        'usda_commodity_id': commodity_id,
                         'match_tier': row['match_tier'],
-                        'note': row['note'],
-                        'created_at': pd.to_datetime(row['created_at']),
-                        'updated_at': pd.to_datetime(row['updated_at'])
+                        'note': row['note']
                     })
 
                 print(f"✅ Seeded {len(mapped_df)} resource-commodity mappings")
@@ -134,11 +184,7 @@ def check_seeding_prerequisites(engine=None) -> dict:
     """
     try:
         if engine is None:
-            db_url = os.getenv(
-                "DATABASE_URL",
-                "postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db"
-            )
-            engine = create_engine(db_url, echo=False)
+            engine = get_local_engine()
 
         with engine.connect() as conn:
             # Check resource table

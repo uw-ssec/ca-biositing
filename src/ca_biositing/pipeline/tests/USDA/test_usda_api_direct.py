@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test individual USDA API calls to see what's being returned"""
+"""Test subset of individual USDA API calls to see what's being returned"""
 
 import os
 import requests

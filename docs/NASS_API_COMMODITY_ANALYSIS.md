@@ -31,12 +31,14 @@ Our database commodity names (scraped from web) didn't match official API names:
 
 **Finding:** Most relationships are **varieties/uses**, not true parent-child:
 
-- **SILAGE** = general feed category (not corn-specific)
-- **"CORN FOR SILAGE"** = corn variety grown for silage purpose
-- **"SILAGE"** = fermented feed made from multiple crop sources
+- **SILAGE** = captured within CORN commodity data (not a separate API
+  commodity)
+- **"CORN FOR SILAGE"** = corn variety grown for silage purpose, retrieved via
+  CORN commodity
+- **CORN records include** both grain and silage data types in the API response
 
-**Conclusion:** No parent_commodity_id needed - these are use-case mappings, not
-hierarchical relationships.
+**Conclusion:** No parent_commodity_id needed - CORN commodity encompasses all
+corn types including silage.
 
 ### Validated Mappings
 
@@ -68,9 +70,11 @@ All 17 database commodities successfully mapped to official API names:
 
 ## Expected Impact
 
-- **Before:** ETL retrieves 4-6 of 17 commodities (23-35% success)
-- **After:** ETL retrieves 16 of 17 commodities (94% success)
-- **Root cause:** API name mismatches resolved
+- **Before:** ETL retrieves 15 of 16 commodities (94% success - SILAGE failed)
+- **After:** ETL retrieves 16 of 16 commodities (100% success - SILAGE mapped to
+  CORN)
+- **Root cause:** SILAGE is not a standalone API commodity, it's included within
+  CORN data
 
 ## Future Opportunities
 

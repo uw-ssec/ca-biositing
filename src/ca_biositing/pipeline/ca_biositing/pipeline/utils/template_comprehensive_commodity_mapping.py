@@ -26,7 +26,10 @@ DATABASE_TO_API_MAPPING: Dict[str, str] = {
     # Mappings needed for API compatibility
     'ALL GRAPES': 'GRAPES',
     'CORN  ALL': 'CORN',
-    'CORN  FOR SILAGE': 'SILAGE',
+    # NOTE: 'CORN FOR SILAGE' mapping kept for future expansion but not currently used
+    # All current corn resources (including corn stover whole) map to 'CORN ALL'
+    # CORN API response includes both grain and silage data automatically
+    'CORN  FOR SILAGE': 'CORN',
     'COTTON  UPLAND': 'COTTON',
     'HAY  ALFALFA (DRY)': 'HAY',
     'PISTACHIO NUTS': 'PISTACHIOS',

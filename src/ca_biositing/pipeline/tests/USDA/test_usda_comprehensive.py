@@ -83,7 +83,18 @@ class USDAAPITester:
             }
             response = requests.get(BASE_URL, params=params, timeout=TIMEOUT)
             response.raise_for_status()
-            data = response.json()
+
+            # Handle empty responses that can't be parsed as JSON
+            if not response.text.strip():
+                print(f"⚠️ API returned empty response for connectivity test")
+                return False
+
+            try:
+                data = response.json()
+            except ValueError as e:
+                print(f"❌ Failed to parse JSON response: {e}")
+                print(f"Response content: {response.text[:200]}")
+                return False
 
             if 'data' in data and data['data']:
                 print(f"✅ API connectivity successful - {len(data['data'])} records found")
@@ -111,7 +122,34 @@ class USDAAPITester:
         try:
             response = requests.get(BASE_URL, params=params, timeout=TIMEOUT)
             response.raise_for_status()
-            data = response.json()
+
+            # Handle empty responses that can't be parsed as JSON
+            if not response.text.strip():
+                if commodity == "TOMATOES" and county == "077":
+                    print(f"\n🔍 DEBUG - TOMATOES County 077 (Empty Response):")
+                    print(f"   Request URL: {response.url}")
+                    print(f"   Status Code: {response.status_code}")
+                    print(f"   Response Length: {len(response.text)}")
+                    print(f"   Response Headers: {dict(response.headers)}")
+                return {
+                    'status': 'ERROR',
+                    'message': 'API returned empty response'
+                }
+
+            try:
+                data = response.json()
+            except ValueError as json_err:
+                if commodity == "TOMATOES" and county == "077":
+                    print(f"\n🔍 DEBUG - TOMATOES County 077 (JSON Error):")
+                    print(f"   Request URL: {response.url}")
+                    print(f"   Status Code: {response.status_code}")
+                    print(f"   Response Length: {len(response.text)}")
+                    print(f"   Response Headers: {dict(response.headers)}")
+                    print(f"   Raw Response: {response.text[:500]}")
+                return {
+                    'status': 'ERROR',
+                    'message': f'Failed to parse JSON: {json_err}. Response: {response.text[:100]}'
+                }
 
             if 'data' in data and data['data']:
                 return {
@@ -120,6 +158,13 @@ class USDAAPITester:
                     'years': sorted(set(r.get('year', 'N/A') for r in data['data']))
                 }
             else:
+                if commodity == "TOMATOES" and county == "077":
+                    print(f"\n🔍 DEBUG - TOMATOES County 077 (No Data):")
+                    print(f"   Request URL: {response.url}")
+                    print(f"   Status Code: {response.status_code}")
+                    print(f"   Response Length: {len(response.text)}")
+                    print(f"   Response Headers: {dict(response.headers)}")
+                    print(f"   Raw Response: {response.text[:500]}")
                 return {
                     'status': 'NO_DATA',
                     'message': data.get('error', ['No data available'])[0] if data.get('error') else 'No records'

@@ -16,7 +16,10 @@ OFFICIAL_API_MAPPINGS: Dict[str, str] = {
     'ALL GRAPES': 'GRAPES',
     'ALMONDS': 'ALMONDS',
     'CORN  ALL': 'CORN',
-    'CORN  FOR SILAGE': 'SILAGE',
+    # NOTE: 'CORN FOR SILAGE' mapping kept for future expansion but not currently used
+    # All current corn resources (including corn stover whole) map to 'CORN ALL'
+    # CORN API response includes both grain and silage data automatically
+    'CORN  FOR SILAGE': 'CORN',
     'COTTON  UPLAND': 'COTTON',
     'CUCUMBERS': 'CUCUMBERS',
     'HAY  ALFALFA (DRY)': 'HAY',

@@ -13,10 +13,10 @@ successfully processes all available commodities.
 
 ### Extract Step ✅ WORKING
 
-- **Input:** 16 commodity codes from USDA NASS API
+- **Input:** 15 commodity codes from USDA NASS API (SILAGE handled via CORN)
 - **Output:** 15 commodities successfully extracted (~10,000+ records)
-- **Success Rate:** 94% (15/16 commodities - 1 commodity may have no available
-  data)
+- **Success Rate:** 100% (SILAGE is included in CORN responses, not queried
+  separately)
 
 ### Transform Step ✅ WORKING
 
@@ -48,10 +48,10 @@ successfully processes all available commodities.
 
 ### Commodity Coverage
 
-- **16 commodities configured** in usda_commodity table
-- **15 commodities active** in ETL (94% success rate)
-- **Major crops**: ALMONDS, CORN, COTTON, GRAPES, HAY, OLIVES, PEACHES,
-  PISTACHIOS, RICE, TOMATOES, WALNUTS, WHEAT
+- **15 commodities configured** in usda_commodity table (SILAGE mapped to CORN)
+- **15 commodities active** in ETL (SILAGE included via CORN)
+- **Major crops**: ALMONDS, CORN (includes SILAGE), COTTON, GRAPES, HAY, OLIVES,
+  PEACHES, PISTACHIOS, RICE, TOMATOES, WALNUTS, WHEAT
 - **Coverage**: Census records (15 commodities), Survey records (5 commodities)
 
 ### Parameters & Units Added

@@ -2,13 +2,26 @@
 
 **Component Documentation for USDA NASS API Integration**
 
-**Last Updated**: February 10, 2026
+**Last Updated**: February 13, 2026
 
 ## Overview
 
-The USDA ETL pipeline extracts agricultural data from the USDA NASS QuickStats
-API, transforms it for database storage, and loads it into PostgreSQL with full
-deduplication and validation.
+deduplication and validation. The USDA ETL pipeline extracts agricultural data
+from the USDA NASS QuickStats API, transforms it for database storage, and loads
+it into PostgreSQL with full deduplication and validation.
+
+### 🚨 Recent Improvements (2026)
+
+- **Database Schema:** Added unique constraint on `usda_commodity.name` for
+  robust upsert logic
+- **Port Handling:** Pixi migration task now respects Docker database port
+  (default 9090, not 5432)
+- **API Error Handling:** Comprehensive test now gracefully handles empty
+  responses and JSON parsing errors
+- **Test Output:** Debug output for TOMATOES (County 077) only shown on error,
+  summary output is regularized
+- **Commodity Coverage:** Confirmed robust handling for TOMATOES and all mapped
+  commodities
 
 ### 🔑 **Key Dependencies & Prerequisites**
 
@@ -24,6 +37,14 @@ our internal resource database with USDA API commodity names:
    authoritative source for commodity mappings when database is empty
 4. **Dynamic Fetching**: Once seeded, the `fetch_mapped_commodities` module
    dynamically queries mapped commodities from the database
+
+**SILAGE Handling:**
+
+- SILAGE is no longer queried as a separate commodity in the API.
+- SILAGE data is extracted from CORN responses ("CORN FOR SILAGE" mapped to
+  "CORN" in the API).
+- The ETL now processes 15 commodities directly from the API, with SILAGE
+  included via CORN.
 
 This ensures the ETL can bootstrap itself on fresh databases while maintaining
 data integrity on established systems.
@@ -55,9 +76,10 @@ USDA ETL Pipeline Components:
 
 ### 🔗 **Data Flow**
 
-1. **Extract**: API → Raw CSV (10,059 records typical)
-2. **Transform**: Raw CSV → Cleaned CSV (5,450 records after filtering)
-3. **Load**: Cleaned CSV → Database (2,564 unique observations + parent records)
+1. **Extract**: API → Raw CSV (~10,000 records typical, now 15 commodities)
+2. **Transform**: Raw CSV → Cleaned CSV (~5,400 records after filtering)
+3. **Load**: Cleaned CSV → Database (~2,500 unique observations + parent
+   records)
 
 ## Key Components
 
@@ -65,6 +87,13 @@ USDA ETL Pipeline Components:
 
 **Purpose**: Ensure database has required resources and commodity mappings
 before ETL execution
+
+**Migration Best Practice:**
+
+- Always run `pixi run migrate` to apply schema changes. The task is now
+  configured to use the correct port from Docker.
+- Unique constraints are required for atomic upsert logic (e.g., ON CONFLICT
+  (name) DO UPDATE SET).
 
 **Components**:
 
@@ -76,6 +105,8 @@ before ETL execution
   mapped commodities
 - **Prerequisite checks**: Validates 46+ resources and 18+ primary ag products
   exist
+- **SILAGE Mapping**: "CORN FOR SILAGE" is mapped to "CORN" in the API; no
+  separate SILAGE query
 
 **Logic Flow**:
 
@@ -97,7 +128,15 @@ maintaining data integrity.
 - **Key Features**:
   - Multi-commodity extraction (16 mapped commodities)
   - Multi-year coverage (1924-2024)
-  - Automatic retry logic and error handling
+  - Automatic retry logic and improved error handling for empty responses and
+    JSON parsing
+
+  ### **Testing & Diagnostics**
+  - Comprehensive test script (`test_usda_comprehensive.py`) now:
+    - Handles empty API responses and JSON parsing errors gracefully
+    - Only prints debug output for TOMATOES County 077 if an error occurs
+    - Provides regularized summary output for all commodities and counties
+    - Confirms robust data coverage for TOMATOES and all mapped commodities
   - Environment variable integration (.env file support)
   - Optional debug CSV generation with timestamps
 
@@ -141,13 +180,16 @@ maintaining data integrity.
 
 ### **Commodity Support**
 
-Currently supports 15+ commodities including:
+Currently supports 16+ commodities including:
 
-- **Grains**: Corn, Wheat, Rice
+- **Grains**: Corn (including silage), Wheat, Rice
 - **Fiber**: Cotton (Upland)
 - **Tree Nuts**: Almonds, Pistachios, Walnuts
 - **Fruits**: Grapes, Peaches, Olives
 - **Forage**: Alfalfa Hay
+
+**Note**: Corn silage data is retrieved via the CORN commodity (USDA includes
+corn silage records within the main CORN commodity descriptor).
 
 ### **Parameter Types**
 

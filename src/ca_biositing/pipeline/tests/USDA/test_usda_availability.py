@@ -39,8 +39,8 @@ COMMODITIES = [
     "WHEAT", "TOMATOES", "CUCUMBERS",  # Working commodities (codes 3, 4, 222)
     "ALMONDS", "GRAPES", "PISTACHIOS", "WALNUTS",  # Tree nuts and grapes
     "PEACHES", "OLIVES",  # Other fruit commodities
-    "CORN", "COTTON", "HAY",  # Field crops
-    "RICE", "OATS", "BARLEY", "SILAGE"  # Additional crops
+    "CORN", "COTTON", "HAY",  # Field crops (CORN includes both grain and silage)
+    "RICE", "OATS", "BARLEY", "POTATOES"  # Additional crops
 ]
 
 def test_commodity_in_county(commodity, county_code):
