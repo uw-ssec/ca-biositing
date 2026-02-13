@@ -131,21 +131,15 @@ pixi run pre-commit run --files src/ca_biositing/webservice/**/*
 
 ```python
 from fastapi import Depends
-from sqlmodel import Session
-from ca_biositing.datamodels.biomass import Biomass
-from ca_biositing.datamodels.database import get_engine
+from sqlmodel import Session, select
+from ca_biositing.datamodels.models import Resource
+from ca_biositing.datamodels.database import get_engine, get_session
 
-engine = get_engine()
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-@app.get("/biomass")
-def get_biomass(session: Session = Depends(get_session)):
-    """Get all biomass entries."""
-    biomass_items = session.query(Biomass).all()
-    return biomass_items
+@app.get("/resources")
+def get_resources(session: Session = Depends(get_session)):
+    """Get all resource entries."""
+    resources = session.exec(select(Resource)).all()
+    return resources
 ```
 
 ## Package Information

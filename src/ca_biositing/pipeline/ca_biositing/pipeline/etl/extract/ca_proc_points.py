@@ -35,7 +35,6 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
     raw_df = gdrive_to_df(FILE_NAME, MIME_TYPE, credentials_path, dataset_folder)
 
 
-
     if raw_df is None:
         logger.error("Failed to extract data. Aborting.")
         return None

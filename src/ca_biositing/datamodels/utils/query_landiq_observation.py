@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from ca_biositing.datamodels.schemas.generated.ca_biositing import LandiqRecord, Observation
+from ca_biositing.datamodels.models import LandiqRecord, Observation
 
 def generate_query():
     """

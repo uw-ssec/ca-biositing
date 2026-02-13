@@ -138,6 +138,18 @@ I/O.
 3.  **Docker Networking**: Ensure database engines use the `db` host inside
     containers.
 
+### Issue: Prefect flows or tasks hanging indefinitely
+
+**Solution:** This is often caused by module-level import deadlocks or blocking
+I/O.
+
+1.  **Lazy Loading**: Move all heavy imports (SQLAlchemy models, Pydantic
+    settings, ETL components) inside the `@flow` or `@task` function.
+2.  **Bypass Orchestration**: Use `sub_flow.fn()` when calling flows from within
+    a master flow to avoid scheduling deadlocks in local environments.
+3.  **Docker Networking**: Ensure database engines use the `db` host inside
+    containers.
+
 ### Issue: Prefect logger context errors in tests
 
 **Solution:** Use `.fn()` to call the underlying function of a task directly in

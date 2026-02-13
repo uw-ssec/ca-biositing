@@ -2,7 +2,7 @@ import pandas as pd
 from prefect import task, get_run_logger
 from sqlmodel import Session, select
 from ca_biositing.datamodels.database import engine
-from ca_biositing.datamodels.schemas.generated.ca_biositing import PrimaryAgProduct
+from ca_biositing.datamodels.models import PrimaryAgProduct
 
 @task
 def load(primary_ag_product_df: pd.DataFrame):

@@ -17,7 +17,7 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 # --- CONFIGURATION ---
 # List the names of the extract modules this transform depends on.
 # The pipeline runner provides these in the `data_sources` dictionary.
-EXTRACT_SOURCES: List[str] = ["basic_sample_info"]
+EXTRACT_SOURCES: List[str] = ["resources"]
 
 @task
 def transform(
@@ -40,7 +40,7 @@ def transform(
         logger = logging.getLogger(__name__)
 
     # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Resource,
         ResourceClass,
         ResourceSubclass,
@@ -102,6 +102,7 @@ def transform(
     # TODO: Update this dictionary to match your source-to-target mapping
     rename_columns = {
         'resource': 'name'
+
         # 'source_col': 'target_col',
     }
     normalized_df = normalized_df.rename(columns=rename_columns)
@@ -119,28 +120,32 @@ def transform(
             logger.info(f"Filtered out {filtered_count} records with invalid names (empty or '#n/a').")
 
     # 5. Final Mapping & Selection
-    # TODO: Update this list to match the columns in your target database table
-    try:
-        # Ensure lineage columns exist even if not provided in input
-        if etl_run_id:
-            normalized_df['etl_run_id'] = etl_run_id
-        if lineage_group_id:
-            normalized_df['lineage_group_id'] = lineage_group_id
+    # Ensure lineage columns exist even if not provided in input
+    if etl_run_id:
+        normalized_df['etl_run_id'] = etl_run_id
+    if lineage_group_id:
+        normalized_df['lineage_group_id'] = lineage_group_id
 
-        final_df = normalized_df[[
-            'name',
-            'primary_ag_product_id',
-            'resource_class_id',
-            'resource_subclass_id',
-            'note',
-            # Add other columns here...
-            'etl_run_id',
-            'lineage_group_id'
-        ]].copy()
+    required_columns = [
+        'name',
+        'primary_ag_product_id',
+        'resource_class_id',
+        'resource_subclass_id',
+        'description',
+        'resource_code',
+        'etl_run_id',
+        'lineage_group_id',
+    ]
+    optional_columns = [
+        'note',
+    ]
 
-        logger.info(f"Successfully transformed {len(final_df)} records.")
-        return final_df
+    # Add optional columns only if present in the data
+    for col in optional_columns:
+        if col not in normalized_df.columns:
+            normalized_df[col] = None
 
-    except KeyError as e:
-        logger.error(f"Missing required column during transform: {e}")
-        return normalized_df
+    final_df = normalized_df[required_columns + optional_columns].copy()
+
+    logger.info(f"Successfully transformed {len(final_df)} records.")
+    return final_df

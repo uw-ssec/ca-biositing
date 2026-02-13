@@ -47,7 +47,7 @@ def load_resource(df: pd.DataFrame):
 
     try:
         # CRITICAL: Lazy import models inside the task to avoid Docker import hangs
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import Resource
+        from ca_biositing.datamodels.models import Resource
 
         now = datetime.now(timezone.utc)
 
