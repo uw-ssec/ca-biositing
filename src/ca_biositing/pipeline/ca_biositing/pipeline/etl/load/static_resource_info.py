@@ -27,31 +27,14 @@ def get_local_engine():
         connect_args={"connect_timeout": 10}
     )
 
-# California FIPS codes used by the static resource info pipeline.
-# GEOID format: 2-digit state FIPS + 3-digit county FIPS ("000" = state-level).
-_KNOWN_PLACES = {
-    "06000": {
-        "geoid": "06000",
-        "state_name": "CALIFORNIA",
-        "state_fips": "06",
-        "county_name": None,
-        "county_fips": "000",
-        "region_name": None,
-        "agg_level_desc": "STATE",
-    },
-}
-
-
 def _get_place_metadata(geoid: str) -> dict:
     """Return Place attributes for a GEOID.
 
-    Uses a static lookup for well-known codes.  Falls back to parsing the
-    GEOID into state/county FIPS components so that every Place record has
-    at minimum its FIPS fields populated.
+    Known places (e.g. 06000 California state, target counties) are seeded
+    via Alembic migration.  This fallback parses the GEOID into state/county
+    FIPS components so that any new Place record has at minimum its FIPS
+    fields populated.
     """
-    if geoid in _KNOWN_PLACES:
-        return _KNOWN_PLACES[geoid]
-    # Fallback: parse the 5-character GEOID into state + county FIPS.
     return {
         "geoid": geoid,
         "state_fips": geoid[:2] if len(geoid) >= 2 else None,

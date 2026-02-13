@@ -30,10 +30,11 @@ def upgrade() -> None:
     op.add_column('usda_survey_record', sa.Column('end_code', sa.Integer(), nullable=True))
     # ### end Alembic commands ###
 
-    # Data migration: Seed target counties for USDA ETL
+    # Data migration: Seed California state + target counties for ETL pipelines
     op.execute("""
         INSERT INTO place (geoid, state_name, state_fips, county_name, county_fips, agg_level_desc)
         VALUES
+          ('06000', 'CALIFORNIA', '06', NULL, '000', 'STATE'),
           ('06077', 'CALIFORNIA', '06', 'SAN JOAQUIN', '077', 'COUNTY'),
           ('06099', 'CALIFORNIA', '06', 'STANISLAUS', '099', 'COUNTY'),
           ('06047', 'CALIFORNIA', '06', 'MERCED', '047', 'COUNTY')
