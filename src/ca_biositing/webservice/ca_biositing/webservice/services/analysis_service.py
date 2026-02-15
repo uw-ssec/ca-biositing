@@ -221,9 +221,6 @@ class AnalysisService:
             "parameter": obs["parameter"],
             "value": obs["value"],
             "unit": obs["unit"],
-            "dimension": obs["dimension"],
-            "dimension_value": obs["dimension_value"],
-            "dimension_unit": obs["dimension_unit"],
         }
 
     @staticmethod

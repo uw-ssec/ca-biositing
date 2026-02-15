@@ -22,6 +22,7 @@ from ca_biositing.datamodels.models import (
     Parameter,
     Place,
     PreparedSample,
+    PrimaryAgProduct,
     ProximateRecord,
     Resource,
     ResourceAvailability,
@@ -54,6 +55,7 @@ def engine_fixture():
         DimensionType.__table__.create(connection, checkfirst=True)
         Parameter.__table__.create(connection, checkfirst=True)
         UsdaCommodity.__table__.create(connection, checkfirst=True)
+        PrimaryAgProduct.__table__.create(connection, checkfirst=True)
         Resource.__table__.create(connection, checkfirst=True)
         ResourceUsdaCommodityMap.__table__.create(connection, checkfirst=True)
         UsdaCensusRecord.__table__.create(connection, checkfirst=True)
@@ -147,6 +149,11 @@ def test_census_data_fixture(session: Session):
     commodity_corn = UsdaCommodity(id=1, name="CORN", usda_code="00090")
     commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", usda_code="00081")
     session.add_all([commodity_corn, commodity_soybeans])
+
+    # Create primary ag products (required for Resource FK)
+    primary_ag_corn = PrimaryAgProduct(id=1, name="Corn")
+    primary_ag_soybean = PrimaryAgProduct(id=2, name="Soybean")
+    session.add_all([primary_ag_corn, primary_ag_soybean])
 
     # Create resources
     resource_corn_grain = Resource(id=1, name="corn_grain", primary_ag_product_id=1)
@@ -274,6 +281,11 @@ def test_analysis_data_fixture(session: Session):
     param_carbon = Parameter(id=12, name="carbon", standard_unit_id=10)
     param_cellulose = Parameter(id=13, name="cellulose", standard_unit_id=10)
     session.add_all([param_ash, param_moisture, param_carbon, param_cellulose])
+
+    # Create primary ag products (required for Resource FK)
+    primary_ag_almond = PrimaryAgProduct(id=10, name="Almond")
+    primary_ag_corn_stover = PrimaryAgProduct(id=11, name="Corn Stover")
+    session.add_all([primary_ag_almond, primary_ag_corn_stover])
 
     # Create resources
     resource_almond_hulls = Resource(id=10, name="almond_hulls", primary_ag_product_id=10)
@@ -427,6 +439,11 @@ def test_availability_data_fixture(session: Session):
     Returns:
         Dictionary with test data IDs
     """
+    # Create primary ag products (required for Resource FK)
+    primary_ag_wheat = PrimaryAgProduct(id=20, name="Wheat")
+    primary_ag_rice = PrimaryAgProduct(id=21, name="Rice")
+    session.add_all([primary_ag_wheat, primary_ag_rice])
+
     # Create resources
     resource_wheat_straw = Resource(id=20, name="wheat_straw", primary_ag_product_id=20)
     resource_rice_straw = Resource(id=21, name="rice_straw", primary_ag_product_id=21)
