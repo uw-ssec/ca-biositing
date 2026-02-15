@@ -8,17 +8,25 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ca_biositing.datamodels.database import get_session
 from sqlmodel import SQLModel
 from ca_biositing.datamodels.models import (
+    CompositionalRecord,
     DimensionType,
+    FieldSample,
+    LocationAddress,
     Observation,
     Parameter,
+    Place,
+    PreparedSample,
+    ProximateRecord,
     Resource,
+    ResourceAvailability,
     ResourceUsdaCommodityMap,
+    UltimateRecord,
     Unit,
     UsdaCensusRecord,
     UsdaCommodity,
@@ -50,6 +58,14 @@ def engine_fixture():
         ResourceUsdaCommodityMap.__table__.create(connection, checkfirst=True)
         UsdaCensusRecord.__table__.create(connection, checkfirst=True)
         Observation.__table__.create(connection, checkfirst=True)
+        Place.__table__.create(connection, checkfirst=True)
+        LocationAddress.__table__.create(connection, checkfirst=True)
+        FieldSample.__table__.create(connection, checkfirst=True)
+        PreparedSample.__table__.create(connection, checkfirst=True)
+        ProximateRecord.__table__.create(connection, checkfirst=True)
+        UltimateRecord.__table__.create(connection, checkfirst=True)
+        CompositionalRecord.__table__.create(connection, checkfirst=True)
+        ResourceAvailability.__table__.create(connection, checkfirst=True)
 
     return engine
 
@@ -229,4 +245,228 @@ def test_census_data_fixture(session: Session):
         "resource_soybean_id": 2,
         "census_corn_id": 1,
         "census_soybeans_id": 2,
+    }
+
+@pytest.fixture(name="test_analysis_data")
+def test_analysis_data_fixture(session: Session):
+    """Create test analysis data in database.
+
+    This fixture creates:
+    - almond_hulls and corn_stover resources
+    - Place, LocationAddress, FieldSample, PreparedSample chain for geoid linkage
+    - Proximate, Ultimate, and Compositional analysis records
+    - Observations with analysis parameters
+
+    Args:
+        session: Database session fixture
+
+    Returns:
+        Dictionary with test data IDs
+    """
+    # Create units (reuse IDs from census or create new ones)
+    unit_percent = Unit(id=10, name="percent")
+    unit_mg_g = Unit(id=11, name="mg/g")
+    session.add_all([unit_percent, unit_mg_g])
+
+    # Create parameters for analysis
+    param_ash = Parameter(id=10, name="ash", standard_unit_id=10)
+    param_moisture = Parameter(id=11, name="moisture", standard_unit_id=10)
+    param_carbon = Parameter(id=12, name="carbon", standard_unit_id=10)
+    param_cellulose = Parameter(id=13, name="cellulose", standard_unit_id=10)
+    session.add_all([param_ash, param_moisture, param_carbon, param_cellulose])
+
+    # Create resources
+    resource_almond_hulls = Resource(id=10, name="almond_hulls", primary_ag_product_id=10)
+    resource_corn_stover = Resource(id=11, name="corn_stover", primary_ag_product_id=11)
+    session.add_all([resource_almond_hulls, resource_corn_stover])
+
+    # Create Place (geoid) for location linkage
+    place_06001 = Place(geoid="06001", state_name="California", county_name="Alameda")
+    place_06013 = Place(geoid="06013", state_name="California", county_name="Contra Costa")
+    session.add_all([place_06001, place_06013])
+
+    # Create LocationAddress linked to Place
+    location_1 = LocationAddress(id=1, geography_id="06001", city="Oakland")
+    location_2 = LocationAddress(id=2, geography_id="06013", city="Martinez")
+    session.add_all([location_1, location_2])
+
+    # Create FieldSample linked to LocationAddress
+    field_sample_1 = FieldSample(
+        id=1,
+        name="Almond Hulls Sample 1",
+        resource_id=10,
+        sampling_location_id=1
+    )
+    field_sample_2 = FieldSample(
+        id=2,
+        name="Corn Stover Sample 1",
+        resource_id=11,
+        sampling_location_id=2
+    )
+    session.add_all([field_sample_1, field_sample_2])
+
+    # Create PreparedSample linked to FieldSample
+    prepared_sample_1 = PreparedSample(id=1, name="Prep Sample 1", field_sample_id=1)
+    prepared_sample_2 = PreparedSample(id=2, name="Prep Sample 2", field_sample_id=2)
+    session.add_all([prepared_sample_1, prepared_sample_2])
+
+    # Create analysis records linked to resources and prepared samples
+    # Note: Multiple records per prepared_sample (one per parameter measured)
+
+    # Proximate analysis for almond hulls - ash measurement
+    proximate_almond_ash = ProximateRecord(
+        id=1,
+        record_id="prox_almond_1_ash",
+        dataset_id=1,
+        resource_id=10,
+        prepared_sample_id=1
+    )
+    # Proximate analysis for almond hulls - moisture measurement
+    proximate_almond_moisture = ProximateRecord(
+        id=2,
+        record_id="prox_almond_1_moisture",
+        dataset_id=1,
+        resource_id=10,
+        prepared_sample_id=1
+    )
+    # Ultimate analysis for almond hulls - carbon measurement
+    ultimate_almond_carbon = UltimateRecord(
+        id=1,
+        record_id="ult_almond_1_carbon",
+        dataset_id=1,
+        resource_id=10,
+        prepared_sample_id=1
+    )
+    # Compositional analysis for corn stover - cellulose measurement
+    compositional_corn_cellulose = CompositionalRecord(
+        id=1,
+        record_id="comp_corn_1_cellulose",
+        dataset_id=1,
+        resource_id=11,
+        prepared_sample_id=2
+    )
+    session.add_all([
+        proximate_almond_ash,
+        proximate_almond_moisture,
+        ultimate_almond_carbon,
+        compositional_corn_cellulose,
+    ])
+
+    # Create observations for proximate analysis (almond hulls, geoid 06001)
+    # Note: Each observation must have a UNIQUE record_id
+    obs_prox_ash = Observation(
+        id=100,
+        record_id="prox_almond_1_ash",
+        dataset_id=1,
+        record_type="proximate analysis",
+        parameter_id=10,
+        value=5.2,
+        unit_id=10,
+    )
+    obs_prox_moisture = Observation(
+        id=101,
+        record_id="prox_almond_1_moisture",
+        dataset_id=1,
+        record_type="proximate analysis",
+        parameter_id=11,
+        value=8.5,
+        unit_id=10,
+    )
+
+    # Create observations for ultimate analysis (almond hulls, geoid 06001)
+    obs_ult_carbon = Observation(
+        id=102,
+        record_id="ult_almond_1_carbon",
+        dataset_id=1,
+        record_type="ultimate analysis",
+        parameter_id=12,
+        value=45.3,
+        unit_id=10,
+    )
+
+    # Create observations for compositional analysis (corn stover, geoid 06013)
+    obs_comp_cellulose = Observation(
+        id=103,
+        record_id="comp_corn_1_cellulose",
+        dataset_id=1,
+        record_type="compositional analysis",
+        parameter_id=13,
+        value=38.7,
+        unit_id=10,
+    )
+
+    session.add_all([
+        obs_prox_ash,
+        obs_prox_moisture,
+        obs_ult_carbon,
+        obs_comp_cellulose,
+    ])
+    session.commit()
+
+    return {
+        "resource_almond_id": 10,
+        "resource_corn_stover_id": 11,
+        "proximate_almond_id": 1,
+        "ultimate_almond_id": 1,
+        "compositional_corn_id": 1,
+    }
+
+
+@pytest.fixture(name="test_availability_data")
+def test_availability_data_fixture(session: Session):
+    """Create test availability data in database.
+
+    This fixture creates:
+    - wheat_straw and rice_straw resources
+    - Place records for geoids
+    - ResourceAvailability records with from_month/to_month
+
+    Args:
+        session: Database session fixture
+
+    Returns:
+        Dictionary with test data IDs
+    """
+    # Create resources
+    resource_wheat_straw = Resource(id=20, name="wheat_straw", primary_ag_product_id=20)
+    resource_rice_straw = Resource(id=21, name="rice_straw", primary_ag_product_id=21)
+    session.add_all([resource_wheat_straw, resource_rice_straw])
+
+    # Create Place records (if not already created by analysis fixture)
+    # Check if places exist first
+    existing_place = session.execute(select(Place).where(Place.geoid == "06067")).scalar_one_or_none()
+    if not existing_place:
+        place_06067 = Place(geoid="06067", state_name="California", county_name="Sacramento")
+        session.add(place_06067)
+
+    existing_place_2 = session.execute(select(Place).where(Place.geoid == "06099")).scalar_one_or_none()
+    if not existing_place_2:
+        place_06099 = Place(geoid="06099", state_name="California", county_name="Stanislaus")
+        session.add(place_06099)
+
+    # Create ResourceAvailability records
+    avail_wheat = ResourceAvailability(
+        id=1,
+        resource_id=20,
+        geoid="06067",
+        from_month=6,  # June
+        to_month=8,    # August
+        year_round=False
+    )
+    avail_rice = ResourceAvailability(
+        id=2,
+        resource_id=21,
+        geoid="06099",
+        from_month=9,   # September
+        to_month=11,    # November
+        year_round=False
+    )
+    session.add_all([avail_wheat, avail_rice])
+    session.commit()
+
+    return {
+        "resource_wheat_id": 20,
+        "resource_rice_id": 21,
+        "avail_wheat_id": 1,
+        "avail_rice_id": 2,
     }
