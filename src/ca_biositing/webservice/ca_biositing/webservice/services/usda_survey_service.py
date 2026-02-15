@@ -114,14 +114,17 @@ class UsdaSurveyService:
         DimensionUnit = aliased(Unit)
 
         # First, find the survey record to get its dataset_id and survey metadata
+        # If multiple records exist for the same commodity/geoid, return the most recent
         survey_stmt = (
             select(UsdaSurveyRecord)
             .where(and_(
                 UsdaSurveyRecord.commodity_code == commodity_id,
                 UsdaSurveyRecord.geoid == geoid
             ))
+            .order_by(UsdaSurveyRecord.year.desc())
+            .limit(1)
         )
-        survey_record = session.execute(survey_stmt).scalar_one_or_none()
+        survey_record = session.execute(survey_stmt).scalars().first()
 
         if not survey_record:
             return [], None
