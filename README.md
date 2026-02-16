@@ -10,8 +10,8 @@ data access.
 This project uses a **PEP 420 namespace package** structure with three main
 components:
 
-- **`ca_biositing.datamodels`**: Shared LinkML/SQLModel database models and
-  database configuration
+- **`ca_biositing.datamodels`**: Hand-written SQLModel database models,
+  materialized views, and database configuration
 - **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
   via Docker
 - **`ca_biositing.webservice`**: FastAPI REST API for data access
@@ -21,7 +21,7 @@ components:
 ```text
 ca-biositing/
 ├── src/ca_biositing/           # Namespace package root
-│   ├── datamodels/             # Database models (SQLModel)
+│   ├── datamodels/             # Database models (SQLModel) and Alembic migrations
 │   ├── pipeline/               # ETL pipelines (Prefect)
 │   └── webservice/             # REST API (FastAPI)
 ├── resources/                  # Deployment resources
@@ -29,7 +29,7 @@ ca-biositing/
 │   └── prefect/                # Prefect deployment files
 ├── tests/                      # Integration tests
 ├── pixi.toml                   # Pixi dependencies and tasks
-└── pixi.lock                   # Dependency lock file
+│   └── pixi.lock               # Dependency lock file
 ```
 
 ## Quick Start
@@ -66,21 +66,25 @@ environment file from the template:
 cp resources/docker/.env.example resources/docker/.env
 ```
 
+**CRITICAL (PostgreSQL 15 Upgrade)**: If you are upgrading from a version prior
+to Feb 2026, you must wipe your local volumes to support the PostgreSQL 15
+image:
+
+```bash
+pixi run teardown-services-volumes
+```
+
 Then start and use the services:
 
 ```bash
-# 1. Create the initial database migration script
-# (This is only needed once for a new database)
-pixi run initial-migration
-
-# 2. Start all services (PostgreSQL, Prefect server, worker)
+# 1. Start all services (PostgreSQL, Prefect server, worker)
 # This will also automatically apply any pending database migrations.
 pixi run start-services
 
-# 3. Deploy flows to Prefect
+# 2. Deploy flows to Prefect
 pixi run deploy
 
-# Run the ETL pipeline
+# 3. Run the ETL pipeline
 pixi run run-etl
 
 # Monitor via Prefect UI: http://localhost:4200
@@ -152,7 +156,9 @@ Key tasks:
 - **Development**: `test`, `test-cov`, `pre-commit`, `pre-commit-all`
 - **Applications**: `start-webservice`, `qgis`
 - **Database**: `access-db`, `check-db-health`
-- **Datamodels**: `update-schema`, `migrate`
+- **Schema Management**: `migrate`, `migrate-autogenerate`, `refresh-views`
+- **Validation (pgschema)**: `schema-plan`, `schema-analytics-plan`,
+  `schema-dump`, `schema-analytics-list`
 
 ## Architecture
 
@@ -178,25 +184,30 @@ Pipeline architecture:
 
 1. **Extract**: Pull data from Google Sheets
 2. **Transform**: Clean and normalize data with pandas
-3. **Load**: Insert/update records in PostgreSQL via SQLModel
+3. **Load**: Insert/update records in PostgreSQL via SQLAlchemy
 
 ### Database Models
 
-We use a **LinkML-first approach** for defining our data schema. The workflow
-is:
+Database models are **hand-written SQLModel classes** organized into 15 domain
+subdirectories under
+`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`. All schema
+changes are managed through Alembic migrations.
 
-1.  **LinkML Schema**: The schema is defined in YAML files (source of truth).
-2.  **SQLAlchemy Generation**: Python classes are automatically generated from
-    LinkML.
-3.  **Alembic Migrations**: Database migrations are generated from the Python
-    classes.
+**Development workflow:**
+
+1.  Edit SQLModel classes in `models/`
+2.  Auto-generate a migration: `pixi run migrate-autogenerate -m "Description"`
+3.  Apply the migration: `pixi run migrate`
 
 SQLModel-based models provide:
 
-- Type-safe database operations
-- Automatic schema generation (via Alembic)
+- Type-safe database operations (SQLAlchemy + Pydantic in one class)
+- Versioned schema migrations (via Alembic)
 - Shared models across ETL and API components
-- Pydantic validation
+- Built-in Pydantic validation
+
+Seven materialized views are defined in `views.py` and managed through Alembic
+migrations. Refresh them after loading data with `pixi run refresh-views`.
 
 ## Project Components
 
@@ -227,10 +238,10 @@ Prefect-orchestrated workflows for:
 
 **Guides**:
 
-- [Docker Workflow](src/ca_biositing/pipeline/docs/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](src/ca_biositing/pipeline/docs/PREFECT_WORKFLOW.md)
-- [ETL Development](src/ca_biositing/pipeline/docs/ETL_WORKFLOW.md)
-- [Database Migrations](src/ca_biositing/pipeline/docs/ALEMBIC_WORKFLOW.md)
+- [Docker Workflow](docs/pipeline/DOCKER_WORKFLOW.md)
+- [Prefect Workflow](docs/pipeline/PREFECT_WORKFLOW.md)
+- [ETL Development](docs/pipeline/ETL_WORKFLOW.md)
+- [Database Migrations](docs/pipeline/ALEMBIC_WORKFLOW.md)
 
 ### 3. Web Service (`ca_biositing.webservice`)
 

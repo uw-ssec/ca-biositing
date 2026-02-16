@@ -30,7 +30,7 @@ def transform_landiq_record(
     Returns:
         A pandas DataFrame formatted for the landiq_record table.
     """
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Dataset,
         Polygon,
         PrimaryAgProduct,
@@ -61,6 +61,10 @@ def transform_landiq_record(
         df['tertiary_crop'] = df['CLASS2']
     if 'CLASS3' in df.columns:
         df['quaternary_crop'] = df['CLASS3']
+
+    # Map county column
+    if 'COUNTY' in df.columns:
+        df['county'] = df['COUNTY']
 
     # Map percentage columns
     for i in range(1, 5):
@@ -202,7 +206,8 @@ def transform_landiq_record(
         'pct1': 'pct1',
         'pct2': 'pct2',
         'pct3': 'pct3',
-        'pct4': 'pct4'
+        'pct4': 'pct4',
+        'county': 'county'
     }
 
     available_cols = [c for c in rename_map.keys() if c in coerced_df.columns]

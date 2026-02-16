@@ -180,22 +180,24 @@ primary_ag_product_flow()
 ```python
 import pandas as pd
 from sqlmodel import Session
-from ca_biositing.datamodels.biomass import BiomassType
+from ca_biositing.datamodels.models import ResourceClass
+from ca_biositing.datamodels.database import get_engine
 from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
 
-# Example: Replace biomass type names with IDs
+# Example: Replace resource class names with IDs
 df = pd.DataFrame({
     "sample_name": ["Sample1", "Sample2"],
-    "biomass_type": ["Crop by-product", "Wood residue"]
+    "resource_class": ["Crop by-product", "Wood residue"]
 })
 
+engine = get_engine()
 with Session(engine) as session:
     df_with_ids = replace_name_with_id_df(
         db=session,
         df=df,
-        ref_model=BiomassType,
-        name_column_name="biomass_type",
-        id_column_name="biomass_type_id"
+        ref_model=ResourceClass,
+        name_column_name="resource_class",
+        id_column_name="resource_class_id"
     )
 ```
 

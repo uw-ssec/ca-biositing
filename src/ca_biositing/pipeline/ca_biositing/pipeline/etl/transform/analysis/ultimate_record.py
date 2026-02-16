@@ -3,7 +3,7 @@ from prefect import task, get_run_logger
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
-# from ca_biositing.datamodels.schemas.generated.ca_biositing import *
+# from ca_biositing.datamodels.models import *
 
 @task
 def transform_ultimate_record(
@@ -11,7 +11,7 @@ def transform_ultimate_record(
     etl_run_id: int = None,
     lineage_group_id: int = None
 ) -> pd.DataFrame:
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
         Method,

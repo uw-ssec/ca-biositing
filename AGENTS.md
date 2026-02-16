@@ -23,8 +23,9 @@ prototyping for bioeconomy site selection.
 
 **Key Components:**
 
-- **`ca_biositing.datamodels`**: SQLAlchemy database models. Uses LinkML as the
-  source of truth.
+- **`ca_biositing.datamodels`**: Hand-written SQLModel database models with
+  Alembic migrations. Models are in `models/` subdirectories, views in
+  `views.py`.
 - **`ca_biositing.pipeline`**: Prefect-orchestrated ETL workflows
   (Docker-based).
 - **`ca_biositing.webservice`**: FastAPI REST API.
@@ -35,13 +36,14 @@ prototyping for bioeconomy site selection.
 
 For detailed guidance on shared topics, see the `agent_docs/` directory:
 
-| Topic              | Document                                                             | Description                        |
-| ------------------ | -------------------------------------------------------------------- | ---------------------------------- |
-| Namespace Packages | [agent_docs/namespace_packages.md](agent_docs/namespace_packages.md) | PEP 420 structure, import patterns |
-| Testing Patterns   | [agent_docs/testing_patterns.md](agent_docs/testing_patterns.md)     | pytest fixtures, test commands     |
-| Code Quality       | [agent_docs/code_quality.md](agent_docs/code_quality.md)             | Pre-commit, style, imports         |
-| Troubleshooting    | [agent_docs/troubleshooting.md](agent_docs/troubleshooting.md)       | Common pitfalls and solutions      |
-| Docker Workflow    | [agent_docs/docker_workflow.md](agent_docs/docker_workflow.md)       | Docker/Pixi service commands       |
+| Topic              | Document                                                                       | Description                        |
+| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------- |
+| Namespace Packages | [agent_docs/namespace_packages.md](agent_docs/namespace_packages.md)           | PEP 420 structure, import patterns |
+| Testing Patterns   | [agent_docs/testing_patterns.md](agent_docs/testing_patterns.md)               | pytest fixtures, test commands     |
+| Code Quality       | [agent_docs/code_quality.md](agent_docs/code_quality.md)                       | Pre-commit, style, imports         |
+| Troubleshooting    | [agent_docs/troubleshooting.md](agent_docs/troubleshooting.md)                 | Common pitfalls and solutions      |
+| Docker Workflow    | [agent_docs/docker_workflow.md](agent_docs/docker_workflow.md)                 | Docker/Pixi service commands       |
+| SQL-First Workflow | [docs/datamodels/SQL_FIRST_WORKFLOW.md](docs/datamodels/SQL_FIRST_WORKFLOW.md) | Rapid schema iteration path        |
 
 ## Build System & Environment Management
 
@@ -81,7 +83,7 @@ pixi install
 4. **`webservice`**: Web service environment (FastAPI, uvicorn).
 5. **`frontend`**: Frontend development (Node.js, npm).
 6. **`docs`**: Documentation (MkDocs).
-7. **`deployment`**: Cloud infrastructure (OpenTofu).
+7. **`deployment`**: Cloud infrastructure (Pulumi).
 
 ## Pathing & Namespace Packages
 
@@ -108,42 +110,46 @@ all installed packages are available without any path configuration.
 
 ## Schema Management & Migrations (CRITICAL)
 
-This project uses **LinkML** as the source of truth for the data model. The
-schemas are maintained in the `resources/linkml/` directory, separate from the
-installable Python package. Due to macOS Docker filesystem performance issues, a
-specific local workflow is required.
+All schema changes are managed through **SQLModel classes** and **Alembic
+migrations**. There is no code generation step.
 
-### 1. LinkML Source of Truth
+### Making Schema Changes
 
-Modify YAML files in: `resources/linkml/modules/`
+1.  **Edit Models**: Modify SQLModel classes in
+    `src/ca_biositing/datamodels/ca_biositing/datamodels/models/`. If adding a
+    new model, also add its import to `models/__init__.py`.
+2.  **Auto-Generate Migration**:
+    ```bash
+    pixi run migrate-autogenerate -m "Description of changes"
+    ```
+3.  **Review**: Check the generated script in `alembic/versions/`.
+4.  **Apply Migration**:
+    ```bash
+    pixi run migrate
+    ```
 
-### 2. Orchestrated Update
-
-Run the orchestration command to generate Python models, rebuild services, and
-create a migration:
-
-```bash
-pixi run update-schema -m "Description of changes"
-```
-
-This task executes
-[`orchestrate_schema_update.py`](resources/linkml/scripts/orchestrate_schema_update.py)
-which:
-
-- Generates SQLAlchemy models from LinkML.
-- Rebuilds Docker services.
-- **Generates the Alembic migration LOCALLY** to avoid container import hangs.
-
-### 3. Apply Migrations
-
-Apply changes to the database:
-
-```bash
-pixi run migrate
-```
-
-_Note: This runs `alembic upgrade head` locally against the Docker-hosted
+_Note: `migrate` runs `alembic upgrade head` locally against the Docker-hosted
 PostgreSQL._
+
+### Materialized Views
+
+Seven materialized views are defined in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/views.py`. They are managed
+through manual Alembic migrations (not autogenerated). Refresh after data loads:
+
+```bash
+pixi run refresh-views
+```
+
+### Validation with pgschema (Optional)
+
+The `pgschema` tool can still be used for validation (diffing live DB against
+reference SQL), but it does **not** modify the database:
+
+- `pixi run schema-plan`: Diff public schema.
+- `pixi run schema-analytics-plan`: Diff analytics schema.
+- `pixi run schema-analytics-list`: List materialized views.
+- `pixi run schema-dump`: Dump DB state to SQL files.
 
 ## Project Structure & Package Overviews
 
@@ -151,9 +157,9 @@ PostgreSQL._
 
 The core data layer.
 
-- `ca_biositing/datamodels/linkml/`: YAML schema definitions.
-- `ca_biositing/datamodels/schemas/generated/`: Generated SQLAlchemy classes
-  (**DO NOT EDIT**).
+- `ca_biositing/datamodels/models/`: Hand-written SQLModel classes (91 models,
+  15 domain subdirectories).
+- `ca_biositing/datamodels/views.py`: Materialized view definitions.
 - `ca_biositing/datamodels/database.py`: Connection and session management.
 - See
   [`src/ca_biositing/datamodels/README.md`](src/ca_biositing/datamodels/README.md).

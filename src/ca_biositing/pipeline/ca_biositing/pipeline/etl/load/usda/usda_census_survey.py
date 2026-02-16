@@ -58,7 +58,7 @@ def load(
 
     try:
         # --- LAZY IMPORT ---
-        from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+        from ca_biositing.datamodels.models import (
             DataSource, Dataset, UsdaCensusRecord, UsdaSurveyRecord, Observation
         )
 
@@ -106,7 +106,7 @@ def _create_and_map_datasets(engine, transformed_df, etl_run_id,
                               lineage_group_id, now):
     """STEP 0: Create USDA datasets if needed, return mapping"""
     logger = get_run_logger()
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import (
+    from ca_biositing.datamodels.models import (
         DataSource, Dataset
     )
 
@@ -177,7 +177,7 @@ def _load_census_records(engine, transformed_df, dataset_map, etl_run_id,
                         lineage_group_id, now):
     """STEP 1: Load census records with dedup"""
     logger = get_run_logger()
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import UsdaCensusRecord
+    from ca_biositing.datamodels.models import UsdaCensusRecord
 
     # Level 1: Query existing
     existing_keys = set()
@@ -230,7 +230,7 @@ def _load_survey_records(engine, transformed_df, dataset_map, etl_run_id,
                         lineage_group_id, now):
     """STEP 2: Load survey records with dedup (includes survey-specific fields)"""
     logger = get_run_logger()
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import UsdaSurveyRecord
+    from ca_biositing.datamodels.models import UsdaSurveyRecord
 
     # Level 1: Query existing
     existing_keys = set()
@@ -263,7 +263,6 @@ def _load_survey_records(engine, transformed_df, dataset_map, etl_run_id,
             'geoid': key[0],
             'year': key[1],
             'commodity_code': key[2],
-            'source_reference': 'USDA NASS QuickStats API',
             'survey_period': row.get('survey_period') if pd.notna(row.get('survey_period')) else None,
             'reference_month': row.get('reference_month') if pd.notna(row.get('reference_month')) else None,
             'begin_code': row.get('begin_code') if pd.notna(row.get('begin_code')) else None,
@@ -290,7 +289,7 @@ def _load_observations(engine, transformed_df, dataset_map, etl_run_id,
                       lineage_group_id, now):
     """STEP 3: Load observations with 3-level dedup"""
     logger = get_run_logger()
-    from ca_biositing.datamodels.schemas.generated.ca_biositing import Observation
+    from ca_biositing.datamodels.models import Observation
 
     # Build parent record map
     record_id_map = {}

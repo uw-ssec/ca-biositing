@@ -181,9 +181,25 @@ migrate = { cmd = [
     "head",
 ], description = "Apply database migrations locally to the Docker database.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:9090/biocirv_db" } }
 
-generate-models = { cmd = "python resources/linkml/scripts/generate_sqla.py", description = "Generate SQLAlchemy models from LinkML schemas." }
+migrate-autogenerate = { cmd = "alembic revision --autogenerate", description = "Auto-generate a new Alembic migration from model changes.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
-update-schema = { cmd = "python resources/linkml/scripts/orchestrate_schema_update.py", description = "Orchestrate schema update: generate models, rebuild services, and create migration." }
+# pgschema CLI (pre-built binary, not on conda-forge)
+# See https://www.pgschema.com/installation#pre-built-binary
+install-pgschema = { cmd = "bash scripts/install-pgschema.sh", description = "Install pgschema CLI binary into the pixi environment." }
+
+# SQL-First Workflow Tasks (pgschema)
+# These tasks manage the database schema using raw SQL files as the source of truth.
+schema-dump = { cmd = "bash -c 'pgschema dump --host localhost --port 5432 --user biocirv_user --db biocirv_db --password biocirv_dev_password > src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql'", description = "Dump the current database schema to the reference SQL file.", env = { PGSSLMODE = "disable" } }
+
+# Public Schema Management (validation only - operational tasks replaced by Alembic)
+schema-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema public", description = "Plan changes for the 'public' schema.", env = { PGSSLMODE = "disable" } }
+
+# Analytics Schema Management (validation only - operational tasks replaced by Alembic)
+schema-analytics-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema ca_biositing", description = "Plan changes for the 'ca_biositing' analytics schema.", env = { PGSSLMODE = "disable" } }
+
+# Materialized View Utilities
+schema-analytics-list = { cmd = "pixi run access-db -c \"SELECT schemaname, matviewname, ispopulated FROM pg_matviews\"", description = "List all materialized views in the database." }
+refresh-views = { cmd = "python -c \"from ca_biositing.datamodels.views import refresh_all_views; from ca_biositing.datamodels.database import get_engine; refresh_all_views(get_engine())\"", description = "Refresh all materialized views using SQLAlchemy.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
@@ -296,33 +312,42 @@ description = "Build documentation for ReadTheDocs"
 
 
 # ==== Deployment environment ====
-[feature.cloud.dependencies]
-opentofu = ">1.10.6"
+[feature.cloud.tasks.install-pulumi]
+cmd = "curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX"
+outputs = ["**/bin/pulumi"]
 
-[feature.cloud.tasks]
-# empty for now
+[feature.cloud.pypi-dependencies]
+pulumi = ">=3.0.0,<4"
+pulumi-gcp = ">=9.0.0,<10"
 
-# OpenTofu tasks
-[feature.cloud.tasks.cloud-deploy]
-cmd = "tofu fmt -recursive && tofu apply"
-cwd = "deployment/cloud/gcp/infrastructure"
+# Pulumi tasks
+[feature.cloud.tasks.cloud-bootstrap]
+cmd = "gcloud storage buckets create gs://biocirv-470318-pulumi-state --location=us-west1 --uniform-bucket-level-access --public-access-prevention && gcloud storage buckets update gs://biocirv-470318-pulumi-state --versioning"
+description = "Create the Pulumi state bucket in GCS (one-time setup)."
 
 [feature.cloud.tasks.cloud-init]
-cmd = "tofu init"
+cmd = "pulumi login gs://biocirv-470318-pulumi-state"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Login to the Pulumi GCS backend for state management."
 
 [feature.cloud.tasks.cloud-plan]
-cmd = "tofu fmt -recursive && tofu plan"
+cmd = "pulumi preview"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Preview pending infrastructure changes."
+
+[feature.cloud.tasks.cloud-deploy]
+cmd = "pulumi up"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Deploy infrastructure changes to GCP."
 
 [feature.cloud.tasks.cloud-destroy]
-cmd = "tofu destroy"
+cmd = "pulumi destroy"
 cwd = "deployment/cloud/gcp/infrastructure"
+description = "Destroy all managed GCP infrastructure."
 
 [feature.gis.pypi-dependencies]
 geopandas = "*"
 matplotlib = "*"
 
 [pypi-dependencies]
-linkml = ">=1.9.3, <2"
 sqlalchemy = ">=2.0.44, <3"

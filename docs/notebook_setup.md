@@ -45,8 +45,8 @@ three namespace packages (`ca-biositing-datamodels`, `ca-biositing-pipeline`,
 4. Imports work directly:
 
    ```python
-   from ca_biositing.pipeline.utils.name_id_swap import replace_name_with_id_df
-   from ca_biositing.datamodels.database import Base
+   from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
+   from ca_biositing.datamodels.models import Resource
    ```
 
 ---
@@ -85,7 +85,7 @@ Create a test cell in a notebook:
 import sys
 print("Python executable:", sys.executable)
 
-from ca_biositing.pipeline.utils.name_id_swap import replace_name_with_id_df
+from ca_biositing.pipeline.utils.lookup_utils import replace_name_with_id_df
 print("Import succeeded")
 ```
 

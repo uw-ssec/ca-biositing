@@ -139,14 +139,19 @@ end
 ca-biositing/
 ├── src/ca_biositing/                    # PEP 420 namespace package root for all submodules
 │   ├── datamodels/                      # Database models, schema definitions, and ORM setup
-│   │   ├── ca_biositing/datamodels/     # Actual SQLModel-based data models
-│   │   │   ├── biomass.py               # Biomass and related entities
-│   │   │   ├── experiments_analysis.py  # Experiment and analysis result models
-│   │   │   ├── geographic_locations.py  # Geographic and location-based entities
-│   │   │   ├── metadata_samples.py      # Metadata and sample definitions
-│   │   │   ├── organizations.py         # Organization entity definitions
-│   │   │   ├── people_contacts.py       # Contact and personnel information
-│   │   │   ├── external_datasets.py     # External dataset integration definitions
+│   │   ├── ca_biositing/datamodels/     # SQLModel-based data models
+│   │   │   ├── models/                  # Hand-written SQLModel classes (91 models, 15 subdirs)
+│   │   │   │   ├── __init__.py          # Central re-export of all models
+│   │   │   │   ├── base.py              # Base classes (BaseEntity, LookupBase, etc.)
+│   │   │   │   ├── aim1_records/        # Aim 1 analytical records
+│   │   │   │   ├── aim2_records/        # Aim 2 processing records
+│   │   │   │   ├── core/                # ETL lineage and run tracking
+│   │   │   │   ├── external_data/       # LandIQ, USDA, Billion Ton records
+│   │   │   │   ├── field_sampling/      # Field samples and collection methods
+│   │   │   │   ├── general_analysis/    # Observations and analysis types
+│   │   │   │   ├── places/              # Location and address models
+│   │   │   │   └── ...                  # (+ 6 more domain subdirectories)
+│   │   │   ├── views.py                 # 7 materialized view definitions
 │   │   │   ├── config.py                # SQLModel and database configuration
 │   │   │   └── database.py              # Database engine setup and connection logic
 │   │   ├── tests/                       # Unit tests for datamodels package
@@ -427,7 +432,9 @@ Environments:
 ### Key Development Tasks
 
 - **Service Management**: Start/stop/monitor Docker services
-- **Database Operations**: Migrations, health checks, direct access
+- **Schema Changes**: Edit SQLModel classes, then `migrate-autogenerate` +
+  `migrate`
+- **Materialized Views**: Refresh after data loads with `refresh-views`
 - **ETL Operations**: Deploy and run data pipelines
 - **Testing**: Comprehensive test suites with coverage
 - **Code Quality**: Pre-commit hooks, linting, formatting

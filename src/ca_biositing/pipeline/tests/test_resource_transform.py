@@ -13,12 +13,14 @@ def test_resource_transform(mock_session, mock_engine):
         "Resource Class": ["Agricultural Residue", "Agricultural Residue", "Class", "Class", "Class", "Class"],
         "Resource Subclass": ["Nut Hulls", "Cereal Straw", "Sub", "Sub", "Sub", "Sub"],
         "Primary Ag Product": ["Almonds", "Corn", "Prod", "Prod", "Prod", "Prod"],
+        "Description": ["Hulls from almonds", "Stover from corn", "", "", "", ""],
+        "Resource Code": ["AH-001", "CS-002", "", "", "", ""],
         "Note": ["Test note 1", "Test note 2", "N/A", "N/A", "N/A", "N/A"],
         "Created At": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-01", "2024-01-01", "2024-01-01"],
         "Updated At": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-01", "2024-01-01", "2024-01-01"]
     })
 
-    data_sources = {"basic_sample_info": raw_data}
+    data_sources = {"resources": raw_data}
 
     # 2. Mock DB responses for normalization
     mock_db = MagicMock()
