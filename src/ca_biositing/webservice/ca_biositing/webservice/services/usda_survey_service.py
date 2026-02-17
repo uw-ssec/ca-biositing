@@ -1,6 +1,6 @@
-"""Service layer for USDA Census data operations.
+"""Service layer for USDA Survey data operations.
 
-This module provides business logic for querying USDA census data
+This module provides business logic for querying USDA survey data
 from the database, including data validation and transformation.
 """
 
@@ -18,19 +18,18 @@ from ca_biositing.datamodels.models import (
     Resource,
     ResourceUsdaCommodityMap,
     Unit,
-    UsdaCensusRecord,
     UsdaCommodity,
+    UsdaSurveyRecord,
 )
 from ca_biositing.webservice.exceptions import (
     CropNotFoundException,
     ParameterNotFoundException,
     ResourceNotFoundException,
-    ServiceException,
 )
 
 
-class UsdaCensusService:
-    """Business logic for USDA Census data operations."""
+class UsdaSurveyService:
+    """Business logic for USDA Survey data operations."""
 
     @staticmethod
     def _get_commodity_by_name(session: Session, crop_name: str) -> UsdaCommodity:
@@ -91,13 +90,13 @@ class UsdaCensusService:
         return commodity
 
     @staticmethod
-    def _get_observations_for_census_record(
+    def _get_observations_for_survey_record(
         session: Session,
         commodity_id: int,
         geoid: str,
         parameter_name: Optional[str] = None
-    ) -> list[dict]:
-        """Get observations for a census record by commodity and geoid.
+    ) -> tuple[list[dict], Optional[UsdaSurveyRecord]]:
+        """Get observations for a survey record by commodity and geoid.
 
         Since observations are stored separately with unique record_ids,
         we query them by matching dataset + commodity + geoid criteria.
@@ -109,30 +108,30 @@ class UsdaCensusService:
             parameter_name: Optional parameter name filter
 
         Returns:
-            List of observation dictionaries with parameter/unit/dimension details
+            Tuple of (list of observation dictionaries, survey record)
         """
         # Create alias for the dimension unit join
         DimensionUnit = aliased(Unit)
 
-        # First, find the census record to get its dataset_id
+        # First, find the survey record to get its dataset_id and survey metadata
         # If multiple records exist for the same commodity/geoid, return the most recent
-        census_stmt = (
-            select(UsdaCensusRecord)
+        survey_stmt = (
+            select(UsdaSurveyRecord)
             .where(and_(
-                UsdaCensusRecord.commodity_code == commodity_id,
-                UsdaCensusRecord.geoid == geoid
+                UsdaSurveyRecord.commodity_code == commodity_id,
+                UsdaSurveyRecord.geoid == geoid
             ))
-            .order_by(UsdaCensusRecord.year.desc())
+            .order_by(UsdaSurveyRecord.year.desc())
             .limit(1)
         )
-        census_record = session.execute(census_stmt).scalars().first()
+        survey_record = session.execute(survey_stmt).scalars().first()
 
-        if not census_record:
-            return []
+        if not survey_record:
+            return [], None
 
         # Query observations by dataset_id, record_type, and record_id pattern
-        # Observations are linked to census records via record_id patterns like "census_{id}_*"
-        census_record_prefix = f"census_{census_record.id}_"
+        # Observations are linked to survey records via record_id patterns like "survey_{id}_*"
+        survey_record_prefix = f"survey_{survey_record.id}_"
 
         stmt = (
             select(
@@ -147,9 +146,9 @@ class UsdaCensusService:
             .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
             .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
-                Observation.dataset_id == census_record.dataset_id,
-                Observation.record_type == "census",
-                Observation.record_id.like(f"{census_record_prefix}%")
+                Observation.dataset_id == survey_record.dataset_id,
+                Observation.record_type == "survey",
+                Observation.record_id.like(f"{survey_record_prefix}%")
             ))
         )
 
@@ -173,7 +172,7 @@ class UsdaCensusService:
                 "dimension_unit": row.dimension_unit_name,
             })
 
-        return observations
+        return observations, survey_record
 
     @staticmethod
     def get_by_crop(
@@ -182,7 +181,7 @@ class UsdaCensusService:
         geoid: str,
         parameter: str
     ) -> dict:
-        """Get single census parameter by crop name.
+        """Get single survey parameter by crop name.
 
         Args:
             session: Database session
@@ -191,27 +190,27 @@ class UsdaCensusService:
             parameter: Parameter name
 
         Returns:
-            Dictionary with census data
+            Dictionary with survey data
 
         Raises:
             CropNotFoundException: If crop not found
             ParameterNotFoundException: If parameter not found for crop/geoid
         """
         # Validate crop exists
-        commodity = UsdaCensusService._get_commodity_by_name(session, usda_crop)
+        commodity = UsdaSurveyService._get_commodity_by_name(session, usda_crop)
 
-        # Get observations
-        observations = UsdaCensusService._get_observations_for_census_record(
+        # Get observations and survey record
+        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid, parameter
         )
 
-        if not observations:
+        if not observations or not survey_record:
             raise ParameterNotFoundException(
                 parameter,
                 f"crop {usda_crop} in geoid {geoid}"
             )
 
-        # Return first observation with metadata
+        # Return first observation with metadata and survey-specific fields
         obs = observations[0]
         return {
             "usda_crop": usda_crop,
@@ -223,6 +222,10 @@ class UsdaCensusService:
             "dimension": obs["dimension"],
             "dimension_value": obs["dimension_value"],
             "dimension_unit": obs["dimension_unit"],
+            "survey_program_id": survey_record.survey_program_id,
+            "survey_period": survey_record.survey_period,
+            "reference_month": survey_record.reference_month,
+            "seasonal_flag": survey_record.seasonal_flag,
         }
 
     @staticmethod
@@ -232,7 +235,7 @@ class UsdaCensusService:
         geoid: str,
         parameter: str
     ) -> dict:
-        """Get single census parameter by resource name.
+        """Get single survey parameter by resource name.
 
         Args:
             session: Database session
@@ -241,27 +244,27 @@ class UsdaCensusService:
             parameter: Parameter name
 
         Returns:
-            Dictionary with census data
+            Dictionary with survey data
 
         Raises:
             ResourceNotFoundException: If resource not found
             ParameterNotFoundException: If parameter not found for resource/geoid
         """
         # Convert resource to commodity
-        commodity = UsdaCensusService._get_commodity_by_resource(session, resource)
+        commodity = UsdaSurveyService._get_commodity_by_resource(session, resource)
 
-        # Get observations
-        observations = UsdaCensusService._get_observations_for_census_record(
+        # Get observations and survey record
+        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid, parameter
         )
 
-        if not observations:
+        if not observations or not survey_record:
             raise ParameterNotFoundException(
                 parameter,
                 f"resource {resource} in geoid {geoid}"
             )
 
-        # Return first observation with metadata
+        # Return first observation with metadata and survey-specific fields
         obs = observations[0]
         return {
             "usda_crop": None,
@@ -273,6 +276,10 @@ class UsdaCensusService:
             "dimension": obs["dimension"],
             "dimension_value": obs["dimension_value"],
             "dimension_unit": obs["dimension_unit"],
+            "survey_program_id": survey_record.survey_program_id,
+            "survey_period": survey_record.survey_period,
+            "reference_month": survey_record.reference_month,
+            "seasonal_flag": survey_record.seasonal_flag,
         }
 
     @staticmethod
@@ -281,7 +288,7 @@ class UsdaCensusService:
         usda_crop: str,
         geoid: str
     ) -> dict:
-        """List all census parameters for crop/geoid.
+        """List all survey parameters for crop/geoid.
 
         Args:
             session: Database session
@@ -296,14 +303,14 @@ class UsdaCensusService:
             ParameterNotFoundException: If no data found for crop/geoid
         """
         # Validate crop exists
-        commodity = UsdaCensusService._get_commodity_by_name(session, usda_crop)
+        commodity = UsdaSurveyService._get_commodity_by_name(session, usda_crop)
 
-        # Get all observations
-        observations = UsdaCensusService._get_observations_for_census_record(
+        # Get all observations and survey record
+        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid
         )
 
-        if not observations:
+        if not observations or not survey_record:
             raise ParameterNotFoundException(
                 "any parameter",
                 f"crop {usda_crop} in geoid {geoid}"
@@ -314,6 +321,10 @@ class UsdaCensusService:
             "resource": None,
             "geoid": geoid,
             "data": observations,
+            "survey_program_id": survey_record.survey_program_id,
+            "survey_period": survey_record.survey_period,
+            "reference_month": survey_record.reference_month,
+            "seasonal_flag": survey_record.seasonal_flag,
         }
 
     @staticmethod
@@ -322,7 +333,7 @@ class UsdaCensusService:
         resource: str,
         geoid: str
     ) -> dict:
-        """List all census parameters for resource/geoid.
+        """List all survey parameters for resource/geoid.
 
         Args:
             session: Database session
@@ -337,14 +348,14 @@ class UsdaCensusService:
             ParameterNotFoundException: If no data found for resource/geoid
         """
         # Convert resource to commodity
-        commodity = UsdaCensusService._get_commodity_by_resource(session, resource)
+        commodity = UsdaSurveyService._get_commodity_by_resource(session, resource)
 
-        # Get all observations
-        observations = UsdaCensusService._get_observations_for_census_record(
+        # Get all observations and survey record
+        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid
         )
 
-        if not observations:
+        if not observations or not survey_record:
             raise ParameterNotFoundException(
                 "any parameter",
                 f"resource {resource} in geoid {geoid}"
@@ -355,4 +366,8 @@ class UsdaCensusService:
             "resource": resource,
             "geoid": geoid,
             "data": observations,
+            "survey_program_id": survey_record.survey_program_id,
+            "survey_period": survey_record.survey_period,
+            "reference_month": survey_record.reference_month,
+            "seasonal_flag": survey_record.seasonal_flag,
         }

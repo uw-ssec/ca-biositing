@@ -22,6 +22,8 @@ from ca_biositing.datamodels.models import (
     Unit,
     UsdaCensusRecord,
     UsdaCommodity,
+    UsdaSurveyProgram,
+    UsdaSurveyRecord,
 )
 from ca_biositing.webservice.main import app
 
@@ -49,6 +51,8 @@ def engine_fixture():
         Resource.__table__.create(connection, checkfirst=True)
         ResourceUsdaCommodityMap.__table__.create(connection, checkfirst=True)
         UsdaCensusRecord.__table__.create(connection, checkfirst=True)
+        UsdaSurveyProgram.__table__.create(connection, checkfirst=True)
+        UsdaSurveyRecord.__table__.create(connection, checkfirst=True)
         Observation.__table__.create(connection, checkfirst=True)
 
     return engine
@@ -229,4 +233,155 @@ def test_census_data_fixture(session: Session):
         "resource_soybean_id": 2,
         "census_corn_id": 1,
         "census_soybeans_id": 2,
+    }
+
+
+@pytest.fixture(name="test_survey_data")
+def test_survey_data_fixture(session: Session):
+    """Create test survey data in database.
+
+    This fixture creates:
+    - CORN and SOYBEANS commodities (reuses from census)
+    - corn_grain and soybean_meal resources (reuses from census)
+    - Survey program
+    - Survey records for geoid 06001
+    - Observations with parameters, units, and dimensions
+
+    Args:
+        session: Database session fixture
+
+    Returns:
+        Dictionary with test data IDs
+    """
+    # Create units
+    unit_acres = Unit(id=1, name="acres")
+    unit_bushels = Unit(id=2, name="bushels")
+    unit_tons = Unit(id=3, name="tons")
+    session.add_all([unit_acres, unit_bushels, unit_tons])
+
+    # Create dimension types
+    dim_type_area = DimensionType(id=1, name="area")
+    session.add(dim_type_area)
+
+    # Create parameters
+    param_acres = Parameter(id=1, name="acres", standard_unit_id=1)
+    param_production = Parameter(id=2, name="production", standard_unit_id=2)
+    param_yield = Parameter(id=3, name="yield_per_acre", standard_unit_id=2)
+    session.add_all([param_acres, param_production, param_yield])
+
+    # Create commodities
+    commodity_corn = UsdaCommodity(id=1, name="CORN", usda_code="00090")
+    commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", usda_code="00081")
+    session.add_all([commodity_corn, commodity_soybeans])
+
+    # Create resources
+    resource_corn_grain = Resource(id=1, name="corn_grain", primary_ag_product_id=1)
+    resource_soybean_meal = Resource(id=2, name="soybean_meal", primary_ag_product_id=2)
+    session.add_all([resource_corn_grain, resource_soybean_meal])
+
+    # Create resource-commodity mappings
+    mapping_corn = ResourceUsdaCommodityMap(
+        id=1,
+        resource_id=1,
+        usda_commodity_id=1,
+        match_tier="exact"
+    )
+    mapping_soybean = ResourceUsdaCommodityMap(
+        id=2,
+        resource_id=2,
+        usda_commodity_id=2,
+        match_tier="exact"
+    )
+    session.add_all([mapping_corn, mapping_soybean])
+
+    # Create survey program
+    survey_program = UsdaSurveyProgram(id=1, name="NASS Weekly Survey")
+    session.add(survey_program)
+
+    # Create survey records
+    survey_corn = UsdaSurveyRecord(
+        id=1,
+        dataset_id=1,
+        geoid="06001",
+        commodity_code=1,
+        year=2022,
+        survey_program_id=1,
+        survey_period="2022-Q1",
+        reference_month="January",
+        seasonal_flag=True
+    )
+    survey_soybeans = UsdaSurveyRecord(
+        id=2,
+        dataset_id=1,
+        geoid="06001",
+        commodity_code=2,
+        year=2022,
+        survey_program_id=1,
+        survey_period="2022-Q1",
+        reference_month="January",
+        seasonal_flag=False
+    )
+    session.add_all([survey_corn, survey_soybeans])
+
+    # Create observations for CORN
+    # IMPORTANT: record_id must be unique AND should reference the survey record
+    # We use a format like "survey_{survey_record_id}_{param_id}" for uniqueness
+    obs_corn_acres = Observation(
+        id=5,
+        record_id="survey_1_acres",
+        dataset_id=1,
+        record_type="survey",
+        parameter_id=1,
+        value=28000.0,
+        unit_id=1,
+    )
+    obs_corn_production = Observation(
+        id=6,
+        record_id="survey_1_production",
+        dataset_id=1,
+        record_type="survey",
+        parameter_id=2,
+        value=4200000.0,
+        unit_id=2,
+    )
+    obs_corn_yield = Observation(
+        id=7,
+        record_id="survey_1_yield",
+        dataset_id=1,
+        record_type="survey",
+        parameter_id=3,
+        value=155.0,
+        unit_id=2,
+        dimension_type_id=1,
+        dimension_value=1.0,
+        dimension_unit_id=1,
+    )
+
+    # Create observations for SOYBEANS
+    obs_soybeans_acres = Observation(
+        id=8,
+        record_id="survey_2_acres",
+        dataset_id=1,
+        record_type="survey",
+        parameter_id=1,
+        value=17000.0,
+        unit_id=1,
+    )
+
+    session.add_all([
+        obs_corn_acres,
+        obs_corn_production,
+        obs_corn_yield,
+        obs_soybeans_acres,
+    ])
+    session.commit()
+
+    return {
+        "commodity_corn_id": 1,
+        "commodity_soybeans_id": 2,
+        "resource_corn_id": 1,
+        "resource_soybean_id": 2,
+        "survey_corn_id": 1,
+        "survey_soybeans_id": 2,
+        "survey_program_id": 1,
     }
