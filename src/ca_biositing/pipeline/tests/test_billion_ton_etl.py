@@ -33,24 +33,39 @@ def sample_billion_ton_df():
 # --- Extract Tests ---
 
 @patch("ca_biositing.pipeline.etl.extract.billion_ton.get_run_logger")
-@patch("os.path.exists")
-@patch("pandas.read_csv")
-def test_extract_success(mock_read_csv, mock_exists, mock_logger):
-    mock_exists.return_value = True
-    test_df = pd.DataFrame({"test": [1, 2]})
-    mock_read_csv.return_value = test_df
+@patch("ca_biositing.pipeline.etl.extract.billion_ton.gdrive_to_df")
+@patch("tempfile.TemporaryDirectory")
+def test_extract_success(mock_temp_dir, mock_gdrive_to_df, mock_logger):
+    # Setup mock temp dir context manager
+    mock_temp_dir_instance = MagicMock()
+    mock_temp_dir_instance.__enter__.return_value = "/tmp/fake_dir"
+    mock_temp_dir.return_value = mock_temp_dir_instance
 
-    result = extract.fn("dummy_path.csv")
+    test_df = pd.DataFrame({"test": [1, 2]})
+    mock_gdrive_to_df.return_value = test_df
+
+    result = extract.fn(file_id="fake_id", file_name="fake.csv")
 
     assert result is not None
     assert len(result) == 2
-    mock_read_csv.assert_called_once_with("dummy_path.csv")
+    mock_gdrive_to_df.assert_called_once()
+    args, kwargs = mock_gdrive_to_df.call_args
+    assert kwargs["file_id"] == "fake_id"
+    assert kwargs["file_name"] == "fake.csv"
+    assert kwargs["dataset_folder"] == "/tmp/fake_dir"
 
 @patch("ca_biositing.pipeline.etl.extract.billion_ton.get_run_logger")
-@patch("os.path.exists")
-def test_extract_file_not_found(mock_exists, mock_logger):
-    mock_exists.return_value = False
-    result = extract.fn("non_existent.csv")
+@patch("ca_biositing.pipeline.etl.extract.billion_ton.gdrive_to_df")
+@patch("tempfile.TemporaryDirectory")
+def test_extract_failure(mock_temp_dir, mock_gdrive_to_df, mock_logger):
+    # Setup mock temp dir
+    mock_temp_dir_instance = MagicMock()
+    mock_temp_dir_instance.__enter__.return_value = "/tmp/fake_dir"
+    mock_temp_dir.return_value = mock_temp_dir_instance
+
+    mock_gdrive_to_df.return_value = None
+
+    result = extract.fn(file_id="invalid_id")
     assert result is None
 
 # --- Transform Tests ---

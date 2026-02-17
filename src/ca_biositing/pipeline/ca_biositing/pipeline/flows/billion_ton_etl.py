@@ -16,7 +16,10 @@ def create_lineage_group_task(etl_run_id: str, note: str):
     return create_lineage_group(etl_run_id=etl_run_id, note=note)
 
 @flow(name="Billion Ton ETL", log_prints=True, persist_result=False)
-def billion_ton_etl_flow(file_path: str = "data/billionton_23_agri_download20260217-012623/billionton_23_agri_download20260217-012623.csv"):
+def billion_ton_etl_flow(
+    file_id: str = "11xLy_kPTHvoqciUMy3SYA3DLCDIjkOGa",
+    file_name: str = "billionton_23_agri_download.csv"
+):
     """
     Orchestrates the ETL process for Billion Ton agricultural data.
     """
@@ -26,7 +29,7 @@ def billion_ton_etl_flow(file_path: str = "data/billionton_23_agri_download20260
     from ca_biositing.pipeline.etl.load.billion_ton import load
 
     logger = get_run_logger()
-    logger.info(f"Starting Billion Ton ETL flow for {file_path}...")
+    logger.info(f"Starting Billion Ton ETL flow for file_id {file_id}...")
 
     # 0. Lineage Tracking Setup
     etl_run_id = create_etl_run_record_task(pipeline_name="Billion Ton ETL")
@@ -36,7 +39,7 @@ def billion_ton_etl_flow(file_path: str = "data/billionton_23_agri_download20260
     )
 
     # 1. Extract
-    raw_df = extract(file_path)
+    raw_df = extract(file_id=file_id, file_name=file_name)
     if raw_df is None or raw_df.empty:
         logger.error("Extraction failed or returned no data. Aborting.")
         return

@@ -10,15 +10,22 @@ from pydrive2.files import ApiRequestError
 import zipfile
 import geopandas as gpd
 
-def gdrive_to_df(file_name: str, mime_type: str, credentials_path: str, dataset_folder: str) -> pd.DataFrame | gpd.GeoDataFrame:
+def gdrive_to_df(
+    file_name: str,
+    mime_type: str,
+    credentials_path: str,
+    dataset_folder: str,
+    file_id: str = None
+) -> pd.DataFrame | gpd.GeoDataFrame:
     """
     Extracts data from a CSV, ZIP, or GEOJSON file into a pandas DataFrame.
 
     Args:
-        file_name: The name of the requested file.
+        file_name: The name of the requested file (used as local filename).
         mime_type: The MIME type - according to https://mime-type.com/
         credentials_path: The path to the Google Cloud service account credentials JSON file.
         dataset_folder: the folder where the extracted file is stored.
+        file_id: Optional Google Drive File ID. If provided, used instead of searching by name.
 
     Returns:
         A pandas DataFrame containing the data from the specified worksheet, or None on error.
@@ -36,21 +43,32 @@ def gdrive_to_df(file_name: str, mime_type: str, credentials_path: str, dataset_
         drive = GoogleDrive(gauth)
 
         try:
-            file_entries = drive.ListFile({"q": f"title = '{file_name}' and mimeType= '{mime_type}'"}).GetList()
-            if len(file_entries) == 0:
-                raise FileNotFoundError(f"Error: File '{file_name}' not found. \n Please make sure the name and mimeType is correct and that you have shared it with the service account email.")
-                return None
+            if file_id:
+                file_entry = drive.CreateFile({'id': file_id})
+                # Fetch metadata to ensure it exists and get title if file_name is not ideal
+                file_entry.FetchMetadata()
+                actual_id = file_id
             else:
+                file_entries = drive.ListFile({"q": f"title = '{file_name}' and mimeType= '{mime_type}'"}).GetList()
+                if len(file_entries) == 0:
+                    raise FileNotFoundError(f"Error: File '{file_name}' not found. \n Please make sure the name and mimeType is correct and that you have shared it with the service account email.")
                 file_entry = file_entries[0]
-            file = drive.CreateFile({'id': file_entry['id']})
-            file.GetContentFile(dataset_folder + file_name) # Download file
-        except ApiRequestError:
+                actual_id = file_entry['id']
+
+            file = drive.CreateFile({'id': actual_id})
+            # Ensure dataset_folder ends with a slash
+            if not dataset_folder.endswith(os.path.sep):
+                dataset_folder += os.path.sep
+
+            download_path = os.path.join(dataset_folder, file_name)
+            file.GetContentFile(download_path) # Download file
+        except ApiRequestError as e:
             print(f"An unexpected error occurred: {e}")
             return None
 
         # read csv if file is csv
         if mime_type == "text/csv":
-            df = pd.read_csv(dataset_folder + file_name)
+            df = pd.read_csv(download_path)
 
         # extract from zip if file is zip
         # note: THIS CODE ASSUMES THAT THE ZIP ONLY CONTAINS ONE CSV FILE
