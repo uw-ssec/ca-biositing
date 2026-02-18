@@ -106,7 +106,7 @@ def transform_xrd_record(
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
 
     try:
-        record_df = normalized_df[available_cols].copy().rename(columns=final_rename)
+        record_df = normalized_df[available_cols].rename(columns=final_rename).copy()
 
         if 'record_id' in record_df.columns:
             record_df = record_df.dropna(subset=['record_id'])

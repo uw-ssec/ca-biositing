@@ -10,12 +10,12 @@ from unittest.mock import patch, MagicMock
 @patch("ca_biositing.pipeline.etl.extract.icp.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.icp.gsheet_to_df")
 def test_icp_etl_full(
-    mock_normalize,
-    mock_engine,
-    mock_load_logger,
-    mock_trans_logger,
-    mock_ext_logger,
     mock_gsheet_to_df,
+    mock_ext_logger,
+    mock_trans_logger,
+    mock_load_logger,
+    mock_engine,
+    mock_normalize,
 ):
     from ca_biositing.pipeline.etl.extract.icp import extract
     from ca_biositing.pipeline.etl.transform.analysis.icp_record import transform_icp_record
@@ -60,7 +60,7 @@ def test_icp_etl_full(
     assert mock_normalize.called
     assert "raw_data_id" in trans_df.columns
     assert trans_df["raw_data_id"].iloc[0] == 100
-    assert mock_engine.called
+    assert mock_engine.connect.called
 
 # --- XRF ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.normalize_dataframes")
@@ -70,12 +70,12 @@ def test_icp_etl_full(
 @patch("ca_biositing.pipeline.etl.extract.xrf.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.xrf.gsheet_to_df")
 def test_xrf_etl_full(
-    mock_normalize,
-    mock_engine,
-    mock_load_logger,
-    mock_trans_logger,
-    mock_ext_logger,
     mock_gsheet_to_df,
+    mock_ext_logger,
+    mock_trans_logger,
+    mock_load_logger,
+    mock_engine,
+    mock_normalize,
 ):
     from ca_biositing.pipeline.etl.extract.xrf import extract
     from ca_biositing.pipeline.etl.transform.analysis.xrf_record import transform_xrf_record
@@ -128,12 +128,12 @@ def test_xrf_etl_full(
 @patch("ca_biositing.pipeline.etl.extract.calorimetry.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.calorimetry.gsheet_to_df")
 def test_calorimetry_etl_full(
-    mock_normalize,
-    mock_engine,
-    mock_load_logger,
-    mock_trans_logger,
-    mock_ext_logger,
     mock_gsheet_to_df,
+    mock_ext_logger,
+    mock_trans_logger,
+    mock_load_logger,
+    mock_engine,
+    mock_normalize,
 ):
     from ca_biositing.pipeline.etl.extract.calorimetry import extract
     from ca_biositing.pipeline.etl.transform.analysis.calorimetry_record import transform_calorimetry_record
@@ -180,12 +180,12 @@ def test_calorimetry_etl_full(
 @patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.xrd.gsheet_to_df")
 def test_xrd_etl_full(
-    mock_normalize,
-    mock_engine,
-    mock_load_logger,
-    mock_trans_logger,
-    mock_ext_logger,
     mock_gsheet_to_df,
+    mock_ext_logger,
+    mock_trans_logger,
+    mock_load_logger,
+    mock_engine,
+    mock_normalize,
 ):
     from ca_biositing.pipeline.etl.extract.xrd import extract
     from ca_biositing.pipeline.etl.transform.analysis.xrd_record import transform_xrd_record

@@ -88,6 +88,7 @@ def transform_xrf_record(
     rename_map = {
         'record_id': 'record_id',
         'repl_no': 'technical_replicate_no',
+        'value': 'value',
         'qc_result': 'qc_pass',
         'wavelength_nm': 'wavelength_nm',
         'intensity': 'intensity',
@@ -110,7 +111,7 @@ def transform_xrf_record(
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
 
     try:
-        record_df = normalized_df[available_cols].copy().rename(columns=final_rename)
+        record_df = normalized_df[available_cols].rename(columns=final_rename).copy()
 
         if 'record_id' in record_df.columns:
             record_df = record_df.dropna(subset=['record_id'])

@@ -6,7 +6,7 @@ from ca_biositing.pipeline.etl.transform.resource import transform
 # Mocking the database engine and session for normalize_dataframes
 @patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.utils.name_id_swap.Session")
-def test_resource_transform(mock_session, mock_engine):
+def test_resource_transform(mock_engine, mock_session):
     # 1. Setup Mock Data
     raw_data = pd.DataFrame({
         "Name": ["Almond Hulls", "Corn Stover", "", "  ", "#N/A", None],
