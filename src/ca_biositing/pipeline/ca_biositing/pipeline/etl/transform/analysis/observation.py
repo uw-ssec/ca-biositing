@@ -1,3 +1,6 @@
+"""
+General observation transformation module.
+"""
 import pandas as pd
 from prefect import task, get_run_logger
 from typing import List
@@ -12,6 +15,10 @@ def transform_observation(
     etl_run_id: int = None,
     lineage_group_id: int = None
 ) -> pd.DataFrame:
+    """
+    Transforms raw DataFrames into the Observation table format.
+    Includes cleaning, coercion, and normalization.
+    """
     from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
@@ -23,10 +30,6 @@ def transform_observation(
         Provider,
         Dataset,
     )
-    """
-    Transforms raw DataFrames into the Observation table format.
-    Includes cleaning, coercion, and normalization.
-    """
     logger = get_run_logger()
     logger.info(f"Transforming {len(raw_dfs)} raw dataframes for Observation table")
 
@@ -42,6 +45,7 @@ def transform_observation(
         # Aggressive cleaning of duplicate/empty columns before processing
         # This handles cases like 'Upload_status' vs 'Upload Status' and hidden empty columns
         # First, strip whitespace and drop purely empty columns
+        df = df.copy()
         df.columns = [str(c).strip() for c in df.columns]
         if "" in df.columns:
             df = df.drop(columns=[""])
@@ -62,9 +66,9 @@ def transform_observation(
         # standard_clean will call clean_names again, but it's now idempotent and safe
         cleaned_df = cleaning_mod.standard_clean(df_copy)
 
-        if etl_run_id:
+        if etl_run_id is not None:
             cleaned_df['etl_run_id'] = etl_run_id
-        if lineage_group_id:
+        if lineage_group_id is not None:
             cleaned_df['lineage_group_id'] = lineage_group_id
 
         coerced_df = coercion_mod.coerce_columns(

@@ -145,14 +145,13 @@ def normalize_dataframes(
     if single_input:
         dataframes = [dataframes]
 
-    logger.info(f"Starting normalization for {len(dataframes)} DataFrames.")
-    print(f"DEBUG: Starting normalization for {len(dataframes)} DataFrames")
+    logger.debug(f"Starting normalization for {len(dataframes)} DataFrames.")
     normalized_dfs: list[pd.DataFrame] = []
     from .engine import engine
     try:
-        print("DEBUG: Opening database session...")
+        logger.debug("Opening database session...")
         with Session(engine) as db:
-            print("DEBUG: Database session opened")
+            logger.debug("Database session opened")
             for i, df in enumerate(dataframes):
                 if not isinstance(df, pd.DataFrame):
                     logger.warning(f"Item {i+1} is not a DataFrame; skipping.")
@@ -198,9 +197,6 @@ def normalize_dataframes(
             logger.info("Database commit successful.")
     except Exception as e:
         logger.error(f"Critical error during normalization: {e}", exc_info=True)
-        if "db" in locals():
-            db.rollback()
-            logger.info("Database session rolled back.")
     # If the original input was a single DataFrame, return the first element directly
     if single_input:
         return normalized_dfs[0] if normalized_dfs else pd.DataFrame()

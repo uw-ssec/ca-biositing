@@ -3,19 +3,19 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 # --- ICP ETL TEST ---
-@patch("ca_biositing.pipeline.etl.extract.icp.gsheet_to_df")
-@patch("ca_biositing.pipeline.etl.extract.icp.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.get_local_engine")
 @patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.normalize_dataframes")
+@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.engine")
+@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.icp.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.icp.gsheet_to_df")
 def test_icp_etl_full(
     mock_normalize,
+    mock_engine,
     mock_load_logger,
     mock_trans_logger,
     mock_ext_logger,
-    mock_engine,
-    mock_gsheet_to_df
+    mock_gsheet_to_df,
 ):
     from ca_biositing.pipeline.etl.extract.icp import extract
     from ca_biositing.pipeline.etl.transform.analysis.icp_record import transform_icp_record
@@ -63,19 +63,19 @@ def test_icp_etl_full(
     assert mock_engine.called
 
 # --- XRF ETL TEST ---
-@patch("ca_biositing.pipeline.etl.extract.xrf.gsheet_to_df")
-@patch("ca_biositing.pipeline.etl.extract.xrf.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.get_local_engine")
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.normalize_dataframes")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.engine")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.xrf.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.xrf.gsheet_to_df")
 def test_xrf_etl_full(
     mock_normalize,
+    mock_engine,
     mock_load_logger,
     mock_trans_logger,
     mock_ext_logger,
-    mock_engine,
-    mock_gsheet_to_df
+    mock_gsheet_to_df,
 ):
     from ca_biositing.pipeline.etl.extract.xrf import extract
     from ca_biositing.pipeline.etl.transform.analysis.xrf_record import transform_xrf_record
@@ -121,19 +121,19 @@ def test_xrf_etl_full(
     assert mock_gsheet_to_df.called
 
 # --- CALORIMETRY ETL TEST ---
-@patch("ca_biositing.pipeline.etl.extract.calorimetry.gsheet_to_df")
-@patch("ca_biositing.pipeline.etl.extract.calorimetry.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.get_local_engine")
 @patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.normalize_dataframes")
+@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.engine")
+@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.calorimetry.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.calorimetry.gsheet_to_df")
 def test_calorimetry_etl_full(
     mock_normalize,
+    mock_engine,
     mock_load_logger,
     mock_trans_logger,
     mock_ext_logger,
-    mock_engine,
-    mock_gsheet_to_df
+    mock_gsheet_to_df,
 ):
     from ca_biositing.pipeline.etl.extract.calorimetry import extract
     from ca_biositing.pipeline.etl.transform.analysis.calorimetry_record import transform_calorimetry_record
@@ -173,19 +173,19 @@ def test_calorimetry_etl_full(
     assert mock_gsheet_to_df.called
 
 # --- XRD ETL TEST ---
-@patch("ca_biositing.pipeline.etl.extract.xrd.gsheet_to_df")
-@patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_local_engine")
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.normalize_dataframes")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.engine")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
+@patch("ca_biositing.pipeline.etl.extract.xrd.gsheet_to_df")
 def test_xrd_etl_full(
     mock_normalize,
+    mock_engine,
     mock_load_logger,
     mock_trans_logger,
     mock_ext_logger,
-    mock_engine,
-    mock_gsheet_to_df
+    mock_gsheet_to_df,
 ):
     from ca_biositing.pipeline.etl.extract.xrd import extract
     from ca_biositing.pipeline.etl.transform.analysis.xrd_record import transform_xrd_record

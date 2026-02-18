@@ -1,12 +1,11 @@
 from prefect import flow, task
-print("DEBUG: analysis_records.py module loaded")
 # Move imports inside the flow to avoid module-level import hangs
 
 @flow(name="Analysis Records ETL", log_prints=True)
 def analysis_records_flow(*args, **kwargs):
     """
     Orchestrates the ETL process for Proximate, Ultimate, Compositional,
-    ICP, XRF, and Calorimetry records, including their associated observations.
+    ICP, XRF, Calorimetry, and XRD records, including their associated observations.
     """
     from prefect import get_run_logger
     from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana, icp, xrf, calorimetry, xrd
@@ -43,22 +42,23 @@ def analysis_records_flow(*args, **kwargs):
     logger.info(f"Lineage Group ID: {lineage_group_id}")
 
     # 1. Extract
-    logger.info("Extracting Proximate data...")
-    prox_raw = proximate.extract.fn()
-    logger.info("Extracting Ultimate data...")
-    ult_raw = ultimate.extract.fn()
-    logger.info("Extracting Compositional data...")
-    cmpana_raw = cmpana.extract.fn()
-    logger.info("Extracting ICP data...")
-    icp_raw = icp.extract.fn()
-    logger.info("Extracting XRF data...")
-    xrf_raw = xrf.extract.fn()
-    logger.info("Extracting Calorimetry data...")
-    cal_raw = calorimetry.extract.fn()
-    logger.info("Extracting XRD data...")
-    xrd_raw = xrd.extract.fn()
+    def safe_extract(extractor, name):
+        try:
+            logger.info(f"Extracting {name} data...")
+            return extractor.extract.fn()
+        except Exception as e:
+            logger.error(f"Failed to extract {name} data: {e}")
+            return None
 
-    raw_data = [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw, xrd_raw]
+    prox_raw = safe_extract(proximate, "Proximate")
+    ult_raw = safe_extract(ultimate, "Ultimate")
+    cmpana_raw = safe_extract(cmpana, "Compositional")
+    icp_raw = safe_extract(icp, "ICP")
+    xrf_raw = safe_extract(xrf, "XRF")
+    cal_raw = safe_extract(calorimetry, "Calorimetry")
+    xrd_raw = safe_extract(xrd, "XRD")
+
+    raw_data = [d for d in [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw, xrd_raw] if d is not None]
 
     # 2. Transform (Now includes cleaning, coercion, and normalization)
     logger.info("Starting transformations...")

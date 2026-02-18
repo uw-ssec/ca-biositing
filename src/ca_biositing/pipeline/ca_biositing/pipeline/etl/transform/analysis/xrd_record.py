@@ -10,6 +10,10 @@ def transform_xrd_record(
     etl_run_id: str = None,
     lineage_group_id: int = None
 ) -> pd.DataFrame:
+    """
+    Transforms raw DataFrame into the XrdRecord table format.
+    Includes cleaning, coercion, and normalization.
+    """
     from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
@@ -22,10 +26,6 @@ def transform_xrd_record(
         Dataset,
         FileObjectMetadata,
     )
-    """
-    Transforms raw DataFrame into the XrdRecord table format.
-    Includes cleaning, coercion, and normalization.
-    """
     logger = get_run_logger()
     logger.info("Transforming raw data for XrdRecord table")
 
@@ -54,9 +54,9 @@ def transform_xrd_record(
     cleaned_df = cleaning_mod.standard_clean(df_copy)
 
     # Add lineage IDs AFTER standard_clean to avoid them being lowercased or modified
-    if etl_run_id:
+    if etl_run_id is not None:
         cleaned_df['etl_run_id'] = etl_run_id
-    if lineage_group_id:
+    if lineage_group_id is not None:
         cleaned_df['lineage_group_id'] = lineage_group_id
 
     coerced_df = coercion_mod.coerce_columns(

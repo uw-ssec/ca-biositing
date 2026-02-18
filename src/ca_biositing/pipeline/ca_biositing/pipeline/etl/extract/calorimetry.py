@@ -1,14 +1,5 @@
 """
-ETL Extract Template
----
-
-This module provides a template for extracting data from a Google Sheet.
-
-To use this template:
-1.  Copy this file to the appropriate subdirectory in `src/etl/extract/`.
-    For example: `src/etl/extract/new_module/new_data.py`
-2.  Update the configuration constants (`GSHEET_NAME`, `WORKSHEET_NAME`).
-3.  Ensure the `CREDENTIALS_PATH` is correct.
+Calorimetry ETL extract for reading Google Sheet data.
 """
 
 from typing import Optional
@@ -18,10 +9,7 @@ from prefect import task, get_run_logger
 from ...utils.gsheet_to_pandas import gsheet_to_df
 
 # --- CONFIGURATION ---
-# TODO: Replace with the name of the Google Sheet file.
 GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
-
-# TODO: Replace with the exact name of the worksheet/tab to extract data from.
 WORKSHEET_NAME = "03.6-Caloric"
 
 # The path to the credentials file. This is typically kept in the project root.

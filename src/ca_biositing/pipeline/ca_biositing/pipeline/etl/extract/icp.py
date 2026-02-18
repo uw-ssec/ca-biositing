@@ -1,14 +1,5 @@
 """
-ETL Extract Template
----
-
-This module provides a template for extracting data from a Google Sheet.
-
-To use this template:
-1.  Copy this file to the appropriate subdirectory in `src/etl/extract/`.
-    For example: `src/etl/extract/new_module/new_data.py`
-2.  Update the configuration constants (`GSHEET_NAME`, `WORKSHEET_NAME`).
-3.  Ensure the `CREDENTIALS_PATH` is correct.
+ICP ETL extract for reading Google Sheet data.
 """
 
 from typing import Optional
@@ -18,10 +9,7 @@ from prefect import task, get_run_logger
 from ...utils.gsheet_to_pandas import gsheet_to_df
 
 # --- CONFIGURATION ---
-# TODO: Replace with the name of the Google Sheet file.
 GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
-
-# TODO: Replace with the exact name of the worksheet/tab to extract data from.
 WORKSHEET_NAME = "03.5-ICP"
 
 # The path to the credentials file. This is typically kept in the project root.
@@ -35,6 +23,9 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
 
     This function serves as the 'Extract' step in an ETL pipeline. It connects
     to the data source and returns the data as is, without transformation.
+
+    Args:
+        project_root: Optional[str] path to the project root used to locate config/credentials or default to current working dir. Defaults to None.
 
     Returns:
         A pandas DataFrame containing the raw data, or None if an error occurs.
