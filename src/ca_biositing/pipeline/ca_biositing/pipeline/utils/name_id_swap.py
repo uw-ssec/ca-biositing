@@ -85,7 +85,9 @@ def replace_name_with_id_df(
   df_copy = df.copy()
 
   # 2. Determine which names are new
-  unique_names = set(df_copy[df_name_column].dropna().unique())
+  # Filter out nulls and empty strings
+  series = df_copy[df_name_column]
+  unique_names = set(series[series.notna() & (series.astype(str) != "")].unique())
   new_names = unique_names - set(name_to_id_map.keys())
   num_new_records = len(new_names)
 
@@ -112,7 +114,9 @@ def replace_name_with_id_df(
 
   # 4. Replace name column with ID column
   df_copy[final_column_name] = df_copy[df_name_column].map(name_to_id_map)
-  df_copy = df_copy.drop(columns=[df_name_column])
+  # If the final column name matches the original, don't drop it (this happens if col is already raw_data_id)
+  if final_column_name != df_name_column:
+      df_copy = df_copy.drop(columns=[df_name_column])
 
   return df_copy, num_new_records
 

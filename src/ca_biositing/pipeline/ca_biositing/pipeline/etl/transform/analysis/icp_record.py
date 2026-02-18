@@ -20,6 +20,7 @@ def transform_icp_record(
         PrimaryAgProduct,
         Provider,
         Dataset,
+        FileObjectMetadata,
     )
     """
     Transforms raw DataFrame into the IcpRecord table format.
@@ -76,7 +77,8 @@ def transform_icp_record(
         'analyst_email': (Contact, 'email'),
         'primary_ag_product': (PrimaryAgProduct, 'name'),
         'provider_code': (Provider, 'codename'),
-        'dataset': (Dataset, 'name')
+        'dataset': (Dataset, 'name'),
+        'raw_data_url': (FileObjectMetadata, 'uri')
     }
     normalized_df = normalize_dataframes(coerced_df, normalize_columns)
 
@@ -94,7 +96,8 @@ def transform_icp_record(
         norm_col = f"{col}_id"
         if norm_col in normalized_df.columns:
             target_name = 'analyst_id' if col == 'analyst_email' else \
-                          'method_id' if col == 'preparation_method' else norm_col
+                          'method_id' if col == 'preparation_method' else \
+                          'raw_data_id' if col == 'raw_data_url' else norm_col
             rename_map[norm_col] = target_name
 
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]

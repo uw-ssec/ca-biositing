@@ -27,7 +27,8 @@ def test_icp_etl_full(
         "repl_no": [1],
         "value": [10.5],
         "parameter": ["As"],
-        "unit": ["mg/kg"]
+        "unit": ["mg/kg"],
+        "raw_data_url": ["http://example.com/spec1"]
     })
     mock_gsheet_to_df.return_value = test_raw_df
 
@@ -38,7 +39,8 @@ def test_icp_etl_full(
         "value": [10.5],
         "parameter_id": [1],
         "unit_id": [1],
-        "dataset_id": [1]
+        "dataset_id": [1],
+        "raw_data_url_id": [100]
     })
 
     # 3. Mock Load
@@ -56,6 +58,8 @@ def test_icp_etl_full(
     assert "record_id" in trans_df.columns
     assert mock_gsheet_to_df.called
     assert mock_normalize.called
+    assert "raw_data_id" in trans_df.columns
+    assert trans_df["raw_data_id"].iloc[0] == 100
     assert mock_engine.called
 
 # --- XRF ETL TEST ---
@@ -83,7 +87,9 @@ def test_xrf_etl_full(
         "repl_no": [1],
         "value": [5.2],
         "wavelength_nm": [0.154],
-        "intensity": [1000]
+        "intensity": [1000],
+        "spectral_data_url1": ["http://example.com/spec1"],
+        "spectral_data_url2": ["http://example.com/spec2"]
     })
     mock_gsheet_to_df.return_value = test_raw_df
 
@@ -94,7 +100,8 @@ def test_xrf_etl_full(
         "value": [5.2],
         "wavelength_nm": [0.154],
         "intensity": [1000],
-        "dataset_id": [1]
+        "dataset_id": [1],
+        "spectral_data_url1_id": [101]
     })
 
     # 3. Mock Load
@@ -110,6 +117,8 @@ def test_xrf_etl_full(
     assert not raw_df.empty
     assert not trans_df.empty
     assert "wavelength_nm" in trans_df.columns
+    assert "raw_data_id" in trans_df.columns
+    assert trans_df["raw_data_id"].iloc[0] == 101
     assert mock_gsheet_to_df.called
 
 # --- CALORIMETRY ETL TEST ---

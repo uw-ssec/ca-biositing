@@ -51,16 +51,21 @@ Updated the `Analysis Records ETL` flow in
   'upload_status').
 - **Lineage Consistency**: Guaranteed propagation of ETL metadata through all
   transformation steps.
+- **Raw Data URL Mapping**: Implemented automated mapping of Google Drive/Sheet
+  URLs to the `file_object_metadata` table. Analytical records are now linked
+  via the `raw_data_id` foreign key, enabling full traceability from database
+  records back to raw source files.
 
 ## Testing
 
 - Suite: `src/ca_biositing/pipeline/tests/test_new_analysis_etl.py`.
 - Verified full ETL cycles (Extract -> Transform -> Load) for all new types
-  using mocks.
-- Validated against live Google Sheet data.
+  using mocks, including verification of `raw_data_id` population.
+- Validated against live Google Sheet data, confirming successful linking for
+  ICP and XRF records.
 
 ## Limitations & Future Improvements
 
-- **Raw Data URL Mapping**: Mapping URLs from sheets to the
-  `file_object_metadata` table remains a future improvement to enable full
-  traceability.
+- **Multiple URLs**: For records with multiple associated URLs (e.g., XRF
+  spectral data), the system currently prioritizes mapping the primary URL to
+  `raw_data_id`.
