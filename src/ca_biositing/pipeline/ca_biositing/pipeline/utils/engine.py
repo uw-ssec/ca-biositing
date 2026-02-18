@@ -48,14 +48,17 @@ def _build_database_url() -> str:
 
 DATABASE_URL = _build_database_url()
 
-# Global engine instance with pooling options
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=5,
-    max_overflow=0,
-    pool_pre_ping=True,
-    connect_args={"connect_timeout": 10}
-)
+# Global engine instance with pooling options (PostgreSQL only)
+if DATABASE_URL.startswith("postgresql"):
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=5,
+        max_overflow=0,
+        pool_pre_ping=True,
+        connect_args={"connect_timeout": 10}
+    )
+else:
+    engine = create_engine(DATABASE_URL)
 
 db_session = Session(engine)
 
