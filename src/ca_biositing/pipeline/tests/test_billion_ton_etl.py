@@ -33,7 +33,7 @@ def sample_billion_ton_df():
 # --- Extract Tests ---
 
 @patch("ca_biositing.pipeline.etl.extract.billion_ton.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.billion_ton.gdrive_to_df")
+@patch("ca_biositing.pipeline.utils.gdrive_to_pandas.gdrive_to_df")
 @patch("tempfile.TemporaryDirectory")
 def test_extract_success(mock_temp_dir, mock_gdrive_to_df, mock_logger):
     # Setup mock temp dir context manager
@@ -55,7 +55,7 @@ def test_extract_success(mock_temp_dir, mock_gdrive_to_df, mock_logger):
     assert kwargs["dataset_folder"] == "/tmp/fake_dir"
 
 @patch("ca_biositing.pipeline.etl.extract.billion_ton.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.billion_ton.gdrive_to_df")
+@patch("ca_biositing.pipeline.utils.gdrive_to_pandas.gdrive_to_df")
 @patch("tempfile.TemporaryDirectory")
 def test_extract_failure(mock_temp_dir, mock_gdrive_to_df, mock_logger):
     # Setup mock temp dir
@@ -105,19 +105,46 @@ def test_transform_success(mock_normalize, mock_logger, sample_billion_ton_df):
     assert "production_unit_id" in result.columns
 
 @patch("ca_biositing.pipeline.etl.transform.billion_ton.get_run_logger")
-def test_transform_filter_california(mock_logger):
-    df = pd.DataFrame({
-        "state_name": ["California", "Texas"],
-        "county": ["Alameda County", "Harris County"],
-        "fips": [6001, 48001],
-        "subclass": ["A", "B"],
-        "resource": ["R1", "R2"]
-    })
-    data_sources = {"billion_ton": df}
+def test_transform_filter_california(mock_logger, sample_billion_ton_df):
+    """
+    Verify that only California records are retained and coordinates/counties are normalized.
+    This test uses the full sample_billion_ton_df fixture to ensure rename/coercion/normalization
+    logic in transform.fn is exercised, while mocking normalize_dataframes to avoid DB connection.
+    """
+    # Create a mixed dataframe with CA and non-CA records
+    df_mixed = sample_billion_ton_df.copy()
+    df_mixed = pd.concat([
+        df_mixed,
+        pd.DataFrame({
+            "class": ["agriculture land"],
+            "subclass": ["Agricultural residues"],
+            "resource": ["Corn stover"],
+            "fips": [48001], # Texas
+            "county": ["Harris County"],
+            "state_name": ["Texas"],
+            "usdaregion": ["Southern Plains"],
+            "County Square Miles": [1777.0],
+            "model_name": ["POLYSYS"],
+            "scenario_name": ["mature-market high"],
+            "price_offered": [70],
+            "production": [500.0],
+            "production_unit": ["dt"],
+            "btu_ton": [15722000],
+            "production_energy_content": [7861000],
+            "energy_content_unit": ["BTU"],
+            "production_density_dtpersqmi": [0.28],
+            "landsource": ["Crop"]
+        })
+    ], ignore_index=True)
+
+    data_sources = {"billion_ton": df_mixed}
+
     # We mock normalize_dataframes to avoid DB connection
     with patch("ca_biositing.pipeline.etl.transform.billion_ton.normalize_dataframes", side_effect=lambda df, cols: df):
         result = transform.fn(data_sources)
-        assert len(result) == 1
+        # Should only have California records (2 from fixture)
+        assert len(result) == 2
+        assert all(result["state_name"] == "california")
         assert result["geoid"].iloc[0] == "06001"
         assert result["county"].iloc[0] == "alameda"
 
@@ -131,7 +158,17 @@ def test_load_success(mock_session, mock_engine, mock_logger):
         "geoid": ["06001"],
         "county": ["alameda"],
         "state_name": ["california"],
-        "production": [100]
+        "production": [100],
+        "dataset_id": [1],
+        "subclass_id": [2],
+        "resource_id": [3],
+        "production_unit_id": [4],
+        "energy_content_unit_id": [5],
+        "scenario_name": ["test-scenario"],
+        "price_offered": [70.0],
+        "production_density_dtpersqmi": [0.1],
+        "etl_run_id": [1],
+        "lineage_group_id": [1]
     })
 
     # Mocking the session and its execution
@@ -146,3 +183,35 @@ def test_load_success(mock_session, mock_engine, mock_logger):
     # Place insert + Record insert
     assert session_instance.execute.call_count >= 2
     assert session_instance.commit.called
+
+    # Inspect call arguments to verify payloads
+    calls = session_instance.execute.call_args_list
+
+    # Find the Place upsert (should contain geoid)
+    place_call = next(
+        (c for c in calls if hasattr(c.args[0], 'table') and c.args[0].table.name == 'place'),
+        None
+    )
+    if place_call:
+        # Extract parameters from the compiled statement
+        stmt = place_call.args[0]
+        params = stmt.compile().params
+        # Multi-row insert parameters are often in list/dict form
+        # We check if the expected values exist in any of the inserted rows
+        found_geoid = False
+        # params can be a list of dicts for multi-row values([...])
+        # Or a single dict with numbered keys depending on the dialect
+        # Here we just look for string containment in the string representation of params
+        assert "06001" in str(params)
+        assert "alameda" in str(params)
+
+    # Find the BillionTon2023Record insert
+    record_call = next(
+        (c for c in calls if hasattr(c.args[0], 'table') and c.args[0].table.name == 'billion_ton_2023_record'),
+        None
+    )
+    if record_call:
+        stmt = record_call.args[0]
+        params = stmt.compile().params
+        assert "100" in str(params)
+        assert "70.0" in str(params)

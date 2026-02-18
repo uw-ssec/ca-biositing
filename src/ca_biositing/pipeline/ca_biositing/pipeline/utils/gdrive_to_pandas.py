@@ -15,7 +15,7 @@ def gdrive_to_df(
     mime_type: str,
     credentials_path: str,
     dataset_folder: str,
-    file_id: str = None
+    file_id: str | None = None
 ) -> pd.DataFrame | gpd.GeoDataFrame:
     """
     Extracts data from a CSV, ZIP, or GEOJSON file into a pandas DataFrame.
@@ -47,21 +47,18 @@ def gdrive_to_df(
                 file_entry = drive.CreateFile({'id': file_id})
                 # Fetch metadata to ensure it exists and get title if file_name is not ideal
                 file_entry.FetchMetadata()
-                actual_id = file_id
             else:
                 file_entries = drive.ListFile({"q": f"title = '{file_name}' and mimeType= '{mime_type}'"}).GetList()
                 if len(file_entries) == 0:
                     raise FileNotFoundError(f"Error: File '{file_name}' not found. \n Please make sure the name and mimeType is correct and that you have shared it with the service account email.")
                 file_entry = file_entries[0]
-                actual_id = file_entry['id']
 
-            file = drive.CreateFile({'id': actual_id})
             # Ensure dataset_folder ends with a slash
             if not dataset_folder.endswith(os.path.sep):
                 dataset_folder += os.path.sep
 
             download_path = os.path.join(dataset_folder, file_name)
-            file.GetContentFile(download_path) # Download file
+            file_entry.GetContentFile(download_path) # Download file
         except ApiRequestError as e:
             print(f"An unexpected error occurred: {e}")
             return None
@@ -77,12 +74,12 @@ def gdrive_to_df(
             # note: THIS CODE ASSUMES THAT THE CSV FILE HAS THE SAME NAME AS THE ZIP FILE
             csv_name = file_name[:-4] + ".csv"
 
-            with zipfile.ZipFile(dataset_folder + file_name,"r") as zip_ref:
+            with zipfile.ZipFile(download_path, "r") as zip_ref:
                 zip_ref.extractall(dataset_folder)
-            df = pd.read_csv(dataset_folder + csv_name)
+            df = pd.read_csv(os.path.join(dataset_folder, csv_name))
 
         elif mime_type == "application/geo+json":
-            df = gpd.read_file(dataset_folder + file_name)
+            df = gpd.read_file(download_path)
         else:
             raise Exception("Can't handle this MIME type. Sorry.")
 

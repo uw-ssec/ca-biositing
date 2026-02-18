@@ -1,7 +1,6 @@
 from typing import Optional
 import pandas as pd
 from prefect import task, get_run_logger
-from ca_biositing.pipeline.utils.gdrive_to_pandas import gdrive_to_df
 import os
 import tempfile
 
@@ -40,6 +39,7 @@ def extract(
         logger.info(f"Using temporary directory for download: {temp_dir}")
 
         try:
+            from ca_biositing.pipeline.utils.gdrive_to_pandas import gdrive_to_df
             # Use the gdrive_to_df utility to fetch and load the data
             raw_df = gdrive_to_df(
                 file_name=file_name,
@@ -55,6 +55,6 @@ def extract(
 
             logger.info(f"Successfully extracted {len(raw_df)} rows from Google Drive.")
             return raw_df
-        except Exception as e:
-            logger.error(f"An error occurred during extraction from Google Drive: {e}")
+        except Exception:
+            logger.exception("An error occurred during extraction from Google Drive")
             return None

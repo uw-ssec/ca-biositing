@@ -1,10 +1,6 @@
 import sys
 from prefect import flow, task
 
-# Force stdout to flush immediately
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
-
 @task(name="Create ETL Run Record")
 def create_etl_run_record_task(pipeline_name: str):
     from ca_biositing.pipeline.utils.lineage import create_etl_run_record
@@ -29,14 +25,12 @@ def billion_ton_etl_flow(
     from ca_biositing.pipeline.etl.load.billion_ton import load
 
     logger = get_run_logger()
-    logger.info(f"Starting Billion Ton ETL flow for file_id {file_id}...")
 
-    # 0. Lineage Tracking Setup
-    etl_run_id = create_etl_run_record_task(pipeline_name="Billion Ton ETL")
-    lineage_group_id = create_lineage_group_task(
-        etl_run_id=etl_run_id,
-        note="Billion Ton 2023 Agricultural Data"
-    )
+    # Force stdout to flush immediately
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+
+    logger.info(f"Starting Billion Ton ETL flow for file_id {file_id}...")
 
     # 1. Extract
     raw_df = extract(file_id=file_id, file_name=file_name)
@@ -44,7 +38,14 @@ def billion_ton_etl_flow(
         logger.error("Extraction failed or returned no data. Aborting.")
         return
 
-    # 2. Transform
+    # 2. Lineage Tracking Setup
+    etl_run_id = create_etl_run_record_task(pipeline_name="Billion Ton ETL")
+    lineage_group_id = create_lineage_group_task(
+        etl_run_id=etl_run_id,
+        note="Billion Ton 2023 Agricultural Data"
+    )
+
+    # 3. Transform
     # The transform task expects a dictionary of data sources
     data_sources = {"billion_ton": raw_df}
     transformed_df = transform(
@@ -57,7 +58,7 @@ def billion_ton_etl_flow(
         logger.error("Transformation failed or returned no data. Aborting.")
         return
 
-    # 3. Load
+    # 4. Load
     load(transformed_df)
 
     logger.info("Billion Ton ETL flow completed successfully.")
