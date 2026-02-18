@@ -18,39 +18,29 @@ print("DEBUG: analysis_records.py module loaded")
 @flow(name="Analysis Records ETL", log_prints=True)
 def analysis_records_flow(*args, **kwargs):
     """
-    Orchestrates the ETL process for Proximate, Ultimate, and Compositional records,
-    including their associated observations.
+    Orchestrates the ETL process for Proximate, Ultimate, Compositional,
+    ICP, XRF, and Calorimetry records, including their associated observations.
     """
-    print(f"DEBUG: Inside analysis_records_flow with args={args} kwargs={kwargs}")
     from prefect import get_run_logger
-    print("DEBUG: Importing extractors...")
-    from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana
-    print("DEBUG: Importing transformers...")
-    print("DEBUG: Importing transform_observation...")
+    from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana, icp, xrf, calorimetry
     from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
-    print("DEBUG: Importing transform_proximate_record...")
     from ca_biositing.pipeline.etl.transform.analysis.proximate_record import transform_proximate_record
-    print("DEBUG: Importing transform_ultimate_record...")
     from ca_biositing.pipeline.etl.transform.analysis.ultimate_record import transform_ultimate_record
-    print("DEBUG: Importing transform_compositional_record...")
     from ca_biositing.pipeline.etl.transform.analysis.compositional_record import transform_compositional_record
+    from ca_biositing.pipeline.etl.transform.analysis.icp_record import transform_icp_record
+    from ca_biositing.pipeline.etl.transform.analysis.xrf_record import transform_xrf_record
+    from ca_biositing.pipeline.etl.transform.analysis.calorimetry_record import transform_calorimetry_record
 
-    print("DEBUG: Importing loaders...")
-    print("DEBUG: Importing load_observation...")
-    # from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
     import importlib
-    print("DEBUG: Using importlib for load_observation...")
     load_obs_mod = importlib.import_module("ca_biositing.pipeline.etl.load.analysis.observation")
-    print("DEBUG: Module load_observation imported")
     load_observation = load_obs_mod.load_observation
-    print("DEBUG: Importing load_proximate_record...")
     from ca_biositing.pipeline.etl.load.analysis.proximate_record import load_proximate_record
-    print("DEBUG: Importing load_ultimate_record...")
     from ca_biositing.pipeline.etl.load.analysis.ultimate_record import load_ultimate_record
-    print("DEBUG: Importing load_compositional_record...")
     from ca_biositing.pipeline.etl.load.analysis.compositional_record import load_compositional_record
+    from ca_biositing.pipeline.etl.load.analysis.icp_record import load_icp_record
+    from ca_biositing.pipeline.etl.load.analysis.xrf_record import load_xrf_record
+    from ca_biositing.pipeline.etl.load.analysis.calorimetry_record import load_calorimetry_record
 
-    print("DEBUG: Getting logger...")
     logger = get_run_logger()
     logger.info("Starting Analysis Records ETL flow...")
 
@@ -60,7 +50,7 @@ def analysis_records_flow(*args, **kwargs):
     etl_run_id = create_etl_run_record.fn(pipeline_name="Analysis Records ETL")
     logger.info(f"ETL Run ID: {etl_run_id}")
 
-    lineage_group_id = create_lineage_group.fn(etl_run_id=etl_run_id, note="Proximate, Ultimate, and Compositional records")
+    lineage_group_id = create_lineage_group.fn(etl_run_id=etl_run_id, note="Analytical records (Prox, Ult, Comp, ICP, XRF, Cal)")
     logger.info(f"Lineage Group ID: {lineage_group_id}")
 
     # 1. Extract
@@ -70,48 +60,41 @@ def analysis_records_flow(*args, **kwargs):
     ult_raw = ultimate.extract.fn()
     logger.info("Extracting Compositional data...")
     cmpana_raw = cmpana.extract.fn()
+    logger.info("Extracting ICP data...")
+    icp_raw = icp.extract.fn()
+    logger.info("Extracting XRF data...")
+    xrf_raw = xrf.extract.fn()
+    logger.info("Extracting Calorimetry data...")
+    cal_raw = calorimetry.extract.fn()
 
-    raw_data = [prox_raw, ult_raw, cmpana_raw]
+    raw_data = [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw]
 
     # 2. Transform (Now includes cleaning, coercion, and normalization)
     logger.info("Starting transformations...")
 
     @task(name="Wrapper Transform Observation")
     def wrap_obs(data, etl_id, lin_id):
-        print("DEBUG: Inside wrap_obs task")
         return transform_observation.fn(data, etl_run_id=etl_id, lineage_group_id=lin_id)
 
-    print("DEBUG: Calling wrap_obs()")
     obs_df = wrap_obs(raw_data, etl_run_id, lineage_group_id)
-    print("DEBUG: wrap_obs() completed")
 
-    # Assuming order: 0: Proximate, 1: Ultimate, 2: Compositional
-    logger.info("Transforming Proximate records with lineage tracking...")
-    print("DEBUG: Calling transform_proximate_record.fn()")
-    prox_rec_df = transform_proximate_record.fn(
-        prox_raw,
-        etl_run_id=etl_run_id,
-        lineage_group_id=lineage_group_id
-    )
-    print("DEBUG: transform_proximate_record.fn() completed")
+    logger.info("Transforming Proximate records...")
+    prox_rec_df = transform_proximate_record.fn(prox_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
 
-    logger.info("Transforming Ultimate records with lineage tracking...")
-    print("DEBUG: Calling transform_ultimate_record.fn()")
-    ult_rec_df = transform_ultimate_record.fn(
-        ult_raw,
-        etl_run_id=etl_run_id,
-        lineage_group_id=lineage_group_id
-    )
-    print("DEBUG: transform_ultimate_record.fn() completed")
+    logger.info("Transforming Ultimate records...")
+    ult_rec_df = transform_ultimate_record.fn(ult_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
 
-    logger.info("Transforming Compositional records with lineage tracking...")
-    print("DEBUG: Calling transform_compositional_record.fn()")
-    comp_rec_df = transform_compositional_record.fn(
-        cmpana_raw,
-        etl_run_id=etl_run_id,
-        lineage_group_id=lineage_group_id
-    )
-    print("DEBUG: transform_compositional_record.fn() completed")
+    logger.info("Transforming Compositional records...")
+    comp_rec_df = transform_compositional_record.fn(cmpana_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
+
+    logger.info("Transforming ICP records...")
+    icp_rec_df = transform_icp_record.fn(icp_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
+
+    logger.info("Transforming XRF records...")
+    xrf_rec_df = transform_xrf_record.fn(xrf_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
+
+    logger.info("Transforming Calorimetry records...")
+    cal_rec_df = transform_calorimetry_record.fn(cal_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
 
     # 3. Load
     logger.info("Starting database load...")
@@ -119,6 +102,9 @@ def analysis_records_flow(*args, **kwargs):
     load_proximate_record.fn(prox_rec_df)
     load_ultimate_record.fn(ult_rec_df)
     load_compositional_record.fn(comp_rec_df)
+    load_icp_record.fn(icp_rec_df)
+    load_xrf_record.fn(xrf_rec_df)
+    load_calorimetry_record.fn(cal_rec_df)
 
     logger.info("Analysis Records ETL flow completed successfully.")
 

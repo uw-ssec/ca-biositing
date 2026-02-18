@@ -12,7 +12,6 @@ def transform_observation(
     etl_run_id: int = None,
     lineage_group_id: int = None
 ) -> pd.DataFrame:
-    print("DEBUG: transform_observation task execution started")
     from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
@@ -24,20 +23,43 @@ def transform_observation(
         Provider,
         Dataset,
     )
-    print("DEBUG: transform_observation models imported")
     """
     Transforms raw DataFrames into the Observation table format.
     Includes cleaning, coercion, and normalization.
     """
-    print(f"DEBUG: transform_observation started with {len(raw_dfs)} dfs")
     logger = get_run_logger()
     logger.info(f"Transforming {len(raw_dfs)} raw dataframes for Observation table")
 
     # 1. Cleaning & Coercion
     coerced_data = []
-    for df in raw_dfs:
+    for i, df in enumerate(raw_dfs):
+        if df is None:
+            logger.warning(f"DataFrame at index {i} is None. Skipping.")
+            continue
+
+        # Check for duplicate columns which cause 'AttributeError: DataFrame object has no attribute str' in cleaning
+        # Aggressive cleaning of duplicate/empty columns before processing
+        # Aggressive cleaning of duplicate/empty columns before processing
+        # This handles cases like 'Upload_status' vs 'Upload Status' and hidden empty columns
+        # First, strip whitespace and drop purely empty columns
+        df.columns = [str(c).strip() for c in df.columns]
+        if "" in df.columns:
+            df = df.drop(columns=[""])
+
+        # Apply name cleaning EARLY to catch duplicates that arise from normalization (e.g. 'Upload Status' -> 'upload_status')
+        df = cleaning_mod.clean_names_df(df)
+
+        if df.columns.duplicated().any():
+            dupes = df.columns[df.columns.duplicated()].unique().tolist()
+            logger.warning(f"DataFrame at index {i} has duplicate columns after name cleaning: {dupes}. Keeping first occurrence.")
+            # Keep only the first occurrence of each column name
+            df = df.loc[:, ~df.columns.duplicated()]
+
         df_copy = df.copy()
         df_copy['dataset'] = 'biocirv'
+
+        logger.info(f"Cleaning DataFrame #{i+1} with columns: {df_copy.columns.tolist()}")
+        # standard_clean will call clean_names again, but it's now idempotent and safe
         cleaned_df = cleaning_mod.standard_clean(df_copy)
 
         if etl_run_id:
@@ -69,9 +91,7 @@ def transform_observation(
 
     observation_data = []
     for i, df in enumerate(coerced_data):
-        print(f"DEBUG: Normalizing dataframe #{i+1}")
         normalized_df = normalize_dataframes(df, normalize_columns)
-        print(f"DEBUG: Dataframe #{i+1} normalized")
         try:
             obs_df = normalized_df[[
                 'dataset_id',
