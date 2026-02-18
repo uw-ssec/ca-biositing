@@ -3,7 +3,15 @@ import sys
 import os
 from sqlalchemy import text, create_engine
 from sqlmodel import Session, select
-from .reviewed_api_mappings import get_api_name
+
+# Optional fallback import
+try:
+    from .reviewed_api_mappings import get_api_name
+    HAS_API_MAPPINGS_FALLBACK = True
+except ImportError:
+    HAS_API_MAPPINGS_FALLBACK = False
+    def get_api_name(name):
+        return name  # Identity fallback
 
 
 def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[str]]:
@@ -88,7 +96,8 @@ def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[s
                         print("🔍 No mapped commodities found after seeding - continuing with empty list")
                 except Exception as api_error:
                     # Fallback if api_name column doesn't exist yet
-                    print(f"⚠️  api_name column not available yet, using name with mapping fallback")
+                    fallback_msg = "using name with mapping fallback" if HAS_API_MAPPINGS_FALLBACK else "using names directly (no mappings available)"
+                    print(f"⚠️  api_name column not available yet, {fallback_msg}")
                     result = conn.execute(sql_text("""
                         SELECT DISTINCT uc.name
                         FROM usda_commodity uc
@@ -98,7 +107,7 @@ def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[s
                         ORDER BY uc.name
                     """))
                     db_names = [row[0] for row in result.fetchall()]
-                    # Apply mapping function as fallback
+                    # Apply mapping function as fallback (or identity if not available)
                     names = [get_api_name(name) for name in db_names]
             else:
                 # Use database names directly
