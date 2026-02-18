@@ -18,7 +18,11 @@ SA_DEFINITIONS = [
         "webservice",
         "biocirv-staging-cr-websvc",
         "Webservice Cloud Run SA",
-        ["roles/cloudsql.client", "roles/secretmanager.secretAccessor"],
+        [
+            "roles/cloudsql.client",
+            "roles/secretmanager.secretAccessor",
+            "roles/artifactregistry.reader",
+        ],
     ),
     (
         "prefect-server",
@@ -30,19 +34,32 @@ SA_DEFINITIONS = [
         "prefect-worker",
         "biocirv-staging-cr-worker",
         "Prefect Worker Cloud Run SA",
-        ["roles/cloudsql.client", "roles/run.admin", "roles/iam.serviceAccountUser"],
+        [
+            "roles/cloudsql.client",
+            "roles/run.admin",
+            "roles/iam.serviceAccountUser",
+            "roles/artifactregistry.reader",
+        ],
     ),
     (
         "flowrun",
         "biocirv-staging-cr-flowrun",
         "Flow Run Cloud Run SA",
-        ["roles/cloudsql.client", "roles/secretmanager.secretAccessor"],
+        [
+            "roles/cloudsql.client",
+            "roles/secretmanager.secretAccessor",
+            "roles/artifactregistry.reader",
+        ],
     ),
     (
         "migrate",
         "biocirv-staging-cr-migrate",
         "Migration Cloud Run SA",
-        ["roles/cloudsql.client", "roles/secretmanager.secretAccessor"],
+        [
+            "roles/cloudsql.client",
+            "roles/secretmanager.secretAccessor",
+            "roles/artifactregistry.reader",
+        ],
     ),
 ]
 

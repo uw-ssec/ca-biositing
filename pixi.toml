@@ -337,6 +337,10 @@ description = "Create the Pulumi state bucket in GCS (one-time setup)."
 cmd = "docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/"
 description = "Build the Pulumi Docker image for infrastructure deployment."
 
+[feature.cloud.tasks.cloud-build-images]
+cmd = "gcloud builds submit --config=deployment/cloud/gcp/cloudbuild.yaml --project=biocirv-470318 ."
+description = "Build and push Docker images to GCR via Google Cloud Build."
+
 [feature.cloud.tasks.cloud-plan]
 cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py preview"
 description = "Preview pending infrastructure changes."

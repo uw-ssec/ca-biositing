@@ -8,6 +8,8 @@ REQUIRED_APIS = [
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "artifactregistry.googleapis.com",  # gcr.io uses AR as backend
+    "cloudbuild.googleapis.com",
 ]
 
 

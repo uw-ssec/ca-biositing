@@ -20,11 +20,11 @@ DB_USER = "biocirv_user"
 # Read-only users
 READONLY_USERS = ["biocirv_readonly"]
 
-# Container images
-GHCR_ORG = "ghcr.io/uw-ssec/ca-biositing"
-WEBSERVICE_IMAGE = f"{GHCR_ORG}/webservice:latest"
-PIPELINE_IMAGE = f"{GHCR_ORG}/pipeline:latest"
-PREFECT_WORKER_IMAGE = f"{GHCR_ORG}/prefect-worker:latest"
+# Container images (GCR for custom images; Docker Hub for official images)
+GCR_BASE = f"gcr.io/{GCP_PROJECT}"
+WEBSERVICE_IMAGE = f"{GCR_BASE}/webservice:latest"
+PIPELINE_IMAGE = f"{GCR_BASE}/pipeline:latest"
+PREFECT_WORKER_IMAGE = f"{GCR_BASE}/prefect-worker:latest"
 PREFECT_SERVER_IMAGE = "prefecthq/prefect:3-python3.12"
 
 

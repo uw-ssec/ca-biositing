@@ -19,8 +19,7 @@ from cloud_sql import create_cloud_sql
 from iam import create_service_accounts
 from secrets import create_secrets
 
-# cloud_run is imported but not used until Phase 5
-# from cloud_run import create_cloud_run_resources
+from cloud_run import create_cloud_run_resources
 
 
 def pulumi_program():
@@ -37,8 +36,13 @@ def pulumi_program():
     # 4. IAM: service accounts and role bindings
     iam = create_service_accounts()
 
-    # 5. Cloud Run: Services and Jobs (Phase 5)
-    # cr = create_cloud_run_resources(sql, secret_resources, iam)
+    # 5. Cloud Run: Services and Jobs (images built separately via cloud-build-images)
+    cr = create_cloud_run_resources(sql, secret_resources, iam)
+
+    # Cloud Run exports
+    pulumi.export("webservice_url", cr.webservice.uri)
+    pulumi.export("prefect_server_url", cr.prefect_server.uri)
+    pulumi.export("migration_job_name", cr.migration_job.name)
 
     # Exports
     pulumi.export("db_instance_name", sql.instance.name)

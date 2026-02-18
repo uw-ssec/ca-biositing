@@ -21,13 +21,15 @@ pull:
 deployments:
   - name: master-etl-deployment
     version: null
-    tags: ["etl", "master"]
+    tags: ["etl", "master", "staging"]
     concurrency_limit: null
     description: A master flow to orchestrate all ETL pipelines.
     entrypoint: run_prefect_flow.py:master_flow
     parameters: {}
     work_pool:
-      name: biocirv_dev_work_pool
+      name: biocirv-staging-pool
       work_queue_name: null
-      job_variables: {}
+      job_variables:
+        image: "gcr.io/biocirv-470318/pipeline:latest"
+        region: "us-west1"
     schedules: []
