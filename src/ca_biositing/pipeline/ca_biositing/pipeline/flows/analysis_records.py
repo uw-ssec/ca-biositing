@@ -1,19 +1,6 @@
 from prefect import flow, task
 print("DEBUG: analysis_records.py module loaded")
 # Move imports inside the flow to avoid module-level import hangs
-# from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana
-
-# Import the new tasks
-# Move heavy imports inside the flow to avoid module-level hangs
-# from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
-# from ca_biositing.pipeline.etl.transform.analysis.proximate_record import transform_proximate_record
-# from ca_biositing.pipeline.etl.transform.analysis.ultimate_record import transform_ultimate_record
-# from ca_biositing.pipeline.etl.transform.analysis.compositional_record import transform_compositional_record
-
-# from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
-# from ca_biositing.pipeline.etl.load.analysis.proximate_record import load_proximate_record
-# from ca_biositing.pipeline.etl.load.analysis.ultimate_record import load_ultimate_record
-# from ca_biositing.pipeline.etl.load.analysis.compositional_record import load_compositional_record
 
 @flow(name="Analysis Records ETL", log_prints=True)
 def analysis_records_flow(*args, **kwargs):
@@ -22,7 +9,7 @@ def analysis_records_flow(*args, **kwargs):
     ICP, XRF, and Calorimetry records, including their associated observations.
     """
     from prefect import get_run_logger
-    from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana, icp, xrf, calorimetry
+    from ca_biositing.pipeline.etl.extract import proximate, ultimate, cmpana, icp, xrf, calorimetry, xrd
     from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
     from ca_biositing.pipeline.etl.transform.analysis.proximate_record import transform_proximate_record
     from ca_biositing.pipeline.etl.transform.analysis.ultimate_record import transform_ultimate_record
@@ -30,6 +17,7 @@ def analysis_records_flow(*args, **kwargs):
     from ca_biositing.pipeline.etl.transform.analysis.icp_record import transform_icp_record
     from ca_biositing.pipeline.etl.transform.analysis.xrf_record import transform_xrf_record
     from ca_biositing.pipeline.etl.transform.analysis.calorimetry_record import transform_calorimetry_record
+    from ca_biositing.pipeline.etl.transform.analysis.xrd_record import transform_xrd_record
 
     import importlib
     load_obs_mod = importlib.import_module("ca_biositing.pipeline.etl.load.analysis.observation")
@@ -40,6 +28,7 @@ def analysis_records_flow(*args, **kwargs):
     from ca_biositing.pipeline.etl.load.analysis.icp_record import load_icp_record
     from ca_biositing.pipeline.etl.load.analysis.xrf_record import load_xrf_record
     from ca_biositing.pipeline.etl.load.analysis.calorimetry_record import load_calorimetry_record
+    from ca_biositing.pipeline.etl.load.analysis.xrd_record import load_xrd_record
 
     logger = get_run_logger()
     logger.info("Starting Analysis Records ETL flow...")
@@ -50,7 +39,7 @@ def analysis_records_flow(*args, **kwargs):
     etl_run_id = create_etl_run_record.fn(pipeline_name="Analysis Records ETL")
     logger.info(f"ETL Run ID: {etl_run_id}")
 
-    lineage_group_id = create_lineage_group.fn(etl_run_id=etl_run_id, note="Analytical records (Prox, Ult, Comp, ICP, XRF, Cal)")
+    lineage_group_id = create_lineage_group.fn(etl_run_id=etl_run_id, note="Analytical records (Prox, Ult, Comp, ICP, XRF, Cal, XRD)")
     logger.info(f"Lineage Group ID: {lineage_group_id}")
 
     # 1. Extract
@@ -66,8 +55,10 @@ def analysis_records_flow(*args, **kwargs):
     xrf_raw = xrf.extract.fn()
     logger.info("Extracting Calorimetry data...")
     cal_raw = calorimetry.extract.fn()
+    logger.info("Extracting XRD data...")
+    xrd_raw = xrd.extract.fn()
 
-    raw_data = [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw]
+    raw_data = [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw, xrd_raw]
 
     # 2. Transform (Now includes cleaning, coercion, and normalization)
     logger.info("Starting transformations...")
@@ -96,6 +87,9 @@ def analysis_records_flow(*args, **kwargs):
     logger.info("Transforming Calorimetry records...")
     cal_rec_df = transform_calorimetry_record.fn(cal_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
 
+    logger.info("Transforming XRD records...")
+    xrd_rec_df = transform_xrd_record.fn(xrd_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
+
     # 3. Load
     logger.info("Starting database load...")
     load_observation.fn(obs_df)
@@ -105,6 +99,7 @@ def analysis_records_flow(*args, **kwargs):
     load_icp_record.fn(icp_rec_df)
     load_xrf_record.fn(xrf_rec_df)
     load_calorimetry_record.fn(cal_rec_df)
+    load_xrd_record.fn(xrd_rec_df)
 
     logger.info("Analysis Records ETL flow completed successfully.")
 

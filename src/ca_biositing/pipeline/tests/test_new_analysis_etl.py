@@ -163,3 +163,56 @@ def test_calorimetry_etl_full(
     assert not trans_df.empty
     assert "record_id" in trans_df.columns
     assert mock_gsheet_to_df.called
+
+# --- XRD ETL TEST ---
+@patch("ca_biositing.pipeline.etl.extract.xrd.gsheet_to_df")
+@patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
+@patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_run_logger")
+@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_local_engine")
+@patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.normalize_dataframes")
+def test_xrd_etl_full(
+    mock_normalize,
+    mock_load_logger,
+    mock_trans_logger,
+    mock_ext_logger,
+    mock_engine,
+    mock_gsheet_to_df
+):
+    from ca_biositing.pipeline.etl.extract.xrd import extract
+    from ca_biositing.pipeline.etl.transform.analysis.xrd_record import transform_xrd_record
+    from ca_biositing.pipeline.etl.load.analysis.xrd_record import load_xrd_record
+
+    # 1. Mock Extract
+    test_raw_df = pd.DataFrame({
+        "record_id": ["XRD_001"],
+        "repl_no": [1],
+        "scan_low_nm": [10],
+        "scan_high_nm": [90]
+    })
+    mock_gsheet_to_df.return_value = test_raw_df
+
+    # 2. Mock Transform
+    mock_normalize.return_value = pd.DataFrame({
+        "record_id": ["XRD_001"],
+        "repl_no": [1],
+        "scan_low_nm": [10],
+        "scan_high_nm": [90],
+        "dataset_id": [1]
+    })
+
+    # 3. Mock Load
+    mock_conn = MagicMock()
+    mock_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
+
+    # Execution
+    raw_df = extract.fn()
+    trans_df = transform_xrd_record.fn(raw_df)
+    load_xrd_record.fn(trans_df)
+
+    # Verification
+    assert not raw_df.empty
+    assert not trans_df.empty
+    assert "scan_low_nm" in trans_df.columns
+    assert "scan_high_nm" in trans_df.columns
+    assert mock_gsheet_to_df.called
