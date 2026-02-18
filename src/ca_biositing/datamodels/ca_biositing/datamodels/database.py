@@ -6,20 +6,12 @@ compatible with both standalone scripts and FastAPI dependencies.
 """
 
 from sqlmodel import create_engine, Session
-import os
 
 
 def _get_engine():
-    """Create a SQLModel engine with Docker-aware URL adjustment."""
+    """Create a SQLModel engine from settings."""
     from .config import settings
-    db_url = settings.database_url
-
-    # Docker-aware URL adjustment
-    if os.path.exists('/.dockerenv'):
-        if "localhost" in db_url:
-            db_url = db_url.replace("localhost", "db")
-
-    return create_engine(db_url, echo=False)
+    return create_engine(settings.database_url, echo=False)
 
 
 # Lazy initialization of engine to avoid import-time hangs

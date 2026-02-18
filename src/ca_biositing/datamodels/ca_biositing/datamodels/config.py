@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: int = 5432
     DATABASE_URL: Optional[str] = None
+    # Cloud Run / Cloud SQL Auth Proxy (Unix socket mode)
+    INSTANCE_CONNECTION_NAME: Optional[str] = None
+    DB_USER: Optional[str] = None
+    DB_PASS: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=str(_env_path),
@@ -34,9 +38,20 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        """Constructs the database URL from components if not explicitly set."""
+        """Constructs the database URL from components if not explicitly set.
+
+        Priority:
+        1. Explicit DATABASE_URL (local dev, Alembic, Docker Compose)
+        2. INSTANCE_CONNECTION_NAME → Unix socket (Cloud Run via Cloud SQL Auth Proxy)
+        3. TCP fallback using POSTGRES_HOST/POSTGRES_PORT
+        """
         if self.DATABASE_URL:
             return self.DATABASE_URL
+        if self.INSTANCE_CONNECTION_NAME:
+            user = self.DB_USER or self.POSTGRES_USER
+            password = self.DB_PASS or self.POSTGRES_PASSWORD
+            db = self.POSTGRES_DB
+            return f"postgresql://{user}:{password}@/{db}?host=/cloudsql/{self.INSTANCE_CONNECTION_NAME}"
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
