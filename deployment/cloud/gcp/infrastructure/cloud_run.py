@@ -232,6 +232,10 @@ def create_cloud_run_resources(
                             name="PREFECT_SERVER_API_PORT",
                             value="4200",
                         ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="PREFECT_UI_API_URL",
+                            value="/api",
+                        ),
                     ],
                     volume_mounts=[
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
