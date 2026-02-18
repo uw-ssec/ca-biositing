@@ -109,8 +109,13 @@ def transform(
 
     # 4.2 Ensure names are lowercased (Requirement: resource and primary_ag_product names should be lowercase)
     if 'name' in normalized_df.columns:
-        normalized_df['name'] = normalized_df['name'].astype(str).str.lower().str.strip()
-    normalized_df = normalized_df.rename(columns=rename_columns)
+        # Convert to string and handle common representations of null/empty
+        normalized_df['name'] = normalized_df['name'].astype(str).str.strip()
+        # Case-insensitive replacement of null-like strings
+        null_like = ['none', 'nan', '<na>', '', '#n/a']
+        normalized_df.loc[normalized_df['name'].str.lower().isin(null_like), 'name'] = np.nan
+        # Finally, lowercase the valid names
+        normalized_df['name'] = normalized_df['name'].str.lower()
 
     # 4.5 Filter invalid names
     if 'name' in normalized_df.columns:
