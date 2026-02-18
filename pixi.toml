@@ -327,9 +327,6 @@ description = "Install Pulumi CLI. Set PULUMI_VERSION env var to install a speci
 
 [feature.cloud.pypi-dependencies]
 prefect = "*"
-pulumi = ">=3.0.0,<4"
-pulumi-gcp = ">=9.0.0,<10"
-pulumi-random = ">=4.0.0"
 
 # Pulumi tasks (run via Docker to avoid macOS gRPC/fork crash)
 [feature.cloud.tasks.cloud-bootstrap]
