@@ -1,3 +1,0 @@
-name: ca-biositing-infrastructure
-runtime: python
-description: GCP infrastructure for the ca-biositing staging environment
