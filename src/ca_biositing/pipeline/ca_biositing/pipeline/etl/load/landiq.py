@@ -16,26 +16,10 @@ def _geom_to_wkt(geom) -> str:
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-def get_local_engine():
-    print("DEBUG: get_local_engine started - using direct engine creation")
-    import os
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-        print("DEBUG: Using hardcoded Docker DB URL")
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
+from ca_biositing.pipeline.utils.engine import engine
 
-    print(f"DEBUG: Creating engine for {db_url}")
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+def get_local_engine():
+    return engine
 
 def bulk_insert_polygons_ignore(session: Session, geoms: list[str], etl_run_id: str = None, lineage_group_id: str = None, dataset_id: int = None):
     """

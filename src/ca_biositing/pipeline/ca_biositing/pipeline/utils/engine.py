@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, Session
+from sqlmodel import create_engine
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -59,9 +59,6 @@ if DATABASE_URL.startswith("postgresql"):
     )
 else:
     engine = create_engine(DATABASE_URL)
-
-db_session = Session(engine)
-
 
 def get_local_engine():
     """

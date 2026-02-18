@@ -12,8 +12,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_observation(
     raw_dfs: List[pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: int | None = None,
+    lineage_group_id: int | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrames into the Observation table format.
@@ -42,7 +42,6 @@ def transform_observation(
 
         # Check for duplicate columns which cause 'AttributeError: DataFrame object has no attribute str' in cleaning
         # Aggressive cleaning of duplicate/empty columns before processing
-        # Aggressive cleaning of duplicate/empty columns before processing
         # This handles cases like 'Upload_status' vs 'Upload Status' and hidden empty columns
         # First, strip whitespace and drop purely empty columns
         df = df.copy()
@@ -65,6 +64,10 @@ def transform_observation(
         logger.info(f"Cleaning DataFrame #{i+1} with columns: {df_copy.columns.tolist()}")
         # standard_clean will call clean_names again, but it's now idempotent and safe
         cleaned_df = cleaning_mod.standard_clean(df_copy)
+
+        if cleaned_df is None:
+            logger.warning(f"cleaning_mod.standard_clean returned None for DataFrame #{i+1}. Skipping.")
+            continue
 
         if etl_run_id is not None:
             cleaned_df['etl_run_id'] = etl_run_id
@@ -93,9 +96,15 @@ def transform_observation(
         'dataset': (Dataset, 'name')
     }
 
+    if not coerced_data:
+        return pd.DataFrame()
+
+    normalized_dfs = normalize_dataframes(coerced_data, normalize_columns)
+    if isinstance(normalized_dfs, pd.DataFrame):
+        normalized_dfs = [normalized_dfs]
+
     observation_data = []
-    for i, df in enumerate(coerced_data):
-        normalized_df = normalize_dataframes(df, normalize_columns)
+    for i, normalized_df in enumerate(normalized_dfs):
         try:
             obs_df = normalized_df[[
                 'dataset_id',

@@ -24,15 +24,18 @@ def load_icp_record(df: pd.DataFrame):
         table_columns = {c.name for c in IcpRecord.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        with engine.connect() as conn:
-            with Session(bind=conn) as session:
-                for record in records:
-                    clean_record = {k: v for k, v in record.items() if k in table_columns}
-                    clean_record['updated_at'] = now
-                    if clean_record.get('created_at') is None:
-                        clean_record['created_at'] = now
+        clean_records = []
+        for record in records:
+            clean_record = {k: v for k, v in record.items() if k in table_columns}
+            clean_record['updated_at'] = now
+            if clean_record.get('created_at') is None:
+                clean_record['created_at'] = now
+            clean_records.append(clean_record)
 
-                    stmt = insert(IcpRecord).values(clean_record)
+        if clean_records:
+            with engine.connect() as conn:
+                with Session(bind=conn) as session:
+                    stmt = insert(IcpRecord).values(clean_records)
                     update_dict = {
                         c.name: stmt.excluded[c.name]
                         for c in IcpRecord.__table__.columns
@@ -43,8 +46,9 @@ def load_icp_record(df: pd.DataFrame):
                         set_=update_dict
                     )
                     session.execute(upsert_stmt)
-                session.commit()
+                    session.commit()
+
         logger.info("Successfully upserted ICP records.")
-    except Exception as e:
-        logger.exception(f"Failed to load ICP records: {e}")
+    except Exception:
+        logger.exception("Failed to load ICP records")
         raise

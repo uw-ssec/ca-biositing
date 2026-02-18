@@ -11,7 +11,7 @@ AVAILABLE_FLOWS = {
     "static_resource_info": "ca_biositing.pipeline.flows.static_resource_info.static_resource_info_flow",
     "samples": "ca_biositing.pipeline.flows.samples_etl.samples_etl_flow",
     "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
-    "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow"
+    #"landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow"
     #"field_sample": "ca_biositing.pipeline.flows.field_sample_etl.field_sample_etl_flow",
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
 }
@@ -39,15 +39,11 @@ def master_flow():
             print(f"DEBUG: Successfully got attribute {obj_name}")
 
             logger.info(f"Executing {flow_name} as sub-flow")
-            print(f"DEBUG: Calling {flow_name} directly")
             # We must call the flow function. If it's a Prefect flow object,
             # calling it will trigger the orchestration.
             result = flow_func()
-            print(f"DEBUG: {flow_name} returned: {result}")
-            print(f"DEBUG: Finished {flow_name}")
-        except Exception as e:
-            logger.error(f"Flow '{flow_name}' failed with error: {e}")
-            logger.error(traceback.format_exc())
+        except Exception:
+            logger.exception(f"Flow '{flow_name}' failed")
     logger.info("Master ETL flow completed.")
 
 if __name__ == "__main__":

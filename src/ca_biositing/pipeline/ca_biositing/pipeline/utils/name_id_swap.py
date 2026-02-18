@@ -49,9 +49,6 @@ def replace_name_with_id_df(
       A tuple containing the modified DataFrame and the number of new records created.
   """
 
-  import logging
-  logger = logging.getLogger(__name__)
-
   # If using the SQLite fallback, skip DB lookups and return a column of NA.
   try:
       driver_name = db.bind.url.drivername  # type: ignore[attr-defined]
@@ -197,6 +194,7 @@ def normalize_dataframes(
             logger.info("Database commit successful.")
     except Exception as e:
         logger.error(f"Critical error during normalization: {e}", exc_info=True)
+        raise
     # If the original input was a single DataFrame, return the first element directly
     if single_input:
         return normalized_dfs[0] if normalized_dfs else pd.DataFrame()

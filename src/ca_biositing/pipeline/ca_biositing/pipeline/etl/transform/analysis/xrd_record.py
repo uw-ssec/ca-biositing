@@ -7,8 +7,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_xrd_record(
     raw_df: pd.DataFrame,
-    etl_run_id: str = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: int | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrame into the XrdRecord table format.
@@ -52,6 +52,10 @@ def transform_xrd_record(
     df_copy['dataset'] = 'biocirv'
 
     cleaned_df = cleaning_mod.standard_clean(df_copy)
+
+    if cleaned_df is None:
+        logger.error("cleaning_mod.standard_clean returned None for XrdRecord")
+        return pd.DataFrame()
 
     # Add lineage IDs AFTER standard_clean to avoid them being lowercased or modified
     if etl_run_id is not None:

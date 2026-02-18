@@ -18,9 +18,7 @@ def analysis_records_flow(*args, **kwargs):
     from ca_biositing.pipeline.etl.transform.analysis.calorimetry_record import transform_calorimetry_record
     from ca_biositing.pipeline.etl.transform.analysis.xrd_record import transform_xrd_record
 
-    import importlib
-    load_obs_mod = importlib.import_module("ca_biositing.pipeline.etl.load.analysis.observation")
-    load_observation = load_obs_mod.load_observation
+    from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
     from ca_biositing.pipeline.etl.load.analysis.proximate_record import load_proximate_record
     from ca_biositing.pipeline.etl.load.analysis.ultimate_record import load_ultimate_record
     from ca_biositing.pipeline.etl.load.analysis.compositional_record import load_compositional_record
@@ -46,9 +44,12 @@ def analysis_records_flow(*args, **kwargs):
         try:
             logger.info(f"Extracting {name} data...")
             return extractor.extract.fn()
-        except Exception as e:
-            logger.error(f"Failed to extract {name} data: {e}")
+        except (ValueError, IOError):
+            logger.exception(f"Failed to extract {name} data")
             return None
+        except Exception:
+            logger.exception(f"Unexpected error extracting {name} data")
+            raise
 
     prox_raw = safe_extract(proximate, "Proximate")
     ult_raw = safe_extract(ultimate, "Ultimate")
@@ -63,11 +64,7 @@ def analysis_records_flow(*args, **kwargs):
     # 2. Transform (Now includes cleaning, coercion, and normalization)
     logger.info("Starting transformations...")
 
-    @task(name="Wrapper Transform Observation")
-    def wrap_obs(data, etl_id, lin_id):
-        return transform_observation.fn(data, etl_run_id=etl_id, lineage_group_id=lin_id)
-
-    obs_df = wrap_obs(raw_data, etl_run_id, lineage_group_id)
+    obs_df = transform_observation.fn(raw_data, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)
 
     logger.info("Transforming Proximate records...")
     prox_rec_df = transform_proximate_record.fn(prox_raw, etl_run_id=etl_run_id, lineage_group_id=lineage_group_id)

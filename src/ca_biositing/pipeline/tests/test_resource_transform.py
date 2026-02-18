@@ -6,7 +6,7 @@ from ca_biositing.pipeline.etl.transform.resource import transform
 # Mocking the database engine and session for normalize_dataframes
 @patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.utils.name_id_swap.Session")
-def test_resource_transform(mock_engine, mock_session):
+def test_resource_transform(mock_session, mock_engine):
     # 1. Setup Mock Data
     raw_data = pd.DataFrame({
         "Name": ["Almond Hulls", "Corn Stover", "", "  ", "#N/A", None],
@@ -27,7 +27,6 @@ def test_resource_transform(mock_engine, mock_session):
     mock_session.return_value.__enter__.return_value = mock_db
 
     # Mocking the select results for each lookup table
-    # This is a bit complex because normalize_dataframes calls replace_name_with_id_df multiple times
     def mock_execute(query):
         mock_result = MagicMock()
         # Extract the table name from the query to return appropriate mock data
@@ -45,7 +44,6 @@ def test_resource_transform(mock_engine, mock_session):
     mock_db.execute.side_effect = mock_execute
 
     # 3. Run Transform
-    # We test the .fn() call which now handles the missing Prefect context gracefully
     result_df = transform.fn(data_sources, etl_run_id=1, lineage_group_id=10)
 
     # 4. Assertions
@@ -68,11 +66,4 @@ def test_resource_transform(mock_engine, mock_session):
     assert result_df.iloc[0]["etl_run_id"] == 1
 
 if __name__ == "__main__":
-    # Manual run if not using pytest
-    try:
-        test_resource_transform()
-        print("Test PASSED")
-    except Exception as e:
-        print(f"Test FAILED: {e}")
-        import traceback
-        traceback.print_exc()
+    test_resource_transform()
