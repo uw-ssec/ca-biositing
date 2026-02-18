@@ -88,8 +88,7 @@ def test_xrf_etl_full(
         "value": [5.2],
         "wavelength_nm": [0.154],
         "intensity": [1000],
-        "spectral_data_url1": ["http://example.com/spec1"],
-        "spectral_data_url2": ["http://example.com/spec2"]
+        "raw_data_url": ["http://example.com/spec1"]
     })
     mock_gsheet_to_df.return_value = test_raw_df
 
@@ -101,7 +100,7 @@ def test_xrf_etl_full(
         "wavelength_nm": [0.154],
         "intensity": [1000],
         "dataset_id": [1],
-        "spectral_data_url1_id": [101]
+        "raw_data_url_id": [101]
     })
 
     # 3. Mock Load
