@@ -107,6 +107,11 @@ def transform(
     }
     normalized_df = normalized_df.rename(columns=rename_columns)
 
+    # 4.2 Ensure names are lowercased (Requirement: resource and primary_ag_product names should be lowercase)
+    if 'name' in normalized_df.columns:
+        normalized_df['name'] = normalized_df['name'].astype(str).str.lower().str.strip()
+    normalized_df = normalized_df.rename(columns=rename_columns)
+
     # 4.5 Filter invalid names
     if 'name' in normalized_df.columns:
         initial_count = len(normalized_df)

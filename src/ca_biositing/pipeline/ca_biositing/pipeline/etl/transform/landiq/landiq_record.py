@@ -147,14 +147,15 @@ def transform_landiq_record(
     # and ValueError: Cannot set a DataFrame with multiple columns
     cleaned_df = cleaned_df.loc[:, ~cleaned_df.columns.duplicated()].copy()
 
-    # Re-apply mapping to ensure correct values
+    # Re-apply mapping to ensure correct values and ensure results are lowercase
     for col in ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']:
         if col in cleaned_df.columns and crop_map:
             # Ensure we are working with a Series
             series = cleaned_df[col]
             if isinstance(series, pd.DataFrame):
                 series = series.iloc[:, 0]
-            cleaned_df[col] = series.astype(str).str.strip().str.upper().map(crop_map).fillna(series)
+            # Map the code to the crop name, or keep the value if mapping fails, then lowercase
+            cleaned_df[col] = series.astype(str).str.strip().str.upper().map(crop_map).fillna(series).astype(str).str.lower().str.strip()
 
     # Manually lowercase string columns and handle empty strings
     for col in cleaned_df.columns:
@@ -163,14 +164,11 @@ def transform_landiq_record(
             series = series.iloc[:, 0]
 
         if series.dtype == "object" or pd.api.types.is_string_dtype(series):
-            # CRITICAL: Do not lowercase values that need to match foreign key tables
-            # if those tables use Title Case or specific casing.
-            # The dataset_id and crop names are used for lookups.
-            exempt_cols = ['dataset', 'main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']
-            if col in exempt_cols:
-                cleaned_df[col] = series.astype(str).str.strip().replace(r"^\s*$", None, regex=True)
-            else:
-                cleaned_df[col] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
+            # CRITICAL: We lowercase all string columns to ensure consistency
+            # with the lowercased lookup tables (primary_ag_product, dataset, etc.)
+            # EXCEPT 'dataset' which we want to match specifically if it's already defined
+            # as 'landiq_2023'. However, in this case 'landiq_2023' is already lowercase.
+            cleaned_df[col] = series.astype(str).str.lower().str.strip().replace(r"^\s*$", None, regex=True)
 
     # Add lineage IDs
     if etl_run_id:
