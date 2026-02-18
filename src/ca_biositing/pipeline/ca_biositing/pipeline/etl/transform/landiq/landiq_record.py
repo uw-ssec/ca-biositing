@@ -163,11 +163,12 @@ def transform_landiq_record(
             series = series.iloc[:, 0]
 
         if series.dtype == "object" or pd.api.types.is_string_dtype(series):
-            # CRITICAL: Do not lowercase the dataset name 'landiq_2023' if it's already correct,
-            # but more importantly, ensure we don't turn numeric strings into garbage.
-            # The dataset_id lookup is case sensitive.
-            if col == 'dataset':
-                cleaned_df[col] = series.astype(str).str.strip()
+            # CRITICAL: Do not lowercase values that need to match foreign key tables
+            # if those tables use Title Case or specific casing.
+            # The dataset_id and crop names are used for lookups.
+            exempt_cols = ['dataset', 'main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']
+            if col in exempt_cols:
+                cleaned_df[col] = series.astype(str).str.strip().replace(r"^\s*$", None, regex=True)
             else:
                 cleaned_df[col] = series.astype(str).str.lower().replace(r"^\s*$", None, regex=True)
 
