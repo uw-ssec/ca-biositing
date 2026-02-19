@@ -21,6 +21,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    # Enable PostGIS extension (required for geometry columns)
+    op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+
     # Create ca_biositing schema for materialized views (Phase 4)
     op.execute("CREATE SCHEMA IF NOT EXISTS ca_biositing")
 

@@ -21,21 +21,9 @@ steps:
       - .
     waitFor: ["-"]
 
-  - id: build-prefect-worker
-    name: gcr.io/cloud-builders/docker
-    args:
-      - build
-      - -t
-      - gcr.io/biocirv-470318/prefect-worker:latest
-      - -f
-      - resources/docker/prefect-worker.dockerfile
-      - .
-    waitFor: ["-"]
-
 images:
   - gcr.io/biocirv-470318/webservice:latest
   - gcr.io/biocirv-470318/pipeline:latest
-  - gcr.io/biocirv-470318/prefect-worker:latest
 
 options:
   machineType: E2_HIGHCPU_8

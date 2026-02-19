@@ -9,7 +9,6 @@ from config import (
     GCP_REGION,
     WEBSERVICE_IMAGE,
     PIPELINE_IMAGE,
-    PREFECT_WORKER_IMAGE,
     PREFECT_SERVER_IMAGE,
     DB_USER,
     DB_NAME,
@@ -149,7 +148,7 @@ def create_cloud_run_resources(
                 containers=[
                     gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
                         image=PIPELINE_IMAGE,
-                        commands=["alembic", "upgrade", "head"],
+                        args=["alembic", "upgrade", "head"],
                         resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
                             limits={"cpu": "1", "memory": "512Mi"},
                         ),
@@ -285,7 +284,8 @@ def create_cloud_run_resources(
         member="allUsers",
     )
 
-    # --- 5.5: Prefect Worker ---
+    # --- 5.5: Prefect Worker (process type) ---
+    # Uses the pipeline image so flows run as subprocesses with all ETL deps.
     prefect_api_url = prefect_server.uri.apply(lambda uri: f"{uri}/api")
 
     prefect_worker = gcp.cloudrunv2.Service(
@@ -295,27 +295,30 @@ def create_cloud_run_resources(
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-worker"].email,
             scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
-                min_instance_count=0,
+                min_instance_count=1,
                 max_instance_count=1,
             ),
             containers=[
                 gcp.cloudrunv2.ServiceTemplateContainerArgs(
-                    image=PREFECT_WORKER_IMAGE,
-                    commands=[
+                    image=PIPELINE_IMAGE,
+                    # No commands= — use Dockerfile ENTRYPOINT (/bin/bash /shell-hook.sh)
+                    args=[
                         "prefect",
                         "worker",
                         "start",
                         "--pool",
                         "biocirv-staging-pool",
                         "--type",
-                        "cloud-run-v2",
+                        "process",
+                        "--limit",
+                        "3",
                         "--with-healthcheck",
                     ],
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=8080,
                     ),
                     resources=gcp.cloudrunv2.ServiceTemplateContainerResourcesArgs(
-                        limits={"cpu": "1", "memory": "512Mi"},
+                        limits={"cpu": "2", "memory": "2Gi"},
                     ),
                     envs=[
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
@@ -323,9 +326,15 @@ def create_cloud_run_resources(
                             value=prefect_api_url,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="CLOUDSQL_CONNECTION_NAME",
-                            value=sql.instance.connection_name,
+                            name="DATABASE_URL",
+                            value=database_url,
                         ),
+                    ],
+                    volume_mounts=[
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="cloudsql",
+                            mount_path="/cloudsql",
+                        )
                     ],
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
                         tcp_socket=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeTcpSocketArgs(
@@ -334,6 +343,14 @@ def create_cloud_run_resources(
                         initial_delay_seconds=15,
                         period_seconds=10,
                         failure_threshold=30,
+                    ),
+                )
+            ],
+            volumes=[
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="cloudsql",
+                    cloud_sql_instance=gcp.cloudrunv2.ServiceTemplateVolumeCloudSqlInstanceArgs(
+                        instances=[sql.instance.connection_name],
                     ),
                 )
             ],

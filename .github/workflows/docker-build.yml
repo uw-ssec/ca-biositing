@@ -34,8 +34,6 @@ jobs:
             image_name: pipeline
           - dockerfile: resources/docker/webservice.dockerfile
             image_name: webservice
-          - dockerfile: resources/docker/prefect-worker.dockerfile
-            image_name: prefect-worker
 
     steps:
       - uses: actions/checkout@v6

@@ -28,7 +28,10 @@ SA_DEFINITIONS = [
         "prefect-server",
         "biocirv-staging-cr-prefect",
         "Prefect Server Cloud Run SA",
-        ["roles/cloudsql.client"],
+        [
+            "roles/cloudsql.client",
+            "roles/secretmanager.secretAccessor",
+        ],
     ),
     (
         "prefect-worker",
@@ -36,18 +39,6 @@ SA_DEFINITIONS = [
         "Prefect Worker Cloud Run SA",
         [
             "roles/cloudsql.client",
-            "roles/run.admin",
-            "roles/iam.serviceAccountUser",
-            "roles/artifactregistry.reader",
-        ],
-    ),
-    (
-        "flowrun",
-        "biocirv-staging-cr-flowrun",
-        "Flow Run Cloud Run SA",
-        [
-            "roles/cloudsql.client",
-            "roles/secretmanager.secretAccessor",
             "roles/artifactregistry.reader",
         ],
     ),

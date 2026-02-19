@@ -24,6 +24,12 @@ COPY --from=build /app/.pixi/envs/etl /app/.pixi/envs/etl
 COPY --from=build /shell-hook.sh /shell-hook.sh
 # copy the source so editable installs resolve correctly
 COPY --from=build /app/src /app/src
+# copy alembic configuration and migrations
+COPY --from=build /app/alembic.ini /app/alembic.ini
+COPY --from=build /app/alembic /app/alembic
+# copy Prefect flow entrypoint and deployment config
+COPY --from=build /app/resources/prefect/run_prefect_flow.py /app/run_prefect_flow.py
+COPY --from=build /app/resources/prefect/prefect.yaml /app/prefect.yaml
 
 RUN apt-get update && apt-get install -y \
     curl \

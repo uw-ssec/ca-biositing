@@ -16,6 +16,8 @@ class SecretResources:
     db_user: gcp.sql.User
     db_password_secret: gcp.secretmanager.Secret
     gsheets_secret: gcp.secretmanager.Secret
+    prefect_auth_password: random.RandomPassword = None
+    prefect_auth_secret: gcp.secretmanager.Secret = None
     readonly_users: dict = field(default_factory=dict)
     readonly_passwords: dict = field(default_factory=dict)
     readonly_secrets: dict = field(default_factory=dict)
@@ -62,6 +64,27 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         ),
     )
 
+    # Prefect server auth credential (HTTP Basic Auth)
+    prefect_auth_password = random.RandomPassword(
+        "prefect-auth-password",
+        length=32,
+        special=False,
+    )
+
+    prefect_auth_secret = gcp.secretmanager.Secret(
+        "prefect-auth-secret",
+        secret_id="biocirv-staging-prefect-auth",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "prefect-auth-version",
+        secret=prefect_auth_secret.id,
+        secret_data=pulumi.Output.concat("admin:", prefect_auth_password.result),
+    )
+
     # Read-only users
     readonly_users = {}
     readonly_passwords = {}
@@ -105,6 +128,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
     # Exports
     pulumi.export("db_password_secret_name", db_password_secret.name)
     pulumi.export("gsheets_secret_name", gsheets_secret.name)
+    pulumi.export("prefect_auth_secret_name", prefect_auth_secret.name)
     for username in READONLY_USERS:
         pulumi.export(
             f"ro_{username}_password_secret",
@@ -116,6 +140,8 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         db_user=db_user,
         db_password_secret=db_password_secret,
         gsheets_secret=gsheets_secret,
+        prefect_auth_password=prefect_auth_password,
+        prefect_auth_secret=prefect_auth_secret,
         readonly_users=readonly_users,
         readonly_passwords=readonly_passwords,
         readonly_secrets=readonly_secrets,

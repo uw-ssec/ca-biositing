@@ -273,6 +273,8 @@ ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels", editable = t
 ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
 # Alembic is required for generating migrations inside the worker container
 alembic = ">=1.13.2,<2"
+# Prefect is required for `prefect flow-run execute` inside Cloud Run flow jobs
+prefect = "*"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -324,6 +326,9 @@ description = "Install the Google Cloud CLI into the pixi environment."
 cmd = "bash -c 'curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX ${PULUMI_VERSION:+--version $PULUMI_VERSION}'"
 outputs = ["**/bin/pulumi"]
 description = "Install Pulumi CLI. Set PULUMI_VERSION env var to install a specific version (e.g. PULUMI_VERSION=3.220.0 pixi run install-pulumi)."
+
+[feature.cloud.dependencies]
+postgresql = "*"
 
 [feature.cloud.pypi-dependencies]
 prefect = "*"

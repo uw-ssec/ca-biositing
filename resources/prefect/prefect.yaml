@@ -29,7 +29,4 @@ deployments:
     work_pool:
       name: biocirv-staging-pool
       work_queue_name: null
-      job_variables:
-        image: "gcr.io/biocirv-470318/pipeline:latest"
-        region: "us-west1"
     schedules: []
