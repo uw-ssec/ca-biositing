@@ -83,9 +83,12 @@ def main():
 
     elif command == "up":
         result = stack.up(on_output=print)
-        print(
-            f"\nUpdate summary: {json.dumps(result.summary.resource_changes, indent=2)}"
-        )
+        if result.summary:
+            print(
+                f"\nUpdate summary: {json.dumps(result.summary.resource_changes, indent=2)}"
+            )
+        else:
+            print("\nUpdate completed (no summary available).")
 
     elif command == "destroy":
         stack.destroy(on_output=print)

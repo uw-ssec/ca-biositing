@@ -33,7 +33,7 @@ def create_cloud_sql() -> CloudSQLResources:
             availability_type="ZONAL",
             ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
                 ipv4_enabled=True,
-                ssl_mode="ALLOW_UNENCRYPTED_AND_ENCRYPTED",
+                ssl_mode="ENCRYPTED_ONLY",
             ),
             backup_configuration=gcp.sql.DatabaseInstanceSettingsBackupConfigurationArgs(
                 enabled=True,

@@ -24,12 +24,16 @@ COPY --from=build /shell-hook.sh /shell-hook.sh
 # copy the source so editable installs resolve correctly
 COPY --from=build /app/src /app/src
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN useradd -m appuser
+
 WORKDIR /app
 EXPOSE 8080
+
+USER appuser
 
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
 # no more pixi needed in the prod container

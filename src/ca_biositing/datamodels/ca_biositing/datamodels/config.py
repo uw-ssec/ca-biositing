@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL
 from typing import Optional
 
 # Determine the project root (directory containing "pixi.toml") to locate the shared .env file.
@@ -50,9 +51,21 @@ class Settings(BaseSettings):
         if self.INSTANCE_CONNECTION_NAME:
             user = self.DB_USER or self.POSTGRES_USER
             password = self.DB_PASS or self.POSTGRES_PASSWORD
-            db = self.POSTGRES_DB
-            return f"postgresql://{user}:{password}@/{db}?host=/cloudsql/{self.INSTANCE_CONNECTION_NAME}"
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+            return str(URL.create(
+                drivername="postgresql",
+                username=user,
+                password=password,
+                database=self.POSTGRES_DB,
+                query={"host": f"/cloudsql/{self.INSTANCE_CONNECTION_NAME}"},
+            ))
+        return str(URL.create(
+            drivername="postgresql",
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            database=self.POSTGRES_DB,
+        ))
 
 
 settings = Settings()

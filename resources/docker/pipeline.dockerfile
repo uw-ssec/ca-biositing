@@ -31,12 +31,16 @@ COPY --from=build /app/alembic /app/alembic
 COPY --from=build /app/resources/prefect/run_prefect_flow.py /app/run_prefect_flow.py
 COPY --from=build /app/resources/prefect/prefect.yaml /app/prefect.yaml
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN useradd -m appuser
+
 WORKDIR /app
 EXPOSE 4200
+
+USER appuser
 
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
 # no more pixi needed in the prod container

@@ -18,6 +18,9 @@ on:
     paths:
       - "resources/docker/**"
       - "src/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/docker-build.yml"
 
 permissions:
   contents: read
