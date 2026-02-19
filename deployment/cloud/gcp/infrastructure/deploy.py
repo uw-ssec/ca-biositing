@@ -24,8 +24,9 @@ from cloud_run import create_cloud_run_resources
 
 def pulumi_program():
     """Inline Pulumi program defining all GCP infrastructure."""
-    # 1. Enable required GCP APIs
-    api_services = enable_apis()
+    # 1. Enable required GCP APIs (Pulumi tracks implicit dependencies via
+    #    the provider's project; explicit depends_on is not needed here.)
+    enable_apis()
 
     # 2. Cloud SQL: instance, databases, users
     sql = create_cloud_sql()

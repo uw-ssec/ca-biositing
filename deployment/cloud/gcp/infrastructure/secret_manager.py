@@ -7,7 +7,7 @@ import pulumi_gcp as gcp
 import pulumi_random as random
 
 from cloud_sql import CloudSQLResources
-from config import DB_USER, GCP_PROJECT, READONLY_USERS
+from config import DB_USER, READONLY_USERS
 
 
 @dataclass
