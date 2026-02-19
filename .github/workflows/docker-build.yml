@@ -4,17 +4,17 @@ on:
   push:
     branches: [main]
     paths:
-      - 'resources/docker/**'
-      - 'src/**'
-      - 'pixi.toml'
-      - 'pixi.lock'
-      - '.github/workflows/docker-build.yml'
+      - "resources/docker/**"
+      - "src/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/docker-build.yml"
   release:
     types: [published]
   pull_request:
     paths:
-      - 'resources/docker/**'
-      - 'src/**'
+      - "resources/docker/**"
+      - "src/**"
 
 permissions:
   contents: read

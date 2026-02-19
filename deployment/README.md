@@ -160,15 +160,16 @@ create resources that already exist in GCP. Follow the import steps in the
 
 The staging environment runs on GCP with the following components:
 
-| Component | Service |
-|-----------|---------|
-| **Webservice** (FastAPI) | Cloud Run Service |
-| **Prefect Server** (UI + API) | Cloud Run Service |
+| Component                         | Service                                                                |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| **Webservice** (FastAPI)          | Cloud Run Service                                                      |
+| **Prefect Server** (UI + API)     | Cloud Run Service                                                      |
 | **Prefect Worker** (process type) | Cloud Run Service (internal, polls server, runs flows as subprocesses) |
-| **Database** | Cloud SQL (PostgreSQL + PostGIS) |
-| **Secrets** | Secret Manager (DB password, GSheets creds, Prefect auth) |
+| **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                       |
+| **Secrets**                       | Secret Manager (DB password, GSheets creds, Prefect auth)              |
 
-Infrastructure is managed by Pulumi (Python Automation API) with state stored in GCS.
+Infrastructure is managed by Pulumi (Python Automation API) with state stored in
+GCS.
 
 To retrieve service URLs:
 
@@ -216,9 +217,9 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 
 ### Prefect Server Access
 
-The Prefect server is currently deployed **without** HTTP Basic Auth for staging.
-This is because Prefect's WebSocket events client (required by process workers)
-does not send auth headers, causing the worker to crash at startup.
+The Prefect server is currently deployed **without** HTTP Basic Auth for
+staging. This is because Prefect's WebSocket events client (required by process
+workers) does not send auth headers, causing the worker to crash at startup.
 
 **Access the Prefect UI:**
 
@@ -288,8 +289,10 @@ Verify the worker can reach the Prefect server — look for connection errors.
 
 #### Flow runs stuck in "Pending"
 
-1. Verify the work pool (`biocirv-staging-pool`, type `process`) is online in the Prefect UI
-2. Check the worker logs for errors: `gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20`
+1. Verify the work pool (`biocirv-staging-pool`, type `process`) is online in
+   the Prefect UI
+2. Check the worker logs for errors:
+   `gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20`
 3. Verify the worker container has `DATABASE_URL` and `PREFECT_API_URL` set
 
 #### Credential rotation
