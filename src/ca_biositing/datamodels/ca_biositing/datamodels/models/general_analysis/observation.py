@@ -2,13 +2,20 @@ from ..base import BaseEntity
 from datetime import datetime
 from decimal import Decimal
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import UniqueConstraint
 from typing import Optional
 
 
 class Observation(BaseEntity, table=True):
     __tablename__ = "observation"
+    __table_args__ = (
+        UniqueConstraint(
+            'record_id', 'record_type', 'parameter_id', 'unit_id',
+            name='observation_unique_key'
+        ),
+    )
 
-    record_id: str = Field(unique=True, nullable=False)
+    record_id: str = Field(nullable=False)
     dataset_id: Optional[int] = Field(default=None, foreign_key="dataset.id")
     record_type: Optional[str] = Field(default=None)
     parameter_id: Optional[int] = Field(default=None, foreign_key="parameter.id")

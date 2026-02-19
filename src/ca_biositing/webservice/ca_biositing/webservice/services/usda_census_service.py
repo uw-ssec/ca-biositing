@@ -115,14 +115,17 @@ class UsdaCensusService:
         DimensionUnit = aliased(Unit)
 
         # First, find the census record to get its dataset_id
+        # If multiple records exist for the same commodity/geoid, return the most recent
         census_stmt = (
             select(UsdaCensusRecord)
             .where(and_(
                 UsdaCensusRecord.commodity_code == commodity_id,
                 UsdaCensusRecord.geoid == geoid
             ))
+            .order_by(UsdaCensusRecord.year.desc())
+            .limit(1)
         )
-        census_record = session.execute(census_stmt).scalar_one_or_none()
+        census_record = session.execute(census_stmt).scalars().first()
 
         if not census_record:
             return []

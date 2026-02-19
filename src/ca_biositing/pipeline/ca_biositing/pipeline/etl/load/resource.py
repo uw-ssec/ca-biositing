@@ -45,8 +45,6 @@ def load_resource(df: pd.DataFrame):
 
                     # Handle timestamps
                     clean_record['updated_at'] = now
-                    if clean_record.get('created_at') is None:
-                        clean_record['created_at'] = now
 
                     # Manual Check-and-Update (since 'name' lacks a unique constraint)
                     existing_record = session.query(Resource).filter(Resource.name == clean_record['name']).first()
@@ -58,6 +56,8 @@ def load_resource(df: pd.DataFrame):
                                 setattr(existing_record, key, value)
                     else:
                         # Insert new record
+                        if clean_record.get('created_at') is None:
+                            clean_record['created_at'] = now
                         new_resource = Resource(**clean_record)
                         session.add(new_resource)
 

@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, Session
+from sqlmodel import create_engine
 import os
 
 # This module provides SQLAlchemy engines for the pipeline package.

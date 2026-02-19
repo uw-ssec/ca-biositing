@@ -49,9 +49,6 @@ def replace_name_with_id_df(
       A tuple containing the modified DataFrame and the number of new records created.
   """
 
-  import logging
-  logger = logging.getLogger(__name__)
-
   # If using the SQLite fallback, skip DB lookups and return a column of NA.
   try:
       driver_name = db.bind.url.drivername  # type: ignore[attr-defined]
@@ -85,7 +82,9 @@ def replace_name_with_id_df(
   df_copy = df.copy()
 
   # 2. Determine which names are new
-  unique_names = set(df_copy[df_name_column].dropna().unique())
+  # Filter out nulls and empty strings
+  series = df_copy[df_name_column]
+  unique_names = set(series[series.notna() & (series.astype(str) != "")].unique())
   new_names = unique_names - set(name_to_id_map.keys())
   num_new_records = len(new_names)
 
@@ -112,7 +111,9 @@ def replace_name_with_id_df(
 
   # 4. Replace name column with ID column
   df_copy[final_column_name] = df_copy[df_name_column].map(name_to_id_map)
-  df_copy = df_copy.drop(columns=[df_name_column])
+  # If the final column name matches the original, don't drop it (this happens if col is already raw_data_id)
+  if final_column_name != df_name_column:
+      df_copy = df_copy.drop(columns=[df_name_column])
 
   return df_copy, num_new_records
 
@@ -141,14 +142,13 @@ def normalize_dataframes(
     if single_input:
         dataframes = [dataframes]
 
-    logger.info(f"Starting normalization for {len(dataframes)} DataFrames.")
-    print(f"DEBUG: Starting normalization for {len(dataframes)} DataFrames")
+    logger.debug(f"Starting normalization for {len(dataframes)} DataFrames.")
     normalized_dfs: list[pd.DataFrame] = []
     from .engine import engine
     try:
-        print("DEBUG: Opening database session...")
+        logger.debug("Opening database session...")
         with Session(engine) as db:
-            print("DEBUG: Database session opened")
+            logger.debug("Database session opened")
             for i, df in enumerate(dataframes):
                 if not isinstance(df, pd.DataFrame):
                     logger.warning(f"Item {i+1} is not a DataFrame; skipping.")
@@ -194,9 +194,7 @@ def normalize_dataframes(
             logger.info("Database commit successful.")
     except Exception as e:
         logger.error(f"Critical error during normalization: {e}", exc_info=True)
-        if "db" in locals():
-            db.rollback()
-            logger.info("Database session rolled back.")
+        raise
     # If the original input was a single DataFrame, return the first element directly
     if single_input:
         return normalized_dfs[0] if normalized_dfs else pd.DataFrame()

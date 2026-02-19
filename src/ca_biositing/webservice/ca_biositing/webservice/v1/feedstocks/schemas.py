@@ -83,9 +83,9 @@ class SurveyDataResponse(BaseModel):
     dimension_unit: Optional[str] = Field(
         None, description="Dimension unit (if applicable)"
     )
-    survey_program: Optional[str] = Field(None, description="Survey program name")
+    survey_program_id: Optional[int] = Field(None, description="Survey program ID")
     survey_period: Optional[str] = Field(None, description="Survey period")
-    reference_month: Optional[int] = Field(None, description="Reference month (1-12)")
+    reference_month: Optional[str] = Field(None, description="Reference month")
     seasonal_flag: Optional[bool] = Field(None, description="Whether data is seasonal")
 
 
@@ -99,6 +99,10 @@ class SurveyListResponse(BaseModel):
     resource: Optional[str] = Field(None, description="Resource name (if queried by resource)")
     geoid: str = Field(..., description="Geographic identifier")
     data: list[DataItemResponse] = Field(..., description="List of parameter data")
+    survey_program_id: Optional[int] = Field(None, description="Survey program ID")
+    survey_period: Optional[str] = Field(None, description="Survey period")
+    reference_month: Optional[str] = Field(None, description="Reference month")
+    seasonal_flag: Optional[bool] = Field(None, description="Whether data is seasonal")
 
 
 class AnalysisDataResponse(BaseModel):

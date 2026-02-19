@@ -38,7 +38,7 @@ def load_observation(df: pd.DataFrame):
                         if c.name not in ['id', 'created_at', 'record_id']
                     }
                     upsert_stmt = stmt.on_conflict_do_update(
-                        index_elements=['record_id'],
+                        index_elements=['record_id', 'record_type', 'parameter_id', 'unit_id'],
                         set_=update_dict
                     )
                     session.execute(upsert_stmt)

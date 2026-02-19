@@ -81,6 +81,10 @@ def standard_clean(df: pd.DataFrame, lowercase: bool = True, replace_empty: bool
         logger.error("standard_clean: input is not a DataFrame")
         return None
     df = clean_names_df(df)
+    # Handle duplicate columns that might arise from name cleaning (e.g. 'Col A' and 'col_a' both becoming 'col_a')
+    if df.columns.duplicated().any():
+        logger.warning(f"standard_clean: duplicate columns found after name cleaning: {df.columns[df.columns.duplicated()].unique().tolist()}. Keeping first occurrence.")
+        df = df.loc[:, ~df.columns.duplicated()]
     if replace_empty:
         df = replace_empty_with_na(df)
     if lowercase:
