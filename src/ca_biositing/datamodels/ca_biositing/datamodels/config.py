@@ -51,21 +51,21 @@ class Settings(BaseSettings):
         if self.INSTANCE_CONNECTION_NAME:
             user = self.DB_USER or self.POSTGRES_USER
             password = self.DB_PASS or self.POSTGRES_PASSWORD
-            return str(URL.create(
+            return URL.create(
                 drivername="postgresql",
                 username=user,
                 password=password,
                 database=self.POSTGRES_DB,
                 query={"host": f"/cloudsql/{self.INSTANCE_CONNECTION_NAME}"},
-            ))
-        return str(URL.create(
+            ).render_as_string(hide_password=False)
+        return URL.create(
             drivername="postgresql",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_HOST,
             port=self.POSTGRES_PORT,
             database=self.POSTGRES_DB,
-        ))
+        ).render_as_string(hide_password=False)
 
 
 settings = Settings()

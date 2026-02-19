@@ -5,7 +5,10 @@ from prefect import task, get_run_logger
 from geoalchemy2.elements import WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
 from shapely import force_2d
-from sqlalchemy import create_engine, select, text
+from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+from ca_biositing.pipeline.utils.engine import get_engine
 
 
 def _geom_to_wkt(geom) -> str:
@@ -13,29 +16,6 @@ def _geom_to_wkt(geom) -> str:
     if isinstance(geom, (WKBElement, WKTElement)):
         return to_shape(geom).wkt
     return str(geom).strip()
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session
-
-def get_local_engine():
-    print("DEBUG: get_local_engine started - using direct engine creation")
-    import os
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-        print("DEBUG: Using hardcoded Docker DB URL")
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-
-    print(f"DEBUG: Creating engine for {db_url}")
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
 
 def bulk_insert_polygons_ignore(session: Session, geoms: list[str], etl_run_id: str = None, lineage_group_id: str = None, dataset_id: int = None):
     """
@@ -174,7 +154,7 @@ def load_landiq_record(df: pd.DataFrame):
         from ca_biositing.pipeline.utils.lookup_utils import fetch_lookup_ids
 
         now = datetime.now(timezone.utc)
-        engine = get_local_engine()
+        engine = get_engine()
 
         with engine.connect() as conn:
             with Session(bind=conn, autoflush=False) as session:

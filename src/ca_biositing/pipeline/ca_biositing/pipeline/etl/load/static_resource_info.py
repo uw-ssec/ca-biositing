@@ -3,29 +3,8 @@ import numpy as np
 from datetime import datetime, timezone
 from typing import Optional
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
-def get_local_engine():
-    """
-    Creates a SQLAlchemy engine based on the environment (Docker vs Local).
-    """
-    import os
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+from ca_biositing.pipeline.utils.engine import get_engine
 
 # California FIPS codes used by the static resource info pipeline.
 # GEOID format: 2-digit state FIPS + 3-digit county FIPS ("000" = state-level).
@@ -83,7 +62,7 @@ def load_landiq_resource_mapping(df: pd.DataFrame):
         table_columns = {c.name for c in LandiqResourceMapping.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 for i, record in enumerate(records):
@@ -139,7 +118,7 @@ def load_resource_availability(df: pd.DataFrame):
         table_columns = {c.name for c in ResourceAvailability.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 # Ensure referenced Place records exist before inserting availability.

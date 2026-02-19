@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from ca_biositing.pipeline.etl.load.resource import load_resource
 
-@patch("ca_biositing.pipeline.etl.load.resource.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.resource.get_engine")
 @patch("ca_biositing.pipeline.etl.load.resource.Session")
 def test_load_resource(mock_session_class, mock_get_engine):
     # 1. Setup Mock Data (matching the output of resource transform)

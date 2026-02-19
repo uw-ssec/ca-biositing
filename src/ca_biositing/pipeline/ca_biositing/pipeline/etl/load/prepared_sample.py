@@ -2,29 +2,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-def get_local_engine():
-    """
-    Creates a SQLAlchemy engine based on the environment (Docker vs Local).
-    """
-    import os
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+from ca_biositing.pipeline.utils.engine import get_engine
 
 @task
 def load_prepared_sample(df: pd.DataFrame):
@@ -58,7 +38,7 @@ def load_prepared_sample(df: pd.DataFrame):
         # Replace NaN with None for database compatibility
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 for record in records:
