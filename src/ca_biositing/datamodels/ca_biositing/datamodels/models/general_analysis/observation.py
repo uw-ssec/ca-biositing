@@ -1,4 +1,5 @@
 from ..base import BaseEntity
+import sqlalchemy as sa
 from datetime import datetime
 from decimal import Decimal
 from sqlmodel import Field, Relationship, SQLModel
@@ -9,9 +10,12 @@ from typing import Optional
 class Observation(BaseEntity, table=True):
     __tablename__ = "observation"
     __table_args__ = (
-        UniqueConstraint(
-            'record_id', 'record_type', 'parameter_id', 'unit_id',
-            name='observation_unique_key'
+        sa.UniqueConstraint(
+            "record_id",
+            "record_type",
+            "parameter_id",
+            "unit_id",
+            name="observation_unique_key",
         ),
     )
 
