@@ -203,11 +203,22 @@ gcloud container images list --repository=gcr.io/$(gcloud config get project)
 
 ### Run Database Migrations
 
-Execute the Alembic migration Cloud Run Job:
+Build the pipeline image, refresh the Cloud Run job's image digest, and apply
+Alembic migrations in one step:
 
 ```bash
-gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait
+pixi run cloud-migrate
 ```
+
+This runs three steps in order:
+
+1. `cloud-build-images` — builds and pushes the pipeline image to GCR via Cloud
+   Build.
+2. `gcloud run jobs update ... --image=...` — re-pins the Cloud Run job to the
+   newly pushed image digest (required because Pulumi pins the digest at deploy
+   time and does not detect `:latest` tag updates).
+3. `gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait` —
+   runs the migration job and waits for it to complete.
 
 Verify the execution completed:
 
@@ -256,24 +267,52 @@ gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=5
 
 ### Read-Only Database Users
 
-The `biocirv_readonly` user is created by Pulumi. After migrations, grant
-read-only privileges by connecting as `postgres`:
-
-```bash
-gcloud sql connect biocirv-staging --user=postgres --database=biocirv-staging
-```
-
-```sql
-GRANT CONNECT ON DATABASE "biocirv-staging" TO biocirv_readonly;
-GRANT USAGE ON SCHEMA public TO biocirv_readonly;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO biocirv_readonly;
-GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO biocirv_readonly;
-ALTER DEFAULT PRIVILEGES FOR ROLE biocirv_user IN SCHEMA public
-    GRANT SELECT ON TABLES TO biocirv_readonly;
-```
+The `biocirv_readonly` Cloud SQL user is created by Pulumi (password stored in
+Secret Manager as `biocirv-staging-ro-biocirv_readonly`). Read-only privileges
+are granted automatically by the `0002_grant_readonly_permissions` Alembic
+migration, which runs as part of `pixi run cloud-migrate`.
 
 Retrieve the read-only password from Secret Manager (requires appropriate IAM
-permissions).
+permissions):
+
+```bash
+gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readonly
+```
+
+### Connecting to the Database (DBeaver / GUI Client)
+
+Use the Cloud SQL Auth Proxy to create a local tunnel, then connect your client
+to `localhost`:
+
+#### 1. Start the proxy
+
+```bash
+cloud-sql-proxy biocirv-470318:us-west1:biocirv-staging --port 5434
+```
+
+The proxy binary is available in the pixi `deployment` environment. Leave it
+running in a separate terminal.
+
+#### 2. Get the password
+
+```bash
+# Primary user
+gcloud secrets versions access latest --secret=biocirv-staging-db-password
+
+# Read-only user
+gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readonly
+```
+
+#### 3. Connection settings
+
+| Field    | Value                                                  |
+| -------- | ------------------------------------------------------ |
+| Host     | `127.0.0.1`                                            |
+| Port     | `5434`                                                 |
+| Database | `biocirv-staging`                                      |
+| Username | `biocirv_user` (or `biocirv_readonly` for read-only)   |
+| Password | (from step 2)                                          |
+| SSL      | off (the proxy handles encryption to Cloud SQL)        |
 
 ### Staging Troubleshooting
 

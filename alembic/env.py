@@ -34,7 +34,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     from ca_biositing.datamodels.config import settings
     DATABASE_URL = settings.database_url
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", DATABASE_URL.replace("%", "%%"))
 
 # Setup Python logging
 if config.config_file_name is not None:

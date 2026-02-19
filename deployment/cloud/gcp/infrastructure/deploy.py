@@ -24,34 +24,55 @@ from cloud_run import create_cloud_run_resources
 
 def pulumi_program():
     """Inline Pulumi program defining all GCP infrastructure."""
-    # 1. Enable required GCP APIs (Pulumi tracks implicit dependencies via
-    #    the provider's project; explicit depends_on is not needed here.)
-    enable_apis()
+    # 1. Enable required GCP APIs — downstream resources depend on these.
+    api_services = enable_apis()
 
     # 2. Cloud SQL: instance, databases, users
-    sql = create_cloud_sql()
+    sql = create_cloud_sql(depends_on=[api_services["sqladmin"]])
 
     # 3. Secrets: DB password, GSheets credentials, read-only user passwords
-    secret_resources = create_secrets(sql)
+    secret_resources = create_secrets(
+        sql, depends_on=[api_services["secretmanager"]]
+    )
 
     # 4. IAM: service accounts and role bindings
-    iam = create_service_accounts()
+    iam = create_service_accounts(
+        depends_on=[api_services["iam"], api_services["cloudresourcemanager"]]
+    )
 
     # 5. Cloud Run: Services and Jobs (images built separately via cloud-build-images)
-    cr = create_cloud_run_resources(sql, secret_resources, iam)
+    cr = create_cloud_run_resources(
+        sql, secret_resources, iam, depends_on=[api_services["run"]]
+    )
 
-    # Cloud Run exports
-    pulumi.export("webservice_url", cr.webservice.uri)
-    pulumi.export("prefect_server_url", cr.prefect_server.uri)
-    pulumi.export("migration_job_name", cr.migration_job.name)
-
-    # Exports
+    # --- All exports centralized here ---
+    # Cloud SQL
     pulumi.export("db_instance_name", sql.instance.name)
     pulumi.export("db_instance_connection_name", sql.instance.connection_name)
     pulumi.export("database_name", sql.database.name)
     pulumi.export("prefect_database_name", sql.prefect_database.name)
+
+    # Secrets
+    pulumi.export("db_password_secret_name", secret_resources.db_password_secret.name)
+    pulumi.export("gsheets_secret_name", secret_resources.gsheets_secret.name)
+    pulumi.export(
+        "prefect_auth_secret_name", secret_resources.prefect_auth_secret.name
+    )
+    for username, secret in secret_resources.readonly_secrets.items():
+        pulumi.export(f"ro_{username}_password_secret", secret.name)
+    pulumi.export(
+        "postgres_password_secret_name",
+        secret_resources.postgres_password_secret.name,
+    )
+
+    # IAM
     for sa_name, sa in iam.service_accounts.items():
         pulumi.export(f"sa_{sa_name}_email", sa.email)
+
+    # Cloud Run
+    pulumi.export("webservice_url", cr.webservice.uri)
+    pulumi.export("prefect_server_url", cr.prefect_server.uri)
+    pulumi.export("migration_job_name", cr.migration_job.name)
 
 
 def get_stack() -> auto.Stack:

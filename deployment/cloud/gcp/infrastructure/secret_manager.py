@@ -1,6 +1,7 @@
 """Secret Manager resources, database users, and password management."""
 
 from dataclasses import dataclass, field
+from typing import Sequence
 
 import pulumi
 import pulumi_gcp as gcp
@@ -21,10 +22,18 @@ class SecretResources:
     readonly_users: dict = field(default_factory=dict)
     readonly_passwords: dict = field(default_factory=dict)
     readonly_secrets: dict = field(default_factory=dict)
+    postgres_password: random.RandomPassword = None
+    postgres_user: gcp.sql.User = None
+    postgres_password_secret: gcp.secretmanager.Secret = None
 
 
-def create_secrets(sql: CloudSQLResources) -> SecretResources:
+def create_secrets(
+    sql: CloudSQLResources,
+    depends_on: Sequence[pulumi.Resource] | None = None,
+) -> SecretResources:
     """Create Secret Manager secrets, database users, and passwords."""
+    secret_opts = pulumi.ResourceOptions(depends_on=depends_on or [])
+
     # Primary database user password
     db_password = random.RandomPassword(
         "db-password",
@@ -47,6 +56,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
+        opts=secret_opts,
     )
 
     gcp.secretmanager.SecretVersion(
@@ -62,6 +72,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
+        opts=secret_opts,
     )
 
     # Prefect server auth credential (HTTP Basic Auth)
@@ -77,6 +88,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
+        opts=secret_opts,
     )
 
     gcp.secretmanager.SecretVersion(
@@ -116,6 +128,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
             replication=gcp.secretmanager.SecretReplicationArgs(
                 auto=gcp.secretmanager.SecretReplicationAutoArgs(),
             ),
+            opts=secret_opts,
         )
         readonly_secrets[username] = ro_secret
 
@@ -125,15 +138,37 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
             secret_data=ro_password.result,
         )
 
-    # Exports
-    pulumi.export("db_password_secret_name", db_password_secret.name)
-    pulumi.export("gsheets_secret_name", gsheets_secret.name)
-    pulumi.export("prefect_auth_secret_name", prefect_auth_secret.name)
-    for username in READONLY_USERS:
-        pulumi.export(
-            f"ro_{username}_password_secret",
-            readonly_secrets[username].name,
-        )
+    # Postgres superuser password
+    postgres_password = random.RandomPassword(
+        "postgres-password",
+        length=32,
+        special=False,
+    )
+
+    # Manage the built-in postgres user (Pulumi will adopt the existing user)
+    postgres_user = gcp.sql.User(
+        "postgres-user",
+        name="postgres",
+        instance=sql.instance.name,
+        password=postgres_password.result,
+        deletion_policy="ABANDON",
+    )
+
+    # Store the postgres password in Secret Manager
+    postgres_password_secret = gcp.secretmanager.Secret(
+        "postgres-password-secret",
+        secret_id="biocirv-staging-postgres-password",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "postgres-password-version",
+        secret=postgres_password_secret.id,
+        secret_data=postgres_password.result,
+    )
 
     return SecretResources(
         db_password=db_password,
@@ -145,4 +180,7 @@ def create_secrets(sql: CloudSQLResources) -> SecretResources:
         readonly_users=readonly_users,
         readonly_passwords=readonly_passwords,
         readonly_secrets=readonly_secrets,
+        postgres_password=postgres_password,
+        postgres_user=postgres_user,
+        postgres_password_secret=postgres_password_secret,
     )

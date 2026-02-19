@@ -1,7 +1,9 @@
 """Cloud SQL instance, databases, and users."""
 
 from dataclasses import dataclass
+from typing import Sequence
 
+import pulumi
 import pulumi_gcp as gcp
 
 from config import (
@@ -19,7 +21,9 @@ class CloudSQLResources:
     prefect_database: gcp.sql.Database
 
 
-def create_cloud_sql() -> CloudSQLResources:
+def create_cloud_sql(
+    depends_on: Sequence[pulumi.Resource] | None = None,
+) -> CloudSQLResources:
     """Create Cloud SQL instance with databases."""
     instance = gcp.sql.DatabaseInstance(
         "staging-db-instance",
@@ -53,6 +57,7 @@ def create_cloud_sql() -> CloudSQLResources:
                 query_insights_enabled=True,
             ),
         ),
+        opts=pulumi.ResourceOptions(depends_on=depends_on or []),
     )
 
     database = gcp.sql.Database(

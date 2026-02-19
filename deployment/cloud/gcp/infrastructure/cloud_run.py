@@ -1,6 +1,7 @@
 """Cloud Run Services and Jobs."""
 
 from dataclasses import dataclass
+from typing import Sequence
 
 import pulumi
 import pulumi_gcp as gcp
@@ -31,8 +32,10 @@ def create_cloud_run_resources(
     sql: CloudSQLResources,
     secrets: SecretResources,
     iam: IAMResources,
+    depends_on: Sequence[pulumi.Resource] | None = None,
 ) -> CloudRunResources:
     """Create all Cloud Run Services and Jobs."""
+    run_opts = pulumi.ResourceOptions(depends_on=depends_on or [])
 
     # --- 5.2: FastAPI Webservice ---
     webservice = gcp.cloudrunv2.Service(
@@ -115,6 +118,7 @@ def create_cloud_run_resources(
                 percent=100,
             )
         ],
+        opts=run_opts,
     )
 
     gcp.cloudrunv2.ServiceIamMember(
@@ -186,6 +190,7 @@ def create_cloud_run_resources(
                 ],
             )
         ),
+        opts=run_opts,
     )
 
     # --- 5.4: Self-hosted Prefect Server ---
@@ -284,6 +289,7 @@ def create_cloud_run_resources(
                 percent=100,
             )
         ],
+        opts=run_opts,
     )
 
     gcp.cloudrunv2.ServiceIamMember(
@@ -389,6 +395,7 @@ def create_cloud_run_resources(
                 percent=100,
             )
         ],
+        opts=run_opts,
     )
 
     return CloudRunResources(

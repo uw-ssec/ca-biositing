@@ -1,7 +1,9 @@
 """Service accounts and IAM role bindings."""
 
 from dataclasses import dataclass
+from typing import Sequence
 
+import pulumi
 import pulumi_gcp as gcp
 
 from config import GCP_PROJECT
@@ -56,15 +58,19 @@ SA_DEFINITIONS = [
 ]
 
 
-def create_service_accounts() -> IAMResources:
+def create_service_accounts(
+    depends_on: Sequence[pulumi.Resource] | None = None,
+) -> IAMResources:
     """Create service accounts and IAM role bindings."""
     service_accounts = {}
+    opts = pulumi.ResourceOptions(depends_on=depends_on or [])
 
     for logical_name, account_id, display_name, roles in SA_DEFINITIONS:
         sa = gcp.serviceaccount.Account(
             f"sa-{logical_name}",
             account_id=account_id,
             display_name=display_name,
+            opts=opts,
         )
         service_accounts[logical_name] = sa
 
