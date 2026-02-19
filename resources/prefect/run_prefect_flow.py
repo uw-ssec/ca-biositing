@@ -11,7 +11,8 @@ AVAILABLE_FLOWS = {
     "static_resource_info": "ca_biositing.pipeline.flows.static_resource_info.static_resource_info_flow",
     "samples": "ca_biositing.pipeline.flows.samples_etl.samples_etl_flow",
     "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
-    #"landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow"
+    "landiq": "ca_biositing.pipeline.flows.landiq_etl.landiq_etl_flow",
+    "billion_ton": "ca_biositing.pipeline.flows.billion_ton_etl.billion_ton_etl_flow",
     #"field_sample": "ca_biositing.pipeline.flows.field_sample_etl.field_sample_etl_flow",
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
 }
