@@ -178,15 +178,32 @@ def load_landiq_record(df: pd.DataFrame):
 
         with engine.connect() as conn:
             with Session(bind=conn, autoflush=False) as session:
-                # 1. Fetch IDs for Crops and Datasets
+                # 1. Ensure Dataset and Crops exist and fetch IDs
+                # Handle Dataset
+                dataset_names = df['dataset_id'].unique().tolist() if 'dataset_id' in df.columns else []
+                for name in dataset_names:
+                    if name:
+                        existing = session.execute(select(Dataset).where(Dataset.name == name)).scalar_one_or_none()
+                        if not existing:
+                            session.add(Dataset(name=name))
+                session.flush()
+                dataset_map = fetch_lookup_ids(session, Dataset, dataset_names)
+
+                # Handle Crops
                 crop_cols = ['main_crop', 'secondary_crop', 'tertiary_crop', 'quaternary_crop']
                 crop_names = pd.concat([
                     df[col] for col in crop_cols if col in df.columns
-                ]).unique().tolist()
-                crop_map = fetch_lookup_ids(session, PrimaryAgProduct, crop_names)
+                ]).dropna().unique().tolist()
 
-                dataset_names = df['dataset_id'].unique().tolist() if 'dataset_id' in df.columns else []
-                dataset_map = fetch_lookup_ids(session, Dataset, dataset_names)
+                # Filter out empty strings or "none"
+                crop_names = [n for n in crop_names if str(n).strip() and str(n).lower() != 'none']
+
+                for name in crop_names:
+                    existing = session.execute(select(PrimaryAgProduct).where(PrimaryAgProduct.name == name)).scalar_one_or_none()
+                    if not existing:
+                        session.add(PrimaryAgProduct(name=name))
+                session.flush()
+                crop_map = fetch_lookup_ids(session, PrimaryAgProduct, crop_names)
 
                 # 2. Bulk Insert Polygons
                 geoms = df['geometry'].apply(lambda x: force_2d(x).wkt if hasattr(x, 'wkt') else x).tolist()

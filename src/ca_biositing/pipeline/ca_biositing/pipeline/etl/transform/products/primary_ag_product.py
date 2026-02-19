@@ -34,7 +34,7 @@ def transform(data_sources: Dict[str, pd.DataFrame]) -> Optional[pd.DataFrame]:
         return None
 
     # Step 3: Get unique product names and create the final DataFrame
-    primary_ag_product= raw_df['primary_ag_product'].unique()
+    primary_ag_product = raw_df['primary_ag_product'].dropna().astype(str).str.lower().str.strip().unique()
     transformed_df = pd.DataFrame(primary_ag_product, columns=["name"])
 
     logger.info(f"Successfully transformed data, found {len(transformed_df)} unique primary_ag_products.")
