@@ -11,6 +11,7 @@ repos:
       - id: check-merge-conflict
       - id: check-symlinks
       - id: check-yaml
+        exclude: ^mkdocs\.yml$
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
@@ -27,7 +28,7 @@ repos:
     rev: "v2.4.1"
     hooks:
       - id: codespell
-        exclude: (\.ipynb$|pixi\.lock)
+        exclude: (\.ipynb$|pixi\.lock|temp_external_datasets/)
 
   - repo: local
     hooks:
@@ -38,7 +39,7 @@ repos:
         exclude: .pre-commit-config.yaml
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: "0.34.1"
+    rev: "0.36.2"
     hooks:
       - id: check-dependabot
       - id: check-github-workflows

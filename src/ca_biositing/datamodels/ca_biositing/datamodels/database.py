@@ -1,27 +1,56 @@
-"""Database connection and session management for CA Biositing data models."""
+"""
+Database connection and session management using SQLModel.
 
-from __future__ import annotations
+This module provides lazy-initialized database engine and session management
+compatible with both standalone scripts and FastAPI dependencies.
+"""
 
-from typing import Generator
-
-from sqlmodel import Session, create_engine
-
-from ca_biositing.datamodels.config import config
-
-# Create database engine
-engine = create_engine(
-    config.database_url,
-    echo=config.echo_sql,
-    pool_size=config.pool_size,
-    max_overflow=config.max_overflow,
-)
+from sqlmodel import create_engine, Session
+import os
 
 
-def get_session() -> Generator[Session, None, None]:
-    """Get a database session.
+def _get_engine():
+    """Create a SQLModel engine with Docker-aware URL adjustment."""
+    from .config import settings
+    db_url = settings.database_url
 
-    Yields:
-        Session: SQLModel database session
+    # Docker-aware URL adjustment
+    if os.path.exists('/.dockerenv'):
+        if "localhost" in db_url:
+            db_url = db_url.replace("localhost", "db")
+
+    return create_engine(db_url, echo=False)
+
+
+# Lazy initialization of engine to avoid import-time hangs
+_engine = None
+
+
+def get_engine():
+    """Get or create the singleton database engine."""
+    global _engine
+    if _engine is None:
+        _engine = _get_engine()
+    return _engine
+
+
+def get_session():
     """
-    with Session(engine) as session:
+    Dependency that yields a database session.
+    Useful for FastAPI dependencies.
+
+    Usage:
+        @app.get("/items")
+        def read_items(session: Session = Depends(get_session)):
+            items = session.exec(select(Item)).all()
+            return items
+    """
+    with Session(get_engine()) as session:
         yield session
+
+
+# For backward compatibility with existing code that expects 'engine'
+def __getattr__(name):
+    if name == "engine":
+        return get_engine()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

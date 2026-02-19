@@ -1,37 +1,43 @@
-"""Configuration for CA Biositing data models.
-
-This module provides configuration management for database models using Pydantic Settings.
-"""
-
-from __future__ import annotations
-
+from pathlib import Path
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# Determine the project root (directory containing "pixi.toml") to locate the shared .env file.
+# Determine the project root (directory containing "pixi.toml") to locate the shared .env file.
+_project_root = Path(__file__).resolve().parent
+while not (_project_root / "pixi.toml").exists():
+    _project_root = _project_root.parent
+_env_path = _project_root / "resources" / "docker" / ".env"
 
 
-class ModelConfig(BaseSettings):
-    """Configuration for database models.
-
-    Attributes:
-        database_url: PostgreSQL database connection URL
-        echo_sql: Whether to echo SQL statements (for debugging)
-        pool_size: Database connection pool size
-        max_overflow: Maximum number of connections that can be created beyond pool_size
+class Settings(BaseSettings):
     """
+    Application settings and configuration for the datamodels package.
+
+    Uses Pydantic Settings to load configuration from environment variables
+    and .env files.
+    """
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "biositing"
+    POSTGRES_HOST: str = "db"
+    POSTGRES_PORT: int = 5432
+    DATABASE_URL: Optional[str] = None
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_env_path),
         env_file_encoding="utf-8",
-        case_sensitive=False,
         extra="ignore",
+        case_sensitive=True,
     )
 
-    database_url: str = "postgresql://user:password@localhost:5432/ca_biositing"
-    echo_sql: bool = False
-    pool_size: int = 5
-    max_overflow: int = 10
+    @property
+    def database_url(self) -> str:
+        """Constructs the database URL from components if not explicitly set."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
-# Global configuration instance
-config = ModelConfig()
+settings = Settings()

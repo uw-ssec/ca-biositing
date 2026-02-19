@@ -124,3 +124,37 @@ def replace_name_with_id_df(
     df_copy = df_copy.drop(columns=[name_column_name])
 
     return df_copy
+
+
+def fetch_lookup_ids(
+    db: Session,
+    ref_model: Type[ModelType],
+    names: list[str],
+    name_column: str = "name",
+    id_column: str = "id",
+) -> dict[str, int]:
+    """
+    Fetches IDs for a list of names from a reference table in bulk.
+
+    Args:
+        db: The database session.
+        ref_model: The SQLModel/SQLAlchemy class for the reference table.
+        names: List of names to look up.
+        name_column: The name of the column containing the human-readable name.
+        id_column: The name of the column containing the ID.
+
+    Returns:
+        A dictionary mapping names to IDs.
+    """
+    if not names:
+        return {}
+
+    # Filter out None/NaN and get unique names
+    unique_names = list(set(n for n in names if n is not None and (not isinstance(n, float) or not pd.isna(n))))
+
+    if not unique_names:
+        return {}
+
+    records = db.query(ref_model).filter(getattr(ref_model, name_column).in_(unique_names)).all()
+
+    return {getattr(r, name_column): getattr(r, id_column) for r in records}

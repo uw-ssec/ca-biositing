@@ -10,10 +10,10 @@ platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
 version = "0.1.0"
 
 [environments]
-default = ["datamodels", "pipeline", "webservice", "kernel"]
+default = ["datamodels", "pipeline", "webservice", "kernel", "gis"]
 py312 = ["py312", "datamodels", "pipeline", "webservice"]
 py313 = ["py313", "datamodels", "pipeline", "webservice"]
-gis = { features = ["qgis", "raster", "vector"], solve-group = "default" }
+gis = { features = ["qgis", "raster", "vector", "kernel"], solve-group = "default" }
 etl = { features = ["datamodels", "pipeline"], solve-group = "default" }
 webservice = { features = [
     "datamodels",
@@ -22,6 +22,8 @@ webservice = { features = [
 frontend = { features = [
     "frontend",
 ], no-default-feature = true, solve-group = "default" }
+docs = { features = ["docs"], no-default-feature = true, solve-group = "default" }
+deployment = { features = ["cloud"], solve-group = "default" }
 
 [dependencies]
 python = "~=3.12"
@@ -33,6 +35,11 @@ docker-compose = ">=2.39.2,<3"
 docker-cli = ">=28.3.1,<29"
 testcontainers = ">=4.13.2,<5"
 python-dotenv = ">=1.2.1,<2"
+asyncpg = ">=0.29.0,<0.30"
+pydrive2 = ">=1.21.3,<2"
+geopandas = ">=1.1.2,<2"
+pyogrio = ">=0.10.0"
+proj = "*"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -169,17 +176,30 @@ restart-prefect-worker = { cmd = [
 ], description = "Restart the Prefect worker service." }
 
 migrate = { cmd = [
-    "docker-compose",
-    "-f",
-    "resources/docker/docker-compose.yml",
-    "exec",
-    "prefect-worker",
-    "/bin/bash",
-    "-c",
-    "source /shell-hook.sh && alembic upgrade head",
-], description = "Apply database migrations.", depends-on = [
-    "start-services",
-] }
+    "alembic",
+    "upgrade",
+    "head",
+], description = "Apply database migrations locally to the Docker database.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+
+migrate-autogenerate = { cmd = "alembic revision --autogenerate", description = "Auto-generate a new Alembic migration from model changes.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+
+# pgschema CLI (pre-built binary, not on conda-forge)
+# See https://www.pgschema.com/installation#pre-built-binary
+install-pgschema = { cmd = "bash scripts/install-pgschema.sh", description = "Install pgschema CLI binary into the pixi environment." }
+
+# SQL-First Workflow Tasks (pgschema)
+# These tasks manage the database schema using raw SQL files as the source of truth.
+schema-dump = { cmd = "bash -c 'pgschema dump --host localhost --port 5432 --user biocirv_user --db biocirv_db --password biocirv_dev_password > src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql'", description = "Dump the current database schema to the reference SQL file.", env = { PGSSLMODE = "disable" } }
+
+# Public Schema Management (validation only - operational tasks replaced by Alembic)
+schema-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema public", description = "Plan changes for the 'public' schema.", env = { PGSSLMODE = "disable" } }
+
+# Analytics Schema Management (validation only - operational tasks replaced by Alembic)
+schema-analytics-plan = { cmd = "pgschema plan --host localhost --port 5432 --user biocirv_user --db biocirv_db --file src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql --password biocirv_dev_password --plan-db biocirv_db_shadow --plan-host localhost --plan-user biocirv_user --plan-password biocirv_dev_password --schema ca_biositing", description = "Plan changes for the 'ca_biositing' analytics schema.", env = { PGSSLMODE = "disable" } }
+
+# Materialized View Utilities
+schema-analytics-list = { cmd = "pixi run access-db -c \"SELECT schemaname, matviewname, ispopulated FROM pg_matviews\"", description = "List all materialized views in the database." }
+refresh-views = { cmd = "python -c \"from ca_biositing.datamodels.views import refresh_all_views; from ca_biositing.datamodels.database import get_engine; refresh_all_views(get_engine())\"", description = "Refresh all materialized views using SQLAlchemy.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
 
 [tasks.qgis]
 depends-on = [{ task = "run-qgis", environment = "gis" }]
@@ -215,6 +235,8 @@ xarray = "*"
 [feature.vector.dependencies]
 shapely = "*"
 pyproj = "*"
+proj = "*"
+geopandas = "*"
 
 # Python Dependencies for specific versions
 
@@ -236,18 +258,21 @@ frontend-dev = { cmd = "npm run dev", cwd = "frontend", description = "Run front
 frontend-build = { cmd = "npm run build", cwd = "frontend", description = "Build the production frontend bundle." }
 
 # Kernel Dependencies
-# This is to enable Jupyter Notebooks with IPython kernel
-[feature.kernel.dependencies]
-ipykernel = ">=7.1.0,<8"
-ipython = ">=9.0.0,<10"
+# pixi-kernel provides a Jupyter kernel that runs code in a pixi environment,
+# so all installed packages (including our namespace packages) are available
+# without any PYTHONPATH manipulation.
+[feature.kernel.pypi-dependencies]
+pixi-kernel = "*"
 
 # Datamodels Dependencies
 [feature.datamodels.pypi-dependencies]
-ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels" }
+ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels", editable = true }
 
 # Pipeline Dependencies
 [feature.pipeline.pypi-dependencies]
-ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline" }
+ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
+# Alembic is required for generating migrations inside the worker container
+alembic = ">=1.13.2,<2"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -255,11 +280,74 @@ args = [
     { "arg" = "env_file", "default" = "../docker/.env" },
 ]
 cwd = "resources/prefect"
-cmd = "./deploy.py --env-file {{ env_file }} {{ deployment_name }}"
+cmd = ["python", "deploy.py", "--env-file", "{{ env_file }}", "{{ deployment_name }}"]
 description = "Deploy the ETL pipeline to Prefect."
 depends-on = [{ task = "start-services" }]
 
 
 # Webservice Dependencies
 [feature.webservice.pypi-dependencies]
-ca-biositing-webservice = { path = "./src/ca_biositing/webservice" }
+ca-biositing-webservice = { path = "./src/ca_biositing/webservice", editable = true }
+fastapi = ">=0.111.0,<0.115.0"
+pydantic = ">=2.5,<3.0"
+
+[feature.docs.dependencies]
+python = ">=3.11,<3.14"
+mkdocs = "*"
+mkdocs-material = "*"
+mkdocs-git-revision-date-localized-plugin = "*"
+pymdown-extensions = "*"
+pip = "*"
+
+[feature.docs.pypi-dependencies]
+mkdocs-awesome-pages-plugin = "*"
+
+[feature.docs.tasks]
+docs-serve = { cmd = "mkdocs serve", description = "Run MkDocs locally for previewing documentation." }
+docs-build = { cmd = "mkdocs build", description = "Build static documentation site." }
+
+[tasks.rtd-publish]
+cmd = "pixi run -e docs python -m mkdocs build --clean --site-dir $READTHEDOCS_OUTPUT/html --config-file mkdocs.yml"
+description = "Build documentation for ReadTheDocs"
+
+
+# ==== Deployment environment ====
+[feature.cloud.tasks.install-pulumi]
+cmd = "curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX"
+outputs = ["**/bin/pulumi"]
+
+[feature.cloud.pypi-dependencies]
+pulumi = ">=3.0.0,<4"
+pulumi-gcp = ">=9.0.0,<10"
+
+# Pulumi tasks
+[feature.cloud.tasks.cloud-bootstrap]
+cmd = "gcloud storage buckets create gs://biocirv-470318-pulumi-state --location=us-west1 --uniform-bucket-level-access --public-access-prevention && gcloud storage buckets update gs://biocirv-470318-pulumi-state --versioning"
+description = "Create the Pulumi state bucket in GCS (one-time setup)."
+
+[feature.cloud.tasks.cloud-init]
+cmd = "pulumi login gs://biocirv-470318-pulumi-state"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Login to the Pulumi GCS backend for state management."
+
+[feature.cloud.tasks.cloud-plan]
+cmd = "pulumi preview"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Preview pending infrastructure changes."
+
+[feature.cloud.tasks.cloud-deploy]
+cmd = "pulumi up"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Deploy infrastructure changes to GCP."
+
+[feature.cloud.tasks.cloud-destroy]
+cmd = "pulumi destroy"
+cwd = "deployment/cloud/gcp/infrastructure"
+description = "Destroy all managed GCP infrastructure."
+
+[feature.gis.pypi-dependencies]
+geopandas = "*"
+matplotlib = "*"
+
+[pypi-dependencies]
+sqlalchemy = ">=2.0.44, <3"

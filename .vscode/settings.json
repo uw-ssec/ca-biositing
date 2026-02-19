@@ -1,4 +1,14 @@
 {
+  // For the Python language server / IntelliSense in VS Code.
+  // These are NOT runtime PYTHONPATH entries — they help the language server
+  // resolve imports across the PEP 420 namespace packages.
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src/ca_biositing/pipeline",
+    "${workspaceFolder}/src/ca_biositing/datamodels",
+    "${workspaceFolder}/src/ca_biositing/webservice"
+  ],
   "python.defaultInterpreterPath": "${workspaceFolder}/.pixi/envs/default/bin/python",
-  "python-envs.defaultEnvManager": "ms-python.python:system"
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  // Ensure the Jupyter extension starts notebooks with the workspace as root.
+  "jupyter.notebookFileRoot": "${workspaceFolder}"
 }

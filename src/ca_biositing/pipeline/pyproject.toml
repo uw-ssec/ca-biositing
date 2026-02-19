@@ -31,6 +31,8 @@ dependencies = [
     "pyjanitor",
     "google-auth-oauthlib",
     "python-dotenv>=1.0.1,<2",
+    "geopandas",
+    "pyogrio",
 ]
 
 [project.urls]
@@ -40,9 +42,17 @@ Issues = "https://github.com/uw-ssec/ca-biositing/issues"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["ca_biositing"]
+exclude = [
+    "**/.ipynb_checkpoints",
+    "**/* copy.py",
+]
 
 [tool.hatch.version]
 path = "ca_biositing/pipeline/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["tests/"]
+exclude = [
+    "tests/",
+    "**/.ipynb_checkpoints",
+    "**/* copy.py",
+]

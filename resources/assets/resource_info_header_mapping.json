@@ -1,0 +1,12 @@
+{
+  "resource": "Resource",
+  "resource_code": "Resource Code",
+  "landiq_crop_name": "LandIQ Crop Name",
+  "residue_type": "Residue Type",
+  "collected": "Collected?",
+  "from_month": "From Month",
+  "to_month": "To Month",
+  "residue_yield_wet_ton_per_ac": "Residue Yield (Wet Ton/Ac)",
+  "moisture_content": "Moisture Content",
+  "residue_yield_dry_ton_per_ac": "Residue Yield (Dry Ton/Ac)"
+}

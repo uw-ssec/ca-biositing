@@ -97,6 +97,43 @@ To activate one of these environments, run the following command:
 pixi shell -e <environment>
 ```
 
+### Database and Model Development
+
+This project uses **SQLModel** for database models and **Alembic** for
+migrations. Models are hand-written classes organized in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`.
+
+#### Making Schema Changes
+
+1. Edit or add SQLModel classes in the appropriate `models/` subdirectory.
+2. If adding a new model, re-export it in `models/__init__.py`.
+3. Ensure services are running: `pixi run start-services`.
+4. Auto-generate a migration:
+   ```bash
+   pixi run migrate-autogenerate -m "Description of changes"
+   ```
+5. Review the generated migration in `alembic/versions/`.
+6. Apply the migration:
+   ```bash
+   pixi run migrate
+   ```
+
+#### Refreshing Materialized Views
+
+After loading new data into the database, refresh the analytical views:
+
+```bash
+pixi run refresh-views
+```
+
+#### Importing Models
+
+All models are re-exported from `ca_biositing.datamodels.models`:
+
+```python
+from ca_biositing.datamodels.models import Resource, FieldSample, Place
+```
+
 ### Running Tests
 
 This project uses [pytest](https://pytest.org/) as its testing framework. You

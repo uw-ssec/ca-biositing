@@ -1,0 +1,3 @@
+config:
+  gcp:project: biocirv-470318
+  gcp:region: us-west1

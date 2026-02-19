@@ -14,10 +14,13 @@ def gsheet_to_df(gsheet_name: str, worksheet_name: str, credentials_path: str) -
     Returns:
         A pandas DataFrame containing the data from the specified worksheet, or None on error.
     """
+    print(f"DEBUG: gsheet_to_df called for {gsheet_name} / {worksheet_name}")
     try:
+        print(f"DEBUG: Authenticating with {credentials_path}")
         gc = gspread.service_account(filename=credentials_path)
 
         try:
+            print(f"DEBUG: Opening spreadsheet {gsheet_name}")
             spreadsheet = gc.open(gsheet_name)
         except SpreadsheetNotFound:
             print(f"Error: Spreadsheet '{gsheet_name}' not found.")
@@ -25,6 +28,7 @@ def gsheet_to_df(gsheet_name: str, worksheet_name: str, credentials_path: str) -
             return None
 
         try:
+            print(f"DEBUG: Opening worksheet {worksheet_name}")
             worksheet = spreadsheet.worksheet(worksheet_name)
         except WorksheetNotFound:
             print(f"Error: Worksheet '{worksheet_name}' not found in the spreadsheet.")
@@ -33,7 +37,9 @@ def gsheet_to_df(gsheet_name: str, worksheet_name: str, credentials_path: str) -
 
         # Get values directly to ensure we get calculated values, not formulas.
         # 'FORMATTED_VALUE' gets the value as you see it in the sheet.
+        print(f"DEBUG: Fetching all values from {worksheet_name}")
         all_values = worksheet.get_all_values(value_render_option='FORMATTED_VALUE')
+        print(f"DEBUG: Successfully fetched {len(all_values)} rows")
         if not all_values:
             return pd.DataFrame() # Return empty DataFrame if sheet is empty
 
