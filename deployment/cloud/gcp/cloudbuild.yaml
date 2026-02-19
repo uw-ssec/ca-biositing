@@ -4,7 +4,7 @@ steps:
     args:
       - build
       - -t
-      - gcr.io/biocirv-470318/webservice:latest
+      - gcr.io/$PROJECT_ID/webservice:latest
       - -f
       - resources/docker/webservice.dockerfile
       - .
@@ -15,15 +15,15 @@ steps:
     args:
       - build
       - -t
-      - gcr.io/biocirv-470318/pipeline:latest
+      - gcr.io/$PROJECT_ID/pipeline:latest
       - -f
       - resources/docker/pipeline.dockerfile
       - .
     waitFor: ["-"]
 
 images:
-  - gcr.io/biocirv-470318/webservice:latest
-  - gcr.io/biocirv-470318/pipeline:latest
+  - gcr.io/$PROJECT_ID/webservice:latest
+  - gcr.io/$PROJECT_ID/pipeline:latest
 
 options:
   machineType: E2_HIGHCPU_8

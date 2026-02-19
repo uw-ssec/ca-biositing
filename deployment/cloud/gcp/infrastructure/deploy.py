@@ -17,7 +17,7 @@ from config import (
 from apis import enable_apis
 from cloud_sql import create_cloud_sql
 from iam import create_service_accounts
-from secrets import create_secrets
+from secret_manager import create_secrets
 
 from cloud_run import create_cloud_run_resources
 

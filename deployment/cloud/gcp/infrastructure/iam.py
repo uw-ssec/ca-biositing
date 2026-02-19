@@ -39,6 +39,7 @@ SA_DEFINITIONS = [
         "Prefect Worker Cloud Run SA",
         [
             "roles/cloudsql.client",
+            "roles/secretmanager.secretAccessor",
             "roles/artifactregistry.reader",
         ],
     ),

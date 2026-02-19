@@ -15,7 +15,7 @@ from config import (
     PREFECT_DB_NAME,
 )
 from cloud_sql import CloudSQLResources
-from secrets import SecretResources
+from secret_manager import SecretResources
 from iam import IAMResources
 
 
@@ -43,7 +43,7 @@ def create_cloud_run_resources(
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["webservice"].email,
             scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
-                min_instance_count=1,
+                min_instance_count=0,
                 max_instance_count=10,
             ),
             containers=[
@@ -126,16 +126,9 @@ def create_cloud_run_resources(
     )
 
     # --- 5.3: Alembic Migration Job ---
-    database_url = pulumi.Output.all(
-        password=secrets.db_password.result,
-        connection_name=sql.instance.connection_name,
-    ).apply(
-        lambda args: (
-            f"postgresql+psycopg2://{DB_USER}:{args['password']}"
-            f"@/{DB_NAME}?host=/cloudsql/{args['connection_name']}"
-        )
-    )
-
+    # Pass individual env vars instead of a composed DATABASE_URL so the
+    # password comes from Secret Manager (not visible in Cloud Run config).
+    # alembic/env.py falls back to Settings which constructs the URL from these.
     migration_job = gcp.cloudrunv2.Job(
         "migration-job",
         name="biocirv-alembic-migrate",
@@ -154,8 +147,25 @@ def create_cloud_run_resources(
                         ),
                         envs=[
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="DATABASE_URL",
-                                value=database_url,
+                                name="DB_USER",
+                                value=DB_USER,
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="POSTGRES_DB",
+                                value=DB_NAME,
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="DB_PASS",
+                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
+                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                        secret=secrets.db_password_secret.secret_id,
+                                        version="latest",
+                                    )
+                                ),
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="INSTANCE_CONNECTION_NAME",
+                                value=sql.instance.connection_name,
                             ),
                         ],
                         volume_mounts=[
@@ -197,7 +207,7 @@ def create_cloud_run_resources(
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-server"].email,
             scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
-                min_instance_count=1,
+                min_instance_count=0,
                 max_instance_count=1,
             ),
             containers=[
@@ -292,10 +302,11 @@ def create_cloud_run_resources(
         "prefect-worker",
         name="biocirv-prefect-worker",
         location=GCP_REGION,
+        ingress="INGRESS_TRAFFIC_INTERNAL_ONLY",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-worker"].email,
             scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
-                min_instance_count=1,
+                min_instance_count=1,  # Must stay at 1: worker polls for jobs
                 max_instance_count=1,
             ),
             containers=[
@@ -326,8 +337,25 @@ def create_cloud_run_resources(
                             value=prefect_api_url,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="DATABASE_URL",
-                            value=database_url,
+                            name="DB_USER",
+                            value=DB_USER,
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="POSTGRES_DB",
+                            value=DB_NAME,
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="DB_PASS",
+                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
+                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                    secret=secrets.db_password_secret.secret_id,
+                                    version="latest",
+                                )
+                            ),
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="INSTANCE_CONNECTION_NAME",
+                            value=sql.instance.connection_name,
                         ),
                     ],
                     volume_mounts=[
