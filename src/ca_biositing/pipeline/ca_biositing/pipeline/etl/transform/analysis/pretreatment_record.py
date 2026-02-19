@@ -24,7 +24,8 @@ def transform_pretreatment_record(
         Dataset,
         FileObjectMetadata,
         Experiment,
-        Equipment
+        Equipment,
+        DeconVessel
     )
     logger = get_run_logger()
     logger.info("Transforming raw data for PretreatmentRecord table")
@@ -87,7 +88,8 @@ def transform_pretreatment_record(
         'reaction_block_id': (Equipment, 'name'),
         'analyst_email': (Contact, 'email'),
         'dataset': (Dataset, 'name'),
-        'raw_data_url': (FileObjectMetadata, 'uri')
+        'raw_data_url': (FileObjectMetadata, 'uri'),
+        'vessel_id': (DeconVessel, 'name')
     }
     normalized_df = normalize_dataframes(coerced_df, normalize_columns)
 
@@ -112,6 +114,7 @@ def transform_pretreatment_record(
                           'experiment_id' if col == 'pretreatment_exper_name' else \
                           'pretreatment_method_id' if col == 'decon_method_id' else \
                           'eh_method_id' if col == 'eh_method_id' else \
+                          'vessel_id' if col == 'vessel_id' else \
                           'raw_data_id' if col == 'raw_data_url' else norm_col
             rename_map[norm_col] = target_name
 
