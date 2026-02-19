@@ -179,9 +179,9 @@ migrate = { cmd = [
     "alembic",
     "upgrade",
     "head",
-], description = "Apply database migrations locally to the Docker database.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+], description = "Apply database migrations locally to the Docker database."}
 
-migrate-autogenerate = { cmd = "alembic revision --autogenerate", description = "Auto-generate a new Alembic migration from model changes.", env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" } }
+migrate-autogenerate = { cmd = "alembic revision --autogenerate", description = "Auto-generate a new Alembic migration from model changes." }
 
 # pgschema CLI (pre-built binary, not on conda-forge)
 # See https://www.pgschema.com/installation#pre-built-binary

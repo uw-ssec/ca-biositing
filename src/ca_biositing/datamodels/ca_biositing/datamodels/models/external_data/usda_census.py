@@ -9,6 +9,9 @@ class UsdaCommodity(LookupBase, table=True):
 
     usda_source: Optional[str] = Field(default=None)
     usda_code: Optional[str] = Field(default=None)
+    api_name: Optional[str] = Field(default=None)
+    created_at: Optional[datetime] = Field(default=None)
+    updated_at: Optional[datetime] = Field(default=None)
     parent_commodity_id: Optional[int] = Field(default=None, foreign_key="usda_commodity.id")
 
     # Relationships
