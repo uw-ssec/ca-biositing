@@ -5,26 +5,13 @@ from prefect import task, get_run_logger
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
+from ca_biositing.pipeline.utils.engine import engine
+
 def get_local_engine():
     """
-    Creates a SQLAlchemy engine based on the environment (Docker vs Local).
+    Returns the shared SQLAlchemy engine instance.
     """
-    import os
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+    return engine
 
 @task
 def load_prepared_sample(df: pd.DataFrame):

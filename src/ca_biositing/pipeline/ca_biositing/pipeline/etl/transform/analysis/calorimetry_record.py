@@ -1,16 +1,22 @@
+"""
+Calorimetry record transformation module.
+"""
 import pandas as pd
 from prefect import task, get_run_logger
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 from ca_biositing.pipeline.utils.cleaning_functions import coercion as coercion_mod
 from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
-# from ca_biositing.datamodels.models import *
 
 @task
-def transform_compositional_record(
+def transform_calorimetry_record(
     raw_df: pd.DataFrame,
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: int | None = None
 ) -> pd.DataFrame:
+    """
+    Transforms raw DataFrame into the CalorimetryRecord table format.
+    Includes cleaning, coercion, and normalization.
+    """
     from ca_biositing.datamodels.models import (
         Resource,
         PreparedSample,
@@ -23,25 +29,42 @@ def transform_compositional_record(
         Dataset,
         FileObjectMetadata,
     )
-    """
-    Transforms raw DataFrame into the CompositionalRecord table format.
-    Includes cleaning, coercion, and normalization.
-    """
     logger = get_run_logger()
-    logger.info("Transforming raw data for CompositionalRecord table")
+    logger.info("Transforming raw data for CalorimetryRecord table")
+
+    if raw_df is None:
+        logger.error("raw_df is None for CalorimetryRecord transform")
+        return pd.DataFrame()
+
+    # Handle duplicate columns
+    # Aggressive cleaning of headers
+    raw_df.columns = [str(c).strip() for c in raw_df.columns]
+    if "" in raw_df.columns:
+        raw_df = raw_df.drop(columns=[""])
+
+    # Pre-clean names to catch normalization-induced duplicates (e.g. 'Upload Status' -> 'upload_status')
+    raw_df = cleaning_mod.clean_names_df(raw_df)
+
+    if raw_df.columns.duplicated().any():
+        dupes = raw_df.columns[raw_df.columns.duplicated()].unique().tolist()
+        logger.warning(f"CalorimetryRecord: Duplicate columns found and removed: {dupes}")
+        raw_df = raw_df.loc[:, ~raw_df.columns.duplicated()]
 
     # 1. Cleaning & Coercion
     df_copy = raw_df.copy()
     df_copy['dataset'] = 'biocirv'
+
     cleaned_df = cleaning_mod.standard_clean(df_copy)
 
-    # Add ETL and Lineage IDs if provided
-    if etl_run_id:
+    if cleaned_df is None:
+        logger.error("cleaning_mod.standard_clean returned None for CalorimetryRecord")
+        return pd.DataFrame()
+
+    # Add lineage IDs AFTER standard_clean to avoid them being lowercased or modified
+    if etl_run_id is not None:
         cleaned_df['etl_run_id'] = etl_run_id
-    if lineage_group_id:
+    if lineage_group_id is not None:
         cleaned_df['lineage_group_id'] = lineage_group_id
-
-
     coerced_df = coercion_mod.coerce_columns(
         cleaned_df,
         int_cols=['repl_no'],
@@ -69,6 +92,7 @@ def transform_compositional_record(
     rename_map = {
         'record_id': 'record_id',
         'repl_no': 'technical_replicate_no',
+        'value': 'value',
         'qc_result': 'qc_pass',
         'note': 'note',
         'etl_run_id': 'etl_run_id',
@@ -87,15 +111,15 @@ def transform_compositional_record(
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
 
     try:
-        record_df = normalized_df[available_cols].copy().rename(columns=final_rename)
+        record_df = normalized_df[available_cols].rename(columns=final_rename).copy()
 
         if 'record_id' in record_df.columns:
             record_df = record_df.dropna(subset=['record_id'])
         else:
-            logger.error("record_id missing from CompositionalRecord transform")
+            logger.error("record_id missing from CalorimetryRecord transform")
             return pd.DataFrame()
 
         return record_df
     except Exception as e:
-        logger.error(f"Error during CompositionalRecord transform: {e}")
+        logger.error(f"Error during CalorimetryRecord transform: {e}")
         return pd.DataFrame()

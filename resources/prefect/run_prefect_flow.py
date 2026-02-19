@@ -40,15 +40,11 @@ def master_flow():
             print(f"DEBUG: Successfully got attribute {obj_name}")
 
             logger.info(f"Executing {flow_name} as sub-flow")
-            print(f"DEBUG: Calling {flow_name} directly")
             # We must call the flow function. If it's a Prefect flow object,
             # calling it will trigger the orchestration.
             result = flow_func()
-            print(f"DEBUG: {flow_name} returned: {result}")
-            print(f"DEBUG: Finished {flow_name}")
-        except Exception as e:
-            logger.error(f"Flow '{flow_name}' failed with error: {e}")
-            logger.error(traceback.format_exc())
+        except Exception:
+            logger.exception(f"Flow '{flow_name}' failed")
     logger.info("Master ETL flow completed.")
 
 if __name__ == "__main__":

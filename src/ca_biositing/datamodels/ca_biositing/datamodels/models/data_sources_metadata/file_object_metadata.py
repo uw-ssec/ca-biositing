@@ -7,6 +7,7 @@ from typing import Optional
 class FileObjectMetadata(BaseEntity, table=True):
     __tablename__ = "file_object_metadata"
 
+    uri: Optional[str] = Field(default=None, unique=True)
     data_source_id: Optional[int] = Field(default=None, foreign_key="data_source.id")
     bucket_path: Optional[str] = Field(default=None)
     file_format: Optional[str] = Field(default=None)
