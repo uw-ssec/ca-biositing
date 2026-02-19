@@ -111,6 +111,7 @@ def transform_pretreatment_record(
                           'method_id' if col == 'preparation_method' else \
                           'experiment_id' if col == 'pretreatment_exper_name' else \
                           'pretreatment_method_id' if col == 'decon_method_id' else \
+                          'eh_method_id' if col == 'eh_method_id' else \
                           'raw_data_id' if col == 'raw_data_url' else norm_col
             rename_map[norm_col] = target_name
 

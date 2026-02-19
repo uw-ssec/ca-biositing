@@ -33,6 +33,7 @@ def test_pretreatment_etl_full(
             "Analyst_email": ["test@example.com"],
             "Pretreatment_exper_name": ["Exp_1"],
             "Decon_method_id": ["Method_A"],
+            "EH_method_id": ["EH_Method_X"],
             "Reaction_block_id": ["Block_1"],
             "Raw_data_url": ["http://example.com/data"]
         })
@@ -59,6 +60,7 @@ def test_pretreatment_etl_full(
             "analyst_email_id": [10],
             "pretreatment_exper_name_id": [20],
             "decon_method_id_id": [30],
+            "eh_method_id_id": [35],
             "reaction_block_id_id": [40],
             "raw_data_url_id": [100],
             "dataset_id": [1]
@@ -91,6 +93,8 @@ def test_pretreatment_etl_full(
         assert "temperature" in trans_df.columns
         assert "analyst_id" in trans_df.columns
         assert "pretreatment_method_id" in trans_df.columns
+        assert "eh_method_id" in trans_df.columns
+        assert trans_df["eh_method_id"].iloc[0] == 35
         assert trans_df["temperature"].iloc[0] == 120.5
         assert mock_gsheet.called
         assert mock_prec_normalize.called
