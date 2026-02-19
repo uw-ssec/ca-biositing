@@ -5,10 +5,12 @@ from sqlalchemy.engine import URL
 from typing import Optional
 
 # Determine the project root (directory containing "pixi.toml") to locate the shared .env file.
-# Determine the project root (directory containing "pixi.toml") to locate the shared .env file.
 _project_root = Path(__file__).resolve().parent
 while not (_project_root / "pixi.toml").exists():
-    _project_root = _project_root.parent
+    parent = _project_root.parent
+    if parent == _project_root:  # reached filesystem root without finding pixi.toml
+        break
+    _project_root = parent
 _env_path = _project_root / "resources" / "docker" / ".env"
 
 
