@@ -305,14 +305,14 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 
 #### 3. Connection settings
 
-| Field    | Value                                                  |
-| -------- | ------------------------------------------------------ |
-| Host     | `127.0.0.1`                                            |
-| Port     | `5434`                                                 |
-| Database | `biocirv-staging`                                      |
-| Username | `biocirv_user` (or `biocirv_readonly` for read-only)   |
-| Password | (from step 2)                                          |
-| SSL      | off (the proxy handles encryption to Cloud SQL)        |
+| Field    | Value                                                |
+| -------- | ---------------------------------------------------- |
+| Host     | `127.0.0.1`                                          |
+| Port     | `5434`                                               |
+| Database | `biocirv-staging`                                    |
+| Username | `biocirv_user` (or `biocirv_readonly` for read-only) |
+| Password | (from step 2)                                        |
+| SSL      | off (the proxy handles encryption to Cloud SQL)      |
 
 ### Staging Troubleshooting
 
