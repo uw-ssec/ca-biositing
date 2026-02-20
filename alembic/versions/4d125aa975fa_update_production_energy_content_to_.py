@@ -1,7 +1,7 @@
 """Update production_energy_content to BIGINT
 
 Revision ID: 4d125aa975fa
-Revises: 9c5c72c6d059
+Revises: a085cd4a462e
 Create Date: 2026-02-17 13:34:35.343564
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '4d125aa975fa'
-down_revision: Union[str, Sequence[str], None] = '9c5c72c6d059'
+down_revision: Union[str, Sequence[str], None] = 'a085cd4a462e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,7 +1,7 @@
 """Grant readonly permissions to biocirv_readonly
 
 Revision ID: 0002_grant_readonly_permissions
-Revises: 9c5c72c6d059
+Revises: 923d39b6c4da
 Create Date: 2026-02-19 00:00:00.000000
 
 """
@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '0002_grant_readonly_permissions'
-down_revision: Union[str, Sequence[str], None] = '9c5c72c6d059'
+down_revision: Union[str, Sequence[str], None] = '923d39b6c4da'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

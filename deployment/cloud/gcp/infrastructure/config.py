@@ -17,6 +17,7 @@ GCP_REGION = "us-west1"
 DB_INSTANCE_NAME = "biocirv-staging"
 DB_NAME = "biocirv-staging"
 PREFECT_DB_NAME = "prefect"
+PREFECT_WORK_POOL_NAME = "biocirv-staging-pool"
 DB_USER = "biocirv_user"
 
 # Read-only users

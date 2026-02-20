@@ -11,6 +11,7 @@ from config import (
     WEBSERVICE_IMAGE,
     PIPELINE_IMAGE,
     PREFECT_SERVER_IMAGE,
+    PREFECT_WORK_POOL_NAME,
     DB_USER,
     DB_NAME,
     PREFECT_DB_NAME,
@@ -324,7 +325,7 @@ def create_cloud_run_resources(
                         "worker",
                         "start",
                         "--pool",
-                        "biocirv-staging-pool",
+                        PREFECT_WORK_POOL_NAME,
                         "--type",
                         "process",
                         "--limit",
@@ -341,6 +342,10 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="PREFECT_API_URL",
                             value=prefect_api_url,
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="PREFECT_WORK_POOL_NAME",
+                            value=PREFECT_WORK_POOL_NAME,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="DB_USER",

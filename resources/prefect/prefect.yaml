@@ -27,6 +27,6 @@ deployments:
     entrypoint: run_prefect_flow.py:master_flow
     parameters: {}
     work_pool:
-      name: biocirv-staging-pool
+      name: "{{ $PREFECT_WORK_POOL_NAME }}"
       work_queue_name: null
     schedules: []

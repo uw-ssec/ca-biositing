@@ -1,7 +1,7 @@
 """add uri to file_object_metadata
 
 Revision ID: 923d39b6c4da
-Revises: 9c5c72c6d059
+Revises: ab30129c589f
 Create Date: 2026-02-18 13:20:13.029272
 
 """
@@ -13,7 +13,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = '923d39b6c4da'
-down_revision: Union[str, Sequence[str], None] = '9c5c72c6d059'
+down_revision: Union[str, Sequence[str], None] = 'ab30129c589f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
