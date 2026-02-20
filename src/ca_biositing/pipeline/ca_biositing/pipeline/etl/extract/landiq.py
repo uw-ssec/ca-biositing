@@ -20,8 +20,11 @@ from prefect import task, get_run_logger
 # and place it in the data/landiq/ directory.
 DEFAULT_SHAPEFILE_PATH = "data/landiq/i15_Crop_Mapping_2023_Provisional.shp"
 
-# HTTP URL for downloading the shapefile in Cloud Run; empty string means disabled.
-LANDIQ_SHAPEFILE_URL = os.getenv("LANDIQ_SHAPEFILE_URL", "")
+# HTTP URL for downloading the shapefile in Cloud Run; defaults to CNRA 2023 provisional dataset.
+LANDIQ_SHAPEFILE_URL = os.getenv(
+    "LANDIQ_SHAPEFILE_URL",
+    "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource/25d0f174-4bec-4987-a402-602cd1372786/download/i15_crop_mapping_2023_provisional.zip",
+)
 
 
 def _download_shapefile(url: str, logger) -> Optional[str]:
