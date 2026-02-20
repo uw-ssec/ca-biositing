@@ -4,13 +4,15 @@ from prefect import flow, task
 def aim2_bioconversion_flow(*args, **kwargs):
     """
     Orchestrates the ETL process for Aim 2 Bioconversion data,
-    starting with Pretreatment Records.
+    including Pretreatment and Fermentation Records.
     """
     from prefect import get_run_logger
-    from ca_biositing.pipeline.etl.extract import pretreatment_data
+    from ca_biositing.pipeline.etl.extract import pretreatment_data, bioconversion_data
     from ca_biositing.pipeline.etl.transform.analysis.pretreatment_record import transform_pretreatment_record
+    from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
     from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
     from ca_biositing.pipeline.etl.load.analysis.pretreatment_record import load_pretreatment_record
+    from ca_biositing.pipeline.etl.load.analysis.fermentation_record import load_fermentation_record
     from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
     from ca_biositing.pipeline.utils.lineage import create_etl_run_record, create_lineage_group
 
@@ -19,48 +21,70 @@ def aim2_bioconversion_flow(*args, **kwargs):
 
     # 0. Lineage Tracking Setup
     etl_run_id = create_etl_run_record(pipeline_name="Aim 2 Bioconversion ETL")
-    lineage_group_id = create_lineage_group(
+
+    # --- PART 1: Pretreatment ---
+    lineage_group_pre = create_lineage_group(
         etl_run_id=etl_run_id,
         note="Aim 2 Bioconversion - Pretreatment Records"
     )
 
-    # 1. Extract
     logger.info("Extracting Pretreatment data...")
     pretreatment_raw = pretreatment_data.extract()
 
-    if pretreatment_raw is None or pretreatment_raw.empty:
-        logger.warning("No Pretreatment data extracted. Skipping transform and load.")
-        return
+    if pretreatment_raw is not None and not pretreatment_raw.empty:
+        # Transform Observations
+        pretreatment_raw_copy = pretreatment_raw.copy()
+        pretreatment_raw_copy['analysis_type'] = 'pretreatment'
+        obs_pre_df = transform_observation(
+            [pretreatment_raw_copy],
+            etl_run_id=etl_run_id,
+            lineage_group_id=lineage_group_pre
+        )
+        if not obs_pre_df.empty:
+            load_observation(obs_pre_df)
 
-    # 2. Transform
-    logger.info("Transforming Observation records...")
-    # We need to add analysis_type to the raw data so observation transform knows what it is
-    pretreatment_raw_copy = pretreatment_raw.copy()
-    pretreatment_raw_copy['analysis_type'] = 'pretreatment'
-
-    obs_df = transform_observation(
-        [pretreatment_raw_copy],
-        etl_run_id=etl_run_id,
-        lineage_group_id=lineage_group_id
-    )
-
-    logger.info("Transforming Pretreatment records...")
-    pretreatment_rec_df = transform_pretreatment_record(
-        pretreatment_raw,
-        etl_run_id=etl_run_id,
-        lineage_group_id=lineage_group_id
-    )
-
-    # 3. Load
-    if not obs_df.empty:
-        logger.info("Loading Observations into database...")
-        load_observation(obs_df)
-
-    if not pretreatment_rec_df.empty:
-        logger.info("Loading Pretreatment records into database...")
-        load_pretreatment_record(pretreatment_rec_df)
+        # Transform Pretreatment Records
+        pretreatment_rec_df = transform_pretreatment_record(
+            pretreatment_raw,
+            etl_run_id=etl_run_id,
+            lineage_group_id=lineage_group_pre
+        )
+        if not pretreatment_rec_df.empty:
+            load_pretreatment_record(pretreatment_rec_df)
     else:
-        logger.warning("Pretreatment transformation resulted in empty DataFrame. Skipping load.")
+        logger.warning("No Pretreatment data extracted.")
+
+    # --- PART 2: Fermentation ---
+    lineage_group_ferm = create_lineage_group(
+        etl_run_id=etl_run_id,
+        note="Aim 2 Bioconversion - Fermentation Records"
+    )
+
+    logger.info("Extracting Fermentation data...")
+    fermentation_raw = bioconversion_data.extract()
+
+    if fermentation_raw is not None and not fermentation_raw.empty:
+        # Transform Observations
+        fermentation_raw_copy = fermentation_raw.copy()
+        fermentation_raw_copy['analysis_type'] = 'fermentation' # Assuming this type exists or will be added
+        obs_ferm_df = transform_observation(
+            [fermentation_raw_copy],
+            etl_run_id=etl_run_id,
+            lineage_group_id=lineage_group_ferm
+        )
+        if not obs_ferm_df.empty:
+            load_observation(obs_ferm_df)
+
+        # Transform Fermentation Records
+        fermentation_rec_df = transform_fermentation_record(
+            fermentation_raw,
+            etl_run_id=etl_run_id,
+            lineage_group_id=lineage_group_ferm
+        )
+        if not fermentation_rec_df.empty:
+            load_fermentation_record(fermentation_rec_df)
+    else:
+        logger.warning("No Fermentation data extracted.")
 
     logger.info("Aim 2 Bioconversion ETL flow completed successfully.")
 

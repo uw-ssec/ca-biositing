@@ -67,6 +67,8 @@ class UsdaSurveyRecord(BaseEntity, table=True):
     year: Optional[int] = Field(default=None)
     survey_program_id: Optional[int] = Field(default=None, foreign_key="usda_survey_program.id")
     survey_period: Optional[str] = Field(default=None)
+    begin_code: Optional[str] = Field(default=None)
+    end_code: Optional[str] = Field(default=None)
     reference_month: Optional[str] = Field(default=None)
     begin_code: Optional[int] = Field(default=None)
     end_code: Optional[int] = Field(default=None)
