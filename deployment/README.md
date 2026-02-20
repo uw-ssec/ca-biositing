@@ -398,8 +398,8 @@ the migration job. New resources after recent changes include:
 
 ### Step 3: Upload Secrets (post-deploy, manual)
 
-These secrets must be populated manually after `cloud-deploy` creates the
-secret shells:
+These secrets must be populated manually after `cloud-deploy` creates the secret
+shells:
 
 ```bash
 # 1. GSheets / Google Drive service account credentials
@@ -517,18 +517,18 @@ Expected: Non-zero counts for flows that have valid data sources.
 
 All environment variables injected into the Prefect worker Cloud Run service:
 
-| Variable | Source | Description |
-|---|---|---|
-| `PREFECT_API_URL` | Derived from prefect-server URI | Prefect API endpoint |
-| `PREFECT_WORK_POOL_NAME` | Plain text | Work pool name (`biocirv-staging-pool`) |
-| `DB_USER` | Plain text | Cloud SQL username |
-| `POSTGRES_DB` | Plain text | Database name |
-| `DB_PASS` | Secret Manager (`biocirv-staging-db-password`) | Database password |
-| `INSTANCE_CONNECTION_NAME` | Plain text | Cloud SQL Unix socket path |
-| `USDA_NASS_API_KEY` | Secret Manager (`biocirv-staging-usda-nass-api-key`) | USDA NASS QuickStats API key |
-| `CREDENTIALS_PATH` | Plain text | Path to GSheets/Drive service account file |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Plain text | Path to GCP service account credentials (ADC) |
-| `LANDIQ_SHAPEFILE_URL` | Plain text | HTTP URL to download LandIQ shapefile at runtime |
+| Variable                         | Source                                               | Description                                      |
+| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
+| `PREFECT_API_URL`                | Derived from prefect-server URI                      | Prefect API endpoint                             |
+| `PREFECT_WORK_POOL_NAME`         | Plain text                                           | Work pool name (`biocirv-staging-pool`)          |
+| `DB_USER`                        | Plain text                                           | Cloud SQL username                               |
+| `POSTGRES_DB`                    | Plain text                                           | Database name                                    |
+| `DB_PASS`                        | Secret Manager (`biocirv-staging-db-password`)       | Database password                                |
+| `INSTANCE_CONNECTION_NAME`       | Plain text                                           | Cloud SQL Unix socket path                       |
+| `USDA_NASS_API_KEY`              | Secret Manager (`biocirv-staging-usda-nass-api-key`) | USDA NASS QuickStats API key                     |
+| `CREDENTIALS_PATH`               | Plain text                                           | Path to GSheets/Drive service account file       |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Plain text                                           | Path to GCP service account credentials (ADC)    |
+| `LANDIQ_SHAPEFILE_URL`           | Plain text                                           | HTTP URL to download LandIQ shapefile at runtime |
 
 ---
 
@@ -536,19 +536,19 @@ All environment variables injected into the Prefect worker Cloud Run service:
 
 ### Automatically managed by Pulumi
 
-| Secret | Description |
-|---|---|
-| `biocirv-staging-db-password` | Cloud SQL primary user password (auto-generated) |
-| `biocirv-staging-postgres-password` | Postgres superuser password (auto-generated) |
-| `biocirv-staging-ro-biocirv_readonly` | Read-only user password (auto-generated) |
-| `biocirv-staging-prefect-auth` | Prefect HTTP Basic Auth password (auto-generated) |
+| Secret                                | Description                                       |
+| ------------------------------------- | ------------------------------------------------- |
+| `biocirv-staging-db-password`         | Cloud SQL primary user password (auto-generated)  |
+| `biocirv-staging-postgres-password`   | Postgres superuser password (auto-generated)      |
+| `biocirv-staging-ro-biocirv_readonly` | Read-only user password (auto-generated)          |
+| `biocirv-staging-prefect-auth`        | Prefect HTTP Basic Auth password (auto-generated) |
 
 ### Manually uploaded post-deploy
 
-| Secret | How to upload |
-|---|---|
+| Secret                                | How to upload                                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `biocirv-staging-gsheets-credentials` | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json` |
-| `biocirv-staging-usda-nass-api-key` | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-` |
+| `biocirv-staging-usda-nass-api-key`   | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-` |
 
 ---
 
