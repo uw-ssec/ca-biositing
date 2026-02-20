@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from urllib.parse import quote_plus
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 from typing import Optional
@@ -56,8 +57,9 @@ class Settings(BaseSettings):
             socket_path = f"/cloudsql/{self.INSTANCE_CONNECTION_NAME}"
             # Build the URL directly — URL.create() percent-encodes slashes and colons
             # in the host query parameter, which breaks the Unix socket path.
+            # URL-encode the password so special chars (@, :, /, %) don't break the URL.
             return (
-                f"postgresql://{user}:{password}@/{self.POSTGRES_DB}"
+                f"postgresql://{user}:{quote_plus(password)}@/{self.POSTGRES_DB}"
                 f"?host={socket_path}"
             )
         return URL.create(

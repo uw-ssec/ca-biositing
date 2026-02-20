@@ -20,14 +20,12 @@ from prefect import task, get_run_logger
 # and place it in the data/landiq/ directory.
 DEFAULT_SHAPEFILE_PATH = "data/landiq/i15_Crop_Mapping_2023_Provisional.shp"
 
-# HTTP URL for downloading the shapefile in Cloud Run; defaults to CNRA 2023 provisional dataset.
-LANDIQ_SHAPEFILE_URL = os.getenv(
-    "LANDIQ_SHAPEFILE_URL",
-    "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource/25d0f174-4bec-4987-a402-602cd1372786/download/i15_crop_mapping_2023_provisional.zip",
-)
+# HTTP URL for downloading the shapefile in Cloud Run.
+# Set to empty string or unset to disable URL download and fall back to local path.
+LANDIQ_SHAPEFILE_URL = os.getenv("LANDIQ_SHAPEFILE_URL", "")
 
 
-def _download_shapefile(url: str, logger) -> Optional[str]:
+def download_shapefile(url: str, logger) -> Optional[str]:
     """Download a shapefile (or zip archive containing one) from a URL.
 
     Returns the path to the .shp file on success, or None on failure.
@@ -119,7 +117,7 @@ def extract(shapefile_path: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
     # Resolution 2: download from URL
     url = LANDIQ_SHAPEFILE_URL
     if url:
-        path = _download_shapefile(url, logger)
+        path = download_shapefile(url, logger)
         if path is None:
             logger.error("Shapefile download failed; aborting LandIQ extract.")
             return None

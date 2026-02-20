@@ -1,0 +1,19 @@
+resource_name,commodity_name,api_name,usda_code,match_tier,note
+almonds,ALMONDS,ALMONDS,26199999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.437537
+almonds ,ALMONDS,ALMONDS,26199999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.456855
+apples,APPLES,APPLES,21199999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.458017
+apricots,APRICOTS,APRICOTS,21799999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.459007
+avocados,AVOCADOS,AVOCADOS,22199999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.460028
+carrots,CARROTS,CARROTS,31399999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.460966
+citrus,CITRUS,CITRUS,20099999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.462299
+corn - all,CORN  ALL,CORN,11199999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 96.84% - 2026-02-18T17:10:36.463268
+dates,DATES,DATES,22499999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.464218
+nectarines,NECTARINES,NECTARINES,21819999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.465283
+olives,OLIVES,OLIVES,22699999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.466218
+peaches,PEACHES,PEACHES,21299999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.467098
+pecans,PECANS,PECANS,26499999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.467978
+plums,PLUMS,PLUMS,21519999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.469026
+safflower,SAFFLOWER,SAFFLOWER,15826999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.469881
+strawberries,STRAWBERRIES,STRAWBERRIES,23799999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.470786
+tomatoes,TOMATOES,TOMATOES,37899999,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.471725
+tomatoes for processing,TOMATOES FOR PROCESSING,TOMATOES,37829929,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 100.00% - 2026-02-18T17:10:36.472786

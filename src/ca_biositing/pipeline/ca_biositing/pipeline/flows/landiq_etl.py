@@ -26,7 +26,6 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
     Orchestrates the ETL process for Land IQ geospatial data using chunking to manage memory.
     """
     from prefect import get_run_logger
-    import os
     try:
         import pyproj
         os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
@@ -38,7 +37,7 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
     from ca_biositing.pipeline.etl.extract.landiq import (
         DEFAULT_SHAPEFILE_PATH,
         LANDIQ_SHAPEFILE_URL,
-        _download_shapefile,
+        download_shapefile,
     )
 
     logger = get_run_logger()
@@ -49,12 +48,12 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         path = shapefile_path
     elif LANDIQ_SHAPEFILE_URL:
         logger.info(f"Downloading LandIQ shapefile from URL: {LANDIQ_SHAPEFILE_URL}")
-        path = _download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
+        path = download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
         if path is None:
             logger.error("Shapefile download failed; aborting LandIQ ETL.")
             return
-        import tempfile, os as _os
-        _tmp_dir = _os.path.dirname(_os.path.dirname(path))  # temp dir for cleanup
+        # The downloaded .shp lives inside <tmp_dir>/extracted/...; walk up to the temp root
+        _tmp_dir = os.path.dirname(os.path.dirname(path))
     else:
         path = DEFAULT_SHAPEFILE_PATH
 
@@ -110,6 +109,11 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         logger.info("Land IQ ETL flow completed successfully.")
     except Exception as e:
         logger.error(f"Chunked processing failed: {e}", exc_info=True)
+    finally:
+        if _tmp_dir and os.path.isdir(_tmp_dir):
+            import shutil
+            shutil.rmtree(_tmp_dir, ignore_errors=True)
+            logger.info(f"Cleaned up temp directory: {_tmp_dir}")
 
 if __name__ == "__main__":
     landiq_etl_flow()
