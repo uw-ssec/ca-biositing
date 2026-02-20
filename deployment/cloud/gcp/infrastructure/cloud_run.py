@@ -15,6 +15,7 @@ from config import (
     DB_USER,
     DB_NAME,
     PREFECT_DB_NAME,
+    LANDIQ_SHAPEFILE_URL,
 )
 from cloud_sql import CloudSQLResources
 from secret_manager import SecretResources
@@ -391,7 +392,7 @@ def create_cloud_run_resources(
                         # HTTP URL to download LandIQ shapefile at runtime
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="LANDIQ_SHAPEFILE_URL",
-                            value="https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource/1a1c259c-4279-4868-a25f-b1f71665ca25/download/i15_crop_mapping_2024_provisional.zip",
+                            value=LANDIQ_SHAPEFILE_URL,
                         ),
                     ],
                     volume_mounts=[

@@ -157,10 +157,13 @@ def normalize_dataframes(
                 df_norm = df.copy()
                 for col, (model, model_name_attr) in normalize_columns.items():
                     if col not in df_norm.columns:
-                        logger.warning(f"Column '{col}' missing in DataFrame #{i+1}; skipping.")
+                        logger.warning(f"Column '{col}' missing in DataFrame #{i+1}; creating '{col}_id' as all-null.")
+                        df_norm[f"{col}_id"] = pd.NA
                         continue
                     if df_norm[col].isnull().all():
-                        logger.info(f"Column '{col}' contains only nulls; skipping normalization.")
+                        logger.info(f"Column '{col}' contains only nulls; creating '{col}_id' as all-null.")
+                        df_norm[f"{col}_id"] = pd.NA
+                        df_norm = df_norm.drop(columns=[col])
                         continue
                     try:
                         # Determine the ID column name.
@@ -187,6 +190,13 @@ def normalize_dataframes(
                             f"Error normalizing column '{col}' in DataFrame #{i+1}: {e}",
                             exc_info=True,
                         )
+                        # Ensure the _id column exists (as all-null) so downstream
+                        # code that expects it won't raise KeyError.
+                        id_col_name = f"{col}_id"
+                        if id_col_name not in df_norm.columns:
+                            df_norm[id_col_name] = pd.NA
+                            if col in df_norm.columns:
+                                df_norm = df_norm.drop(columns=[col])
                 normalized_dfs.append(df_norm)
                 logger.info(f"Finished DataFrame #{i+1}.")
             logger.info("Committing database session.")

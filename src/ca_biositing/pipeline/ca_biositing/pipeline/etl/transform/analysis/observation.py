@@ -103,20 +103,29 @@ def transform_observation(
     if isinstance(normalized_dfs, pd.DataFrame):
         normalized_dfs = [normalized_dfs]
 
+    required_cols = [
+        'dataset_id',
+        'analysis_type',
+        'record_id',
+        'parameter_id',
+        'value',
+        'unit_id',
+        'note',
+        'etl_run_id',
+        'lineage_group_id'
+    ]
+
     observation_data = []
     for i, normalized_df in enumerate(normalized_dfs):
+        missing = [c for c in required_cols if c not in normalized_df.columns]
+        if missing:
+            logger.error(
+                f"DataFrame #{i+1} missing columns {missing} for observation transform. "
+                f"Available columns: {normalized_df.columns.tolist()}"
+            )
+            continue
         try:
-            obs_df = normalized_df[[
-                'dataset_id',
-                'analysis_type',
-                'record_id',
-                'parameter_id',
-                'value',
-                'unit_id',
-                'note',
-                'etl_run_id',
-                'lineage_group_id'
-            ]].copy().rename(columns={'analysis_type': 'record_type'})
+            obs_df = normalized_df[required_cols].copy().rename(columns={'analysis_type': 'record_type'})
 
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
             observation_data.append(obs_df)

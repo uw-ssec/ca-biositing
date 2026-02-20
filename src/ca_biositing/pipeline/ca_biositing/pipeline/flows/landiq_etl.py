@@ -35,12 +35,28 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         import pyogrio
     from ca_biositing.pipeline.etl.transform.landiq.landiq_record import transform_landiq_record
     from ca_biositing.pipeline.etl.load.landiq import load_landiq_record
-    from ca_biositing.pipeline.etl.extract.landiq import DEFAULT_SHAPEFILE_PATH
+    from ca_biositing.pipeline.etl.extract.landiq import (
+        DEFAULT_SHAPEFILE_PATH,
+        LANDIQ_SHAPEFILE_URL,
+        _download_shapefile,
+    )
 
     logger = get_run_logger()
     logger.info("Starting Land IQ ETL flow with chunking...")
 
-    path = shapefile_path if shapefile_path else DEFAULT_SHAPEFILE_PATH
+    _tmp_dir = None
+    if shapefile_path:
+        path = shapefile_path
+    elif LANDIQ_SHAPEFILE_URL:
+        logger.info(f"Downloading LandIQ shapefile from URL: {LANDIQ_SHAPEFILE_URL}")
+        path = _download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
+        if path is None:
+            logger.error("Shapefile download failed; aborting LandIQ ETL.")
+            return
+        import tempfile, os as _os
+        _tmp_dir = _os.path.dirname(_os.path.dirname(path))  # temp dir for cleanup
+    else:
+        path = DEFAULT_SHAPEFILE_PATH
 
     # 0. Lineage Tracking Setup
     etl_run_id = create_etl_run_record_task(pipeline_name="Land IQ ETL")
