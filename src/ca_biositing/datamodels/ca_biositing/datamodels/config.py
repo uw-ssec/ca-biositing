@@ -53,13 +53,13 @@ class Settings(BaseSettings):
         if self.INSTANCE_CONNECTION_NAME:
             user = self.DB_USER or self.POSTGRES_USER
             password = self.DB_PASS or self.POSTGRES_PASSWORD
-            return URL.create(
-                drivername="postgresql",
-                username=user,
-                password=password,
-                database=self.POSTGRES_DB,
-                query={"host": f"/cloudsql/{self.INSTANCE_CONNECTION_NAME}"},
-            ).render_as_string(hide_password=False)
+            socket_path = f"/cloudsql/{self.INSTANCE_CONNECTION_NAME}"
+            # Build the URL directly — URL.create() percent-encodes slashes and colons
+            # in the host query parameter, which breaks the Unix socket path.
+            return (
+                f"postgresql://{user}:{password}@/{self.POSTGRES_DB}"
+                f"?host={socket_path}"
+            )
         return URL.create(
             drivername="postgresql",
             username=self.POSTGRES_USER,

@@ -25,7 +25,7 @@ GSHEET_NAME = "Static_resource_information"
 WORKSHEET_NAME = "static_resource_info"
 
 # The path to the credentials file. This is typically kept in the project root.
-CREDENTIALS_PATH = "credentials.json"
+CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
 
 @task

@@ -354,3 +354,252 @@ gcloud sql connect biocirv-staging --user=postgres --database=biocirv-staging
 CREATE EXTENSION IF NOT EXISTS postgis;
 SELECT PostGIS_Version();
 ```
+
+---
+
+## Full Staging Deployment Runbook
+
+Follow these steps in order for a complete staging deployment — from building
+images through database migration, Prefect deployment registration, and ETL
+execution.
+
+### Prerequisites
+
+- `gcloud` CLI authenticated: `gcloud auth application-default login`
+- Docker daemon running (for local builds)
+- `pixi` installed
+- Access to the BioCirV GCP project (`biocirv-470318`)
+- `credentials.json` service account file for Google Sheets/Drive access
+
+### Step 1: Build and Push Container Images
+
+```bash
+pixi run cloud-build-images
+```
+
+This builds and pushes the `pipeline` and `webservice` images to GCR via Cloud
+Build.
+
+### Step 2: Deploy / Update Infrastructure
+
+```bash
+pixi run cloud-deploy
+```
+
+This creates or updates all GCP resources: Cloud SQL instance, Secret Manager
+secrets, Cloud Run services (webservice, prefect-server, prefect-worker), and
+the migration job. New resources after recent changes include:
+
+- Secret: `biocirv-staging-usda-nass-api-key`
+- Worker env vars: `USDA_NASS_API_KEY`, `CREDENTIALS_PATH`,
+  `GOOGLE_APPLICATION_CREDENTIALS`, `LANDIQ_SHAPEFILE_URL`
+- Volume: `gsheets-credentials` (Secret Manager volume mount at
+  `/app/gsheets-credentials`)
+
+### Step 3: Upload Secrets (post-deploy, manual)
+
+These secrets must be populated manually after `cloud-deploy` creates the
+secret shells:
+
+```bash
+# 1. GSheets / Google Drive service account credentials
+gcloud secrets versions add biocirv-staging-gsheets-credentials \
+  --data-file=credentials.json \
+  --project=biocirv-470318
+
+# 2. USDA NASS API key (replace with actual key value)
+echo -n "YOUR_USDA_NASS_API_KEY" | \
+  gcloud secrets versions add biocirv-staging-usda-nass-api-key \
+  --data-file=- \
+  --project=biocirv-470318
+```
+
+Verify the secret versions were created:
+
+```bash
+gcloud secrets versions list biocirv-staging-gsheets-credentials --project=biocirv-470318
+gcloud secrets versions list biocirv-staging-usda-nass-api-key --project=biocirv-470318
+```
+
+### Step 4: Run Database Migrations
+
+```bash
+pixi run cloud-migrate
+```
+
+This rebuilds the pipeline image, updates the migration job's image digest, and
+runs `alembic upgrade head` in Cloud Run.
+
+Verify migration succeeded:
+
+```bash
+gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 --limit=1
+```
+
+Expected: `SUCCEEDED` status.
+
+### Step 5: Force New Cloud Run Revision for Worker
+
+After uploading secrets, force a new revision to pick up the latest image and
+mounted secret:
+
+```bash
+gcloud run services update biocirv-prefect-worker \
+  --image=gcr.io/biocirv-470318/pipeline:latest \
+  --region=us-west1
+```
+
+### Step 6: Set PREFECT_API_URL
+
+```bash
+export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server \
+  --region=us-west1 --format="value(status.url)")/api
+```
+
+### Step 7: Register Prefect Deployment
+
+```bash
+cd resources/prefect
+python deploy.py master-etl-deployment --env-file ../docker/.env
+```
+
+Or with the Prefect CLI directly:
+
+```bash
+prefect --no-prompt deploy --name master-etl-deployment
+```
+
+Verify the deployment is registered:
+
+```bash
+prefect deployment ls
+```
+
+### Step 8: Trigger a Flow Run
+
+```bash
+prefect deployment run "Master ETL Flow/master-etl-deployment"
+```
+
+Monitor the run:
+
+```bash
+# Worker logs (flow execution output)
+gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=100
+
+# Or watch the Prefect UI
+gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
+```
+
+### Step 9: Verify Data in Cloud SQL
+
+Connect via Cloud SQL Auth Proxy (see "Connecting to the Database" section),
+then:
+
+```sql
+-- Resource information (Google Sheets flow)
+SELECT count(*) FROM resource_information;
+-- Analysis records (Google Sheets flow)
+SELECT count(*) FROM analysis_record;
+-- USDA data (API flow)
+SELECT count(*) FROM usda_census_survey;
+-- LandIQ data (if LANDIQ_SHAPEFILE_URL was configured)
+SELECT count(*) FROM landiq_record;
+-- Billion Ton data (Google Drive flow)
+SELECT count(*) FROM billion_ton;
+```
+
+Expected: Non-zero counts for flows that have valid data sources.
+
+---
+
+## Environment Variables Reference
+
+All environment variables injected into the Prefect worker Cloud Run service:
+
+| Variable | Source | Description |
+|---|---|---|
+| `PREFECT_API_URL` | Derived from prefect-server URI | Prefect API endpoint |
+| `PREFECT_WORK_POOL_NAME` | Plain text | Work pool name (`biocirv-staging-pool`) |
+| `DB_USER` | Plain text | Cloud SQL username |
+| `POSTGRES_DB` | Plain text | Database name |
+| `DB_PASS` | Secret Manager (`biocirv-staging-db-password`) | Database password |
+| `INSTANCE_CONNECTION_NAME` | Plain text | Cloud SQL Unix socket path |
+| `USDA_NASS_API_KEY` | Secret Manager (`biocirv-staging-usda-nass-api-key`) | USDA NASS QuickStats API key |
+| `CREDENTIALS_PATH` | Plain text | Path to GSheets/Drive service account file |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Plain text | Path to GCP service account credentials (ADC) |
+| `LANDIQ_SHAPEFILE_URL` | Plain text | HTTP URL to download LandIQ shapefile at runtime |
+
+---
+
+## Secret Management
+
+### Automatically managed by Pulumi
+
+| Secret | Description |
+|---|---|
+| `biocirv-staging-db-password` | Cloud SQL primary user password (auto-generated) |
+| `biocirv-staging-postgres-password` | Postgres superuser password (auto-generated) |
+| `biocirv-staging-ro-biocirv_readonly` | Read-only user password (auto-generated) |
+| `biocirv-staging-prefect-auth` | Prefect HTTP Basic Auth password (auto-generated) |
+
+### Manually uploaded post-deploy
+
+| Secret | How to upload |
+|---|---|
+| `biocirv-staging-gsheets-credentials` | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json` |
+| `biocirv-staging-usda-nass-api-key` | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-` |
+
+---
+
+## ETL Flow Troubleshooting
+
+#### ETL flow fails with "USDA API key is empty"
+
+Upload the USDA NASS API key to Secret Manager:
+
+```bash
+echo -n "YOUR_USDA_NASS_API_KEY" | \
+  gcloud secrets versions add biocirv-staging-usda-nass-api-key \
+  --data-file=- --project=biocirv-470318
+```
+
+Then force a new Cloud Run revision:
+
+```bash
+gcloud run services update biocirv-prefect-worker \
+  --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1
+```
+
+#### Google Sheets / Drive authentication fails
+
+1. Verify the secret has a version:
+   `gcloud secrets versions list biocirv-staging-gsheets-credentials`
+2. Verify `CREDENTIALS_PATH` env var on the worker is
+   `/app/gsheets-credentials/credentials.json`
+3. Verify the service account in `credentials.json` has been shared on the
+   relevant Google Sheets
+
+#### LandIQ flow fails with "Shapefile path does not exist"
+
+Set the `LANDIQ_SHAPEFILE_URL` env var to a valid URL pointing to a zip archive
+containing the shapefile. Update via Pulumi config or override at deploy time:
+
+```bash
+# Update in cloud_run.py's LANDIQ_SHAPEFILE_URL value, then redeploy:
+pixi run cloud-deploy
+# Or update the running service directly:
+gcloud run services update biocirv-prefect-worker \
+  --update-env-vars LANDIQ_SHAPEFILE_URL=https://your-url/landiq.zip \
+  --region=us-west1
+```
+
+#### Worker not picking up new code after image rebuild
+
+Pulumi pins image digests and won't detect `:latest` tag updates automatically.
+Force a new revision:
+
+```bash
+gcloud run services update biocirv-prefect-worker \
+  --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1
+```

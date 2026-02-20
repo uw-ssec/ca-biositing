@@ -55,6 +55,7 @@ def pulumi_program():
     # Secrets
     pulumi.export("db_password_secret_name", secret_resources.db_password_secret.name)
     pulumi.export("gsheets_secret_name", secret_resources.gsheets_secret.name)
+    pulumi.export("usda_api_key_secret_name", secret_resources.usda_api_key_secret.name)
     pulumi.export(
         "prefect_auth_secret_name", secret_resources.prefect_auth_secret.name
     )

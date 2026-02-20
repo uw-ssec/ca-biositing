@@ -19,7 +19,7 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
 
     FILE_NAME = "CA_proc_points.zip"
     MIME_TYPE = "application/zip"
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
     DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
