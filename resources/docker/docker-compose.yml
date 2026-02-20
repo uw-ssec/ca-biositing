@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgis/postgis:15-3.3
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
     container_name: BioCirV_ETL_db
     env_file:
       - .env
@@ -47,7 +48,7 @@ services:
     ports:
       - "4200:4200"
     volumes:
-      - prefectdata:/root/.prefect
+      - prefectdata:/home/appuser/.prefect
     depends_on:
       db:
         condition: service_healthy

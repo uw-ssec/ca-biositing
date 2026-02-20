@@ -28,7 +28,7 @@ def test_fetch_polygon_ids_by_geoms(session):
     assert p1.id in returned_ids
     assert p2.id in returned_ids
 
-@patch("ca_biositing.pipeline.etl.load.landiq.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.landiq.get_engine")
 def test_load_landiq_record_optimized(mock_get_engine, session, engine):
     mock_get_engine.return_value = engine
 

@@ -7,7 +7,8 @@ def clear_alembic_version():
     load_dotenv()
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise RuntimeError("DATABASE_URL not found in .env file.")
+        from ca_biositing.datamodels.config import settings
+        database_url = settings.database_url
 
     try:
         engine = create_engine(database_url)

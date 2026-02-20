@@ -3,16 +3,23 @@ import numpy as np
 from datetime import datetime, timezone
 from typing import Optional
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from ca_biositing.pipeline.utils.engine import get_engine
 
-from ca_biositing.pipeline.utils.engine import engine
+# California FIPS codes used by the static resource info pipeline.
+# GEOID format: 2-digit state FIPS + 3-digit county FIPS ("000" = state-level).
+_KNOWN_PLACES = {
+    "06000": {
+        "geoid": "06000",
+        "state_name": "CALIFORNIA",
+        "state_fips": "06",
+        "county_name": None,
+        "county_fips": "000",
+        "region_name": None,
+        "agg_level_desc": "STATE",
+    },
+}
 
-def get_local_engine():
-    """
-    Returns the shared SQLAlchemy engine instance.
-    """
-    return engine
 
 def _get_place_metadata(geoid: str) -> dict:
     """Return Place attributes for a GEOID.
@@ -53,7 +60,7 @@ def load_landiq_resource_mapping(df: pd.DataFrame):
         table_columns = {c.name for c in LandiqResourceMapping.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 for i, record in enumerate(records):
@@ -109,7 +116,7 @@ def load_resource_availability(df: pd.DataFrame):
         table_columns = {c.name for c in ResourceAvailability.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 # Ensure referenced Place records exist before inserting availability.

@@ -2,17 +2,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-
-from ca_biositing.pipeline.utils.engine import engine
-
-def get_local_engine():
-    """
-    Returns the shared SQLAlchemy engine instance.
-    """
-    return engine
+from ca_biositing.pipeline.utils.engine import get_engine
 
 @task
 def load_resource(df: pd.DataFrame):
@@ -41,7 +33,7 @@ def load_resource(df: pd.DataFrame):
         table_columns = {c.name for c in Resource.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_local_engine()
+        engine = get_engine()
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 for i, record in enumerate(records):

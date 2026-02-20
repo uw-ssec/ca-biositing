@@ -1,68 +1,39 @@
 from sqlmodel import create_engine
 import os
-from dotenv import load_dotenv
-from pathlib import Path
-from typing import Optional
 
-# This module queries the db via the ORM
-
-# Get the root
-path = os.getcwd()
-project_root = None
-while path != os.path.dirname(path):  # Stop at the filesystem root
-    if 'pixi.toml' in os.listdir(path):
-        project_root = path
-        break
-    path = os.path.dirname(path)
-
-# Load environment variables from the .env file located in the resources/docker directory.
-if project_root:
-    env_path = Path(project_root) / "resources" / "docker" / ".env"
-    load_dotenv(dotenv_path=env_path)
-else:
-    # Fallback for container environments where project_root might not be detectable via pixi.toml
-    load_dotenv()
-
-# Database Connection
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+# This module provides SQLAlchemy engines for the pipeline package.
+# Delegates to ca_biositing.datamodels.config.Settings for URL construction,
+# which handles all three environments:
+#   - Cloud Run: INSTANCE_CONNECTION_NAME set → Unix socket via Cloud SQL Auth Proxy
+#   - Docker Compose: DATABASE_URL set in env → used directly
+#   - Local dev: TCP fallback with POSTGRES_HOST/USER/PASSWORD/PORT
 
 
-def _build_database_url() -> str:
-    """Return a PostgreSQL URL if the server is reachable, otherwise SQLite."""
-    # Check if we are inside a Docker container
-    is_docker = os.path.exists('/.dockerenv')
+def _get_database_url() -> str:
+    """Return the database URL for the current environment.
 
-    if POSTGRES_USER and POSTGRES_PASSWORD and POSTGRES_PORT:
-        # Use 'db' host inside docker, 'localhost' outside
-        host = "db" if is_docker else "localhost"
-        port = "5432" if is_docker else POSTGRES_PORT
-
-        url = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{host}:{port}/biocirv_db"
-        return url
-
-    # Fallback SQLite in‑memory DB.
-    return "sqlite:///:memory:"
+    In local dev (outside Docker and Cloud Run), replace the Docker Compose
+    service name 'db' with 'localhost' so the URL resolves from the host machine.
+    """
+    from ca_biositing.datamodels.config import settings
+    db_url = settings.database_url
+    # Only substitute when running outside Docker and outside Cloud Run
+    if not os.path.exists("/.dockerenv") and not os.getenv("INSTANCE_CONNECTION_NAME"):
+        db_url = db_url.replace("@db:", "@localhost:")
+    return db_url
 
 
-DATABASE_URL = _build_database_url()
+DATABASE_URL = _get_database_url()
+engine = create_engine(DATABASE_URL)
+db_session = Session(engine)
 
-# Global engine instance with pooling options (PostgreSQL only)
-if DATABASE_URL.startswith("postgresql"):
-    engine = create_engine(
-        DATABASE_URL,
+
+def get_engine():
+    """Return a SQLAlchemy engine with connection pool settings for ETL tasks."""
+    return create_engine(
+        _get_database_url(),
         pool_size=5,
         max_overflow=0,
         pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
+        connect_args={"connect_timeout": 10},
     )
-else:
-    engine = create_engine(DATABASE_URL)
-
-def get_local_engine():
-    """
-    Returns the shared engine instance.
-    Maintained for backward compatibility with modules that previously defined it locally.
-    """
-    return engine

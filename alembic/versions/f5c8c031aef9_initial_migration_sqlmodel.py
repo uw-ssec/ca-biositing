@@ -1,7 +1,7 @@
 """Initial migration (SQLModel)
 
 Revision ID: f5c8c031aef9
-Revises:
+Revises: 0001_create_extensions
 Create Date: 2026-02-11 20:56:17.585013
 
 """
@@ -14,7 +14,7 @@ import geoalchemy2
 
 # revision identifiers, used by Alembic.
 revision: str = 'f5c8c031aef9'
-down_revision: Union[str, Sequence[str], None] = None
+down_revision: Union[str, Sequence[str], None] = '0001_create_extensions'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

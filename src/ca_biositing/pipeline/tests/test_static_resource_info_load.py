@@ -6,7 +6,7 @@ from ca_biositing.pipeline.etl.load.static_resource_info import (
     load_resource_availability
 )
 
-@patch("ca_biositing.pipeline.etl.load.static_resource_info.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.static_resource_info.get_engine")
 @patch("ca_biositing.pipeline.etl.load.static_resource_info.Session")
 def test_load_landiq_resource_mapping(mock_session_class, mock_get_engine):
     # 1. Setup Mock Data
@@ -38,7 +38,7 @@ def test_load_landiq_resource_mapping(mock_session_class, mock_get_engine):
     assert mock_session.add.call_count == 2
     assert mock_session.commit.called
 
-@patch("ca_biositing.pipeline.etl.load.static_resource_info.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.static_resource_info.get_engine")
 @patch("ca_biositing.pipeline.etl.load.static_resource_info.Session")
 def test_load_resource_availability(mock_session_class, mock_get_engine):
     # 1. Setup Mock Data

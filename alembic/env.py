@@ -27,12 +27,14 @@ import ca_biositing.datamodels.models  # noqa: F401
 # Alembic Config object
 config = context.config
 
-# Configure database URL from environment variables
+# Configure database URL from environment variables.
+# Priority: DATABASE_URL env var → Settings (handles Cloud Run Unix socket via
+# INSTANCE_CONNECTION_NAME, as well as local dev defaults).
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", DATABASE_URL)
-else:
-    raise RuntimeError("DATABASE_URL not found in .env file. Alembic cannot run migrations.")
+if not DATABASE_URL:
+    from ca_biositing.datamodels.config import settings
+    DATABASE_URL = settings.database_url
+config.set_main_option("sqlalchemy.url", DATABASE_URL.replace("%", "%%"))
 
 # Setup Python logging
 if config.config_file_name is not None:

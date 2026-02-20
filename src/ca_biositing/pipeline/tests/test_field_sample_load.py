@@ -4,7 +4,7 @@ from unittest.mock import patch
 from ca_biositing.pipeline.etl.load.field_sample import load_field_sample
 from ca_biositing.datamodels.models import FieldSample
 
-@patch("ca_biositing.pipeline.etl.load.field_sample.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.field_sample.get_engine")
 def test_load_field_sample_insert(mock_get_engine, session, engine):
     mock_get_engine.return_value = engine
 
@@ -22,7 +22,7 @@ def test_load_field_sample_insert(mock_get_engine, session, engine):
     assert results[0].name == 'Sample 1'
     assert results[1].name == 'Sample 2'
 
-@patch("ca_biositing.pipeline.etl.load.field_sample.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.field_sample.get_engine")
 def test_load_field_sample_update(mock_get_engine, session, engine):
     mock_get_engine.return_value = engine
 

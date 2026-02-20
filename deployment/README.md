@@ -153,3 +153,204 @@ pixi run -e deployment cloud-init
 If you run `pulumi up` before importing existing resources, Pulumi will try to
 create resources that already exist in GCP. Follow the import steps in the
 "First-Time Setup" section above.
+
+## Staging Environment
+
+### Architecture Overview
+
+The staging environment runs on GCP with the following components:
+
+| Component                         | Service                                                                |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| **Webservice** (FastAPI)          | Cloud Run Service                                                      |
+| **Prefect Server** (UI + API)     | Cloud Run Service                                                      |
+| **Prefect Worker** (process type) | Cloud Run Service (internal, polls server, runs flows as subprocesses) |
+| **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                       |
+| **Secrets**                       | Secret Manager (DB password, GSheets creds, Prefect auth)              |
+
+Infrastructure is managed by Pulumi (Python Automation API) with state stored in
+GCS.
+
+To retrieve service URLs:
+
+```bash
+gcloud run services list --region=us-west1 --format="table(name,status.url)"
+```
+
+### Deploy / Update Infrastructure
+
+```bash
+# Preview changes
+pixi run -e deployment cloud-plan
+
+# Apply changes
+pixi run -e deployment cloud-deploy
+```
+
+### Build & Push Container Images
+
+Build container images (`webservice`, `pipeline`) via Cloud Build:
+
+```bash
+pixi run -e deployment cloud-build-images
+```
+
+Verify images exist:
+
+```bash
+gcloud container images list --repository=gcr.io/$(gcloud config get project)
+```
+
+### Run Database Migrations
+
+Build the pipeline image, refresh the Cloud Run job's image digest, and apply
+Alembic migrations in one step:
+
+```bash
+pixi run cloud-migrate
+```
+
+This runs three steps in order:
+
+1. `cloud-build-images` — builds and pushes the pipeline image to GCR via Cloud
+   Build.
+2. `gcloud run jobs update ... --image=...` — re-pins the Cloud Run job to the
+   newly pushed image digest (required because Pulumi pins the digest at deploy
+   time and does not detect `:latest` tag updates).
+3. `gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait` —
+   runs the migration job and waits for it to complete.
+
+Verify the execution completed:
+
+```bash
+gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 --limit=1
+```
+
+### Prefect Server Access
+
+The Prefect server is currently deployed **without** HTTP Basic Auth for
+staging. This is because Prefect's WebSocket events client (required by process
+workers) does not send auth headers, causing the worker to crash at startup.
+
+**Access the Prefect UI:**
+
+```bash
+# Get the Prefect server URL
+gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
+```
+
+Open the returned URL in a browser.
+
+**Configure Prefect CLI for staging:**
+
+```bash
+export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)")/api
+```
+
+### Trigger ETL Flows
+
+With the Prefect CLI configured (see above):
+
+```bash
+# List deployments
+prefect deployment ls
+
+# Trigger a flow run
+prefect deployment run "Master ETL Flow/master-etl-deployment"
+```
+
+Monitor in the Prefect UI or via the worker's Cloud Run logs:
+
+```bash
+gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=50
+```
+
+### Read-Only Database Users
+
+The `biocirv_readonly` Cloud SQL user is created by Pulumi (password stored in
+Secret Manager as `biocirv-staging-ro-biocirv_readonly`). Read-only privileges
+are granted automatically by the `0002_grant_readonly_permissions` Alembic
+migration, which runs as part of `pixi run cloud-migrate`.
+
+Retrieve the read-only password from Secret Manager (requires appropriate IAM
+permissions):
+
+```bash
+gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readonly
+```
+
+### Connecting to the Database (DBeaver / GUI Client)
+
+Use the Cloud SQL Auth Proxy to create a local tunnel, then connect your client
+to `localhost`:
+
+#### 1. Start the proxy
+
+```bash
+cloud-sql-proxy biocirv-470318:us-west1:biocirv-staging --port 5434
+```
+
+The proxy binary is available in the pixi `deployment` environment. Leave it
+running in a separate terminal.
+
+#### 2. Get the password
+
+```bash
+# Primary user
+gcloud secrets versions access latest --secret=biocirv-staging-db-password
+
+# Read-only user
+gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readonly
+```
+
+#### 3. Connection settings
+
+| Field    | Value                                                |
+| -------- | ---------------------------------------------------- |
+| Host     | `127.0.0.1`                                          |
+| Port     | `5434`                                               |
+| Database | `biocirv-staging`                                    |
+| Username | `biocirv_user` (or `biocirv_readonly` for read-only) |
+| Password | (from step 2)                                        |
+| SSL      | off (the proxy handles encryption to Cloud SQL)      |
+
+### Staging Troubleshooting
+
+#### Prefect worker not connecting
+
+Check worker logs:
+
+```bash
+gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20
+```
+
+Verify the worker can reach the Prefect server — look for connection errors.
+
+#### Flow runs stuck in "Pending"
+
+1. Verify the work pool (`biocirv-staging-pool`, type `process`) is online in
+   the Prefect UI
+2. Check the worker logs for errors:
+   `gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20`
+3. Verify the worker container has `DATABASE_URL` and `PREFECT_API_URL` set
+
+#### Credential rotation
+
+1. Update the secret version in Secret Manager
+2. Redeploy both Prefect services to pick up the new secret:
+   ```bash
+   pixi run -e deployment cloud-deploy
+   ```
+
+#### PostGIS not enabled
+
+Connect to the database and enable the extension:
+
+```bash
+gcloud sql connect biocirv-staging --user=postgres --database=biocirv-staging
+```
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+SELECT PostGIS_Version();
+```

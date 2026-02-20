@@ -273,6 +273,8 @@ ca-biositing-datamodels = { path = "./src/ca_biositing/datamodels", editable = t
 ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true }
 # Alembic is required for generating migrations inside the worker container
 alembic = ">=1.13.2,<2"
+# Prefect is required for `prefect flow-run execute` inside Cloud Run flow jobs
+prefect = "*"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -312,38 +314,62 @@ description = "Build documentation for ReadTheDocs"
 
 
 # ==== Deployment environment ====
+[feature.cloud.activation]
+scripts = ["scripts/activate-gcloud.sh"]
+
+[feature.cloud.tasks.install-gcloud]
+cmd = "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=$CONDA_PREFIX"
+outputs = ["**/google-cloud-sdk/bin/gcloud"]
+description = "Install the Google Cloud CLI into the pixi environment."
+
 [feature.cloud.tasks.install-pulumi]
-cmd = "curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX"
+cmd = "bash -c 'curl -fsSL https://get.pulumi.com | bash -s -- --install-root $CONDA_PREFIX ${PULUMI_VERSION:+--version $PULUMI_VERSION}'"
 outputs = ["**/bin/pulumi"]
+description = "Install Pulumi CLI. Set PULUMI_VERSION env var to install a specific version (e.g. PULUMI_VERSION=3.220.0 pixi run install-pulumi)."
+
+[feature.cloud.dependencies]
+postgresql = "*"
 
 [feature.cloud.pypi-dependencies]
-pulumi = ">=3.0.0,<4"
-pulumi-gcp = ">=9.0.0,<10"
+prefect = "*"
 
-# Pulumi tasks
+# Pulumi tasks (run via Docker to avoid macOS gRPC/fork crash)
 [feature.cloud.tasks.cloud-bootstrap]
 cmd = "gcloud storage buckets create gs://biocirv-470318-pulumi-state --location=us-west1 --uniform-bucket-level-access --public-access-prevention && gcloud storage buckets update gs://biocirv-470318-pulumi-state --versioning"
 description = "Create the Pulumi state bucket in GCS (one-time setup)."
 
-[feature.cloud.tasks.cloud-init]
-cmd = "pulumi login gs://biocirv-470318-pulumi-state"
-cwd = "deployment/cloud/gcp/infrastructure"
-description = "Login to the Pulumi GCS backend for state management."
+[feature.cloud.tasks.cloud-build]
+cmd = "docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/"
+description = "Build the Pulumi Docker image for infrastructure deployment."
+
+[feature.cloud.tasks.cloud-build-images]
+cmd = "gcloud builds submit --config=deployment/cloud/gcp/cloudbuild.yaml --project=biocirv-470318 ."
+description = "Build and push Docker images to GCR via Google Cloud Build."
+
+[feature.cloud.tasks.cloud-migrate]
+cmd = "gcloud run jobs update biocirv-alembic-migrate --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
+depends-on = ["cloud-build-images"]
+description = "Build pipeline image, refresh the migration job digest, and apply Alembic migrations."
 
 [feature.cloud.tasks.cloud-plan]
-cmd = "pulumi preview"
-cwd = "deployment/cloud/gcp/infrastructure"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py preview"
 description = "Preview pending infrastructure changes."
 
 [feature.cloud.tasks.cloud-deploy]
-cmd = "pulumi up"
-cwd = "deployment/cloud/gcp/infrastructure"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py up"
 description = "Deploy infrastructure changes to GCP."
 
 [feature.cloud.tasks.cloud-destroy]
-cmd = "pulumi destroy"
-cwd = "deployment/cloud/gcp/infrastructure"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py destroy"
 description = "Destroy all managed GCP infrastructure."
+
+[feature.cloud.tasks.cloud-outputs]
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py outputs"
+description = "Show Pulumi stack outputs."
+
+[feature.cloud.tasks.cloud-refresh]
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py refresh"
+description = "Refresh Pulumi state from live GCP resources."
 
 [feature.gis.pypi-dependencies]
 geopandas = "*"
