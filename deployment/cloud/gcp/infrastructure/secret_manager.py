@@ -17,6 +17,7 @@ class SecretResources:
     db_user: gcp.sql.User
     db_password_secret: gcp.secretmanager.Secret
     gsheets_secret: gcp.secretmanager.Secret
+    usda_api_key_secret: gcp.secretmanager.Secret = None
     prefect_auth_password: random.RandomPassword = None
     prefect_auth_secret: gcp.secretmanager.Secret = None
     readonly_users: dict = field(default_factory=dict)
@@ -69,6 +70,16 @@ def create_secrets(
     gsheets_secret = gcp.secretmanager.Secret(
         "gsheets-credentials-secret",
         secret_id="biocirv-staging-gsheets-credentials",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    # USDA NASS API key (version added manually post-deploy)
+    usda_api_key_secret = gcp.secretmanager.Secret(
+        "usda-api-key-secret",
+        secret_id="biocirv-staging-usda-nass-api-key",
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -175,6 +186,7 @@ def create_secrets(
         db_user=db_user,
         db_password_secret=db_password_secret,
         gsheets_secret=gsheets_secret,
+        usda_api_key_secret=usda_api_key_secret,
         prefect_auth_password=prefect_auth_password,
         prefect_auth_secret=prefect_auth_secret,
         readonly_users=readonly_users,

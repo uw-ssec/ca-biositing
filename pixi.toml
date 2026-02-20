@@ -352,23 +352,23 @@ depends-on = ["cloud-build-images"]
 description = "Build pipeline image, refresh the migration job digest, and apply Alembic migrations."
 
 [feature.cloud.tasks.cloud-plan]
-cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py preview"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py preview"
 description = "Preview pending infrastructure changes."
 
 [feature.cloud.tasks.cloud-deploy]
-cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py up"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py up"
 description = "Deploy infrastructure changes to GCP."
 
 [feature.cloud.tasks.cloud-destroy]
-cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py destroy"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py destroy"
 description = "Destroy all managed GCP infrastructure."
 
 [feature.cloud.tasks.cloud-outputs]
-cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py outputs"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py outputs"
 description = "Show Pulumi stack outputs."
 
 [feature.cloud.tasks.cloud-refresh]
-cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/root/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py refresh"
+cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py refresh"
 description = "Refresh Pulumi state from live GCP resources."
 
 [feature.gis.pypi-dependencies]

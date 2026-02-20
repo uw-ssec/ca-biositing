@@ -2,20 +2,10 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-import os
-
-def get_local_engine():
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-    return create_engine(db_url)
+from ca_biositing.pipeline.utils.engine import get_engine
 
 @task
 def load(df: pd.DataFrame):
@@ -39,7 +29,7 @@ def load(df: pd.DataFrame):
     from ca_biositing.datamodels.models.external_data.billion_ton import BillionTon2023Record
     from ca_biositing.datamodels.models.places.place import Place
 
-    engine = get_local_engine()
+    engine = get_engine()
     now = datetime.now(timezone.utc)
 
     try:

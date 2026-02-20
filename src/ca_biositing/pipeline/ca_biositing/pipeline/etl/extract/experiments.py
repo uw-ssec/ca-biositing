@@ -1,4 +1,5 @@
 from typing import Optional
+import os
 import pandas as pd
 from prefect import task, get_run_logger
 from ...utils.gsheet_to_pandas import gsheet_to_df
@@ -19,7 +20,7 @@ def extract_experiments() -> Optional[pd.DataFrame]:
 
     GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
     WORKSHEET_NAME = "03.0-Experiments"
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
     raw_experiments_df = gsheet_to_df(GSHEET_NAME, WORKSHEET_NAME, CREDENTIALS_PATH)
 

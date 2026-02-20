@@ -25,7 +25,7 @@ def extract(
     """
     logger = get_run_logger()
 
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
     logger.info(f"Extracting raw data from Google Drive ID: '{file_id}'...")
 

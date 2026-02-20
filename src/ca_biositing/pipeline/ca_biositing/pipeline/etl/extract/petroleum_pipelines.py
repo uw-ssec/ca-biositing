@@ -20,7 +20,7 @@ def extract(project_root: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
 
     FILE_NAME = "US_Petroleum_Pipelines.geojson"
     MIME_TYPE = "application/geo+json"
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
     DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 

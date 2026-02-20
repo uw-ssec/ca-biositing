@@ -25,7 +25,7 @@ GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
 WORKSHEET_NAME = "07.2-Resources"
 
 # The path to the credentials file. This is typically kept in the project root.
-CREDENTIALS_PATH = "credentials.json"
+CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
 @task
 def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
@@ -43,7 +43,7 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
 
     GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
     WORKSHEET_NAME = "07.2-Resources"
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
     # If project_root is provided (e.g., from a notebook), construct an absolute path
     # Otherwise, use the default relative path (for the main pipeline)

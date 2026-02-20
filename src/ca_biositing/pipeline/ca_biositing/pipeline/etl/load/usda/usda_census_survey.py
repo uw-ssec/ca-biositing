@@ -9,29 +9,9 @@ from typing import Optional
 import pandas as pd
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
-from sqlalchemy import create_engine, text, insert
+from sqlalchemy import text, insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-
-def get_local_engine():
-    """Creates a SQLAlchemy engine, avoiding settings.py hangs in Docker."""
-    import os
-    # Hardcode the URL for the container environment to bypass any settings.py hangs
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        if "db:5432" in db_url:
-            db_url = db_url.replace("db:5432", "localhost:5432")
-
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+from ca_biositing.pipeline.utils.engine import get_engine
 
 
 @task
@@ -62,7 +42,7 @@ def load(
             DataSource, Dataset, UsdaCensusRecord, UsdaSurveyRecord, Observation
         )
 
-        engine = get_local_engine()
+        engine = get_engine()
         now = datetime.now(timezone.utc)
 
         # STEP 0: Create datasets + build map

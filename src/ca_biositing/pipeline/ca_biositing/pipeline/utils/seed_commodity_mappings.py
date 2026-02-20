@@ -12,31 +12,8 @@ This would enable broader agricultural data analysis beyond current resource map
 
 import os
 import pandas as pd
-from sqlalchemy import text, create_engine
-
-
-def get_local_engine():
-    """Creates a SQLAlchemy engine, following ETL patterns to avoid settings.py hangs in Docker."""
-    # Hardcode the URL for the container environment to bypass any settings.py hangs
-    if os.path.exists('/.dockerenv'):
-        db_url = "postgresql://biocirv_user:biocirv_dev_password@db:5432/biocirv_db"
-    else:
-        from ca_biositing.datamodels.config import settings
-        db_url = settings.database_url
-        # For local development, replace container host and port with localhost
-        # Docker exposes port 5432 internally but maps to different port locally (like 9090)
-        if "db:5432" in db_url:
-            # Use POSTGRES_PORT from settings for the local port mapping
-            local_port = settings.POSTGRES_PORT
-            db_url = db_url.replace("db:5432", f"localhost:{local_port}")
-
-    return create_engine(
-        db_url,
-        pool_size=5,
-        max_overflow=0,
-        pool_pre_ping=True,
-        connect_args={"connect_timeout": 10}
-    )
+from sqlalchemy import text
+from ca_biositing.pipeline.utils.engine import get_engine
 
 
 def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
@@ -53,7 +30,7 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
 
     try:
         if engine is None:
-            engine = get_local_engine()
+            engine = get_engine()
 
         # Default CSV path (name-based format)
         if csv_path is None:

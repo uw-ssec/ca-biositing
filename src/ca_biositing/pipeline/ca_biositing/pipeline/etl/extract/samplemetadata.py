@@ -25,7 +25,7 @@ GSHEET_NAME = "Sampling_data_redacted"
 WORKSHEET_NAME = "samplemetadata"
 
 # The path to the credentials file. This is typically kept in the project root.
-CREDENTIALS_PATH = "credentials.json"
+CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
 
 @task

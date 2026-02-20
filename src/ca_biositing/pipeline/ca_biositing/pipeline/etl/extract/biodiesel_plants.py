@@ -19,7 +19,7 @@ def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
 
     FILE_NAME = "Biodiesel_Plants.csv"
     MIME_TYPE = "text/csv"
-    CREDENTIALS_PATH = "credentials.json"
+    CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
     DATASET_FOLDER = "src/ca_biositing/pipeline/ca_biositing/pipeline/temp_external_datasets/"
     logger.info(f"Extracting raw data from '{FILE_NAME}'...")
 
