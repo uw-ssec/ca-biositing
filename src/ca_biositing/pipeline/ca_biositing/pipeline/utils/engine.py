@@ -25,7 +25,6 @@ def _get_database_url() -> str:
 
 DATABASE_URL = _get_database_url()
 engine = create_engine(DATABASE_URL)
-db_session = Session(engine)
 
 
 def get_engine():
