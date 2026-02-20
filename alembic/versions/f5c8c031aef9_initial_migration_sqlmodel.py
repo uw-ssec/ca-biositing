@@ -1,7 +1,7 @@
 """Initial migration (SQLModel)
 
 Revision ID: f5c8c031aef9
-Revises: 0001_create_extensions
+Revises: 0002_grant_readonly_permissions
 Create Date: 2026-02-11 20:56:17.585013
 
 """
