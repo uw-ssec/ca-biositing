@@ -16,6 +16,11 @@ def load_xrf_record(df: pd.DataFrame):
         logger.info("No XRF record data to load.")
         return
 
+    # Deduplicate by record_id, keeping the last occurrence
+    if 'record_id' in df.columns:
+        df = df.drop_duplicates(subset=['record_id'], keep='last')
+        logger.info(f"After deduplication: {len(df)} XRF records")
+
     logger.info(f"Upserting {len(df)} XRF records...")
 
     try:

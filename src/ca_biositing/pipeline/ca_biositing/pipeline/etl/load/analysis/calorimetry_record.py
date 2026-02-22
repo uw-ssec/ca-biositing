@@ -16,6 +16,11 @@ def load_calorimetry_record(df: pd.DataFrame):
         logger.info("No Calorimetry record data to load.")
         return
 
+    # Deduplicate by record_id, keeping the last occurrence
+    if 'record_id' in df.columns:
+        df = df.drop_duplicates(subset=['record_id'], keep='last')
+        logger.info(f"After deduplication: {len(df)} Calorimetry records")
+
     logger.info(f"Upserting {len(df)} Calorimetry records...")
 
     try:

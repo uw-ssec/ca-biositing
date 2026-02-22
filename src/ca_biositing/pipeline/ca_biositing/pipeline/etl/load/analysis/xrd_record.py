@@ -16,6 +16,11 @@ def load_xrd_record(df: pd.DataFrame):
         logger.info("No XRD record data to load.")
         return
 
+    # Deduplicate by record_id, keeping the last occurrence
+    if 'record_id' in df.columns:
+        df = df.drop_duplicates(subset=['record_id'], keep='last')
+        logger.info(f"After deduplication: {len(df)} XRD records")
+
     logger.info(f"Upserting {len(df)} XRD records...")
 
     try:
