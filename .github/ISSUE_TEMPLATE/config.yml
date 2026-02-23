@@ -24,3 +24,8 @@ issue_templates:
     description: Report slowness or excessive resource use.
     labels: [performance]
     body: performance_issue.yml
+  - name: General issue
+    id: general
+    description: Open a general issue that doesn't fit the other categories.
+    labels: [triage]
+    body: general.yml
