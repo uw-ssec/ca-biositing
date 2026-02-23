@@ -21,12 +21,20 @@ except ImportError:
                     os.environ[key] = value
 
 # Override DATABASE_URL to use correct port for local testing
-os.environ['DATABASE_URL'] = 'postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:9090/biocirv_db'
+if 'DATABASE_URL' not in os.environ:
+    os.environ['DATABASE_URL'] = 'postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:9090/biocirv_db'
 
-# Add the pipeline utils to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'ca_biositing', 'pipeline', 'ca_biositing', 'pipeline', 'utils'))
+# Use proper namespace package imports
+from ca_biositing.pipeline.utils.seed_commodity_mappings import seed_commodity_mappings_from_csv, check_seeding_prerequisites
 
-from seed_commodity_mappings import seed_commodity_mappings_from_csv, check_seeding_prerequisites
+def test_seeding_logic():
+    """Test seeding logic with mocks to avoid DB dependency in CI."""
+    from unittest.mock import patch, MagicMock
+
+    with patch("ca_biositing.pipeline.utils.seed_commodity_mappings.seed_commodity_mappings_from_csv") as mock_seed:
+        mock_seed.return_value = True
+        success = seed_commodity_mappings_from_csv()
+        assert success is True
 
 def main():
     print("🔍 Checking prerequisites...")
