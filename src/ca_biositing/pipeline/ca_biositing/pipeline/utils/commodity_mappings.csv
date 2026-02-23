@@ -1,0 +1,42 @@
+resource_name,commodity_name,api_name,usda_code,match_tier,note
+alfalfa,HAY  ALFALFA (DRY),HAY,18199999.0,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 53.60% - 2026-02-04T18:33:09.598916
+cotton stem mix,COTTON  UPLAND,COTTON,12121999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 43.94% - 2026-02-04T18:33:09.639517
+pistachio hulls,PISTACHIO NUTS,PISTACHIOS,26807999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 64.66% - 2026-02-04T18:33:09.675702
+pistachio shells,PISTACHIO NUTS,PISTACHIOS,26807999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 59.00% - 2026-02-04T18:33:09.679296
+rice hulls,RICE  ALL,RICE,10619999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 59.21% - 2026-02-04T18:33:09.698265
+rice straw,RICE  ALL,RICE,10619999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 52.89% - 2026-02-04T18:33:09.702127
+wheat straw,WHEAT,WHEAT,10199999.0,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 55.00% - 2026-02-04T18:33:09.746839
+almond branches,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 38.18% - 2026-02-04T18:33:09.602533
+almond hulls,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 44.21% - 2026-02-04T18:33:09.605829
+almond shells,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 42.00% - 2026-02-04T18:33:09.609025
+almond shells and hulls mix,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - Updated 2026-02-12 to match other almond resources
+almond stick char,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 35.00% - 2026-02-04T18:33:09.612924
+almond woodchips,ALMONDS,ALMONDS,26199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 36.52% - 2026-02-04T18:33:09.617244
+corn stover cobs,CORN  ALL,CORN,11199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 39.63% - 2026-02-04T18:33:09.622165
+corn stover husks,CORN  ALL,CORN,11199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 38.53% - 2026-02-04T18:33:09.626496
+corn stover stalks,CORN  ALL,CORN,11199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 46.39% - 2026-02-04T18:33:09.631356
+corn stover whole,CORN  ALL,CORN,11199999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 45.70% - 2026-02-04T18:33:09.635682 - Updated 2026-02-12 to map to CORN ALL for consistency
+cucumber culls,CUCUMBERS,CUCUMBERS,32599999.0,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 46.96% - 2026-02-04T18:33:09.643127
+grape pomace,ALL GRAPES,GRAPES,21699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 27.27% - 2026-02-04T18:33:09.646713
+grape stem,ALL GRAPES,GRAPES,21699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 36.00% - 2026-02-04T18:33:09.650381
+olive pomace,OLIVES,OLIVES,22699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 33.33% - 2026-02-04T18:33:09.653836
+olive stems / leaves,OLIVES,OLIVES,22699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 27.69% - 2026-02-04T18:33:09.657073
+peach pomace,PEACHES,PEACHES,21299999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 37.89% - 2026-02-04T18:33:09.661008
+peach screening waste,PEACHES,PEACHES,21299999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 100.00% - 2026-02-04T18:33:09.664710
+peach seeds,PEACHES,PEACHES,21299999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 40.00% - 2026-02-04T18:33:09.669061
+peach stems / leaves,PEACHES,PEACHES,21299999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 31.11% - 2026-02-04T18:33:09.672248
+pistachio stems & leaves,PISTACHIO NUTS,PISTACHIOS,26807999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 43.24% - 2026-02-04T18:33:09.682780
+potato culls-red,POTATOES  ALL,POTATOES,39199999.0,RELATED_GROUP,Matched by enhanced_commodity_mapper.py - user_approved - RELATED_GROUP - similarity: 37.24% - 2026-02-04T18:33:09.687219
+potato culls-white,POTATOES  ALL,POTATOES,39199999.0,RELATED_GROUP,Matched by enhanced_commodity_mapper.py - user_approved - RELATED_GROUP - similarity: 34.84% - 2026-02-04T18:33:09.691072
+potato culls-yellow,POTATOES  ALL,POTATOES,39199999.0,RELATED_GROUP,Matched by enhanced_commodity_mapper.py - user_approved - RELATED_GROUP - similarity: 33.75% - 2026-02-04T18:33:09.694644
+spent oak chips,ALL GRAPES,GRAPES,21699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 100.00% - 2026-02-04T18:33:09.705566
+spent oak stick,ALL GRAPES,GRAPES,21699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 100.00% - 2026-02-04T18:33:09.708835
+spent yeast,ALL GRAPES,GRAPES,21699999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 100.00% - 2026-02-04T18:33:09.712763
+sweet potato culls,SWEETPOTATOES,SWEET POTATOES,39299999.0,DIRECT_MATCH,Matched by enhanced_commodity_mapper.py - user_approved - DIRECT_MATCH - similarity: 46.45% - 2026-02-04T18:33:09.716966
+tomato pomace,TOMATOES,TOMATOES,37899999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 40.00% - 2026-02-04T18:33:09.720699
+walnut hulling discharge,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 32.20% - 2026-02-04T18:33:09.724326
+walnut hulls,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 33.10% - 2026-02-04T18:33:09.728118
+walnut shelling debris,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 27.69% - 2026-02-04T18:33:09.731794
+walnut shelling fines,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 28.42% - 2026-02-04T18:33:09.736002
+walnut shells,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 36.00% - 2026-02-04T18:33:09.739353
+walnut tree sticks,WALNUTS (ENGLISH),WALNUTS,26399999.0,CROP_FALLBACK,Matched by enhanced_commodity_mapper.py - user_approved - CROP_FALLBACK - similarity: 30.86% - 2026-02-04T18:33:09.743083

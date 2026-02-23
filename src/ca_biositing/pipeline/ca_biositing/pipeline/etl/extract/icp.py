@@ -13,7 +13,7 @@ GSHEET_NAME = "Aim 1-Feedstock Collection and Processing Data-BioCirV"
 WORKSHEET_NAME = "03.5-ICP"
 
 # The path to the credentials file. This is typically kept in the project root.
-CREDENTIALS_PATH = "credentials.json"
+CREDENTIALS_PATH = os.getenv("CREDENTIALS_PATH", "credentials.json")
 
 
 @task

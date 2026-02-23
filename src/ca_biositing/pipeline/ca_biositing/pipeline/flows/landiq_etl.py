@@ -26,7 +26,6 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
     Orchestrates the ETL process for Land IQ geospatial data using chunking to manage memory.
     """
     from prefect import get_run_logger
-    import os
     try:
         import pyproj
         os.environ['PROJ_LIB'] = pyproj.datadir.get_data_dir()
@@ -35,12 +34,27 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         import pyogrio
     from ca_biositing.pipeline.etl.transform.landiq.landiq_record import transform_landiq_record
     from ca_biositing.pipeline.etl.load.landiq import load_landiq_record
-    from ca_biositing.pipeline.etl.extract.landiq import DEFAULT_SHAPEFILE_PATH
+    from ca_biositing.pipeline.etl.extract.landiq import (
+        DEFAULT_SHAPEFILE_PATH,
+        LANDIQ_SHAPEFILE_URL,
+        download_shapefile,
+    )
 
     logger = get_run_logger()
     logger.info("Starting Land IQ ETL flow with chunking...")
 
-    path = shapefile_path if shapefile_path else DEFAULT_SHAPEFILE_PATH
+    _tmp_dir = None
+    if shapefile_path:
+        path = shapefile_path
+    elif LANDIQ_SHAPEFILE_URL:
+        logger.info(f"Downloading LandIQ shapefile from URL: {LANDIQ_SHAPEFILE_URL}")
+        result = download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
+        if result is None:
+            logger.error("Shapefile download failed; aborting LandIQ ETL.")
+            return
+        path, _tmp_dir = result
+    else:
+        path = DEFAULT_SHAPEFILE_PATH
 
     # 0. Lineage Tracking Setup
     etl_run_id = create_etl_run_record_task(pipeline_name="Land IQ ETL")
@@ -94,6 +108,11 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         logger.info("Land IQ ETL flow completed successfully.")
     except Exception as e:
         logger.error(f"Chunked processing failed: {e}", exc_info=True)
+    finally:
+        if _tmp_dir and os.path.isdir(_tmp_dir):
+            import shutil
+            shutil.rmtree(_tmp_dir, ignore_errors=True)
+            logger.info(f"Cleaned up temp directory: {_tmp_dir}")
 
 if __name__ == "__main__":
     landiq_etl_flow()

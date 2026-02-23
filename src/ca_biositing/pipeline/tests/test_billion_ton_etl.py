@@ -151,7 +151,7 @@ def test_transform_filter_california(mock_logger, sample_billion_ton_df):
 # --- Load Tests ---
 
 @patch("ca_biositing.pipeline.etl.load.billion_ton.get_run_logger")
-@patch("ca_biositing.pipeline.etl.load.billion_ton.get_local_engine")
+@patch("ca_biositing.pipeline.etl.load.billion_ton.get_engine")
 @patch("ca_biositing.pipeline.etl.load.billion_ton.Session")
 def test_load_success(mock_session, mock_engine, mock_logger):
     df = pd.DataFrame({

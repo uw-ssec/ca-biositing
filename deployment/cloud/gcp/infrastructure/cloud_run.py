@@ -15,6 +15,7 @@ from config import (
     DB_USER,
     DB_NAME,
     PREFECT_DB_NAME,
+    LANDIQ_SHAPEFILE_URL,
 )
 from cloud_sql import CloudSQLResources
 from secret_manager import SecretResources
@@ -368,12 +369,42 @@ def create_cloud_run_resources(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
                         ),
+                        # USDA NASS API key — value populated manually in Secret Manager post-deploy
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="USDA_NASS_API_KEY",
+                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
+                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                    secret=secrets.usda_api_key_secret.secret_id,
+                                    version="latest",
+                                )
+                            ),
+                        ),
+                        # Path to GSheets service account credentials file (mounted via Secret Manager volume)
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="CREDENTIALS_PATH",
+                            value="/app/gsheets-credentials/credentials.json",
+                        ),
+                        # Standard GCP ADC env var; also used by gspread/pydrive2 libraries
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="GOOGLE_APPLICATION_CREDENTIALS",
+                            value="/app/gsheets-credentials/credentials.json",
+                        ),
+                        # HTTP URL to download LandIQ shapefile at runtime
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="LANDIQ_SHAPEFILE_URL",
+                            value=LANDIQ_SHAPEFILE_URL,
+                        ),
                     ],
                     volume_mounts=[
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
                             name="cloudsql",
                             mount_path="/cloudsql",
-                        )
+                        ),
+                        # GSheets credentials file mounted from Secret Manager
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="gsheets-credentials",
+                            mount_path="/app/gsheets-credentials",
+                        ),
                     ],
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
                         tcp_socket=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeTcpSocketArgs(
@@ -391,7 +422,20 @@ def create_cloud_run_resources(
                     cloud_sql_instance=gcp.cloudrunv2.ServiceTemplateVolumeCloudSqlInstanceArgs(
                         instances=[sql.instance.connection_name],
                     ),
-                )
+                ),
+                # Secret Manager volume for GSheets service account credentials
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="gsheets-credentials",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.gsheets_secret.name,
+                        items=[
+                            gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                                version="latest",
+                                path="credentials.json",
+                            )
+                        ],
+                    ),
+                ),
             ],
         ),
         traffics=[

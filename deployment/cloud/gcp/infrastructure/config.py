@@ -37,6 +37,12 @@ PREFECT_SERVER_IMAGE = os.environ.get(
     "PREFECT_SERVER_IMAGE", "prefecthq/prefect:3-python3.12"
 )
 
+# LandIQ shapefile URL for Cloud Run (2023 provisional crop mapping dataset)
+LANDIQ_SHAPEFILE_URL = os.environ.get(
+    "LANDIQ_SHAPEFILE_URL",
+    "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource/25d0f174-4bec-4987-a402-602cd1372786/download/i15_crop_mapping_2023_provisional.zip",
+)
+
 
 def configure_stack(stack: auto.Stack) -> None:
     """Set all stack configuration programmatically."""

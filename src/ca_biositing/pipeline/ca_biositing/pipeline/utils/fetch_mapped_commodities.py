@@ -1,7 +1,6 @@
 from typing import List, Optional
 import sys
-import os
-from sqlalchemy import text, create_engine
+from sqlalchemy import text
 from sqlmodel import Session, select
 
 # Optional fallback import
@@ -31,12 +30,8 @@ def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[s
     """
     try:
         if engine is None:
-            # Load from .env (now has correct localhost credentials)
-            db_url = os.getenv(
-                "DATABASE_URL",
-                "postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db"
-            )
-            engine = create_engine(db_url, echo=False)
+            from ca_biositing.pipeline.utils.engine import get_engine
+            engine = get_engine()
 
         # Use raw SQLAlchemy connection to get USDA codes for mapped commodities
         from sqlalchemy import text as sql_text
