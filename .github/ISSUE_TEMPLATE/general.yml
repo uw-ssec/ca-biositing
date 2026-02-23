@@ -1,0 +1,17 @@
+name: "📝 General issue"
+description: "Open a general issue that doesn't fit the other categories."
+title: "<short summary>"
+labels: ["triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue, question, or idea in your own words.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any links, screenshots, or other details that might help.
