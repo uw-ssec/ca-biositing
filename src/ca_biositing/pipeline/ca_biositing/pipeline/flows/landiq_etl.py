@@ -48,12 +48,11 @@ def landiq_etl_flow(shapefile_path: str = "", chunk_size: int = 10000):
         path = shapefile_path
     elif LANDIQ_SHAPEFILE_URL:
         logger.info(f"Downloading LandIQ shapefile from URL: {LANDIQ_SHAPEFILE_URL}")
-        path = download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
-        if path is None:
+        result = download_shapefile(LANDIQ_SHAPEFILE_URL, logger)
+        if result is None:
             logger.error("Shapefile download failed; aborting LandIQ ETL.")
             return
-        # The downloaded .shp lives inside <tmp_dir>/extracted/...; walk up to the temp root
-        _tmp_dir = os.path.dirname(os.path.dirname(path))
+        path, _tmp_dir = result
     else:
         path = DEFAULT_SHAPEFILE_PATH
 

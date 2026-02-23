@@ -25,11 +25,11 @@ DEFAULT_SHAPEFILE_PATH = "data/landiq/i15_Crop_Mapping_2023_Provisional.shp"
 LANDIQ_SHAPEFILE_URL = os.getenv("LANDIQ_SHAPEFILE_URL", "")
 
 
-def download_shapefile(url: str, logger) -> Optional[str]:
+def download_shapefile(url: str, logger) -> Optional[tuple[str, str]]:
     """Download a shapefile (or zip archive containing one) from a URL.
 
-    Returns the path to the .shp file on success, or None on failure.
-    The caller is responsible for cleanup of the temp directory.
+    Returns a tuple of (shp_path, tmp_dir) on success, or None on failure.
+    The caller is responsible for cleanup of tmp_dir.
     """
     import requests
 
@@ -72,7 +72,7 @@ def download_shapefile(url: str, logger) -> Optional[str]:
 
             shp_path = shp_files[0]
             logger.info(f"Found shapefile: {shp_path}")
-            return shp_path
+            return shp_path, tmp_dir
 
         # Direct .shp download (requires companion .dbf/.shx/.prj files — unlikely via URL)
         if local_path.endswith(".shp"):
@@ -80,7 +80,7 @@ def download_shapefile(url: str, logger) -> Optional[str]:
                 "Downloaded a single .shp file — companion files (.dbf, .shx, .prj) "
                 "may be missing. Provide a URL to a zip archive for reliable results."
             )
-            return local_path
+            return local_path, tmp_dir
 
         logger.error(f"Downloaded file is not a zip or shp: {local_path}")
         return None
@@ -97,11 +97,12 @@ def extract(shapefile_path: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
 
     Resolution order:
     1. `shapefile_path` argument (if provided and exists locally)
-    2. `LANDIQ_SHAPEFILE_URL` env var (if set) — downloads at runtime
-    3. `DEFAULT_SHAPEFILE_PATH` (falls back to volume-mounted file for Docker Compose)
+    2. `DEFAULT_SHAPEFILE_PATH` (falls back to volume-mounted file for Docker Compose)
+
+    URL download is handled by the flow before calling this task.
 
     Args:
-        shapefile_path: Path to the Land IQ shapefile. If None, uses env var or default.
+        shapefile_path: Path to the Land IQ shapefile. If None, uses default path.
 
     Returns:
         A geopandas GeoDataFrame containing the raw data, or None if an error occurs.
@@ -114,16 +115,7 @@ def extract(shapefile_path: Optional[str] = None) -> Optional[gpd.GeoDataFrame]:
         logger.info(f"Using provided shapefile path: {path}")
         return _read_shapefile(path, logger)
 
-    # Resolution 2: download from URL
-    url = LANDIQ_SHAPEFILE_URL
-    if url:
-        path = download_shapefile(url, logger)
-        if path is None:
-            logger.error("Shapefile download failed; aborting LandIQ extract.")
-            return None
-        return _read_shapefile(path, logger)
-
-    # Resolution 3: local default path
+    # Resolution 2: local default path
     path = shapefile_path or DEFAULT_SHAPEFILE_PATH
     logger.info(f"Extracting Land IQ data from: {path}")
 

@@ -193,10 +193,9 @@ def normalize_dataframes(
                         # Ensure the _id column exists (as all-null) so downstream
                         # code that expects it won't raise KeyError.
                         id_col_name = f"{col}_id"
-                        if id_col_name not in df_norm.columns:
-                            df_norm[id_col_name] = pd.NA
-                            if col in df_norm.columns:
-                                df_norm = df_norm.drop(columns=[col])
+                        df_norm[id_col_name] = pd.NA
+                        if col in df_norm.columns:
+                            df_norm = df_norm.drop(columns=[col])
                 normalized_dfs.append(df_norm)
                 logger.info(f"Finished DataFrame #{i+1}.")
             logger.info("Committing database session.")

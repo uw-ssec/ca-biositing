@@ -35,9 +35,15 @@ deployment
 
 ### Sign into gcloud CLI
 
-Run the following to set up your account's credentials on the CLI.
+Run both commands to authenticate fully. The first authenticates the gcloud CLI
+itself; the second creates Application Default Credentials (ADC) used by Pulumi
+and other tools.
 
 ```bash
+# 1. Authenticate the gcloud CLI (required for gcloud commands)
+gcloud auth login
+
+# 2. Create Application Default Credentials (required for Pulumi and SDKs)
 gcloud auth application-default login
 ```
 
@@ -55,6 +61,18 @@ gcloud config set project <PROJECT_ID>
 ```
 
 ### First-Time Setup
+
+#### 0. Build the Pulumi Docker image (one-time)
+
+All `cloud-*` pixi tasks run Pulumi inside a Docker container. Build the image
+before running any other setup steps:
+
+```bash
+docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/
+```
+
+This only needs to be re-run if `deployment/cloud/gcp/infrastructure/Dockerfile`
+changes.
 
 #### 1. Create the Pulumi state bucket (one-time)
 
@@ -134,9 +152,10 @@ pixi run -e deployment install-pulumi
 
 ### Authentication errors
 
-Make sure you are logged into gcloud:
+Make sure you are logged into gcloud (both commands are required):
 
 ```bash
+gcloud auth login
 gcloud auth application-default login
 ```
 
@@ -284,14 +303,34 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 Use the Cloud SQL Auth Proxy to create a local tunnel, then connect your client
 to `localhost`:
 
-#### 1. Start the proxy
+#### 1. Install and start the proxy
+
+Install the Cloud SQL Auth Proxy via gcloud or by downloading the binary:
+
+```bash
+gcloud components install cloud-sql-proxy
+```
+
+> **Note:** When prompted during `gcloud components install`, decline the Python
+> 3.13 installation to avoid conflicting with the Pixi-managed Python 3.12
+> environment.
+
+Then start the proxy (leave it running in a separate terminal):
+
+**Cloud SQL Auth Proxy v2 (installed by `gcloud components install`):**
 
 ```bash
 cloud-sql-proxy biocirv-470318:us-west1:biocirv-staging --port 5434
 ```
 
-The proxy binary is available in the pixi `deployment` environment. Leave it
-running in a separate terminal.
+**Cloud SQL Auth Proxy v1 (if you installed the older binary directly):**
+
+```bash
+cloud_sql_proxy -instances=biocirv-470318:us-west1:biocirv-staging=tcp:5434
+```
+
+Alternatively, download the binary directly from
+https://cloud.google.com/sql/docs/mysql/sql-proxy.
 
 #### 2. Get the password
 
@@ -344,7 +383,11 @@ Verify the worker can reach the Prefect server — look for connection errors.
 
 #### PostGIS not enabled
 
-Connect to the database and enable the extension:
+Connect to the database and enable the extension. Note that `psql` is **not**
+bundled in the pixi environment — install it separately:
+
+- macOS: `brew install libpq` (adds `psql` to PATH)
+- Linux: `sudo apt install postgresql-client`
 
 ```bash
 gcloud sql connect biocirv-staging --user=postgres --database=biocirv-staging
@@ -365,7 +408,7 @@ execution.
 
 ### Prerequisites
 
-- `gcloud` CLI authenticated: `gcloud auth application-default login`
+- `gcloud` CLI authenticated: `gcloud auth login` and `gcloud auth application-default login`
 - Docker daemon running (for local builds)
 - `pixi` installed
 - Access to the BioCirV GCP project (`biocirv-470318`)
