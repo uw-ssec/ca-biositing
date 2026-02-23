@@ -381,9 +381,9 @@ Verify the worker can reach the Prefect server — look for connection errors.
    pixi run -e deployment cloud-deploy
    ```
 
-#### PostGIS not enabled
+#### PostgreSQL extensions not enabled
 
-Connect to the database and enable the extension. Note that `psql` is **not**
+Connect to the database and enable the extensions. Note that `psql` is **not**
 bundled in the pixi environment — install it separately:
 
 - macOS: `brew install libpq` (adds `psql` to PATH)
@@ -395,6 +395,9 @@ gcloud sql connect biocirv-staging --user=postgres --database=biocirv-staging
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS btree_gin;
 SELECT PostGIS_Version();
 ```
 
