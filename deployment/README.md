@@ -399,6 +399,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE EXTENSION IF NOT EXISTS btree_gin;
 SELECT PostGIS_Version();
+SELECT extname FROM pg_extension WHERE extname IN ('pg_trgm', 'unaccent', 'btree_gin');
 ```
 
 ---
