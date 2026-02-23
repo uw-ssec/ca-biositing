@@ -64,5 +64,3 @@ pgschema
 
 # Database Backups
 backups/
-*.sql
-!src/ca_biositing/datamodels/ca_biositing/datamodels/sql_schemas/main.sql
