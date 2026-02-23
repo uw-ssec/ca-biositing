@@ -408,7 +408,8 @@ execution.
 
 ### Prerequisites
 
-- `gcloud` CLI authenticated: `gcloud auth login` and `gcloud auth application-default login`
+- `gcloud` CLI authenticated: `gcloud auth login` and
+  `gcloud auth application-default login`
 - Docker daemon running (for local builds)
 - `pixi` installed
 - Access to the BioCirV GCP project (`biocirv-470318`)
