@@ -6,9 +6,10 @@ This module provides business logic for querying analysis data
 
 from __future__ import annotations
 
+import re
 from typing import Optional
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, aliased
 
 from ca_biositing.datamodels.models import (
@@ -36,8 +37,13 @@ class AnalysisService:
     """Business logic for feedstock analysis data operations."""
 
     @staticmethod
+    def _normalize_name(name: str) -> str:
+        """Normalize a name for case- and whitespace-insensitive lookup."""
+        return re.sub(r"\s+", " ", name).strip().lower()
+
+    @staticmethod
     def _get_resource_by_name(session: Session, resource_name: str) -> Resource:
-        """Get resource by name.
+        """Get resource by name (case/whitespace insensitive).
 
         Args:
             session: Database session
@@ -49,7 +55,10 @@ class AnalysisService:
         Raises:
             ResourceNotFoundException: If resource not found
         """
-        stmt = select(Resource).where(Resource.name == resource_name)
+        normalized = AnalysisService._normalize_name(resource_name)
+        stmt = select(Resource).where(
+            func.lower(func.regexp_replace(Resource.name, r"\s+", " ", "g")) == normalized
+        )
         resource = session.execute(stmt).scalar_one_or_none()
 
         if not resource:
