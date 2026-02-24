@@ -21,9 +21,11 @@ flowchart TD
 
 subgraph EXT["EXTERNAL DATA SOURCES"]
 direction TB
-    EX1["Google Sheets API"]
-    EX2["External Datasets"]
-    EX3["Field Data Collection"]
+    EX1["Google Sheets API<br/>(Lab & Field Data)"]
+    EX2["USDA NASS QuickStats API<br/>(Census & Survey Data)"]
+    EX3["LandIQ<br/>(Crop Mapping & Land Use)"]
+    EX4["DOE Billion Ton 2023<br/>(Agricultural Residues)"]
+    EX5["Field Data Collection"]
 end
 
 EXT --> ETL
@@ -35,7 +37,7 @@ EXT --> ETL
 
 subgraph ETL["ETL PIPELINE"]
 direction LR
-    EXTRACT["EXTRACT<br/>Google Sheets API"]
+    EXTRACT["EXTRACT<br/>Multi-Source Ingestion"]
     TRANSFORM["TRANSFORM<br/>Pandas Processing"]
     VALIDATE["VALIDATE<br/>SQLModel Validation"]
     LOAD["LOAD<br/>PostgreSQL via Alembic"]
@@ -103,7 +105,9 @@ end
 
 - **Workflow Orchestration**: Prefect for pipeline management
 - **Containerization**: Docker & Docker Compose for service orchestration
-- **Data Sources**: Google Sheets API as primary data source
+- **Data Sources**: Google Sheets API (lab & field data), USDA NASS QuickStats
+  API (census & survey), LandIQ (crop mapping), DOE Billion Ton 2023
+  (agricultural residues)
 - **Data Validation**: Pydantic models for type safety and validation
 
 ### Frontend & Visualization
@@ -215,12 +219,20 @@ ca-biositing/
 ### 1. Data Ingestion (Extract)
 
 ```
-Google Sheets ──API──▶ Python ETL Pipeline
+Data Sources ──APIs──▶ Python ETL Pipeline (Prefect-orchestrated)
      │                        │
-     ├── Biomass Data         ├── Google Sheets API Client
-     ├── Location Data        ├── Authentication (credentials.json)
-     ├── Sample Data          └── Rate Limiting & Error Handling
-     └── Experimental Data
+     ├── Google Sheets        ├── Google Sheets API Client (credentials.json)
+     │   ├── Lab Data         │
+     │   ├── Field Samples    │
+     │   └── Resource Info    │
+     │                        │
+     ├── USDA NASS API        ├── QuickStats REST Client (API key auth)
+     │   ├── Census Data      │   └── 16+ commodity mappings
+     │   └── Survey Data      │
+     │                        │
+     ├── LandIQ               ├── Crop mapping & land use data
+     │                        │
+     └── DOE Billion Ton      └── Agricultural residue estimates
 ```
 
 ### 2. Data Processing (Transform)
@@ -298,37 +310,73 @@ PostgreSQL ──SQLModel──▶ FastAPI ──HTTP/JSON──▶ Client Appli
 
 ## Data Models & Entities
 
+All models are hand-written SQLModel classes in
+`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`, organized into 15
+subdirectories (91 models total). Four base mixins (`BaseEntity`, `LookupBase`,
+`Aim1RecordBase`, `Aim2RecordBase`) in `models/base.py` provide shared columns.
+
 ### Core Domain Models
 
-#### Biomass Models
+#### Resource & Biomass Models (`resource_information/`)
 
-- **Biomass**: Core biomass entity with classification
+- **Resource**: Core biomass resource definitions
+- **ResourceClass**, **ResourceSubclass**: Hierarchical resource classification
+- **ResourceAvailability**: Seasonal and quantitative availability data
+- **ResourceMorphology**, **ResourceCounterfactual**: Physical characteristics
+- **PrimaryAgProduct**: Agricultural product classifications
+
+#### Geographic Models (`places/`)
+
+- **Place**: Primary geographic entity (county-level, with FIPS geoid)
+- **LocationAddress**: Address information linked to places
+
+#### Field Sampling (`field_sampling/`)
+
 - **FieldSample**: Field collection metadata and measurements
-- **BiomassType**: Lookup table for biomass categories
-- **BiomassAvailability**: Seasonal and quantitative availability data
-- **BiomassQuality**: Quality metrics and attributes
-- **BiomassPrice**: Pricing information and market data
-- **HarvestMethod**: Collection methodology lookup
+- **HarvestMethod**, **CollectionMethod**, **AgTreatment**: Methodology lookups
+- **SoilType**, **LocationSoilType**: Soil classification
 
-#### Geographic Models
+#### Aim 1 Analytical Records (`aim1_records/`)
 
-- **GeographicLocation**: Primary location entity (can be anonymized)
-- **StreetAddress, City, County, State**: Hierarchical location components
-- **FIPS**: Federal Information Processing Standards codes
-- **LocationResolution**: Resolution types (GPS coordinates, county-level, etc.)
+- **ProximateRecord**, **UltimateRecord**, **CompositionalRecord**: Core analyses
+- **IcpRecord**, **XrfRecord**, **XrdRecord**: Elemental/structural analyses
+- **CalorimetryRecord**, **FtnirRecord**, **RgbRecord**: Thermal/spectral analyses
 
-#### Research Models
+#### Aim 2 Processing Records (`aim2_records/`)
 
-- **ExperimentAnalysis**: Experimental design and results
-- **MetadataSamples**: Sample processing and metadata
-- **SpecificAnalysisResults**: Detailed analysis outcomes
-- **ExternalDatasets**: Integration with external data sources
+- **AutoclaveRecord**, **FermentationRecord**, **GasificationRecord**,
+  **PretreatmentRecord**: Conversion process data
 
-#### Organizational Models
+#### External Data (`external_data/`)
 
-- **Organizations**: Research institutions and companies
-- **PeopleContacts**: Researchers and contact information
-- **User**: System user management and permissions
+- **UsdaCensusRecord**, **UsdaSurveyRecord**, **UsdaCommodity**: USDA NASS data
+- **LandiqRecord**, **LandiqResourceMapping**: Land IQ crop mapping data
+- **BillionTon2023Record**: DOE Billion Ton agricultural residue data
+- **Polygon**: Geospatial polygon data (PostGIS geometry)
+
+#### People & Organizations (`people/`)
+
+- **Contact**: Researchers and contact information
+- **Provider**: Research institutions and organizations
+
+#### Experiment & Equipment (`experiment_equipment/`)
+
+- **Experiment**, **ExperimentAnalysis**: Experimental design and linkage
+- **Equipment**, **ExperimentEquipment**: Lab equipment tracking
+
+#### Methods, Parameters & Units (`methods_parameters_units/`)
+
+- **Method**, **MethodCategory**, **MethodStandard**: Methodology definitions
+- **Parameter**, **Unit**, **ParameterUnit**: Measurement framework
+
+#### Core Metadata (`core/`)
+
+- **EtlRun**, **LineageGroup**, **EntityLineage**: ETL tracking and data lineage
+
+#### Infrastructure (`infrastructure/`)
+
+- **InfrastructureBiodieselPlants**, **InfrastructureEthanolBiorefineries**,
+  **InfrastructureLandfills**, and 10 other facility types
 
 ## Google Cloud Integration
 
@@ -369,19 +417,26 @@ Google Cloud Platform
 
 ### REST API Design
 
+The API is organized around feedstock data access, using crop names and
+geographic identifiers (FIPS geoid codes) as primary query parameters:
+
 ```
-/api/v1/
-├── /biomass/                    # Biomass data endpoints
-│   ├── GET /                    # List biomass entities
-│   ├── GET /{id}                # Get specific biomass
-│   └── GET /{id}/samples        # Get associated samples
-├── /locations/                  # Geographic data endpoints
-│   ├── GET /                    # List locations
-│   ├── GET /{id}                # Get specific location
-│   └── GET /search              # Geospatial search
-├── /experiments/                # Research data endpoints
-├── /organizations/              # Organization endpoints
-└── /health                      # System health checks
+/v1/feedstocks/
+├── /usda/census/                          # USDA Census agricultural data
+│   ├── GET /crops/{crop}/geoid/{geoid}/parameters           # All census parameters
+│   ├── GET /crops/{crop}/geoid/{geoid}/parameters/{param}   # Single census parameter
+│   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # By resource name
+│   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
+├── /usda/survey/                          # USDA Survey agricultural data
+│   ├── GET /crops/{crop}/geoid/{geoid}/parameters           # All survey parameters
+│   ├── GET /crops/{crop}/geoid/{geoid}/parameters/{param}   # Single survey parameter
+│   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # By resource name
+│   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
+├── /analysis/                             # Laboratory analysis data
+│   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # All analysis parameters
+│   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
+└── /availability/                         # Seasonal availability
+    └── GET /resources/{resource}/geoid/{geoid}              # Availability window
 ```
 
 ### API Features
