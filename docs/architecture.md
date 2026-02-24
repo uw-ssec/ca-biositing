@@ -338,9 +338,11 @@ subdirectories (91 models total). Four base mixins (`BaseEntity`, `LookupBase`,
 
 #### Aim 1 Analytical Records (`aim1_records/`)
 
-- **ProximateRecord**, **UltimateRecord**, **CompositionalRecord**: Core analyses
+- **ProximateRecord**, **UltimateRecord**, **CompositionalRecord**: Core
+  analyses
 - **IcpRecord**, **XrfRecord**, **XrdRecord**: Elemental/structural analyses
-- **CalorimetryRecord**, **FtnirRecord**, **RgbRecord**: Thermal/spectral analyses
+- **CalorimetryRecord**, **FtnirRecord**, **RgbRecord**: Thermal/spectral
+  analyses
 
 #### Aim 2 Processing Records (`aim2_records/`)
 
