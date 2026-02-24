@@ -422,7 +422,7 @@ Google Cloud Platform
 The API is organized around feedstock data access, using crop names and
 geographic identifiers (FIPS geoid codes) as primary query parameters:
 
-```
+```text
 /v1/feedstocks/
 ├── /usda/census/                          # USDA Census agricultural data
 │   ├── GET /crops/{crop}/geoid/{geoid}/parameters           # All census parameters

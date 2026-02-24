@@ -47,7 +47,7 @@ After copying the `.env.example`, configure these additional settings:
    [USDA NASS Quick Stats API](https://quickstats.nass.usda.gov/api/) and add it
    to `resources/docker/.env`:
 
-   ```
+   ```env
    USDA_NASS_API_KEY=your_api_key_here
    ```
 
