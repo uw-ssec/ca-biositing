@@ -38,6 +38,32 @@ pixi run start-services
 > This command spins up the PostgreSQL, Prefect Server, and Prefect Worker
 > containers.
 
+### Environment Variables
+
+After copying the `.env.example`, configure these additional settings:
+
+1. **USDA NASS API key** — Required to fetch USDA data during ETL. Get a free
+   API key from the
+   [USDA NASS Quick Stats API](https://quickstats.nass.usda.gov/api/) and add it
+   to `resources/docker/.env`:
+
+   ```
+   USDA_NASS_API_KEY=your_api_key_here
+   ```
+
+2. **Database URL for local commands** — The `DATABASE_URL` in
+   `resources/docker/.env` uses `@db:5432` (the Docker service name), which
+   works inside containers but not from your host machine. To run commands like
+   `pixi run migrate` locally, set `DATABASE_URL` in your shell environment to
+   point to `localhost`:
+
+   ```bash
+   export DATABASE_URL=postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db
+   ```
+
+   This environment variable takes priority over the value in
+   `resources/docker/.env`.
+
 ---
 
 ## Google Sheets Credentials (REQUIRED)
@@ -93,7 +119,7 @@ pixi run access-db
 Once inside the PostgreSQL shell, run:
 
 ```sql
-SELECT * FROM biomass LIMIT 5;
+SELECT * FROM resource LIMIT 5;
 ```
 
 > Tables should exist, but may be empty if Google Sheet credentials are
