@@ -45,6 +45,13 @@ class WebServiceConfig(BaseSettings):
     cors_allow_methods: List[str] = ["*"]
     cors_allow_headers: List[str] = ["*"]
 
+    # JWT authentication configuration
+    # Override API_JWT_SECRET_KEY in production via GCP Secret Manager
+    jwt_secret_key: str = "changeme-not-for-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 30
+    jwt_cookie_secure: bool = True
+
 
 # Global configuration instance
 config = WebServiceConfig()

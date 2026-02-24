@@ -1,0 +1,35 @@
+"""ApiUser model for JWT authentication."""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Optional
+
+import sqlalchemy as sa
+from sqlmodel import Field, SQLModel
+
+
+class ApiUser(SQLModel, table=True):
+    """API user for JWT authentication.
+
+    Users are managed by admins and authenticate via username/password
+    to receive short-lived JWTs for accessing protected endpoints.
+    """
+
+    __tablename__ = "api_user"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(nullable=False, unique=True, index=True)
+    hashed_password: str = Field(nullable=False)
+    email: Optional[str] = Field(default=None)
+    full_name: Optional[str] = Field(default=None)
+    is_admin: bool = Field(default=False, nullable=False)
+    disabled: bool = Field(default=False, nullable=False)
+    created_at: Optional[datetime] = Field(
+        default=None,
+        sa_column_kwargs={"server_default": sa.text("CURRENT_TIMESTAMP")},
+    )
+    updated_at: Optional[datetime] = Field(
+        default=None,
+        sa_column_kwargs={"server_default": sa.text("CURRENT_TIMESTAMP"), "onupdate": datetime.utcnow},
+    )

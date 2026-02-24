@@ -85,6 +85,15 @@ def create_cloud_run_resources(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
                         ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="API_JWT_SECRET_KEY",
+                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
+                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                    secret=secrets.jwt_secret_sm.secret_id,
+                                    version="latest",
+                                )
+                            ),
+                        ),
                     ],
                     volume_mounts=[
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
