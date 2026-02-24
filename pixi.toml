@@ -303,6 +303,7 @@ pip = "*"
 
 [feature.docs.pypi-dependencies]
 mkdocs-awesome-pages-plugin = "*"
+mkdocstrings = { version = "*", extras = ["python"] }
 
 [feature.docs.tasks]
 docs-serve = { cmd = "mkdocs serve", description = "Run MkDocs locally for previewing documentation." }
