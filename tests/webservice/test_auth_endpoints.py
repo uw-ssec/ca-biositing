@@ -123,7 +123,7 @@ def test_register_duplicate_username(auth_client, admin_token, admin_user):
     # admin user already exists
     resp = auth_client.post(
         "/v1/auth/register",
-        json={"username": "admin", "password": "any"},
+        json={"username": "admin", "password": "anypassword"},
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert resp.status_code == 409
@@ -169,22 +169,8 @@ def test_logout_clears_cookie(auth_client, admin_token):
 
 
 def test_disabled_user_rejected(auth_client, disabled_user):
-    # Login should fail for disabled user
     resp = auth_client.post(
         "/v1/auth/token",
         data={"username": "disabled", "password": "disabledpass"},
     )
-    # Login itself succeeds (returns a token), but subsequent requests should be rejected
-    # Note: the disabled check is in get_current_user, not in the login endpoint itself
-    # So login returns a token but protected endpoints reject it
-    if resp.status_code == 200:
-        token = resp.json()["access_token"]
-        # Accessing a protected endpoint with a disabled user's token should 401
-        resp2 = auth_client.get(
-            "/v1/feedstocks/analysis/resources/1/geoid/06001/parameters",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert resp2.status_code == 401
-    else:
-        # If login itself returns 401 for disabled users, that's also acceptable
-        assert resp.status_code == 401
+    assert resp.status_code == 401

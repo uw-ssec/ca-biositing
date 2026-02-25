@@ -149,3 +149,10 @@ def test_authenticate_user_nonexistent():
     session = _make_mock_session(None)
     result = authenticate_user(session, "nobody", "anypass")
     assert result is None
+
+
+def test_authenticate_user_disabled():
+    hashed = get_password_hash("correctpass")
+    user = ApiUser(id=1, username="dis", hashed_password=hashed, is_admin=False, disabled=True)
+    result = authenticate_user(_make_mock_session(user), "dis", "correctpass")
+    assert result is None

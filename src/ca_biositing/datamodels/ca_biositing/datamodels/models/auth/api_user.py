@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import sqlalchemy as sa
@@ -31,5 +31,5 @@ class ApiUser(SQLModel, table=True):
     )
     updated_at: Optional[datetime] = Field(
         default=None,
-        sa_column_kwargs={"server_default": sa.text("CURRENT_TIMESTAMP"), "onupdate": datetime.utcnow},
+        sa_column_kwargs={"server_default": sa.text("CURRENT_TIMESTAMP"), "onupdate": lambda: datetime.now(timezone.utc)},
     )

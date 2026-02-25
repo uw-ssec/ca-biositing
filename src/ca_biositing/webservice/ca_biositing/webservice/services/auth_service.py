@@ -40,7 +40,8 @@ def authenticate_user(session: Session, username: str, password: str) -> Optiona
     Uses a constant-time dummy hash check for non-existent users to prevent
     timing-based username enumeration.
 
-    Returns the ApiUser on success, or None on failure.
+    Returns the ApiUser on success, or None on failure (wrong password,
+    nonexistent user, or disabled account).
     """
     user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
     if not user:
@@ -48,6 +49,8 @@ def authenticate_user(session: Session, username: str, password: str) -> Optiona
         verify_password(password, DUMMY_HASH)
         return None
     if not verify_password(password, user.hashed_password):
+        return None
+    if user.disabled:
         return None
     return user
 

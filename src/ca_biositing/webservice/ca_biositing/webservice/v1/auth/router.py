@@ -127,6 +127,10 @@ def refresh(
 
 @router.post("/logout")
 def logout(response: Response) -> dict:
-    """Clear the access_token cookie, effectively logging out browser clients."""
+    """Clear the access_token cookie, effectively logging out browser clients.
+
+    Note: the JWT itself remains valid until expiry. Bearer-token clients should
+    discard the token client-side. Only the HTTP-only cookie is cleared here.
+    """
     response.delete_cookie(key="access_token", path="/")
     return {"message": "Logged out"}

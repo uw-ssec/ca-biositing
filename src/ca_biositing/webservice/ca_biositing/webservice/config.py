@@ -50,7 +50,8 @@ class WebServiceConfig(BaseSettings):
     jwt_secret_key: str = "changeme-not-for-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 30
-    jwt_cookie_secure: bool = True
+    # Defaults to False for local HTTP dev. Cloud Run must set API_JWT_COOKIE_SECURE=true.
+    jwt_cookie_secure: bool = False
 
 
 # Global configuration instance

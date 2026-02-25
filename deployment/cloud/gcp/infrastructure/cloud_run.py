@@ -94,6 +94,10 @@ def create_cloud_run_resources(
                                 )
                             ),
                         ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="API_JWT_COOKIE_SECURE",
+                            value="true",
+                        ),
                     ],
                     volume_mounts=[
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
