@@ -14,6 +14,11 @@ class ApiUser(SQLModel, table=True):
 
     Users are managed by admins and authenticate via username/password
     to receive short-lived JWTs for accessing protected endpoints.
+
+    Intentionally inherits SQLModel directly rather than BaseEntity: BaseEntity
+    adds ETL-specific fields (etl_run_id, lineage_group_id) that are not
+    meaningful for an auth model, and its timestamp fields lack the
+    server_default / onupdate SA kwargs required here.
     """
 
     __tablename__ = "api_user"

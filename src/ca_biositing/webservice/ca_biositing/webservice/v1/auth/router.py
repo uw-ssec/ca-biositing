@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
 from ca_biositing.datamodels.models import ApiUser
@@ -91,8 +92,15 @@ def register(
         disabled=False,
     )
     session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
+    try:
+        session.commit()
+        session.refresh(new_user)
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Username '{user_create.username}' already exists",
+        )
 
     return UserResponse(
         id=new_user.id,

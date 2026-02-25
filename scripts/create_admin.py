@@ -35,6 +35,9 @@ def main() -> None:
     password = os.environ.get("ADMIN_PASSWORD") or getpass.getpass(
         f"Password for '{args.username}': "
     )
+    if len(password) < 8:
+        print("Error: Password must be at least 8 characters.", file=sys.stderr)
+        sys.exit(1)
 
     engine = get_engine()
     with Session(engine) as session:

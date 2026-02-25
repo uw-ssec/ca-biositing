@@ -66,7 +66,7 @@ def auth_client_fixture(auth_engine):
     # Auth errors (401, 403) are returned normally before DB queries happen.
     client = TestClient(app, raise_server_exceptions=False)
     yield client
-    app.dependency_overrides.clear()
+    app.dependency_overrides.pop(get_session, None)
 
 
 @pytest.fixture(name="admin_user", scope="function")

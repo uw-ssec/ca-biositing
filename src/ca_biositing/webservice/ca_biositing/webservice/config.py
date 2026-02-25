@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import List
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,8 +47,13 @@ class WebServiceConfig(BaseSettings):
     cors_allow_headers: List[str] = ["*"]
 
     # JWT authentication configuration
-    # Override API_JWT_SECRET_KEY in production via GCP Secret Manager
-    jwt_secret_key: str = "changeme-not-for-production"
+    # Override API_JWT_SECRET_KEY in production via GCP Secret Manager.
+    # The default is a clearly-labeled dev-only value that satisfies the min_length
+    # constraint; a runtime warning is emitted in main.py when it is still in use.
+    jwt_secret_key: str = Field(
+        default="changeme-only-for-local-dev-do-not-use-in-prod!!",
+        min_length=32,
+    )
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 30
     # Defaults to False for local HTTP dev. Cloud Run must set API_JWT_COOKIE_SECURE=true.

@@ -105,7 +105,7 @@ def test_register_as_admin(auth_client, admin_token):
 def test_register_as_non_admin(auth_client, user_token):
     resp = auth_client.post(
         "/v1/auth/register",
-        json={"username": "anotheruser", "password": "pass123"},
+        json={"username": "anotheruser", "password": "pass12345"},
         headers={"Authorization": f"Bearer {user_token}"},
     )
     assert resp.status_code == 403
@@ -114,7 +114,7 @@ def test_register_as_non_admin(auth_client, user_token):
 def test_register_no_token(auth_client):
     resp = auth_client.post(
         "/v1/auth/register",
-        json={"username": "anotheruser", "password": "pass123"},
+        json={"username": "anotheruser", "password": "pass12345"},
     )
     assert resp.status_code == 401
 
