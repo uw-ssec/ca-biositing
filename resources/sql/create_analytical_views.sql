@@ -69,7 +69,7 @@ DROP MATERIALIZED VIEW IF EXISTS ca_biositing.usda_census_view;
 CREATE MATERIALIZED VIEW ca_biositing.usda_census_view AS
 SELECT
   obs.id,
-  uc.name as usda_crop,
+  LOWER(uc.name) as usda_crop,
   p.geoid,
   param.name as parameter,
   obs.value,
@@ -125,7 +125,7 @@ DROP MATERIALIZED VIEW IF EXISTS ca_biositing.usda_survey_view;
 CREATE MATERIALIZED VIEW ca_biositing.usda_survey_view AS
 SELECT
   obs.id,
-  uc.name as usda_crop,
+  LOWER(uc.name) as usda_crop,
   p.geoid,
   param.name as parameter,
   obs.value,

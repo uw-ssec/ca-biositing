@@ -41,9 +41,15 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
             print(f"❌ Mapping CSV file not found: {csv_path}")
             return False
 
+
         # Read CSV mapping file
         print(f"📊 Reading mapping file: {csv_path}")
         df = pd.read_csv(csv_path)
+
+        # Normalize relevant columns to lowercase and strip whitespace
+        for col in ["commodity_name", "api_name", "resource_name"]:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.strip().str.lower()
 
         # Filter out unmapped entries
         mapped_df = df[df['match_tier'] != 'UNMAPPED'].copy()

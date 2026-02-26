@@ -1,7 +1,7 @@
 """usda_etl_model_updates
 
 Revision ID: a085cd4a462e
-Revises: 9c5c72c6d059
+Revises: f5c8c031aef9
 Create Date: 2026-02-12 16:21:36.347658
 
 """
@@ -13,7 +13,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = 'a085cd4a462e'
-down_revision: Union[str, Sequence[str], None] = '9c5c72c6d059'
+down_revision: Union[str, Sequence[str], None] = 'f5c8c031aef9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
