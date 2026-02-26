@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from ca_biositing.datamodels.models import Observation
 
 
 class TestGetCensusByCrop:
@@ -261,3 +264,35 @@ class TestMultipleCrops:
 
         assert len(response_corn.json()["data"]) == 3
         assert len(response_soybeans.json()["data"]) == 1
+
+
+class TestObservationQueryRegression:
+    """Regression tests for ETL observation key format."""
+
+    def test_ignores_legacy_observation_record_format(
+        self,
+        client: TestClient,
+        session: Session,
+        test_census_data,
+    ):
+        """Ensure census endpoints read ETL-style observation keys."""
+        # Insert legacy-style observation row that should not be selected.
+        session.add(
+            Observation(
+                id=999,
+                record_id="census_1_acres",
+                dataset_id=1,
+                record_type="census",
+                parameter_id=1,
+                value=999999.0,
+                unit_id=1,
+            )
+        )
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 25000.0
