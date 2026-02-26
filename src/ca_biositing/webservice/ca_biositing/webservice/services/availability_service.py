@@ -6,9 +6,7 @@ This module provides business logic for querying resource availability
 
 from __future__ import annotations
 
-import re
-
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from ca_biositing.datamodels.models import (
@@ -24,13 +22,8 @@ class AvailabilityService:
     """Business logic for resource availability data operations."""
 
     @staticmethod
-    def _normalize_name(name: str) -> str:
-        """Normalize a name for case- and whitespace-insensitive lookup."""
-        return re.sub(r"\s+", " ", name).strip().lower()
-
-    @staticmethod
     def _get_resource_by_name(session: Session, resource_name: str) -> Resource:
-        """Get resource by name (case/whitespace insensitive).
+        """Get resource by name
 
         Args:
             session: Database session
@@ -42,10 +35,7 @@ class AvailabilityService:
         Raises:
             ResourceNotFoundException: If resource not found
         """
-        normalized = AvailabilityService._normalize_name(resource_name)
-        stmt = select(Resource).where(
-            func.lower(func.regexp_replace(Resource.name, r"\s+", " ", "g")) == normalized
-        )
+        stmt = select(Resource).where(Resource.name == resource_name)
         resource = session.execute(stmt).scalar_one_or_none()
 
         if not resource:
