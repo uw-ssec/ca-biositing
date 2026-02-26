@@ -13,7 +13,7 @@ This module defines all 7 materialized views for the ca_biositing schema:
 Views are created via Alembic migrations and can be refreshed via refresh_all_views().
 """
 
-from sqlalchemy import cast, func, literal, literal_column, select, text, String, Float
+from sqlalchemy import cast, func, literal, literal_column, select, text, String, Float, Integer
 from sqlalchemy.orm import aliased
 
 # Import all models needed for view definitions
@@ -143,11 +143,13 @@ USDA_CENSUS_VIEW = (
         Observation.dimension_value,
         DimensionUnit.name.label("dimension_unit"),
     )
-    .join(
-        UsdaCensusRecord,
-        (Observation.record_id == cast(UsdaCensusRecord.id, String))
-        & (Observation.record_type == "usda_census_record"),
-    )
+        .join(
+            UsdaCensusRecord,
+            (
+                (Observation.record_type == "usda_census_record") &
+                (cast(Observation.record_id, Integer) == UsdaCensusRecord.id)
+            ),
+        )
     .join(UsdaCommodity, UsdaCensusRecord.commodity_code == UsdaCommodity.id)
     .join(Place, UsdaCensusRecord.geoid == Place.geoid)
     .join(Parameter, Observation.parameter_id == Parameter.id)
