@@ -1,7 +1,7 @@
 """add_materialized_views
 
 Revision ID: 9c5c72c6d059
-Revises: f5c8c031aef9
+Revises: a085cd4a462e
 Create Date: 2026-02-11 21:25:31.229772
 
 """
@@ -21,7 +21,7 @@ from ca_biositing.datamodels.views import (
 
 # revision identifiers, used by Alembic.
 revision: str = '9c5c72c6d059'
-down_revision: Union[str, Sequence[str], None] = 'f5c8c031aef9'
+down_revision: Union[str, Sequence[str], None] = 'a085cd4a462e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

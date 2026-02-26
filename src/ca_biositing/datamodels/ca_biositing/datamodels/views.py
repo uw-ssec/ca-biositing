@@ -134,7 +134,7 @@ DimensionUnit = aliased(Unit, name="du")
 USDA_CENSUS_VIEW = (
     select(
         Observation.id,
-        UsdaCommodity.name.label("usda_crop"),
+        UsdaCommodity.api_name.label("usda_crop"),
         Place.geoid,
         Parameter.name.label("parameter"),
         Observation.value,
@@ -161,7 +161,7 @@ USDA_CENSUS_VIEW = (
 USDA_SURVEY_VIEW = (
     select(
         Observation.id,
-        UsdaCommodity.name.label("usda_crop"),
+        UsdaCommodity.api_name.label("usda_crop"),
         Place.geoid,
         Parameter.name.label("parameter"),
         Observation.value,
