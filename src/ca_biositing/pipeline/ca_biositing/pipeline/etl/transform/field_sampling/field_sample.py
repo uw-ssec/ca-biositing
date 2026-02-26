@@ -41,7 +41,6 @@ def transform_field_sample(
         LocationAddress,
         PrimaryAgProduct,
         PreparedSample,
-        Method,
         FieldStorageMethod
     )
 
@@ -111,7 +110,6 @@ def transform_field_sample(
         'storage_mode': (FieldStorageMethod, 'name'),
         'field_storage_method': (FieldStorageMethod, 'name'),
         'field_storage_mode': (FieldStorageMethod, 'name'),
-        'county': (LocationAddress, 'county'),
         'primary_ag_product': (PrimaryAgProduct, 'name'),
         'provider_type': (Provider, 'type'),
         'dataset': (Dataset, 'name'),
@@ -122,24 +120,29 @@ def transform_field_sample(
     normalized_df = normalize_dataframes(joined_df, normalize_columns)
 
     # 5. Select and Rename Columns (from notebook)
+    # Note: 'sampling_location_id' will be linked during the loading phase
+    # based on the location details preserved in the metadata.
     rename_map = {
         'field_sample_name': 'name',
         'resource_id': 'resource_id',
         'provider_codename_id': 'provider_id',
         'primary_collector_id': 'collector_id',
         'sample_source': 'sample_collection_source',
-        'qty': 'qty',
+        'qty': 'amount_collected',
         'sample_unit_id': 'amount_collected_unit_id',
-        'county_id': 'sampling_location_id',
-        'storage_mode_id': 'field_storage_method_id',
         'field_storage_method_id': 'field_storage_method_id',
-        'field_storage_mode_id': 'field_storage_method_id',
         'storage_dur_value': 'field_storage_duration_value',
         'storage_dur_units_id': 'field_storage_duration_unit_id',
         'field_storage_location_id': 'field_storage_location_id',
         'sample_ts': 'collection_timestamp',
         'sample_notes': 'note'
     }
+
+    # Preserve raw location info for linking in load step
+    location_link_cols = ['sampling_location', 'sampling_street', 'sampling_city']
+    for col in location_link_cols:
+        if col in normalized_df.columns:
+            rename_map[col] = col
 
     # Filter rename_map to only include columns that exist in normalized_df
     available_rename = {k: v for k, v in rename_map.items() if k in normalized_df.columns}
