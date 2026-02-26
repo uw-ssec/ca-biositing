@@ -68,6 +68,7 @@ class UsdaCensusService:
         Raises:
             ResourceNotFoundException: If resource not found or no mapping exists
         """
+
         # First find the resource
         stmt = select(Resource).where(Resource.name == resource_name)
         resource = session.execute(stmt).scalar_one_or_none()
@@ -130,10 +131,8 @@ class UsdaCensusService:
         if not census_record:
             return []
 
-        # Query observations by dataset_id, record_type, and record_id pattern
-        # Observations are linked to census records via record_id patterns like "census_{id}_*"
-        census_record_prefix = f"census_{census_record.id}_"
-
+        # Query observations by dataset_id, record_type, and record_id
+        # The ETL stores record_type as "usda_census_record" and record_id as the census record's ID
         stmt = (
             select(
                 Observation,
@@ -148,8 +147,8 @@ class UsdaCensusService:
             .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
                 Observation.dataset_id == census_record.dataset_id,
-                Observation.record_type == "census",
-                Observation.record_id.like(f"{census_record_prefix}%")
+                Observation.record_type == "usda_census_record",
+                Observation.record_id == str(census_record.id),
             ))
         )
 
