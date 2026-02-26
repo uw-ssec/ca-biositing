@@ -34,7 +34,7 @@ class UsdaCensusService:
 
     @staticmethod
     def _get_commodity_by_name(session: Session, crop_name: str) -> UsdaCommodity:
-        """Get USDA commodity by crop name
+        """Get USDA commodity by crop name.
 
         Args:
             session: Database session
@@ -69,6 +69,7 @@ class UsdaCensusService:
             ResourceNotFoundException: If resource not found or no mapping exists
         """
 
+        # First find the resource
         stmt = select(Resource).where(Resource.name == resource_name)
         resource = session.execute(stmt).scalar_one_or_none()
 

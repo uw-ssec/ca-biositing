@@ -67,6 +67,7 @@ class UsdaSurveyService:
         Raises:
             ResourceNotFoundException: If resource not found or no mapping exists
         """
+        # First find the resource
         stmt = select(Resource).where(Resource.name == resource_name)
         resource = session.execute(stmt).scalar_one_or_none()
 

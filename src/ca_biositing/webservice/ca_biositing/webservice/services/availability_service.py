@@ -23,7 +23,7 @@ class AvailabilityService:
 
     @staticmethod
     def _get_resource_by_name(session: Session, resource_name: str) -> Resource:
-        """Get resource by name
+        """Get resource by name.
 
         Args:
             session: Database session
