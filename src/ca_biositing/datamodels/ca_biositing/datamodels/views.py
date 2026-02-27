@@ -36,6 +36,12 @@ from .models import (
     UltimateRecord,
     CompositionalRecord,
     IcpRecord,
+    XrfRecord,
+    CalorimetryRecord,
+    XrdRecord,
+    # Aim2 record models
+    FermentationRecord,
+    PretreatmentRecord,
     # Sample models
     PreparedSample,
     FieldSample,
@@ -49,6 +55,9 @@ VIEW_SCHEMA = "ca_biositing"
 
 # Raw column reference for geometry — bypasses GeoAlchemy2's ST_AsEWKB wrapping
 _geom_col = literal_column("polygon.geom").label("geom")
+
+# Create aliased Unit for dimension_unit (used across multiple views)
+DimensionUnit = aliased(Unit, name="du")
 
 # --- 1. landiq_record_view ---
 LANDIQ_RECORD_VIEW = (
@@ -85,14 +94,21 @@ LANDIQ_TILESET_VIEW = (
 ANALYSIS_DATA_VIEW = (
     select(
         Observation.id,
+        Observation.record_id,
+        Observation.record_type,
         Resource.name.label("resource"),
         literal("06000").label("geoid"),
         Parameter.name.label("parameter"),
         Observation.value,
         Unit.name.label("unit"),
+        DimensionType.name.label("dimension_type"),
+        Observation.dimension_value,
+        DimensionUnit.name.label("dimension_unit"),
     )
     .join(Parameter, Observation.parameter_id == Parameter.id)
     .join(Unit, Observation.unit_id == Unit.id)
+    .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
+    .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
     .outerjoin(
         ProximateRecord,
         (Observation.record_id == ProximateRecord.record_id)
@@ -111,26 +127,60 @@ ANALYSIS_DATA_VIEW = (
     .outerjoin(
         IcpRecord,
         (Observation.record_id == IcpRecord.record_id)
-        & (Observation.record_type == "icp analysis"),
-    )
-    .outerjoin(
-        PreparedSample,
-        PreparedSample.id
-        == func.coalesce(
-            ProximateRecord.prepared_sample_id,
-            UltimateRecord.prepared_sample_id,
-            CompositionalRecord.prepared_sample_id,
-            IcpRecord.prepared_sample_id,
+        & (
+            (Observation.record_type == "icp analysis")
+            | (Observation.record_type == "icp-oes")
+            | (Observation.record_type == "icp-ms")
         ),
     )
-    .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
-    .outerjoin(Resource, Resource.id == FieldSample.resource_id)
+    .outerjoin(
+        XrfRecord,
+        (Observation.record_id == XrfRecord.record_id)
+        & (Observation.record_type == "xrf analysis"),
+    )
+    .outerjoin(
+        CalorimetryRecord,
+        (Observation.record_id == CalorimetryRecord.record_id)
+        & (Observation.record_type == "calorimetry analysis"),
+    )
+    .outerjoin(
+        XrdRecord,
+        (Observation.record_id == XrdRecord.record_id)
+        & (Observation.record_type == "xrd analysis"),
+    )
+    .outerjoin(
+        FermentationRecord,
+        (Observation.record_id == FermentationRecord.record_id)
+        & (Observation.record_type == "fermentation"),
+    )
+    .outerjoin(
+        PretreatmentRecord,
+        (Observation.record_id == PretreatmentRecord.record_id)
+        & (Observation.record_type == "pretreatment"),
+    )
+    .outerjoin(
+        Resource,
+        Resource.id
+        == func.coalesce(
+            ProximateRecord.resource_id,
+            UltimateRecord.resource_id,
+            CompositionalRecord.resource_id,
+            IcpRecord.resource_id,
+            XrfRecord.resource_id,
+            CalorimetryRecord.resource_id,
+            XrdRecord.resource_id,
+            FermentationRecord.resource_id,
+            PretreatmentRecord.resource_id,
+        ),
+    )
+    .where(
+        Observation.record_type.notin_(
+            ["usda_census_record", "usda_survey_record"]
+        )
+    )
 )
 
 # --- 4. usda_census_view ---
-# Create aliased Unit for dimension_unit
-DimensionUnit = aliased(Unit, name="du")
-
 USDA_CENSUS_VIEW = (
     select(
         Observation.id,

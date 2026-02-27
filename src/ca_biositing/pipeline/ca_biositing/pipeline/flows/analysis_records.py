@@ -40,10 +40,20 @@ def analysis_records_flow(*args, **kwargs):
     logger.info(f"Lineage Group ID: {lineage_group_id}")
 
     # 1. Extract
-    def safe_extract(extractor, name):
+    def safe_extract(extractor, name, analysis_type=None):
         try:
             logger.info(f"Extracting {name} data...")
-            return extractor.extract.fn()
+            df = extractor.extract.fn()
+            if df is not None and analysis_type is not None:
+                df = df.copy()
+                # Drop existing analysis_type columns (including variations like "Analysis Type")
+                # to ensure our hard-coded value isn't dropped by later deduplication logic
+                cols_to_drop = [c for c in df.columns if str(c).lower().replace(' ', '_').replace('.', '_') == 'analysis_type']
+                if cols_to_drop:
+                    logger.info(f"Dropping existing analysis_type columns from {name}: {cols_to_drop}")
+                    df = df.drop(columns=cols_to_drop)
+                df['analysis_type'] = analysis_type
+            return df
         except (ValueError, IOError):
             logger.exception(f"Failed to extract {name} data")
             return None
@@ -51,13 +61,13 @@ def analysis_records_flow(*args, **kwargs):
             logger.exception(f"Unexpected error extracting {name} data")
             raise
 
-    prox_raw = safe_extract(proximate, "Proximate")
-    ult_raw = safe_extract(ultimate, "Ultimate")
-    cmpana_raw = safe_extract(cmpana, "Compositional")
-    icp_raw = safe_extract(icp, "ICP")
-    xrf_raw = safe_extract(xrf, "XRF")
-    cal_raw = safe_extract(calorimetry, "Calorimetry")
-    xrd_raw = safe_extract(xrd, "XRD")
+    prox_raw = safe_extract(proximate, "Proximate", "proximate analysis")
+    ult_raw = safe_extract(ultimate, "Ultimate", "ultimate analysis")
+    cmpana_raw = safe_extract(cmpana, "Compositional", "compositional analysis")
+    icp_raw = safe_extract(icp, "ICP", "icp analysis")
+    xrf_raw = safe_extract(xrf, "XRF", "xrf analysis")
+    cal_raw = safe_extract(calorimetry, "Calorimetry", "calorimetry analysis")
+    xrd_raw = safe_extract(xrd, "XRD", "xrd analysis")
 
     raw_data = [d for d in [prox_raw, ult_raw, cmpana_raw, icp_raw, xrf_raw, cal_raw, xrd_raw] if d is not None]
 
