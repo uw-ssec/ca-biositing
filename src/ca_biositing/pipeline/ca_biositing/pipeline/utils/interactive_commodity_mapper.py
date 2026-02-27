@@ -542,6 +542,10 @@ def find_best_matches(resource_name: str, usda_commodities: List[Dict], top_n: i
 
     return matches[:top_n]
 
+# ============================================================================
+# TODO: make sure that it checks what has already been mapped in the resources_usda_commodity_mapping before launding the interactive mapper
+# ============================================================================
+
 
 # ============================================================================
 # STEP 4: Auto-match high-confidence matches
@@ -1218,6 +1222,14 @@ def find_unmapped_resources(engine):
         if unmapped:
             print(f"\nTo map these resources, run:")
             print(f"  python enhanced_commodity_mapper.py --auto-match --review --save")
+
+
+# ============================================================================
+# TODO: API name insertion & checking
+# ============================================================================
+
+#Use a commodity name --> API name static mapping tool
+#Check API is queariable for all USDA_commodity names as final task of code (OR write a seperate testing script)
 
 
 # ============================================================================
