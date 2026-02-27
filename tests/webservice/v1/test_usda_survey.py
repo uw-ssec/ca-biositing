@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from ca_biositing.datamodels.models import Observation
+from ca_biositing.datamodels.models import Observation, UsdaCommodity, UsdaSurveyRecord
 
 
 class TestGetSurveyByCrop:
@@ -318,6 +318,49 @@ class TestCropNormalizationMatching:
         )
 
         assert response.status_code == 404
+
+    def test_get_by_crop_prefers_api_name_match_over_name_match(
+        self,
+        client: TestClient,
+        session: Session,
+        test_survey_data,
+    ):
+        """Prefer api_name match when another commodity only matches by legacy name."""
+        session.add(
+            UsdaCommodity(id=4, name="corn", api_name="maize", usda_code="00123")
+        )
+        session.add(
+            UsdaSurveyRecord(
+                id=4,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=4,
+                year=2022,
+                survey_program_id=1,
+                survey_period="2022-Q1",
+                reference_month="January",
+                seasonal_flag=True,
+            )
+        )
+        session.add(
+            Observation(
+                id=996,
+                record_id="4",
+                dataset_id=1,
+                record_type="usda_survey_record",
+                parameter_id=1,
+                value=999999.0,
+                unit_id=1,
+            )
+        )
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 28000.0
 
 
 class TestObservationQueryRegression:

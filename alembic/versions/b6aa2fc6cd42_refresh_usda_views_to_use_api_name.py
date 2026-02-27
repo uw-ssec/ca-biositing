@@ -29,8 +29,10 @@ def _create_view(view_name: str, view_query) -> None:
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_census_view")
-    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_survey_view")
+    # We are changing view definitions (name -> lower(api_name)), so a refresh
+    # alone is insufficient; drop/create is required for definition changes.
+    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_census_view CASCADE")
+    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_survey_view CASCADE")
 
     _create_view("usda_census_view", USDA_CENSUS_VIEW)
     _create_view("usda_survey_view", USDA_SURVEY_VIEW)
@@ -38,9 +40,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_census_view")
-    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_survey_view")
+    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_census_view CASCADE")
+    op.execute(f"DROP MATERIALIZED VIEW IF EXISTS {VIEW_SCHEMA}.usda_survey_view CASCADE")
 
+    # Downgrade must recreate the previous definitions (usda_crop from uc.name).
+    # REFRESH MATERIALIZED VIEW cannot revert a view definition.
     op.execute(
         f"""
         CREATE MATERIALIZED VIEW {VIEW_SCHEMA}.usda_census_view AS

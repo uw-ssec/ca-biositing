@@ -166,7 +166,7 @@ def check_seeding_prerequisites(engine=None) -> dict:
     """
     try:
         if engine is None:
-            engine = get_local_engine()
+            engine = get_engine()
 
         with engine.connect() as conn:
             # Check resource table
