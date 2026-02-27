@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session, aliased
 
 from ca_biositing.datamodels.models import (
@@ -32,6 +32,22 @@ class UsdaSurveyService:
     """Business logic for USDA Survey data operations."""
 
     @staticmethod
+    def _normalize_crop_name(crop_name: Optional[str]) -> str:
+        """Normalize crop names for case- and space-insensitive exact matching."""
+        if not crop_name:
+            return ""
+        return " ".join(crop_name.split()).lower()
+
+    @staticmethod
+    def _normalized_sql_text(column):
+        """Normalize SQL text for case- and space-insensitive exact matching."""
+        # Repeatedly collapse double spaces to support multi-space inputs.
+        normalized = column
+        for _ in range(8):
+            normalized = func.replace(normalized, "  ", " ")
+        return func.lower(func.trim(normalized))
+
+    @staticmethod
     def _get_commodity_by_name(session: Session, crop_name: str) -> UsdaCommodity:
         """Get USDA commodity by crop name.
 
@@ -45,13 +61,32 @@ class UsdaSurveyService:
         Raises:
             CropNotFoundException: If crop not found
         """
-        stmt = select(UsdaCommodity).where(UsdaCommodity.name == crop_name)
-        commodity = session.execute(stmt).scalar_one_or_none()
+        normalized_query = UsdaSurveyService._normalize_crop_name(crop_name)
+        api_name_expr = UsdaSurveyService._normalized_sql_text(UsdaCommodity.api_name)
+        api_stmt = (
+            select(UsdaCommodity)
+            .where(UsdaCommodity.api_name.is_not(None))
+            .where(api_name_expr == normalized_query)
+            .order_by(UsdaCommodity.id)
+            .limit(1)
+        )
+        commodity = session.execute(api_stmt).scalar_one_or_none()
+        if commodity:
+            return commodity
 
-        if not commodity:
-            raise CropNotFoundException(crop_name)
+        name_expr = UsdaSurveyService._normalized_sql_text(UsdaCommodity.name)
+        name_stmt = (
+            select(UsdaCommodity)
+            .where(UsdaCommodity.name.is_not(None))
+            .where(name_expr == normalized_query)
+            .order_by(UsdaCommodity.id)
+            .limit(1)
+        )
+        commodity = session.execute(name_stmt).scalar_one_or_none()
+        if commodity:
+            return commodity
 
-        return commodity
+        raise CropNotFoundException(crop_name)
 
     @staticmethod
     def _get_commodity_by_resource(session: Session, resource_name: str) -> UsdaCommodity:

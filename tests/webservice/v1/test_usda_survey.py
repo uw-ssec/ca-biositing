@@ -275,6 +275,51 @@ class TestMultipleCrops:
         assert len(response_soybeans.json()["data"]) == 1
 
 
+class TestCropNormalizationMatching:
+    """Tests for exact, case- and space-insensitive crop matching."""
+
+    def test_get_by_crop_matches_case_and_whitespace_variants(
+        self, client: TestClient, test_survey_data
+    ):
+        """CORN ALL should match with mixed case and repeated internal spaces."""
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/CoRn%20%20%20AlL/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 19000.0
+
+    def test_get_by_crop_does_not_prefix_match(self, client: TestClient, test_survey_data):
+        """CORN should not match CORN ALL on a geoid where only CORN ALL exists."""
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/CORN/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 404
+
+    def test_list_by_crop_matches_collapsed_spaces(self, client: TestClient, test_survey_data):
+        """Double spaces in input should normalize to single-space exact match."""
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/corn%20%20all/geoid/06047/parameters"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["data"]) == 1
+        assert data["data"][0]["parameter"] == "acres"
+        assert data["data"][0]["value"] == 19000.0
+
+    def test_get_by_crop_does_not_match_different_phrase(
+        self, client: TestClient, test_survey_data
+    ):
+        """Different phrase should not match even if it contains the same first word."""
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/corn%20altogether/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 404
+
+
 class TestObservationQueryRegression:
     """Regression tests for ETL observation key format."""
 
