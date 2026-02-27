@@ -68,4 +68,7 @@ to database views used for analysis.
 ## Verification
 
 - Ran `pixi run test` to verify ETL logic and database migrations.
+- Fixed a CI/CD regression where `test_fermentation_etl.py` and
+  `test_pretreatment_etl.py` were incorrectly mocking `load_observation.engine`
+  (which was refactored to use `get_engine()`).
 - Manually inspected the refreshed materialized views to confirm data accuracy.

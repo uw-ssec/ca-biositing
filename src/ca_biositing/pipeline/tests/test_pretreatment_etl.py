@@ -7,11 +7,11 @@ from prefect.testing.utilities import prefect_test_harness
 @patch("ca_biositing.pipeline.etl.extract.pretreatment_data.gsheet_to_df")
 @patch("ca_biositing.pipeline.etl.transform.analysis.observation.normalize_dataframes")
 @patch("ca_biositing.pipeline.etl.transform.analysis.pretreatment_record.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.load.analysis.observation.engine")
+@patch("ca_biositing.pipeline.etl.load.analysis.observation.get_engine")
 @patch("ca_biositing.pipeline.etl.load.analysis.pretreatment_record.engine")
 def test_pretreatment_etl_full(
     mock_engine,
-    mock_obs_engine,
+    mock_get_engine,
     mock_prec_normalize,
     mock_obs_normalize,
     mock_gsheet,
@@ -71,7 +71,7 @@ def test_pretreatment_etl_full(
         # 3. Mock Load
         mock_conn = MagicMock()
         mock_engine.connect.return_value.__enter__.return_value = mock_conn
-        mock_obs_engine.connect.return_value.__enter__.return_value = mock_conn
+        mock_get_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
 
         # Execution - Calling without .fn() to trigger task orchestration
         raw_df = extract()
@@ -104,4 +104,4 @@ def test_pretreatment_etl_full(
         assert mock_prec_normalize.called
         assert mock_obs_normalize.called
         assert mock_engine.connect.called
-        assert mock_obs_engine.connect.called
+        assert mock_get_engine.called
