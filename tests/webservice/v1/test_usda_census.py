@@ -266,6 +266,98 @@ class TestMultipleCrops:
         assert len(response_soybeans.json()["data"]) == 1
 
 
+class TestLatestRecordSelection:
+    """Tests for selecting the most recent USDA census record."""
+
+    def test_prefers_latest_year_for_same_crop_and_geoid(
+        self,
+        client: TestClient,
+        session: Session,
+        test_census_data,
+    ):
+        """When multiple years exist, the service should use the newest year."""
+        session.add(
+            UsdaCensusRecord(
+                id=10,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2023,
+            )
+        )
+        session.add(
+            Observation(
+                id=1010,
+                record_id="10",
+                dataset_id=1,
+                record_type="usda_census_record",
+                parameter_id=1,
+                value=26000.0,
+                unit_id=1,
+            )
+        )
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 26000.0
+
+    def test_breaks_same_year_ties_by_highest_record_id(
+        self,
+        client: TestClient,
+        session: Session,
+        test_census_data,
+    ):
+        """When year ties, the larger source record ID should be selected."""
+        session.add_all([
+            UsdaCensusRecord(
+                id=11,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2024,
+            ),
+            UsdaCensusRecord(
+                id=12,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2024,
+            ),
+        ])
+        session.add_all([
+            Observation(
+                id=1011,
+                record_id="11",
+                dataset_id=1,
+                record_type="usda_census_record",
+                parameter_id=1,
+                value=27000.0,
+                unit_id=1,
+            ),
+            Observation(
+                id=1012,
+                record_id="12",
+                dataset_id=1,
+                record_type="usda_census_record",
+                parameter_id=1,
+                value=28000.0,
+                unit_id=1,
+            ),
+        ])
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 28000.0
+
+
 class TestCropNormalizationMatching:
     """Tests for exact, case- and space-insensitive crop matching."""
 
