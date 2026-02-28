@@ -21,8 +21,8 @@ from ca_biositing.datamodels.models import (
     UsdaCommodity,
     UsdaSurveyRecord,
 )
+from ca_biositing.webservice.services._usda_lookup_common import get_commodity_by_name
 from ca_biositing.webservice.exceptions import (
-    CropNotFoundException,
     ParameterNotFoundException,
     ResourceNotFoundException,
 )
@@ -45,13 +45,7 @@ class UsdaSurveyService:
         Raises:
             CropNotFoundException: If crop not found
         """
-        stmt = select(UsdaCommodity).where(UsdaCommodity.name == crop_name)
-        commodity = session.execute(stmt).scalar_one_or_none()
-
-        if not commodity:
-            raise CropNotFoundException(crop_name)
-
-        return commodity
+        return get_commodity_by_name(session, crop_name)
 
     @staticmethod
     def _get_commodity_by_resource(session: Session, resource_name: str) -> UsdaCommodity:
