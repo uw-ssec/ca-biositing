@@ -9,24 +9,19 @@ from __future__ import annotations
 from typing import Optional
 
 from sqlalchemy import and_, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session
 
 from ca_biositing.datamodels.models import (
-    DimensionType,
-    Observation,
-    Parameter,
     Resource,
     ResourceUsdaCommodityMap,
-    Unit,
-    UsdaCensusRecord,
     UsdaCommodity,
 )
 from ca_biositing.webservice.exceptions import (
-    CropNotFoundException,
     ParameterNotFoundException,
     ResourceNotFoundException,
-    ServiceException,
 )
+from ca_biositing.webservice.services._canonical_views import get_usda_census_view
+from ca_biositing.webservice.services._usda_lookup_common import get_commodity_by_name
 
 
 class UsdaCensusService:
@@ -46,13 +41,7 @@ class UsdaCensusService:
         Raises:
             CropNotFoundException: If crop not found
         """
-        stmt = select(UsdaCommodity).where(UsdaCommodity.name == crop_name)
-        commodity = session.execute(stmt).scalar_one_or_none()
-
-        if not commodity:
-            raise CropNotFoundException(crop_name)
-
-        return commodity
+        return get_commodity_by_name(session, crop_name)
 
     @staticmethod
     def _get_commodity_by_resource(session: Session, resource_name: str) -> UsdaCommodity:
@@ -112,64 +101,60 @@ class UsdaCensusService:
         Returns:
             List of observation dictionaries with parameter/unit/dimension details
         """
-        # Create alias for the dimension unit join
-        DimensionUnit = aliased(Unit)
+        census_view = get_usda_census_view(session)
 
-        # First, find the census record to get its dataset_id
-        # If multiple records exist for the same commodity/geoid, return the most recent
-        census_stmt = (
-            select(UsdaCensusRecord)
+        latest_record_stmt = (
+            select(census_view.c.source_record_id)
             .where(and_(
-                UsdaCensusRecord.commodity_code == commodity_id,
-                UsdaCensusRecord.geoid == geoid
+                census_view.c.commodity_id == commodity_id,
+                census_view.c.geoid == geoid,
             ))
-            .order_by(UsdaCensusRecord.year.desc())
+            .order_by(
+                census_view.c.record_year.desc(),
+                census_view.c.source_record_id.desc(),
+            )
             .limit(1)
         )
-        census_record = session.execute(census_stmt).scalars().first()
+        latest_record_id = session.execute(latest_record_stmt).scalar_one_or_none()
 
-        if not census_record:
+        if latest_record_id is None:
             return []
 
-        # Query observations by dataset_id, record_type, and record_id
-        # The ETL stores record_type as "usda_census_record" and record_id as the census record's ID
         stmt = (
             select(
-                Observation,
-                Parameter.name.label("parameter_name"),
-                Unit.name.label("unit_name"),
-                DimensionType.name.label("dimension_name"),
-                DimensionUnit.name.label("dimension_unit_name"),
+                census_view.c.id,
+                census_view.c.parameter,
+                census_view.c.value,
+                census_view.c.unit,
+                census_view.c.dimension,
+                census_view.c.dimension_value,
+                census_view.c.dimension_unit,
             )
-            .join(Parameter, Observation.parameter_id == Parameter.id)
-            .join(Unit, Observation.unit_id == Unit.id)
-            .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
-            .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
-                Observation.dataset_id == census_record.dataset_id,
-                Observation.record_type == "usda_census_record",
-                Observation.record_id == str(census_record.id),
+                census_view.c.commodity_id == commodity_id,
+                census_view.c.geoid == geoid,
+                census_view.c.source_record_id == latest_record_id,
             ))
         )
 
         if parameter_name:
-            stmt = stmt.where(Parameter.name == parameter_name)
+            stmt = stmt.where(census_view.c.parameter == parameter_name)
 
         # Order by observation ID for deterministic results
-        stmt = stmt.order_by(Observation.id)
+        stmt = stmt.order_by(census_view.c.id)
 
         results = session.execute(stmt).all()
 
         observations = []
         for row in results:
-            obs = row.Observation
             observations.append({
-                "parameter": row.parameter_name,
-                "value": float(obs.value) if obs.value is not None else None,
-                "unit": row.unit_name,
-                "dimension": row.dimension_name,
-                "dimension_value": float(obs.dimension_value) if obs.dimension_value is not None else None,
-                "dimension_unit": row.dimension_unit_name,
+                "parameter": row.parameter,
+                "value": float(row.value) if row.value is not None else None,
+                "unit": row.unit,
+                "dimension": row.dimension,
+                "dimension_value": float(row.dimension_value)
+                if row.dimension_value is not None else None,
+                "dimension_unit": row.dimension_unit,
             })
 
         return observations

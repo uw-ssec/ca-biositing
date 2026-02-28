@@ -39,6 +39,7 @@ from .models import (
     # Sample models
     PreparedSample,
     FieldSample,
+    LocationAddress,
     # Resource and place models
     Resource,
     Place,
@@ -82,17 +83,24 @@ LANDIQ_TILESET_VIEW = (
 )
 
 # --- 3. analysis_data_view ---
+AnalysisDimensionUnit = aliased(Unit, name="analysis_du")
 ANALYSIS_DATA_VIEW = (
     select(
         Observation.id,
+        Resource.id.label("resource_id"),
         Resource.name.label("resource"),
-        literal("06000").label("geoid"),
+        LocationAddress.geography_id.label("geoid"),
         Parameter.name.label("parameter"),
         Observation.value,
         Unit.name.label("unit"),
+        DimensionType.name.label("dimension"),
+        Observation.dimension_value,
+        AnalysisDimensionUnit.name.label("dimension_unit"),
     )
     .join(Parameter, Observation.parameter_id == Parameter.id)
     .join(Unit, Observation.unit_id == Unit.id)
+    .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
+    .outerjoin(AnalysisDimensionUnit, Observation.dimension_unit_id == AnalysisDimensionUnit.id)
     .outerjoin(
         ProximateRecord,
         (Observation.record_id == ProximateRecord.record_id)
@@ -124,6 +132,7 @@ ANALYSIS_DATA_VIEW = (
         ),
     )
     .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
+    .outerjoin(LocationAddress, LocationAddress.id == FieldSample.sampling_location_id)
     .outerjoin(Resource, Resource.id == FieldSample.resource_id)
 )
 
@@ -134,7 +143,7 @@ DimensionUnit = aliased(Unit, name="du")
 USDA_CENSUS_VIEW = (
     select(
         Observation.id,
-        UsdaCommodity.name.label("usda_crop"),
+        func.lower(UsdaCommodity.api_name).label("usda_crop"),
         Place.geoid,
         Parameter.name.label("parameter"),
         Observation.value,
@@ -142,6 +151,9 @@ USDA_CENSUS_VIEW = (
         DimensionType.name.label("dimension"),
         Observation.dimension_value,
         DimensionUnit.name.label("dimension_unit"),
+        UsdaCommodity.id.label("commodity_id"),
+        UsdaCensusRecord.id.label("source_record_id"),
+        UsdaCensusRecord.year.label("record_year"),
     )
     .join(
         UsdaCensusRecord,
@@ -161,7 +173,7 @@ USDA_CENSUS_VIEW = (
 USDA_SURVEY_VIEW = (
     select(
         Observation.id,
-        UsdaCommodity.name.label("usda_crop"),
+        func.lower(UsdaCommodity.api_name).label("usda_crop"),
         Place.geoid,
         Parameter.name.label("parameter"),
         Observation.value,
@@ -169,6 +181,13 @@ USDA_SURVEY_VIEW = (
         DimensionType.name.label("dimension"),
         Observation.dimension_value,
         DimensionUnit.name.label("dimension_unit"),
+        UsdaCommodity.id.label("commodity_id"),
+        UsdaSurveyRecord.id.label("source_record_id"),
+        UsdaSurveyRecord.year.label("record_year"),
+        UsdaSurveyRecord.survey_program_id,
+        UsdaSurveyRecord.survey_period,
+        UsdaSurveyRecord.reference_month,
+        UsdaSurveyRecord.seasonal_flag,
     )
     .join(
         UsdaSurveyRecord,
