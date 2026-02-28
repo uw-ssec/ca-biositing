@@ -275,6 +275,114 @@ class TestMultipleCrops:
         assert len(response_soybeans.json()["data"]) == 1
 
 
+class TestLatestRecordSelection:
+    """Tests for selecting the most recent USDA survey record."""
+
+    def test_prefers_latest_year_for_same_crop_and_geoid(
+        self,
+        client: TestClient,
+        session: Session,
+        test_survey_data,
+    ):
+        """When multiple years exist, the service should use the newest year."""
+        session.add(
+            UsdaSurveyRecord(
+                id=10,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2023,
+                survey_program_id=1,
+                survey_period="2023-Q4",
+                reference_month="December",
+                seasonal_flag=False,
+            )
+        )
+        session.add(
+            Observation(
+                id=2010,
+                record_id="10",
+                dataset_id=1,
+                record_type="usda_survey_record",
+                parameter_id=1,
+                value=29000.0,
+                unit_id=1,
+            )
+        )
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 29000.0
+        assert response.json()["survey_period"] == "2023-Q4"
+        assert response.json()["reference_month"] == "December"
+
+    def test_breaks_same_year_ties_by_highest_record_id(
+        self,
+        client: TestClient,
+        session: Session,
+        test_survey_data,
+    ):
+        """When year ties, the larger source record ID should be selected."""
+        session.add_all([
+            UsdaSurveyRecord(
+                id=11,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2024,
+                survey_program_id=1,
+                survey_period="2024-Q1",
+                reference_month="January",
+                seasonal_flag=True,
+            ),
+            UsdaSurveyRecord(
+                id=12,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=1,
+                year=2024,
+                survey_program_id=1,
+                survey_period="2024-Q2",
+                reference_month="April",
+                seasonal_flag=False,
+            ),
+        ])
+        session.add_all([
+            Observation(
+                id=2011,
+                record_id="11",
+                dataset_id=1,
+                record_type="usda_survey_record",
+                parameter_id=1,
+                value=30000.0,
+                unit_id=1,
+            ),
+            Observation(
+                id=2012,
+                record_id="12",
+                dataset_id=1,
+                record_type="usda_survey_record",
+                parameter_id=1,
+                value=31000.0,
+                unit_id=1,
+            ),
+        ])
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/survey/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 31000.0
+        assert response.json()["survey_period"] == "2024-Q2"
+        assert response.json()["reference_month"] == "April"
+
+
 class TestCropNormalizationMatching:
     """Tests for exact, case- and space-insensitive crop matching."""
 

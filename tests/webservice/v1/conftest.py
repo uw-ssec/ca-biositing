@@ -19,6 +19,7 @@ from ca_biositing.datamodels.models import (
     CompositionalRecord,
     DimensionType,
     FieldSample,
+    IcpRecord,
     LocationAddress,
     Observation,
     Parameter,
@@ -73,6 +74,7 @@ def engine_fixture():
         ProximateRecord.__table__.create(connection, checkfirst=True)
         UltimateRecord.__table__.create(connection, checkfirst=True)
         CompositionalRecord.__table__.create(connection, checkfirst=True)
+        IcpRecord.__table__.create(connection, checkfirst=True)
         ResourceAvailability.__table__.create(connection, checkfirst=True)
 
     return engine
@@ -177,6 +179,11 @@ def test_census_data_fixture(session: Session):
     resource_corn_grain = Resource(id=1, name="corn_grain", primary_ag_product_id=1)
     resource_soybean_meal = Resource(id=2, name="soybean_meal", primary_ag_product_id=2)
     session.add_all([resource_corn_grain, resource_soybean_meal])
+
+    # Create place records required by canonical USDA views
+    place_06001 = Place(geoid="06001", state_name="California", county_name="Alameda")
+    place_06047 = Place(geoid="06047", state_name="California", county_name="Merced")
+    session.add_all([place_06001, place_06047])
 
     # Create resource-commodity mappings
     mapping_corn = ResourceUsdaCommodityMap(
@@ -338,6 +345,11 @@ def test_survey_data_fixture(session: Session):
     resource_corn_grain = Resource(id=1, name="corn_grain", primary_ag_product_id=1)
     resource_soybean_meal = Resource(id=2, name="soybean_meal", primary_ag_product_id=2)
     session.add_all([resource_corn_grain, resource_soybean_meal])
+
+    # Create place records required by canonical USDA views
+    place_06001 = Place(geoid="06001", state_name="California", county_name="Alameda")
+    place_06047 = Place(geoid="06047", state_name="California", county_name="Merced")
+    session.add_all([place_06001, place_06047])
 
     # Create resource-commodity mappings
     mapping_corn = ResourceUsdaCommodityMap(
