@@ -1,0 +1,25 @@
+/* Improve mkdocstrings readability for model-heavy API pages. */
+.md-typeset .doc .doc-object.doc-attribute > .doc-heading code {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.md-typeset .doc .doc-object.doc-attribute {
+  margin: 0.3rem 0 0.5rem;
+}
+
+.md-typeset .doc .doc-object.doc-attribute > .doc-heading {
+  margin: 0.2rem 0;
+  line-height: 1.35;
+}
+
+.md-typeset .doc .doc-object.doc-attribute > .doc-contents {
+  margin: 0;
+}
+
+.md-typeset .doc .doc-children > h4,
+.md-typeset .doc .doc-children > h6 {
+  margin-top: 0.85rem;
+  margin-bottom: 0.35rem;
+}

@@ -1,6 +1,6 @@
 """
-ETL Transform for Prepared Sample
----
+ETL Transform for Prepared Sample.
+
 This module transforms raw preparation data into the prepared_sample table format.
 """
 

@@ -1,6 +1,6 @@
 """
-ETL Transform for Static Resource Information
----
+ETL Transform for Static Resource Information.
+
 Transforms raw static resource info into LandiqResourceMapping and ResourceAvailability tables.
 """
 

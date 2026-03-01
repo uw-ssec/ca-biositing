@@ -1,6 +1,6 @@
 """
-ETL Extract for Land IQ Data
----
+ETL Extract for Land IQ Data.
+
 
 This module provides functionality for extracting Land IQ geospatial data from shapefiles.
 Supports loading from a local path (Docker Compose / dev) or downloading from an HTTP URL

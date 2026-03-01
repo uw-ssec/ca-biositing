@@ -1,6 +1,6 @@
 """
-ETL Extract Template
----
+ETL Extract Template.
+
 
 This module provides a template for extracting data from a Google Sheet.
 
