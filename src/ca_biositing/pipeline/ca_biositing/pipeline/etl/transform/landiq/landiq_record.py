@@ -1,6 +1,6 @@
 """
-ETL Transform for Land IQ Data
----
+ETL Transform for Land IQ Data.
+
 
 This module provides functionality for transforming Land IQ GeoDataFrames into the LandiqRecord table format.
 """
