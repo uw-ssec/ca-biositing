@@ -12,6 +12,8 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ca_biositing.datamodels.database import get_session
+from ca_biositing.datamodels.models import ApiUser
+from ca_biositing.webservice.dependencies import get_current_user
 from sqlmodel import SQLModel
 from ca_biositing.datamodels.models import (
     CompositionalRecord,
@@ -111,7 +113,18 @@ def client_fixture(session):
     def override_get_session():
         yield session
 
+    # Bypass JWT auth for feedstocks route tests — auth is tested separately
+    def override_get_current_user():
+        return ApiUser(
+            id=1,
+            username="testuser",
+            hashed_password="",
+            is_admin=True,
+            disabled=False,
+        )
+
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = override_get_current_user
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
@@ -196,32 +209,31 @@ def test_census_data_fixture(session: Session):
     )
     session.add_all([census_corn, census_soybeans])
 
-    # Create observations for CORN
-    # IMPORTANT: record_id must be unique AND should reference the census record
-    # We use a format like "census_{census_record_id}_{param_id}" for uniqueness
+    # Create observations for CORN using ETL format:
+    # record_type = "usda_census_record", record_id = str(census_record.id)
     obs_corn_acres = Observation(
         id=1,
-        record_id="census_1_acres",
+        record_id="1",
         dataset_id=1,
-        record_type="census",
+        record_type="usda_census_record",
         parameter_id=1,
         value=25000.0,
         unit_id=1,
     )
     obs_corn_production = Observation(
         id=2,
-        record_id="census_1_production",
+        record_id="1",
         dataset_id=1,
-        record_type="census",
+        record_type="usda_census_record",
         parameter_id=2,
         value=3750000.0,
         unit_id=2,
     )
     obs_corn_yield = Observation(
         id=3,
-        record_id="census_1_yield",
+        record_id="1",
         dataset_id=1,
-        record_type="census",
+        record_type="usda_census_record",
         parameter_id=3,
         value=150.0,
         unit_id=2,
@@ -233,9 +245,9 @@ def test_census_data_fixture(session: Session):
     # Create observations for SOYBEANS
     obs_soybeans_acres = Observation(
         id=4,
-        record_id="census_2_acres",
+        record_id="2",
         dataset_id=1,
-        record_type="census",
+        record_type="usda_census_record",
         parameter_id=1,
         value=15000.0,
         unit_id=1,
@@ -351,32 +363,31 @@ def test_survey_data_fixture(session: Session):
     )
     session.add_all([survey_corn, survey_soybeans])
 
-    # Create observations for CORN
-    # IMPORTANT: record_id must be unique AND should reference the survey record
-    # We use a format like "survey_{survey_record_id}_{param_id}" for uniqueness
+    # Create observations for CORN using ETL format:
+    # record_type = "usda_survey_record", record_id = str(survey_record.id)
     obs_corn_acres = Observation(
         id=5,
-        record_id="survey_1_acres",
+        record_id="1",
         dataset_id=1,
-        record_type="survey",
+        record_type="usda_survey_record",
         parameter_id=1,
         value=28000.0,
         unit_id=1,
     )
     obs_corn_production = Observation(
         id=6,
-        record_id="survey_1_production",
+        record_id="1",
         dataset_id=1,
-        record_type="survey",
+        record_type="usda_survey_record",
         parameter_id=2,
         value=4200000.0,
         unit_id=2,
     )
     obs_corn_yield = Observation(
         id=7,
-        record_id="survey_1_yield",
+        record_id="1",
         dataset_id=1,
-        record_type="survey",
+        record_type="usda_survey_record",
         parameter_id=3,
         value=155.0,
         unit_id=2,
@@ -388,9 +399,9 @@ def test_survey_data_fixture(session: Session):
     # Create observations for SOYBEANS
     obs_soybeans_acres = Observation(
         id=8,
-        record_id="survey_2_acres",
+        record_id="2",
         dataset_id=1,
-        record_type="survey",
+        record_type="usda_survey_record",
         parameter_id=1,
         value=17000.0,
         unit_id=1,

@@ -292,6 +292,14 @@ depends-on = [{ task = "start-services" }]
 ca-biositing-webservice = { path = "./src/ca_biositing/webservice", editable = true }
 fastapi = ">=0.111.0,<0.115.0"
 pydantic = ">=2.5,<3.0"
+pyjwt = ">=2.0,<3"
+pwdlib = { version = ">=0.2.0", extras = ["argon2"] }
+python-multipart = ">=0.0.9"
+
+[feature.webservice.tasks.create-admin]
+cmd = "python scripts/create_admin.py"
+description = "Create an admin user for API authentication"
+env = { DATABASE_URL = "postgresql://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db" }
 
 [feature.docs.dependencies]
 python = ">=3.11,<3.14"

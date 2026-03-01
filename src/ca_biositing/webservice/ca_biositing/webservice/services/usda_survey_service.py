@@ -129,10 +129,8 @@ class UsdaSurveyService:
         if not survey_record:
             return [], None
 
-        # Query observations by dataset_id, record_type, and record_id pattern
-        # Observations are linked to survey records via record_id patterns like "survey_{id}_*"
-        survey_record_prefix = f"survey_{survey_record.id}_"
-
+        # Query observations by dataset_id, record_type, and record_id
+        # The ETL stores record_type as "usda_survey_record" and record_id as the survey record's ID
         stmt = (
             select(
                 Observation,
@@ -147,8 +145,8 @@ class UsdaSurveyService:
             .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
                 Observation.dataset_id == survey_record.dataset_id,
-                Observation.record_type == "survey",
-                Observation.record_id.like(f"{survey_record_prefix}%")
+                Observation.record_type == "usda_survey_record",
+                Observation.record_id == str(survey_record.id),
             ))
         )
 
