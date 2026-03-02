@@ -65,7 +65,6 @@ def downgrade() -> None:
         CREATE MATERIALIZED VIEW {VIEW_SCHEMA}.analysis_data_view AS
         SELECT
           obs.id,
-          res.id AS resource_id,
           res.name AS resource,
           '06000'::text AS geoid,
           param.name AS parameter,

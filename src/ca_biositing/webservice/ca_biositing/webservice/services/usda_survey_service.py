@@ -106,6 +106,7 @@ class UsdaSurveyService:
                 survey_view.c.geoid == geoid,
             ))
             .order_by(
+                survey_view.c.record_year.is_(None),
                 survey_view.c.record_year.desc(),
                 survey_view.c.source_record_id.desc(),
             )

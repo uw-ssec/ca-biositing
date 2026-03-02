@@ -110,6 +110,7 @@ class UsdaCensusService:
                 census_view.c.geoid == geoid,
             ))
             .order_by(
+                census_view.c.record_year.is_(None),
                 census_view.c.record_year.desc(),
                 census_view.c.source_record_id.desc(),
             )

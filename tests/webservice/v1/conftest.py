@@ -450,7 +450,7 @@ def test_survey_data_fixture(session: Session):
         unit_id=1,
     )
     obs_corn_all_acres = Observation(
-        id=9,
+        id=10,
         record_id="3",
         dataset_id=1,
         record_type="usda_survey_record",
