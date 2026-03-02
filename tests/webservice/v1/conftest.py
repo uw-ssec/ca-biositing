@@ -163,9 +163,10 @@ def test_census_data_fixture(session: Session):
     session.add_all([param_acres, param_production, param_yield])
 
     # Create commodities
-    commodity_corn = UsdaCommodity(id=1, name="CORN", usda_code="00090")
-    commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", usda_code="00081")
-    session.add_all([commodity_corn, commodity_soybeans])
+    commodity_corn = UsdaCommodity(id=1, name="CORN LEGACY", api_name="corn", usda_code="00090")
+    commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", api_name=None, usda_code="00081")
+    commodity_corn_all = UsdaCommodity(id=3, name="CORN ALL LEGACY", api_name="corn all", usda_code="00900")
+    session.add_all([commodity_corn, commodity_soybeans, commodity_corn_all])
 
     # Create primary ag products (required for Resource FK)
     primary_ag_corn = PrimaryAgProduct(id=1, name="Corn")
@@ -207,7 +208,14 @@ def test_census_data_fixture(session: Session):
         commodity_code=2,
         year=2022
     )
-    session.add_all([census_corn, census_soybeans])
+    census_corn_all = UsdaCensusRecord(
+        id=3,
+        dataset_id=1,
+        geoid="06047",
+        commodity_code=3,
+        year=2022
+    )
+    session.add_all([census_corn, census_soybeans, census_corn_all])
 
     # Create observations for CORN using ETL format:
     # record_type = "usda_census_record", record_id = str(census_record.id)
@@ -252,12 +260,22 @@ def test_census_data_fixture(session: Session):
         value=15000.0,
         unit_id=1,
     )
+    obs_corn_all_acres = Observation(
+        id=9,
+        record_id="3",
+        dataset_id=1,
+        record_type="usda_census_record",
+        parameter_id=1,
+        value=18000.0,
+        unit_id=1,
+    )
 
     session.add_all([
         obs_corn_acres,
         obs_corn_production,
         obs_corn_yield,
         obs_soybeans_acres,
+        obs_corn_all_acres,
     ])
     session.commit()
 
@@ -268,6 +286,7 @@ def test_census_data_fixture(session: Session):
         "resource_soybean_id": 2,
         "census_corn_id": 1,
         "census_soybeans_id": 2,
+        "census_corn_all_id": 3,
     }
 
 
@@ -305,9 +324,10 @@ def test_survey_data_fixture(session: Session):
     session.add_all([param_acres, param_production, param_yield])
 
     # Create commodities
-    commodity_corn = UsdaCommodity(id=1, name="CORN", usda_code="00090")
-    commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", usda_code="00081")
-    session.add_all([commodity_corn, commodity_soybeans])
+    commodity_corn = UsdaCommodity(id=1, name="CORN LEGACY", api_name="corn", usda_code="00090")
+    commodity_soybeans = UsdaCommodity(id=2, name="SOYBEANS", api_name=None, usda_code="00081")
+    commodity_corn_all = UsdaCommodity(id=3, name="CORN ALL LEGACY", api_name="corn all", usda_code="00900")
+    session.add_all([commodity_corn, commodity_soybeans, commodity_corn_all])
 
     # Create primary ag products (required for Resource FK)
     primary_ag_corn = PrimaryAgProduct(id=1, name="Corn")
@@ -361,7 +381,18 @@ def test_survey_data_fixture(session: Session):
         reference_month="January",
         seasonal_flag=False
     )
-    session.add_all([survey_corn, survey_soybeans])
+    survey_corn_all = UsdaSurveyRecord(
+        id=3,
+        dataset_id=1,
+        geoid="06047",
+        commodity_code=3,
+        year=2022,
+        survey_program_id=1,
+        survey_period="2022-Q1",
+        reference_month="January",
+        seasonal_flag=True
+    )
+    session.add_all([survey_corn, survey_soybeans, survey_corn_all])
 
     # Create observations for CORN using ETL format:
     # record_type = "usda_survey_record", record_id = str(survey_record.id)
@@ -406,12 +437,22 @@ def test_survey_data_fixture(session: Session):
         value=17000.0,
         unit_id=1,
     )
+    obs_corn_all_acres = Observation(
+        id=9,
+        record_id="3",
+        dataset_id=1,
+        record_type="usda_survey_record",
+        parameter_id=1,
+        value=19000.0,
+        unit_id=1,
+    )
 
     session.add_all([
         obs_corn_acres,
         obs_corn_production,
         obs_corn_yield,
         obs_soybeans_acres,
+        obs_corn_all_acres,
     ])
     session.commit()
 
@@ -422,6 +463,7 @@ def test_survey_data_fixture(session: Session):
         "resource_soybean_id": 2,
         "survey_corn_id": 1,
         "survey_soybeans_id": 2,
+        "survey_corn_all_id": 3,
         "survey_program_id": 1,
     }
 

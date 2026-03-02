@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from ca_biositing.datamodels.models import Observation
+from ca_biositing.datamodels.models import Observation, UsdaCensusRecord, UsdaCommodity
 
 
 class TestGetCensusByCrop:
@@ -264,6 +264,90 @@ class TestMultipleCrops:
 
         assert len(response_corn.json()["data"]) == 3
         assert len(response_soybeans.json()["data"]) == 1
+
+
+class TestCropNormalizationMatching:
+    """Tests for exact, case- and space-insensitive crop matching."""
+
+    def test_get_by_crop_matches_case_and_whitespace_variants(
+        self, client: TestClient, test_census_data
+    ):
+        """CORN ALL should match with mixed case and repeated internal spaces."""
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CoRn%20%20%20AlL/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 18000.0
+
+    def test_get_by_crop_does_not_prefix_match(self, client: TestClient, test_census_data):
+        """CORN should not match CORN ALL on a geoid where only CORN ALL exists."""
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CORN/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 404
+
+    def test_list_by_crop_matches_collapsed_spaces(self, client: TestClient, test_census_data):
+        """Double spaces in input should normalize to single-space exact match."""
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/corn%20%20all/geoid/06047/parameters"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["data"]) == 1
+        assert data["data"][0]["parameter"] == "acres"
+        assert data["data"][0]["value"] == 18000.0
+
+    def test_get_by_crop_does_not_match_different_phrase(
+        self, client: TestClient, test_census_data
+    ):
+        """Different phrase should not match even if it contains the same first word."""
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/corn%20altogether/geoid/06047/parameters/acres"
+        )
+
+        assert response.status_code == 404
+
+    def test_get_by_crop_prefers_api_name_match_over_name_match(
+        self,
+        client: TestClient,
+        session: Session,
+        test_census_data,
+    ):
+        """Prefer api_name match when another commodity only matches by legacy name."""
+        session.add(
+            UsdaCommodity(id=4, name="corn", api_name="maize", usda_code="00123")
+        )
+        session.add(
+            UsdaCensusRecord(
+                id=4,
+                dataset_id=1,
+                geoid="06001",
+                commodity_code=4,
+                year=2022,
+            )
+        )
+        session.add(
+            Observation(
+                id=997,
+                record_id="4",
+                dataset_id=1,
+                record_type="usda_census_record",
+                parameter_id=1,
+                value=999999.0,
+                unit_id=1,
+            )
+        )
+        session.commit()
+
+        response = client.get(
+            "/v1/feedstocks/usda/census/crops/CORN/geoid/06001/parameters/acres"
+        )
+
+        assert response.status_code == 200
+        assert response.json()["value"] == 25000.0
 
 
 class TestObservationQueryRegression:
