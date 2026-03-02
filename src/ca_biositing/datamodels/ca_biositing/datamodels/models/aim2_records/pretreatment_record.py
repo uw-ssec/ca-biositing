@@ -11,6 +11,7 @@ class PretreatmentRecord(Aim2RecordBase, table=True):
     pretreatment_method_id: Optional[int] = Field(default=None)
     eh_method_id: Optional[int] = Field(default=None)
     reaction_block_id: Optional[int] = Field(default=None)
+    vessel_id: Optional[int] = Field(default=None, foreign_key="decon_vessel.id")
     block_position: Optional[str] = Field(default=None)
     temperature: Optional[Decimal] = Field(default=None)
     replicate_no: Optional[int] = Field(default=None)

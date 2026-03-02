@@ -28,21 +28,31 @@ DROP MATERIALIZED VIEW IF EXISTS ca_biositing.analysis_data_view CASCADE;
 CREATE MATERIALIZED VIEW ca_biositing.analysis_data_view AS
 SELECT
   obs.id,
+  obs.record_id,
+  obs.record_type,
   res.name as resource,
   '06000'::text as geoid,
   param.name as parameter,
   obs.value,
-  u.name as unit
+  u.name as unit,
+  dt.name as dimension_type,
+  obs.dimension_value,
+  du.name as dimension_unit
 FROM public.observation obs
 JOIN public.parameter param ON obs.parameter_id = param.id
 JOIN public.unit u ON obs.unit_id = u.id
+LEFT JOIN public.dimension_type dt ON obs.dimension_type_id = dt.id
+LEFT JOIN public.unit du ON obs.dimension_unit_id = du.id
 LEFT JOIN public.proximate_record pr ON obs.record_id = pr.record_id AND obs.record_type = 'proximate analysis'
 LEFT JOIN public.ultimate_record ur ON obs.record_id = ur.record_id AND obs.record_type = 'ultimate analysis'
 LEFT JOIN public.compositional_record cr ON obs.record_id = cr.record_id AND obs.record_type = 'compositional analysis'
-LEFT JOIN public.icp_record ir ON obs.record_id = ir.record_id AND obs.record_type = 'icp analysis'
-LEFT JOIN public.prepared_sample ps ON ps.id = COALESCE(pr.prepared_sample_id, ur.prepared_sample_id, cr.prepared_sample_id, ir.prepared_sample_id)
-LEFT JOIN public.field_sample fs ON fs.id = ps.field_sample_id
-LEFT JOIN public.resource res ON res.id = fs.resource_id;
+LEFT JOIN public.icp_record ir ON obs.record_id = ir.record_id AND (obs.record_type = 'icp analysis' OR obs.record_type = 'icp-oes' OR obs.record_type = 'icp-ms')
+LEFT JOIN public.xrf_record xr ON obs.record_id = xr.record_id AND obs.record_type = 'xrf analysis'
+LEFT JOIN public.calorimetry_record cal ON obs.record_id = cal.record_id AND obs.record_type = 'calorimetry analysis'
+LEFT JOIN public.xrd_record xrd ON obs.record_id = xrd.record_id AND obs.record_type = 'xrd analysis'
+LEFT JOIN public.fermentation_record fr ON obs.record_id = fr.record_id AND obs.record_type = 'fermentation'
+LEFT JOIN public.pretreatment_record ptr ON obs.record_id = ptr.record_id AND obs.record_type = 'pretreatment'
+LEFT JOIN public.resource res ON res.id = COALESCE(pr.resource_id, ur.resource_id, cr.resource_id, ir.resource_id, xr.resource_id, cal.resource_id, xrd.resource_id, fr.resource_id, ptr.resource_id);
 
 -- View: landiq_tileset_view
 DROP MATERIALIZED VIEW IF EXISTS ca_biositing.landiq_tileset_view;
