@@ -47,9 +47,7 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U biocirv_user -d biocirv_db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       # CI-only credentials for ephemeral PostGIS service container.
       # These are NOT used in staging or production environments.
