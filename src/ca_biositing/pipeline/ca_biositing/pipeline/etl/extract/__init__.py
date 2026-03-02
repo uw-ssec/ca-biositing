@@ -1,1 +1,5 @@
-# This file makes the extract directory a Python package.
+"""Extract tasks for loading source datasets.
+
+Modules in this package read external data sources (files, APIs, and sheets)
+and return pandas/geopandas data frames for downstream transforms.
+"""

@@ -1,6 +1,6 @@
 """
-ETL Transform Template
----
+ETL Transform Template.
+
 
 This module provides a template for transforming raw data from multiple sources.
 It includes standard cleaning, coercion, and normalization patterns used in the pipeline.

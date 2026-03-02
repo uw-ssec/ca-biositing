@@ -1,7 +1,7 @@
 # File: src/ca_biositing/pipeline/etl/load/usda/usda_census_survey.py
 """
-USDA Census/Survey Data Load
----
+USDA Census/Survey Data Load.
+
 Loads transformed USDA data into database with atomic dataset creation + linking.
 """
 

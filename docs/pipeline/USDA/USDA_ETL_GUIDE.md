@@ -298,4 +298,4 @@ The pipeline provides detailed logging at key stages:
 - Replace placeholder TODOs in template files with real configuration
 
 For operational troubleshooting, see the
-[USDA ETL Handoff Document](../../USDA_ETL_HANDOFF.md).
+[USDA ETL Handoff Document](USDA_ETL_HANDOFF.md).
