@@ -1,0 +1,5 @@
+name: ca-biositing-infrastructure
+runtime: python
+description: GCP Infrastructure for ca-biositing
+backend:
+  url: gs://biocirv-470318-pulumi-state

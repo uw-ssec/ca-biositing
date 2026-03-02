@@ -83,11 +83,7 @@ def get_stack() -> auto.Stack:
         project_name=PROJECT_NAME,
         program=pulumi_program,
         opts=auto.LocalWorkspaceOptions(
-            project_settings=auto.ProjectSettings(
-                name=PROJECT_NAME,
-                runtime="python",
-                backend=auto.ProjectBackend(url=BACKEND_URL),
-            ),
+            work_dir=".",
         ),
     )
     configure_stack(stack)

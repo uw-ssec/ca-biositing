@@ -2,6 +2,7 @@
 
 import os
 
+import pulumi
 from pulumi import automation as auto
 
 # Project and stack settings
@@ -22,6 +23,12 @@ DB_USER = "biocirv_user"
 
 # Read-only users
 READONLY_USERS = ["biocirv_readonly"]
+
+# Authorized Networks for Cloud SQL
+# This is a list of dicts: [{"name": "office", "value": "203.0.113.1/32"}]
+# Pulumi config allows us to share these securely across the team.
+def get_db_authorized_networks():
+    return pulumi.Config().get_object("db_authorized_networks") or []
 
 # Container images — override with env vars to use digest/commit-based tags
 # instead of :latest (which Pulumi cannot detect changes for).

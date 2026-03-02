@@ -206,6 +206,32 @@ pixi run -e deployment cloud-plan
 pixi run -e deployment cloud-deploy
 ```
 
+### Managing Cloud SQL Access (IP Allowlist)
+
+Public IP access to the staging database is restricted via an allowlist stored
+as a Pulumi stack secret. To update the list of authorized networks:
+
+1.  **Navigate to the infrastructure directory:**
+
+    ```bash
+    cd deployment/cloud/gcp/infrastructure
+    ```
+
+2.  **Set the authorized networks secret:** Replace the example below with your
+    desired names and IPs. Note that this command replaces the entire list.
+
+    ```bash
+    export PULUMI_CONFIG_PASSPHRASE=""
+    pixi run -e deployment pulumi config set --secret db_authorized_networks \
+      '[{"name":"office", "value":"1.2.3.4/32"}, {"name":"dev-personal", "value":"5.6.7.8/32"}]' \
+      --stack staging
+    ```
+
+3.  **Deploy the changes:**
+    ```bash
+    pixi run -e deployment cloud-deploy
+    ```
+
 ### Build & Push Container Images
 
 Build container images (`webservice`, `pipeline`) via Cloud Build:

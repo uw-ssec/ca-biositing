@@ -1,0 +1,6 @@
+encryptionsalt: v1:Bq7WJosg4dA=:v1:+A7xextaV2fhD9Tk:ln2GwdhrRnpxJavu/VvjSvZk5JwC2g==
+config:
+  ca-biositing-infrastructure:db_authorized_networks:
+    secure: v1:JiBpEOhwJp1tW71U:UbNDr+N1MJDpUjCPnER6TpccBOZrqLkVa+qLzIjvLg/fROwQTj3eeZoZDQy36BVQ41a7cju/FBpKWn1OktVre1Nf
+  gcp:project: biocirv-470318
+  gcp:region: us-west1

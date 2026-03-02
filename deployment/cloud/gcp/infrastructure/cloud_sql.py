@@ -11,6 +11,7 @@ from config import (
     DB_INSTANCE_NAME,
     DB_NAME,
     PREFECT_DB_NAME,
+    get_db_authorized_networks,
 )
 
 
@@ -25,6 +26,7 @@ def create_cloud_sql(
     depends_on: Sequence[pulumi.Resource] | None = None,
 ) -> CloudSQLResources:
     """Create Cloud SQL instance with databases."""
+    auth_networks = get_db_authorized_networks()
     instance = gcp.sql.DatabaseInstance(
         "staging-db-instance",
         name=DB_INSTANCE_NAME,
@@ -38,6 +40,13 @@ def create_cloud_sql(
             ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
                 ipv4_enabled=True,
                 ssl_mode="ENCRYPTED_ONLY",
+                authorized_networks=[
+                    gcp.sql.DatabaseInstanceSettingsIpConfigurationAuthorizedNetworkArgs(
+                        name=net["name"],
+                        value=net["value"],
+                    )
+                    for net in auth_networks
+                ],
             ),
             backup_configuration=gcp.sql.DatabaseInstanceSettingsBackupConfigurationArgs(
                 enabled=True,
