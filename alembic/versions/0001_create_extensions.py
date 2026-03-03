@@ -23,4 +23,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Disable PostgreSQL extensions."""
-    op.execute("DROP EXTENSION IF EXISTS postgis")
+    op.execute("DROP EXTENSION IF EXISTS postgis CASCADE")
