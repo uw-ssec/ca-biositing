@@ -8,28 +8,15 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sqlalchemy import and_, or_, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy import and_, select
+from sqlalchemy.orm import Session
 
-from ca_biositing.datamodels.models import (
-    CompositionalRecord,
-    DimensionType,
-    FieldSample,
-    LocationAddress,
-    Observation,
-    Parameter,
-    Place,
-    PreparedSample,
-    ProximateRecord,
-    Resource,
-    UltimateRecord,
-    Unit,
-)
+from ca_biositing.datamodels.models import Resource
 from ca_biositing.webservice.exceptions import (
     ParameterNotFoundException,
     ResourceNotFoundException,
-    ServiceException,
 )
+from ca_biositing.webservice.services._canonical_views import get_analysis_data_view
 
 
 class AnalysisService:
@@ -79,100 +66,41 @@ class AnalysisService:
         Returns:
             List of observation dictionaries with parameter/unit/dimension details
         """
-        # Create alias for the dimension unit join
-        DimensionUnit = aliased(Unit)
-
-        # Find all analysis record IDs that match resource + geoid criteria
-        # We need to check all three analysis record types
-        record_ids = []
-
-        # Query proximate analysis records
-        proximate_stmt = (
-            select(ProximateRecord.record_id)
-            .join(PreparedSample, ProximateRecord.prepared_sample_id == PreparedSample.id)
-            .join(FieldSample, PreparedSample.field_sample_id == FieldSample.id)
-            .join(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)
-            .where(and_(
-                ProximateRecord.resource_id == resource_id,
-                LocationAddress.geography_id == geoid
-            ))
-        )
-        proximate_record_ids = session.execute(proximate_stmt).scalars().all()
-        record_ids.extend(proximate_record_ids)
-
-        # Query ultimate analysis records
-        ultimate_stmt = (
-            select(UltimateRecord.record_id)
-            .join(PreparedSample, UltimateRecord.prepared_sample_id == PreparedSample.id)
-            .join(FieldSample, PreparedSample.field_sample_id == FieldSample.id)
-            .join(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)
-            .where(and_(
-                UltimateRecord.resource_id == resource_id,
-                LocationAddress.geography_id == geoid
-            ))
-        )
-        ultimate_record_ids = session.execute(ultimate_stmt).scalars().all()
-        record_ids.extend(ultimate_record_ids)
-
-        # Query compositional analysis records
-        compositional_stmt = (
-            select(CompositionalRecord.record_id)
-            .join(PreparedSample, CompositionalRecord.prepared_sample_id == PreparedSample.id)
-            .join(FieldSample, PreparedSample.field_sample_id == FieldSample.id)
-            .join(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)
-            .where(and_(
-                CompositionalRecord.resource_id == resource_id,
-                LocationAddress.geography_id == geoid
-            ))
-        )
-        compositional_record_ids = session.execute(compositional_stmt).scalars().all()
-        record_ids.extend(compositional_record_ids)
-
-        # If no matching records found, return empty list
-        if not record_ids:
-            return []
-
-        # Query observations using the matching record_ids
+        analysis_view = get_analysis_data_view(session)
         stmt = (
             select(
-                Observation,
-                Parameter.name.label("parameter_name"),
-                Unit.name.label("unit_name"),
-                DimensionType.name.label("dimension_name"),
-                DimensionUnit.name.label("dimension_unit_name"),
+                analysis_view.c.id,
+                analysis_view.c.parameter,
+                analysis_view.c.value,
+                analysis_view.c.unit,
+                analysis_view.c.dimension,
+                analysis_view.c.dimension_value,
+                analysis_view.c.dimension_unit,
             )
-            .join(Parameter, Observation.parameter_id == Parameter.id)
-            .join(Unit, Observation.unit_id == Unit.id)
-            .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
-            .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
-                Observation.record_id.in_(record_ids),
-                or_(
-                    Observation.record_type == "proximate analysis",
-                    Observation.record_type == "ultimate analysis",
-                    Observation.record_type == "compositional analysis"
-                )
+                analysis_view.c.resource_id == resource_id,
+                analysis_view.c.geoid == geoid,
             ))
         )
 
         if parameter_name:
-            stmt = stmt.where(Parameter.name == parameter_name)
+            stmt = stmt.where(analysis_view.c.parameter == parameter_name)
 
         # Order by observation ID for deterministic results
-        stmt = stmt.order_by(Observation.id)
+        stmt = stmt.order_by(analysis_view.c.id)
 
         results = session.execute(stmt).all()
 
         observations = []
         for row in results:
-            obs = row.Observation
             observations.append({
-                "parameter": row.parameter_name,
-                "value": float(obs.value) if obs.value is not None else None,
-                "unit": row.unit_name,
-                "dimension": row.dimension_name,
-                "dimension_value": float(obs.dimension_value) if obs.dimension_value is not None else None,
-                "dimension_unit": row.dimension_unit_name,
+                "parameter": row.parameter,
+                "value": float(row.value) if row.value is not None else None,
+                "unit": row.unit,
+                "dimension": row.dimension,
+                "dimension_value": float(row.dimension_value)
+                if row.dimension_value is not None else None,
+                "dimension_unit": row.dimension_unit,
             })
 
         return observations
