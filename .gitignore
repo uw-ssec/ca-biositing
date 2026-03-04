@@ -64,3 +64,10 @@ pgschema
 
 # Database Backups
 backups/
+
+# MkDocs build output
+site/
+
+# PR notes
+docs/pr/
+pr_notes/

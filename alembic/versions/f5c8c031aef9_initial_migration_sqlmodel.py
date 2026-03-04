@@ -1644,6 +1644,7 @@ def downgrade() -> None:
     op.drop_table('data_source')
     op.drop_table('billion_ton2023_record')
     op.drop_table('usda_term_map')
+    op.drop_table('resource_counterfactual')
     op.drop_table('resource')
     op.drop_table('provider')
     op.drop_table('preparation_method')
