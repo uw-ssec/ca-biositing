@@ -414,8 +414,12 @@ def _build_lookup_maps():
     unit_map = {}
 
     with engine.connect() as conn:
-        # Commodities - use api_name instead of name since that's what USDA API returns
-        result = conn.execute(text("SELECT id, api_name FROM usda_commodity"))
+        # Commodities - use api_name instead of name since that's what USDA API returns.
+        # Rows with NULL api_name (DISABLED entries) are intentionally skipped —
+        # they have no QuickStats counterpart and should not appear in transform output.
+        result = conn.execute(text(
+            "SELECT id, api_name FROM usda_commodity WHERE api_name IS NOT NULL"
+        ))
         for row in result:
             commodity_map[row[1].upper()] = row[0]
 

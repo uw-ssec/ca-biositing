@@ -72,6 +72,15 @@ def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[s
                     print(f"❌ Auto-seeding error: {e}")
                     return []
 
+            # Backfill NULL metadata (description, uri, usda_source) and fix any
+            # stale api_name values ('nan' / empty / NULL) left by prior seeder runs.
+            # Idempotent — only rows that actually need updating are touched.
+            try:
+                from .seed_commodity_mappings import backfill_usda_commodity_metadata
+                backfill_usda_commodity_metadata(engine=engine)
+            except Exception:
+                pass  # Non-fatal — main query proceeds regardless
+
             # Return ONLY commodities that are mapped to resources
             # Prefer api_name when available (after schema migration)
             if use_api_names:

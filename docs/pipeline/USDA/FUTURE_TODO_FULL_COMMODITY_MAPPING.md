@@ -1,54 +1,42 @@
-# FUTURE ENHANCEMENT TODO
+# Full USDA API Commodity Mapping — COMPLETED ✅
 
-## Full USDA API Commodity Mapping
+_Resolved March 5, 2026 on branch `usda_more_mapping`._
 
-**Context:** We currently map our 17 internal commodities to USDA API names.
-However, the USDA API has 465 total commodities that could be valuable for a
-more comprehensive agricultural data tool.
+## What was built
 
-**Goal:** Create a complete mapping system for all 465 USDA NASS QuickStats API
-commodities to support:
+`reviewed_api_mappings.py` (in `utils/`) is the single source of truth for NASS
+commodity name → QuickStats `commodity_desc` mappings. It now contains:
 
-- Backend tools that aren't limited to our internal resource list
-- Broader agricultural analysis beyond our current 17 crops
-- Future expansion of commodity coverage
+- **356 `OFFICIAL_API_MAPPINGS` entries** covering all NASS crops, livestock,
+  dairy, grains, specialty, and field commodities relevant to California ETL.
+- **~100 `DISABLED_API_MAPPINGS` entries** for aggregates, livestock
+  subcategories, and codes that have no QuickStats counterpart — these produce
+  `api_name = NULL` in the DB and are intentionally excluded from API queries.
+- `get_api_name(name)` — returns the QuickStats name, or `None` for DISABLED.
+- `guess_api_name(name)` — heuristic fallback (strips subcategory suffixes).
+- `--list-quickstats [FILE]` CLI flag — dumps the live QuickStats name list.
+- `--output FILE` CLI flag — writes a draft additions block for copy-paste
+  review.
 
-**Approach:**
+Non-obvious mappings resolved: `PISTACHIO NUTS→PISTACHIOS`,
+`SWEETPOTATOES→SWEET POTATOES`, `CANTALOUPES→MELONS`, `WATERMELONS→MELONS`,
+`HONEYDEW MELONS→MELONS`, `PEPPERMINT→MINT`, `SPEARMINT→MINT`,
+`SWEET CHERRIES→CHERRIES`, `TART CHERRIES→CHERRIES`, `PEPPERS-BELL→PEPPERS`,
+`LETTUCE-HEAD→LETTUCE`, `SUNFLOWER SEED ALL→SUNFLOWER`,
+`TOMATOES FOR PROCESSING→TOMATOES`, `WALNUTS (ENGLISH)→WALNUTS`, etc.
 
-1. **Extract all 465 API commodities** - Use the existing `get_param_values`
-   endpoint
-2. **Categorize commodities** - Group by type (crops, livestock, byproducts,
-   etc.)
-3. **Create comprehensive mapping structure** - Map to standardized names,
-   categories, and hierarchies
-4. **Store in stable format** - Database table or configuration file for easy
-   access
+## How it integrates
 
-**Files to create:**
+`seed_commodity_mappings.py` imports `get_api_name` from this file and uses it
+as the authoritative source when seeding/backfilling `usda_commodity.api_name`.
+The CSV (`commodity_mappings.csv`) and the DB are always kept consistent through
+the `--export-csv` / `--save-to-db` workflow.
 
-- `comprehensive_commodity_mapping.py` - Full 465 commodity mapping (use
-  `template_comprehensive_commodity_mapping.py` as starting point)
-- `commodity_categories.py` - Classification system for commodity types
-- `expand_commodity_coverage.py` - Tool to add new commodities to our system
+## Still open (future)
 
-**Existing references:**
-
-- `template_comprehensive_commodity_mapping.py` - Template with original
-  17-commodity logic
-- `reviewed_api_mappings.py` - Validated mappings for current 17 commodities
-- `review_api_mappings.py` pattern - Interactive validation approach
-
-**Benefits:**
-
-- Support for comprehensive agricultural data analysis
-- Easy expansion of ETL coverage to new commodities
-- Foundation for agricultural data API that covers more than our current crops
-
-**Implementation priority:** Medium - valuable for future expansion but not
-blocking current work
-
-**Estimated effort:** 1-2 days to build comprehensive mapping system
+- TODO 3: ON CONFLICT upsert with `UNIQUE (name)` on `usda_commodity` — deferred
+  until AMS integration design is confirmed.
 
 ---
 
-_Added: 2026-02-05 - Full API commodity mapping for future expansion_
+_Original task added: 2026-02-05. Completed: 2026-03-05._

@@ -2,8 +2,23 @@
 """
 Populate api_name field in usda_commodity table with official API names.
 
-This script should be run after the schema migration to populate the new
-api_name column with the correct values for API compatibility.
+NOTE: This script is a one-off backfill utility. In normal operation, api_name
+is populated via the seeding system:
+
+    commodity_mappings.csv  →  seed_commodity_mappings.py  →  usda_commodity.api_name
+
+This script only needs to be run if:
+  - You have existing usda_commodity rows that predate the api_name column and
+    were never seeded from the CSV (i.e., were inserted before the schema migration
+    added the api_name column).
+  - The CSV seeder has not been run on a given environment yet.
+
+In practice, any fresh database seeded via seed_commodity_mappings.py will already
+have api_name populated correctly and this script is not needed. It is kept here
+as a recovery tool only.
+
+The source of truth for api_name values is reviewed_api_mappings.py
+(OFFICIAL_API_MAPPINGS dict), which should stay in sync with commodity_mappings.csv.
 """
 
 import os

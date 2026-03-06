@@ -5,15 +5,28 @@ This module seeds the usda_commodity and resource_usda_commodity_map tables
 using the CSV mapping file. It assumes that the primary_ag_product and resource
 tables are already populated by previous flows.
 
-TODO: Eventually expand usda_commodity table to include ALL USDA commodities
-and their official API names for complete coverage, not just mapped ones.
-This would enable broader agricultural data analysis beyond current resource mappings.
+api_name values come from reviewed_api_mappings.py (OFFICIAL_API_MAPPINGS),
+which covers all ~400 NASS commodity codes. Run --apply-api-names after seeding
+to backfill any rows that were inserted before the mapping dict was complete.
 """
 
 import os
 import pandas as pd
 from sqlalchemy import text
 from ca_biositing.pipeline.utils.engine import get_engine
+
+# reviewed_api_mappings.py lives in the same utils directory.
+# Use a relative import when loaded as part of the package (normal pipeline
+# operation) and fall back to a direct import when the module is run as a
+# standalone script (e.g. python seed_commodity_mappings.py).
+try:
+    from .reviewed_api_mappings import get_api_name as _get_api_name
+except ImportError:
+    try:
+        from reviewed_api_mappings import get_api_name as _get_api_name  # type: ignore[import]
+    except ImportError:
+        def _get_api_name(name: str) -> str:  # type: ignore[misc]
+            return name
 
 
 def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
@@ -50,6 +63,12 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
             if col in df.columns:
                 df[col] = df[col].astype(str).str.strip().str.lower()
 
+        # astype(str) converts pd.NaN to the literal string 'nan' — restore as None
+        # so we never write the string 'nan' into the database.
+        for col in ["commodity_name", "api_name"]:
+            if col in df.columns:
+                df[col] = df[col].where(df[col] != 'nan', other=None)
+
         # Filter out unmapped entries
         mapped_df = df[df['match_tier'] != 'UNMAPPED'].copy()
         print(f"📊 Found {len(mapped_df)} mapped commodities (excluding {len(df) - len(mapped_df)} unmapped)")
@@ -61,9 +80,28 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
             try:
                 # 1. Seed usda_commodity table (unique commodities only)
                 print("🌱 Seeding usda_commodity table...")
-                unique_commodities = mapped_df.drop_duplicates('commodity_name')[
-                    ['commodity_name', 'api_name', 'usda_code']
-                ].copy()
+                # Exclude NO_MATCH rows whose commodity_name is None/NaN.
+                # Compute api_name from reviewed_api_mappings.py — that is the
+                # authoritative source; the CSV api_name column is advisory only.
+                valid_df = mapped_df[mapped_df['commodity_name'].notna()]
+                unique_commodities = (
+                    valid_df
+                    .drop_duplicates('commodity_name')[['commodity_name', 'usda_code']]
+                    .copy()
+                )
+                # Use a list comprehension so Python None (DISABLED entries) is
+                # stored as a proper None object, not NaN, for safe SQL binding.
+                unique_commodities['api_name'] = [
+                    _get_api_name(n)
+                    for n in unique_commodities['commodity_name'].str.upper()
+                ]
+
+                # Constant metadata for all NASS-sourced commodities
+                NASS_URI = (
+                    "https://www.nass.usda.gov/Data_and_Statistics/"
+                    "County_Data_Files/Frequently_Asked_Questions/commcodes.php"
+                )
+                NASS_SOURCE = "NASS_WEB"
 
                 for _, row in unique_commodities.iterrows():
                     # First check if commodity already exists
@@ -73,25 +111,40 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
                     existing_row = existing_result.fetchone()
 
                     if existing_row:
-                        # Update existing record
+                        # Update existing record — fill in metadata that may be NULL
                         conn.execute(text("""
                             UPDATE usda_commodity
-                            SET api_name = :api_name, usda_code = :usda_code, updated_at = NOW()
+                            SET api_name    = :api_name,
+                                usda_code   = :usda_code,
+                                usda_source = COALESCE(usda_source, :usda_source),
+                                description = COALESCE(description, :description),
+                                uri         = COALESCE(uri, :uri),
+                                updated_at  = NOW()
                             WHERE name = :name
                         """), {
                             'name': row['commodity_name'],
                             'api_name': row['api_name'],
-                            'usda_code': int(row['usda_code'])
+                            'usda_code': int(row['usda_code']),
+                            'usda_source': NASS_SOURCE,
+                            'description': row['commodity_name'],
+                            'uri': NASS_URI,
                         })
                     else:
-                        # Insert new record
+                        # Insert new record with full metadata
                         conn.execute(text("""
-                            INSERT INTO usda_commodity (name, api_name, usda_code, created_at, updated_at)
-                            VALUES (:name, :api_name, :usda_code, NOW(), NOW())
+                            INSERT INTO usda_commodity
+                                (name, api_name, usda_code, usda_source, description, uri,
+                                 created_at, updated_at)
+                            VALUES
+                                (:name, :api_name, :usda_code, :usda_source, :description, :uri,
+                                 NOW(), NOW())
                         """), {
                             'name': row['commodity_name'],
                             'api_name': row['api_name'],
-                            'usda_code': int(row['usda_code'])
+                            'usda_code': int(row['usda_code']),
+                            'usda_source': NASS_SOURCE,
+                            'description': row['commodity_name'],
+                            'uri': NASS_URI,
                         })
 
                 print(f"✅ Seeded {len(unique_commodities)} USDA commodities")
@@ -103,17 +156,30 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
                 conn.execute(text("DELETE FROM resource_usda_commodity_map"))
 
                 for _, row in mapped_df.iterrows():
-                    # Lookup resource_id by name
+                    # Lookup resource_id by name — try resource table first,
+                    # fall back to primary_ag_product. Both map to the same
+                    # resource_usda_commodity_map table; the type is encoded by
+                    # which FK column is non-null.
                     resource_result = conn.execute(text(
-                        "SELECT id FROM resource WHERE name = :resource_name"
-                    ), {'resource_name': row['resource_name']})
+                        "SELECT id FROM resource WHERE name = :name"
+                    ), {'name': row['resource_name']})
                     resource_row = resource_result.fetchone()
 
-                    if not resource_row:
-                        print(f"⚠️  Resource '{row['resource_name']}' not found - skipping")
-                        continue
+                    if resource_row:
+                        resource_id = resource_row[0]
+                        pap_id = None
+                    else:
+                        pap_result = conn.execute(text(
+                            "SELECT id FROM primary_ag_product WHERE name = :name"
+                        ), {'name': row['resource_name']})
+                        pap_row = pap_result.fetchone()
 
-                    resource_id = resource_row[0]
+                        if not pap_row:
+                            print(f"⚠️  '{row['resource_name']}' not found in resource or primary_ag_product - skipping")
+                            continue
+
+                        resource_id = None
+                        pap_id = pap_row[0]
 
                     # Lookup commodity_id by name
                     commodity_result = conn.execute(text(
@@ -130,11 +196,16 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
                     # Insert mapping with runtime-resolved IDs
                     conn.execute(text("""
                         INSERT INTO resource_usda_commodity_map (
-                            resource_id, usda_commodity_id, match_tier, note, created_at, updated_at
+                            resource_id, primary_ag_product_id, usda_commodity_id,
+                            match_tier, note, created_at, updated_at
                         )
-                        VALUES (:resource_id, :usda_commodity_id, :match_tier, :note, NOW(), NOW())
+                        VALUES (
+                            :resource_id, :pap_id, :usda_commodity_id,
+                            :match_tier, :note, NOW(), NOW()
+                        )
                     """), {
                         'resource_id': resource_id,
+                        'pap_id': pap_id,
                         'usda_commodity_id': commodity_id,
                         'match_tier': row['match_tier'],
                         'note': row['note']
@@ -155,6 +226,86 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
     except Exception as e:
         print(f"❌ Error in seed_commodity_mappings_from_csv: {e}")
         return False
+
+
+def backfill_usda_commodity_metadata(engine=None, csv_path: str = None) -> int:
+    """
+    Backfill NULL or stale metadata on existing usda_commodity rows.
+
+    Fills in NULL description, uri, usda_source, and fixes api_name values that
+    are NULL, empty, or the string 'nan' (a pandas artefact from prior seeder
+    runs before the NaN-handling fix was in place).
+
+    Safe to call on every ETL run — only rows that actually need updating are
+    touched (WHERE clause guards on NULL / bad-value conditions).
+
+    Returns:
+        Number of usda_commodity rows updated.
+    """
+    try:
+        if engine is None:
+            engine = get_engine()
+        if csv_path is None:
+            current_dir = os.path.dirname(__file__)
+            csv_path = os.path.join(current_dir, "commodity_mappings.csv")
+        if not os.path.exists(csv_path):
+            return 0
+
+        NASS_URI = (
+            "https://www.nass.usda.gov/Data_and_Statistics/"
+            "County_Data_Files/Frequently_Asked_Questions/commcodes.php"
+        )
+        NASS_SOURCE = "NASS_WEB"
+
+        df = pd.read_csv(csv_path)
+        df['commodity_name'] = df['commodity_name'].astype(str).str.strip().str.lower()
+        df['commodity_name'] = df['commodity_name'].where(df['commodity_name'] != 'nan', other=None)
+        unique_names = (
+            df[df['commodity_name'].notna()]['commodity_name']
+            .drop_duplicates()
+            .tolist()
+        )
+
+        updated = 0
+        with engine.connect() as conn:
+            for name in unique_names:
+                api_name = _get_api_name(name.upper())  # None for DISABLED entries
+                result = conn.execute(text("""
+                    UPDATE usda_commodity
+                    SET
+                        api_name    = CASE
+                                          WHEN api_name IS NULL OR api_name IN ('', 'nan')
+                                          THEN :api_name
+                                          ELSE api_name
+                                      END,
+                        usda_source = COALESCE(usda_source, :usda_source),
+                        description = COALESCE(description, :description),
+                        uri         = COALESCE(uri, :uri),
+                        created_at  = COALESCE(created_at, NOW()),
+                        updated_at  = NOW()
+                    WHERE LOWER(name) = :name
+                      AND (api_name IS NULL OR api_name IN ('', 'nan')
+                           OR usda_source IS NULL
+                           OR description IS NULL
+                           OR uri IS NULL
+                           OR created_at IS NULL)
+                """), {
+                    'name': name,
+                    'api_name': api_name,
+                    'usda_source': NASS_SOURCE,
+                    'description': name,
+                    'uri': NASS_URI,
+                })
+                updated += result.rowcount
+            conn.commit()
+
+        if updated:
+            print(f"🔧 Backfilled metadata for {updated} usda_commodity rows")
+        return updated
+
+    except Exception as e:
+        print(f"⚠️  Could not backfill usda_commodity metadata: {e}")
+        return 0
 
 
 def check_seeding_prerequisites(engine=None) -> dict:
