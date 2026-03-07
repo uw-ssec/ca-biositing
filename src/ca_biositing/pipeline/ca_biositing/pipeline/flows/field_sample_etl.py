@@ -1,7 +1,9 @@
 from prefect import flow, get_run_logger
 from ca_biositing.pipeline.etl.extract.samplemetadata import extract as extract_metadata
 from ca_biositing.pipeline.etl.extract.provider_info import extract as extract_provider
+from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import transform_field_sample
+from ca_biositing.pipeline.etl.load.location_address import load_location_address
 from ca_biositing.pipeline.etl.load.field_sample import load_field_sample
 from ca_biositing.pipeline.utils.lineage import create_lineage_group, create_etl_run_record
 
@@ -24,17 +26,31 @@ def field_sample_etl_flow():
         "provider_info": provider_df
     }
 
-    # 3. Transform
-    logger.info("Transforming data...")
+    # 3. Transform & Load LocationAddress
+    logger.info("Transforming LocationAddress data...")
+    location_df = transform_location_address(
+        data_sources=data_sources,
+        etl_run_id=etl_run_id,
+        lineage_group_id=lineage_group_id
+    )
+
+    if location_df is not None and not location_df.empty:
+        logger.info("Loading LocationAddress data into database...")
+        load_location_address(location_df)
+    else:
+        logger.warning("No LocationAddress data to load.")
+
+    # 4. Transform FieldSample
+    logger.info("Transforming FieldSample data...")
     transformed_df = transform_field_sample(
         data_sources=data_sources,
         etl_run_id=etl_run_id,
         lineage_group_id=lineage_group_id
     )
 
-    # 4. Load
+    # 5. Load FieldSample
     if transformed_df is not None and not transformed_df.empty:
-        logger.info("Loading data into database...")
+        logger.info("Loading FieldSample data into database...")
         load_field_sample(transformed_df)
     else:
         logger.warning("No data to load.")
