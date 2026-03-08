@@ -12,10 +12,10 @@ from ca_biositing.webservice.exceptions import CropNotFoundException
 
 
 def normalize_crop_name(crop_name: Optional[str]) -> str:
-    """Normalize crop names for case- and space-insensitive exact matching."""
+    """Normalize crop names for case-, space-, and underscore-insensitive exact matching."""
     if not crop_name:
         return ""
-    return " ".join(crop_name.split()).lower()
+    return " ".join(crop_name.replace("_", " ").split()).lower()
 
 
 def normalized_sql_text(column):

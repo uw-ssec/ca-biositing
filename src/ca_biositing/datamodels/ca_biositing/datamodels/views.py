@@ -267,7 +267,10 @@ USDA_RESOURCE_COMMODITY_VIEW = (
         ResourceUsdaCommodityMap.usda_commodity_id.label("commodity_id"),
     )
     .join(ResourceUsdaCommodityMap, ResourceUsdaCommodityMap.resource_id == Resource.id)
-    .where(ResourceUsdaCommodityMap.usda_commodity_id.is_not(None))
+    .where(
+        ResourceUsdaCommodityMap.usda_commodity_id.is_not(None),
+        Resource.name.is_not(None),
+    )
 )
 
 # --- 7. billion_ton_tileset_view ---
@@ -336,5 +339,6 @@ def refresh_all_views(engine):
     with engine.connect() as conn:
         for view_name, _ in VIEW_DEFINITIONS:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.{view_name}"))
+        conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.usda_resource_commodity_view"))
         conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.analysis_average_view"))
         conn.commit()

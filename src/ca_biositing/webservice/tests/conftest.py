@@ -13,11 +13,19 @@ def base_url() -> str:
 def auth_headers(base_url) -> dict:
     username = os.getenv("CA_BIOSITING_TEST_USERNAME")
     password = os.getenv("CA_BIOSITING_TEST_PASSWORD")
-    resp = httpx.post(
-        f"{base_url}/v1/auth/token",
-        data={"username": username, "password": password},
-    )
-    resp.raise_for_status()
+    if not username or not password:
+        pytest.skip(
+            "CA_BIOSITING_TEST_USERNAME and CA_BIOSITING_TEST_PASSWORD "
+            "environment variables are required for integration tests"
+        )
+    try:
+        resp = httpx.post(
+            f"{base_url}/v1/auth/token",
+            data={"username": username, "password": password},
+        )
+        resp.raise_for_status()
+    except httpx.ConnectError:
+        pytest.skip(f"Could not connect to {base_url} — is the server running?")
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

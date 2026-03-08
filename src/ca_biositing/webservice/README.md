@@ -29,12 +29,16 @@ src/ca_biositing/webservice/
 │       │   ├── usda_survey_service.py
 │       │   ├── _canonical_views.py  # Materialized view selectors
 │       │   └── _usda_lookup_common.py  # Shared normalization helpers
-│       └── v1/feedstocks/           # API route definitions
-│           ├── schemas.py           # Pydantic response models
-│           ├── analysis.py
-│           └── usda/
-│               ├── census.py
-│               └── survey.py
+│       └── v1/
+│           ├── router.py            # API v1 router
+│           ├── auth/
+│           │   └── router.py        # JWT token endpoint
+│           └── feedstocks/          # Protected data route definitions
+│               ├── schemas.py       # Pydantic response models
+│               ├── analysis.py
+│               └── usda/
+│                   ├── census.py
+│                   └── survey.py
 ├── tests/                           # Integration smoke tests
 │   ├── conftest.py                  # Fixtures (auth, httpx client)
 │   └── test_smoke.py               # 16 endpoint smoke tests
@@ -105,6 +109,7 @@ from ca_biositing.webservice.main import app
 ### Root & Auth
 
 - **GET** `/` - API information and version
+- **GET** `/v1/health` - Health check
 - **POST** `/v1/auth/token` - Obtain JWT access token
 
 ### Discovery Endpoints
