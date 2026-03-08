@@ -19,12 +19,12 @@ def normalize_crop_name(crop_name: Optional[str]) -> str:
 
 
 def normalized_sql_text(column):
-    """Normalize SQL text for case- and space-insensitive exact matching.
+    """Normalize SQL text for case-, space-, and underscore-insensitive exact matching.
 
     Three replace passes collapse whitespace runs up to 8 spaces while keeping
     SQLite compatibility in tests.
     """
-    normalized = column
+    normalized = func.replace(column, "_", " ")
     for _ in range(3):
         normalized = func.replace(normalized, "  ", " ")
     return func.lower(func.trim(normalized))
