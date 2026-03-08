@@ -11,11 +11,64 @@ from fastapi import APIRouter, Path
 from ca_biositing.webservice.dependencies import SessionDep
 from ca_biositing.webservice.services.usda_survey_service import UsdaSurveyService
 from ca_biositing.webservice.v1.feedstocks.schemas import (
+    DiscoveryResponse,
     SurveyDataResponse,
     SurveyListResponse,
 )
 
 router = APIRouter(prefix="/survey", tags=["Survey"])
+
+
+@router.get("/crops", response_model=DiscoveryResponse)
+def list_survey_crops(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct USDA crop names available for survey queries.
+
+    Example:
+        GET /v1/feedstocks/usda/survey/crops
+
+    Returns:
+        DiscoveryResponse with list of crop name strings
+    """
+    return DiscoveryResponse(values=UsdaSurveyService.list_crops(session))
+
+
+@router.get("/resources", response_model=DiscoveryResponse)
+def list_survey_resources(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct resource names available for survey queries.
+
+    Example:
+        GET /v1/feedstocks/usda/survey/resources
+
+    Returns:
+        DiscoveryResponse with list of resource name strings
+    """
+    return DiscoveryResponse(values=UsdaSurveyService.list_resources(session))
+
+
+@router.get("/geoids", response_model=DiscoveryResponse)
+def list_survey_geoids(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct geoids available for survey queries.
+
+    Example:
+        GET /v1/feedstocks/usda/survey/geoids
+
+    Returns:
+        DiscoveryResponse with list of geoid strings
+    """
+    return DiscoveryResponse(values=UsdaSurveyService.list_geoids(session))
+
+
+@router.get("/parameters", response_model=DiscoveryResponse)
+def list_survey_parameters(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct parameter names available for survey queries.
+
+    Example:
+        GET /v1/feedstocks/usda/survey/parameters
+
+    Returns:
+        DiscoveryResponse with list of parameter name strings
+    """
+    return DiscoveryResponse(values=UsdaSurveyService.list_parameters(session))
 
 
 @router.get(
@@ -24,14 +77,33 @@ router = APIRouter(prefix="/survey", tags=["Survey"])
 )
 def get_survey_data_by_crop(
     session: SessionDep,
-    crop: str = Path(..., description="USDA crop name (e.g., CORN, SOYBEANS)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
-    parameter: str = Path(..., description="Parameter name (e.g., acres, production)"),
+    crop: str = Path(
+        ...,
+        description=(
+            "USDA crop name (e.g., corn, wheat, tomatoes). "
+            "Case-insensitive. "
+            "Use GET /v1/feedstocks/usda/survey/crops to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (e.g., 06047, 06077, 06099). "
+            "Use GET /v1/feedstocks/usda/survey/geoids to discover available values."
+        ),
+    ),
+    parameter: str = Path(
+        ...,
+        description=(
+            "Parameter name (e.g., area harvested, production). "
+            "Use GET /v1/feedstocks/usda/survey/parameters to discover available values."
+        ),
+    ),
 ) -> SurveyDataResponse:
     """Get a single survey parameter for a specific crop and geographic area.
 
     Example:
-        GET /v1/feedstocks/usda/survey/crops/CORN/geoid/06001/parameters/acres
+        GET /v1/feedstocks/usda/survey/crops/wheat/geoid/06047/parameters/area harvested
 
     Args:
         session: Database session (injected)
@@ -56,16 +128,35 @@ def get_survey_data_by_crop(
 )
 def get_survey_data_by_resource(
     session: SessionDep,
-    resource: str = Path(..., description="Resource name (e.g., corn_grain, soybean_meal)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
-    parameter: str = Path(..., description="Parameter name (e.g., acres, production)"),
+    resource: str = Path(
+        ...,
+        description=(
+            "Resource name mapped to a USDA crop (e.g., corn stover whole, wheat straw). "
+            "Case-insensitive. "
+            "Use GET /v1/feedstocks/usda/survey/resources to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (e.g., 06047, 06077, 06099). "
+            "Use GET /v1/feedstocks/usda/survey/geoids to discover available values."
+        ),
+    ),
+    parameter: str = Path(
+        ...,
+        description=(
+            "Parameter name (e.g., area harvested, production). "
+            "Use GET /v1/feedstocks/usda/survey/parameters to discover available values."
+        ),
+    ),
 ) -> SurveyDataResponse:
     """Get a single survey parameter for a specific resource and geographic area.
 
     Resources are mapped to USDA crops internally via the resource mapping table.
 
     Example:
-        GET /v1/feedstocks/usda/survey/resources/corn_grain/geoid/06001/parameters/acres
+        GET /v1/feedstocks/usda/survey/resources/wheat straw/geoid/06047/parameters/area harvested
 
     Args:
         session: Database session (injected)
@@ -90,13 +181,26 @@ def get_survey_data_by_resource(
 )
 def list_survey_data_by_crop(
     session: SessionDep,
-    crop: str = Path(..., description="USDA crop name (e.g., CORN, SOYBEANS)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
+    crop: str = Path(
+        ...,
+        description=(
+            "USDA crop name (e.g., corn, wheat, tomatoes). "
+            "Case-insensitive. "
+            "Use GET /v1/feedstocks/usda/survey/crops to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (e.g., 06047, 06077, 06099). "
+            "Use GET /v1/feedstocks/usda/survey/geoids to discover available values."
+        ),
+    ),
 ) -> SurveyListResponse:
     """List all available survey parameters for a specific crop and geographic area.
 
     Example:
-        GET /v1/feedstocks/usda/survey/crops/CORN/geoid/06001/parameters
+        GET /v1/feedstocks/usda/survey/crops/wheat/geoid/06047/parameters
 
     Args:
         session: Database session (injected)
@@ -120,15 +224,28 @@ def list_survey_data_by_crop(
 )
 def list_survey_data_by_resource(
     session: SessionDep,
-    resource: str = Path(..., description="Resource name (e.g., corn_grain, soybean_meal)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
+    resource: str = Path(
+        ...,
+        description=(
+            "Resource name mapped to a USDA crop (e.g., corn stover whole, wheat straw). "
+            "Case-insensitive. "
+            "Use GET /v1/feedstocks/usda/survey/resources to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (e.g., 06047, 06077, 06099). "
+            "Use GET /v1/feedstocks/usda/survey/geoids to discover available values."
+        ),
+    ),
 ) -> SurveyListResponse:
     """List all available survey parameters for a specific resource and geographic area.
 
     Resources are mapped to USDA crops internally via the resource mapping table.
 
     Example:
-        GET /v1/feedstocks/usda/survey/resources/corn_grain/geoid/06001/parameters
+        GET /v1/feedstocks/usda/survey/resources/wheat straw/geoid/06047/parameters
 
     Args:
         session: Database session (injected)
