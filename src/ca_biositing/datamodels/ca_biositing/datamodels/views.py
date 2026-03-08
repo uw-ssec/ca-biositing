@@ -25,6 +25,7 @@ from .models import (
     UsdaCensusRecord,
     UsdaSurveyRecord,
     UsdaCommodity,
+    ResourceUsdaCommodityMap,
     BillionTon2023Record,
     # General analysis models
     Observation,
@@ -256,7 +257,20 @@ USDA_SURVEY_VIEW = (
     .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
 )
 
-# --- 6. billion_ton_tileset_view ---
+# --- 6. usda_resource_commodity_view ---
+# Lightweight view: maps each resource name to its USDA commodity ID.
+# Used by discovery endpoints to list queryable resources without service-layer joins.
+# A commodity may map to multiple resources; this view preserves all mappings.
+USDA_RESOURCE_COMMODITY_VIEW = (
+    select(
+        Resource.name.label("resource"),
+        ResourceUsdaCommodityMap.usda_commodity_id.label("commodity_id"),
+    )
+    .join(ResourceUsdaCommodityMap, ResourceUsdaCommodityMap.resource_id == Resource.id)
+    .where(ResourceUsdaCommodityMap.usda_commodity_id.is_not(None))
+)
+
+# --- 7. billion_ton_tileset_view ---
 BILLION_TON_TILESET_VIEW = (
     select(
         BillionTon2023Record.id,
