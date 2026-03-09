@@ -1,39 +1,44 @@
 #!/usr/bin/env python3
 """
-Enhanced USDA Commodity Mapper - Interactive Fuzzy Matching
+USDA Commodity Mapper - Interactive Fuzzy Matching
 
-This script implements the workflow:
-1. Import ALL USDA commodities for California from NASS API
-2. Populate all commodities into usda_commodity table (with URI)
-3. Get your project's resources + primary_ag_products
-4. Auto-match clear matches (high similarity)
-5. Present 1-5 fuzzy match candidates for user to select
-6. Track all resources in mapping table (including unmatched for progress)
+Maps project resources and primary_ag_products to USDA NASS commodity codes
+via fuzzy matching, with an interactive review loop and DB persistence.
 
 Usage:
-    # Step 1: Fetch and cache all CA USDA commodities (run once)
-    python enhanced_commodity_mapper.py --fetch-ca-commodities
+    # Fetch and cache all USDA commodity codes from NASS website (run once)
+    python interactive_commodity_mapper.py --fetch-ca-commodities
 
-    # Step 2: Populate all commodities into database (run after fetching)
-    python enhanced_commodity_mapper.py --populate-commodities
+    # Refresh local NASS commodity cache (used by fuzzy matcher; does NOT write to DB)
+    python interactive_commodity_mapper.py --populate-commodities
 
-    # Step 3: Auto-match clear matches (>90% similarity)
-    python enhanced_commodity_mapper.py --auto-match
+    # Auto-match resources with >90% similarity confidence
+    python interactive_commodity_mapper.py --auto-match
 
-    # Step 4: Interactive review of fuzzy matches (50-90% similarity)
-    python enhanced_commodity_mapper.py --review
+    # Interactive review of fuzzy matches (50-90% similarity)
+    python interactive_commodity_mapper.py --review
 
-    # Step 5: Save approved mappings to database (includes progress tracking)
-    python enhanced_commodity_mapper.py --save
+    # Save approved matches from cache to database + export CSV
+    python interactive_commodity_mapper.py --save-to-db
 
-    # Complete workflow (all steps)
-    python enhanced_commodity_mapper.py --full-workflow
+    # Complete workflow (fetch → auto-match → review → save)
+    python interactive_commodity_mapper.py --full-workflow
 
-    # Management interface (view, edit, delete mappings)
-    python enhanced_commodity_mapper.py --manage
+    # View / edit / delete existing DB mappings
+    python interactive_commodity_mapper.py --manage
+
+    # Export current DB state to commodity_mappings.csv
+    python interactive_commodity_mapper.py --export-csv
+
+    # Backfill api_name on all usda_commodity rows from reviewed_api_mappings.py
+    python interactive_commodity_mapper.py --apply-api-names
+
+    # Show which usda_commodity rows in DB lack an api_name entry
+    python interactive_commodity_mapper.py --build-api-mappings
 
 Reference:
     USDA Commodity Codes: https://www.nass.usda.gov/Data_and_Statistics/County_Data_Files/Frequently_Asked_Questions/commcodes.php
+    QuickStats API:       https://quickstats.nass.usda.gov/api
 """
 
 import sys
@@ -52,6 +57,9 @@ import pandas as pd
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root / 'src' / 'ca_biositing' / 'pipeline'))
 sys.path.insert(0, str(project_root / 'src' / 'ca_biositing' / 'datamodels'))
+# reviewed_api_mappings.py lives in the same utils directory; Python always
+# places the running script's directory on sys.path[0], so no extra path
+# manipulation is needed.
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -59,12 +67,23 @@ from sqlmodel import Session
 
 load_dotenv()
 
+# Import api_name lookup from the pre-reviewed static reference.
+# Falls back to identity (name unchanged) if the file is not importable.
+try:
+    from reviewed_api_mappings import get_api_name as _get_api_name
+except ImportError:
+    def _get_api_name(name: str) -> Optional[str]:  # type: ignore[misc]
+        return name
+
 # Cache files
 CACHE_DIR = Path(__file__).parent / '.cache'
 CACHE_DIR.mkdir(exist_ok=True)
 CA_COMMODITIES_CACHE = CACHE_DIR / 'ca_usda_commodities.json'
 PENDING_MATCHES_FILE = CACHE_DIR / 'pending_matches.json'
 APPROVED_MATCHES_FILE = CACHE_DIR / 'approved_matches.json'
+
+# Output CSV kept in sync with the DB after every --save run
+CSV_MAPPINGS_FILE = Path(__file__).parent / 'commodity_mappings.csv'
 
 
 # ============================================================================
@@ -304,26 +323,25 @@ def populate_usda_commodities_to_database():
 
     with engine.connect() as conn:
         for commodity in commodities:
-            # TODO: Switch to ON CONFLICT after adding UNIQUE constraint on usda_code
-            # This requires: ALTER TABLE usda_commodity ADD CONSTRAINT usda_commodity_code_unique UNIQUE (usda_code);
+            # NOTE on future ON CONFLICT upsert:
+            # The correct dedup key for usda_commodity is `name`, NOT `usda_code`.
+            # Rationale: NASS and AMS use separate code namespaces that may collide,
+            # and AMS commodities may have no NASS-style code at all. The merge rule
+            # is "same commodity name → one row, usda_source = NASS wins". A UNIQUE
+            # constraint on `name` (or a partial index scoped per source) is therefore
+            # the right target — but only once AMS integration design is settled.
+            # Until then, the check-then-insert below is safe for single-session runs.
             #
-            # Option 1: INSERT IGNORE (skip duplicates)
+            # Future upsert shape (do not implement until AMS design is confirmed):
             # conn.execute(text("""
             #     INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri)
             #     VALUES (:name, :code, :source, :description, :uri)
-            #     ON CONFLICT (usda_code) DO NOTHING
-            # """), {...})
-            #
-            # Option 2: UPSERT (update if exists, insert if new)
-            # conn.execute(text("""
-            #     INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri)
-            #     VALUES (:name, :code, :source, :description, :uri)
-            #     ON CONFLICT (usda_code)
+            #     ON CONFLICT (name)
             #     DO UPDATE SET
-            #         name = EXCLUDED.name,
+            #         usda_code = EXCLUDED.usda_code,
             #         description = EXCLUDED.description,
-            #         uri = EXCLUDED.uri,
-            #         usda_source = EXCLUDED.usda_source
+            #         uri = EXCLUDED.uri
+            #     WHERE usda_commodity.usda_source != 'NASS'  -- NASS rows are authoritative
             # """), {...})
 
             # Current approach: Check-then-insert (works without constraints)
@@ -339,8 +357,9 @@ def populate_usda_commodities_to_database():
             # Insert new commodity
             conn.execute(text(
                 """
-                INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri)
-                VALUES (:name, :code, :source, :description, :uri)
+                INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri,
+                                           created_at, updated_at)
+                VALUES (:name, :code, :source, :description, :uri, NOW(), NOW())
                 """
             ), {
                 'name': commodity['name'],
@@ -412,6 +431,37 @@ def get_project_resources() -> List[Dict]:
         except Exception as e:
             print(f"Note: Resource table not queried: {e}")
 
+        # Skip resources already mapped with a real (non-UNMAPPED) tier.
+        # UNMAPPED rows are placeholder-tracked and still need a real mapping.
+        try:
+            mapped_resource_ids: set = set()
+            result = conn.execute(text("""
+                SELECT resource_id FROM resource_usda_commodity_map
+                WHERE resource_id IS NOT NULL AND match_tier != 'UNMAPPED'
+            """))
+            for row in result:
+                mapped_resource_ids.add(row[0])
+
+            mapped_pap_ids: set = set()
+            result = conn.execute(text("""
+                SELECT primary_ag_product_id FROM resource_usda_commodity_map
+                WHERE primary_ag_product_id IS NOT NULL AND match_tier != 'UNMAPPED'
+            """))
+            for row in result:
+                mapped_pap_ids.add(row[0])
+
+            before = len(resources)
+            resources = [
+                r for r in resources
+                if not (r['type'] == 'resource'            and r['id'] in mapped_resource_ids)
+                and not (r['type'] == 'primary_ag_product' and r['id'] in mapped_pap_ids)
+            ]
+            skipped = before - len(resources)
+            if skipped:
+                print(f"\u23e9 Skipped {skipped} already-mapped resources (use --manage to review existing mappings)")
+        except Exception as e:
+            print(f"Warning: Could not check existing mappings, all resources will be reviewed: {e}")
+
     print(f"OK Loaded {len(resources)} project resources/crops")
     return resources
 
@@ -427,32 +477,28 @@ def calculate_similarity(text1: str, text2: str) -> float:
 
 def lookup_manual_commodity_code(commodity_code: str) -> Optional[Dict]:
     """
-    Lookup a USDA commodity by code in the database.
+    Lookup a USDA commodity by code from the local cache file.
+
+    Uses .cache/ca_usda_commodities.json rather than the database, because
+    the usda_commodity table only contains commodities that have already been
+    mapped — looking there would create a circular dependency where you can
+    only manually enter a code for something already mapped.
+
+    The cache is always present when --review is running (it is a prerequisite
+    for --auto-match which must be run first).
+
     Returns commodity dict if found, None if not found.
     """
-    from ca_biositing.datamodels.database import get_session
-    from ca_biositing.datamodels.models import UsdaCommodity
-
-    try:
-        with get_session() as session:  # Use get_session context manager
-            # Look up commodity by code
-            commodity = session.query(UsdaCommodity).filter(
-                UsdaCommodity.usda_code == commodity_code
-            ).first()
-
-            if commodity:
-                return {
-                    'code': commodity.usda_code,
-                    'name': commodity.name,
-                    'description': commodity.name,  # Using name as description
-                    'source': 'manual_lookup'
-                }
-            else:
-                return None
-
-    except Exception as e:
-        print(f"Database error during manual lookup: {e}")
-        return None
+    commodities = load_ca_commodities()
+    for commodity in commodities:
+        if str(commodity.get('code', '')).strip() == str(commodity_code).strip():
+            return {
+                'code': commodity['code'],
+                'name': commodity['name'],
+                'description': commodity.get('description', commodity['name']),
+                'source': commodity.get('source', 'NASS')
+            }
+    return None
 
 
 def find_best_matches(resource_name: str, usda_commodities: List[Dict], top_n: int = 8) -> List[Dict]:
@@ -541,7 +587,6 @@ def find_best_matches(resource_name: str, usda_commodities: List[Dict], top_n: i
     matches.sort(key=lambda x: x['score'], reverse=True)
 
     return matches[:top_n]
-
 
 # ============================================================================
 # STEP 4: Auto-match high-confidence matches
@@ -647,7 +692,10 @@ def interactive_review():
         print("  [m] Manual entry - enter commodity code directly")
         undo_available = len(approved) > 0
         if undo_available:
-            print(f"  [u] Undo last match ({approved[-1]['resource']['name']} → {approved[-1]['usda_commodity']['name']})")
+            _last = approved[-1]
+            _last_commodity = _last.get('usda_commodity')
+            _last_commodity_name = _last_commodity['name'] if _last_commodity else 'NO_MATCH'
+            print(f"  [u] Undo last match ({_last['resource']['name']} → {_last_commodity_name})")
         print()
 
         while True:
@@ -664,7 +712,13 @@ def interactive_review():
                 return
 
             if choice == 'n':
-                print(f"  → Skipping '{resource['name']}' (no match)")
+                approved.append({
+                    'resource': resource,
+                    'usda_commodity': None,
+                    'match_tier': 'NO_MATCH',
+                    'matched_at': datetime.now().isoformat()
+                })
+                print(f"  ✓ Marked '{resource['name']}' as NO_MATCH")
                 break
 
             if choice == 'm':
@@ -715,7 +769,7 @@ def interactive_review():
                         else:
                             print(f"\nError: Commodity code '{manual_code}' not found in database.")
                             print("Please add this commodity to the usda_commodity table first using:")
-                            print(f"  pixi run -e default python enhanced_commodity_mapper.py --populate-commodities")
+                            print(f"  pixi run python interactive_commodity_mapper.py --populate-commodities")
                             print("Or verify the correct code from USDA NASS website.\n")
                             continue  # Ask for code again
                     else:
@@ -726,12 +780,14 @@ def interactive_review():
             if choice == 'u':
                 if approved:
                     last_match = approved.pop()  # Remove last match
+                    last_commodity = last_match.get('usda_commodity')
+                    last_commodity_name = last_commodity['name'] if last_commodity else 'NO_MATCH'
                     # Put the resource back at the beginning of pending for re-review
                     pending.insert(i, {
                         'resource': last_match['resource'],
                         'candidates': find_best_matches(last_match['resource']['name'], load_usda_commodities())
                     })
-                    print(f"\n  ↶ Undid match: '{last_match['resource']['name']}' → '{last_match['usda_commodity']['name']}'")
+                    print(f"\n  ↶ Undid match: '{last_match['resource']['name']}' → '{last_commodity_name}'")
                     print(f"    Resource moved back to pending review.")
                     continue  # Stay on current resource, but now we have one more pending
                 else:
@@ -834,7 +890,7 @@ def save_mappings_to_database():
                     VALUES (:resource_id, NULL, 'NO_MATCH', :note, NOW(), NOW())
                 """), {
                     'resource_id': resource['id'],
-                    'note': f"Reviewed and marked as NO_MATCH - no suitable USDA commodity found - {datetime.now().isoformat()}"
+                    'note': f"interactive_commodity_mapper.py - user_approved - NO_MATCH - {datetime.now().isoformat()}"
                 })
                 saved_count += 1
                 print(f"  ✓ Saved: {resource['name']} → NO_MATCH")
@@ -851,15 +907,11 @@ def save_mappings_to_database():
             commodity_id = check_commodity.scalar()
 
             if not commodity_id:
-                # Insert USDA commodity with parent tracking support
-                # TODO: Add created_at and updated_at columns to usda_commodity table schema
-                # This would require an Alembic migration to add these timestamp columns
-                # for better data auditing and tracking when commodities are added/modified
                 source_uri = "https://www.nass.usda.gov/Data_and_Statistics/County_Data_Files/Frequently_Asked_Questions/commcodes.php"
                 result = conn.execute(text(
                     """
-                    INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri)
-                    VALUES (:name, :code, :source, :description, :uri)
+                    INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri, api_name)
+                    VALUES (:name, :code, :source, :description, :uri, :api_name)
                     RETURNING id
                     """
                 ), {
@@ -867,7 +919,8 @@ def save_mappings_to_database():
                     'code': commodity['code'],
                     'source': commodity.get('source', 'NASS_WEB'),
                     'description': commodity.get('description', commodity['name']),
-                    'uri': source_uri
+                    'uri': source_uri,
+                    'api_name': _get_api_name(commodity['name'])
                 })
                 commodity_id = result.scalar()
                 print(f"  + Created USDA commodity: {commodity['name']} (code: {commodity['code']})")
@@ -888,8 +941,7 @@ def save_mappings_to_database():
 
             # Get the match tier from the item - use modern structure
             match_tier = item.get('match_tier', 'USER_APPROVED')  # Default to USER_APPROVED if no tier specified
-            similarity = item.get('similarity', commodity.get('score', 0))
-            note = f"Matched by enhanced_commodity_mapper.py - user_approved - {match_tier} - similarity: {similarity:.2%} - {datetime.now().isoformat()}"
+            note = f"interactive_commodity_mapper.py - user_approved - {match_tier} - {datetime.now().isoformat()}"
 
             if existing:
                 # Update existing mapping
@@ -925,13 +977,15 @@ def save_mappings_to_database():
 
             conn.commit()
 
-    print(f"\n✓ Saved {saved_count} new mappings")
+    print(f"\n✓ Saved {saved_count} new mappings into the database")
     print(f"↻ Updated {updated_count} existing mappings")
     print(f"⚠ Skipped {skipped_count} unchanged mappings")
 
     # Clear the approved matches since they've been saved
     save_approved_matches([])
     print(f"✓ Cleared approved matches cache")
+    print(f"\n📋 To update commodity_mappings.csv from the current DB state, run:")
+    print(f"       python interactive_commodity_mapper.py --export-csv")
 
 
 def save_unmatched_resources_to_database():
@@ -1029,38 +1083,175 @@ def manage_commodity_mappings():
 
 
 def view_all_mappings(engine):
-    """View all current commodity mappings"""
+    """View all current commodity mappings and optionally revise one by row number."""
     with engine.connect() as conn:
         result = conn.execute(text("""
             SELECT
                 m.id,
-                COALESCE(r.name, 'No Resource') as resource_name,
-                COALESCE(pap.name, 'No Crop') as crop_name,
-                COALESCE(uc.name, 'No Commodity') as usda_commodity,
-                uc.usda_code,
+                COALESCE(r.name, pap.name, 'Unknown') AS resource_name,
+                COALESCE(uc.name, 'NO_MATCH')          AS usda_commodity,
+                COALESCE(uc.usda_code, '—')             AS usda_code,
                 m.match_tier,
-                m.note,
-                m.updated_at
+                m.resource_id,
+                m.primary_ag_product_id
             FROM resource_usda_commodity_map m
-                LEFT JOIN resource r ON m.resource_id = r.id
+                LEFT JOIN resource           r   ON m.resource_id           = r.id
                 LEFT JOIN primary_ag_product pap ON m.primary_ag_product_id = pap.id
-                LEFT JOIN usda_commodity uc ON m.usda_commodity_id = uc.id
-            ORDER BY r.name, pap.name
+                LEFT JOIN usda_commodity     uc  ON m.usda_commodity_id     = uc.id
+            WHERE m.match_tier != 'UNMAPPED'
+            ORDER BY resource_name
         """))
-
         mappings = result.fetchall()
 
-        if not mappings:
-            print("No mappings found.")
+    if not mappings:
+        print("No mappings found.")
+        return
+
+    print(f"\nFound {len(mappings)} mappings:")
+    print("-" * 120)
+    print(f"{'#':<5} {'Type':<6} {'Resource':<30} {'USDA Commodity':<35} {'Code':<12} {'Tier'}")
+    print("-" * 120)
+
+    for idx, m in enumerate(mappings, 1):
+        row_type = 'pap' if m[6] is not None else 'res'
+        print(f"{idx:<5} {row_type:<6} {(m[1] or '')[:29]:<30} {(m[2] or '')[:34]:<35} {(m[3] or '')[:11]:<12} {m[4] or ''}")
+
+    print()
+    choice = input("Enter row # to revise a mapping, or press Enter to return: ").strip()
+    if choice.isdigit():
+        row_idx = int(choice) - 1
+        if 0 <= row_idx < len(mappings):
+            revise_mapping_interactive(engine, mappings[row_idx])
+        else:
+            print("Row number out of range.")
+
+
+def revise_mapping_interactive(engine, mapping_row):
+    """
+    Re-run fuzzy matching for a DB mapping row and update it in place.
+    Called from view_all_mappings when the user selects a row number to revise.
+    """
+    db_id        = mapping_row[0]
+    resource_name = mapping_row[1]
+    current_commodity = mapping_row[2]
+    pap_id       = mapping_row[6]
+
+    print(f"\nRevising: '{resource_name}'")
+    print(f"  Current mapping: {current_commodity}")
+    print()
+
+    usda_commodities = load_ca_commodities()
+    if not usda_commodities:
+        print("Commodity cache empty. Run --fetch-ca-commodities first.")
+        return
+
+    candidates = find_best_matches(resource_name, usda_commodities, top_n=8)
+    for j, candidate in enumerate(candidates, 1):
+        print(f"  [{j}] {candidate['name']} (code: {candidate['code']}) - {candidate['score']:.1%} match")
+
+    print("\n  [n] Mark as NO_MATCH")
+    print("  [m] Manual entry - enter commodity code directly")
+    print("  [x] Cancel - keep existing mapping")
+    print()
+
+    while True:
+        choice = input("Your selection (1-8, n, m, or x): ").strip().lower()
+
+        if choice == 'x':
+            print("Cancelled.")
             return
 
-        print(f"\nFound {len(mappings)} mappings:")
-        print("-" * 120)
-        print(f"{'ID':<4} {'Resource':<25} {'Crop':<20} {'USDA Commodity':<30} {'Code':<10} {'Tier':<15}")
-        print("-" * 120)
+        if choice == 'n':
+            with engine.connect() as conn:
+                conn.execute(text("""
+                    UPDATE resource_usda_commodity_map
+                    SET usda_commodity_id = NULL,
+                        match_tier = 'NO_MATCH',
+                        note = :note,
+                        updated_at = NOW()
+                    WHERE id = :id
+                """), {
+                    'note': f"interactive_commodity_mapper.py - user_approved - NO_MATCH - revised via --manage - {datetime.now().isoformat()}",
+                    'id': db_id
+                })
+                conn.commit()
+            print(f"\u2713 Updated: '{resource_name}' \u2192 NO_MATCH")
+            return
 
-        for mapping in mappings:
-            print(f"{mapping[0]:<4} {mapping[1][:24]:<25} {mapping[2][:19]:<20} {mapping[3][:29]:<30} {mapping[4]:<10} {mapping[5]:<15}")
+        if choice == 'm':
+            manual_code = input("Enter USDA commodity code (8 digits): ").strip()
+            selected = lookup_manual_commodity_code(manual_code)
+            if not selected:
+                print(f"Code '{manual_code}' not found in cache.")
+                continue
+        else:
+            try:
+                idx = int(choice) - 1
+                if 0 <= idx < len(candidates):
+                    selected = candidates[idx]
+                else:
+                    print("Invalid choice.")
+                    continue
+            except ValueError:
+                print("Invalid input.")
+                continue
+
+        # Tier selection
+        print(f"\nSelected: {selected['name']}")
+        print("  [d] DIRECT_MATCH   [c] CROP_FALLBACK   [r] RELATED_GROUP")
+        while True:
+            tier_choice = input("Match tier (d/c/r): ").strip().lower()
+            if tier_choice == 'd':
+                match_tier = 'DIRECT_MATCH'
+                break
+            elif tier_choice == 'c':
+                match_tier = 'CROP_FALLBACK'
+                break
+            elif tier_choice == 'r':
+                match_tier = 'RELATED_GROUP'
+                break
+            else:
+                print("Enter d, c, or r.")
+
+        with engine.connect() as conn:
+            # Ensure commodity row exists
+            commodity_id = conn.execute(text(
+                "SELECT id FROM usda_commodity WHERE usda_code = :code"
+            ), {'code': selected['code']}).scalar()
+
+            if not commodity_id:
+                source_uri = "https://www.nass.usda.gov/Data_and_Statistics/County_Data_Files/Frequently_Asked_Questions/commcodes.php"
+                commodity_id = conn.execute(text("""
+                    INSERT INTO usda_commodity (name, usda_code, usda_source, description, uri, api_name)
+                    VALUES (:name, :code, :source, :description, :uri, :api_name)
+                    RETURNING id
+                """), {
+                    'name': selected['name'],
+                    'code': selected['code'],
+                    'source': selected.get('source', 'NASS_WEB'),
+                    'description': selected.get('description', selected['name']),
+                    'uri': source_uri,
+                    'api_name': _get_api_name(selected['name'])
+                }).scalar()
+                print(f"  + Created USDA commodity: {selected['name']}")
+
+            conn.execute(text("""
+                UPDATE resource_usda_commodity_map
+                SET usda_commodity_id = :commodity_id,
+                    match_tier = :match_tier,
+                    note = :note,
+                    updated_at = NOW()
+                WHERE id = :id
+            """), {
+                'commodity_id': commodity_id,
+                'match_tier': match_tier,
+                'note': f"interactive_commodity_mapper.py - user_approved - {match_tier} - revised via --manage - {datetime.now().isoformat()}",
+                'id': db_id
+            })
+            conn.commit()
+
+        print(f"\u2713 Updated: '{resource_name}' \u2192 {selected['name']} ({match_tier})")
+        return
 
 
 def edit_mapping(engine):
@@ -1217,7 +1408,149 @@ def find_unmapped_resources(engine):
 
         if unmapped:
             print(f"\nTo map these resources, run:")
-            print(f"  python enhanced_commodity_mapper.py --auto-match --review --save")
+            print(f"  python interactive_commodity_mapper.py --auto-match --review --save-to-db")
+
+
+# ============================================================================
+# API name management
+# ============================================================================
+
+def build_api_mappings_draft():
+    """
+    Inspect all usda_commodity rows in DB and identify which need api_name entries
+    in reviewed_api_mappings.py.
+
+    For each uncovered commodity the guess_api_name() heuristic is applied and the
+    result is displayed alongside a flag if the name changed (meaning manual review
+    is advisable). A copy-pasteable Python dict block is printed at the end.
+
+    Workflow:
+        1. Run --build-api-mappings and review the printed output.
+        2. Add/correct entries in reviewed_api_mappings.py (OFFICIAL_API_MAPPINGS).
+        3. Run --apply-api-names to write the values to the DB.
+        Future --save-to-db calls will populate api_name automatically.
+    """
+    try:
+        from reviewed_api_mappings import OFFICIAL_API_MAPPINGS, DISABLED_API_MAPPINGS, guess_api_name
+    except ImportError:
+        print("⚠ Could not import reviewed_api_mappings.py — ensure the utils folder is on sys.path.")
+        return
+
+    db_url = os.getenv('DATABASE_URL')
+    engine = create_engine(db_url)
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(
+            "SELECT name, api_name FROM usda_commodity ORDER BY name"
+        )).fetchall()
+
+    if not rows:
+        print("No usda_commodity rows in DB.")
+        return
+
+    covered_official = [r for r in rows if r[0] in OFFICIAL_API_MAPPINGS]
+    covered_disabled = [r for r in rows if r[0] in DISABLED_API_MAPPINGS]
+    uncovered        = [r for r in rows if r[0] not in OFFICIAL_API_MAPPINGS
+                                        and r[0] not in DISABLED_API_MAPPINGS]
+
+    print(f"\nFound {len(rows)} usda_commodity rows in DB")
+    print(f"  ✓ In OFFICIAL_API_MAPPINGS : {len(covered_official)}")
+    print(f"  ✕ In DISABLED_API_MAPPINGS : {len(covered_disabled)}")
+    print(f"  ? Not yet covered          : {len(uncovered)}")
+
+    if covered_disabled:
+        print()
+        print("=" * 90)
+        print("DISABLED (api_name will remain NULL in DB)")
+        print("=" * 90)
+        for name, db_api in covered_disabled:
+            reason = DISABLED_API_MAPPINGS[name]
+            print(f"  {name!r}  —  {reason}")
+
+    if uncovered:
+        print()
+        print("=" * 90)
+        print("UNCOVERED COMMODITIES — add to reviewed_api_mappings.py")
+        print("=" * 90)
+        print(f"{'DB Name':<45} {'Guessed API Name':<30} {'Note'}")
+        print("-" * 90)
+        for name, db_api in uncovered:
+            guessed = guess_api_name(name)
+            changed = guessed != name
+            db_note = f"(db has: {db_api!r})" if db_api else ""
+            flag    = "← REVIEW" if changed else "same"
+            print(f"{name[:44]:<45} {guessed[:29]:<30} {flag}  {db_note}")
+
+        print()
+        print("Copy-paste block for reviewed_api_mappings.py (verify lines marked '← REVIEW'):")
+        print()
+        print("    # --- AUTO-GENERATED DRAFT ---")
+        for name, db_api in uncovered:
+            guessed = guess_api_name(name)
+            changed = guessed != name
+            flag = "  # ← REVIEW" if changed else ""
+            print(f"    {name!r}: {guessed!r},{flag}")
+
+    # Show conflicts: db value disagrees with dict
+    conflicts = [
+        (r[0], OFFICIAL_API_MAPPINGS[r[0]], r[1])
+        for r in covered_official if r[1] and r[1] != OFFICIAL_API_MAPPINGS[r[0]]
+    ]
+    if conflicts:
+        print()
+        print("=" * 90)
+        print("CONFLICTS — DB api_name disagrees with reviewed_api_mappings.py (dict wins)")
+        print("=" * 90)
+        for name, dict_val, db_val in conflicts:
+            print(f"  {name!r}: dict={dict_val!r}, db={db_val!r}")
+        print("  Run --apply-api-names to overwrite DB values with the dict.")
+
+    if not uncovered and not conflicts:
+        print("\n✓ All DB commodities are covered and consistent with reviewed_api_mappings.py")
+
+
+def apply_api_names_to_db():
+    """
+    Write api_name to every usda_commodity row using reviewed_api_mappings.py
+    (OFFICIAL_API_MAPPINGS dict first, guess_api_name() heuristic as fallback).
+
+    Rows where api_name already matches are skipped (idempotent). Rows with a
+    different existing value are overwritten — the static dict is the source of truth.
+
+    Run --build-api-mappings first to review the draft, then run this to apply.
+    """
+    db_url = os.getenv('DATABASE_URL')
+    engine = create_engine(db_url)
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(
+            "SELECT id, name, api_name FROM usda_commodity ORDER BY name"
+        )).fetchall()
+
+    if not rows:
+        print("No usda_commodity rows in DB.")
+        return
+
+    print(f"\nChecking api_name for {len(rows)} usda_commodity rows...")
+
+    updated = 0
+    skipped = 0
+    with engine.connect() as conn:
+        for row_id, name, current_api_name in rows:
+            new_api_name = _get_api_name(name)
+            if current_api_name == new_api_name:
+                skipped += 1
+                continue
+            conn.execute(text(
+                "UPDATE usda_commodity SET api_name = :api_name WHERE id = :id"
+            ), {'api_name': new_api_name, 'id': row_id})
+            action = "SET    " if not current_api_name else "UPDATED"
+            print(f"  {action}: {name!r} → {new_api_name!r}")
+            updated += 1
+        conn.commit()
+
+    print(f"\n✓ Updated {updated} rows")
+    print(f"  Skipped {skipped} rows (api_name already correct)")
 
 
 # ============================================================================
@@ -1252,6 +1585,67 @@ def save_approved_matches(approved: List[Dict]):
         json.dump(approved, f, indent=2)
 
 
+def export_commodity_mappings_csv(engine=None) -> bool:
+    """
+    Export the current DB state of resource_usda_commodity_map to commodity_mappings.csv.
+
+    Called automatically at the end of --save so the CSV stays in sync with the DB.
+    This means seed_commodity_mappings.py can re-seed a fresh database without any
+    manual step — the CSV always reflects what was last approved by the mapper.
+
+    Rows with match_tier = UNMAPPED are excluded (they have no commodity to seed).
+
+    Returns:
+        bool: True if export succeeded, False otherwise
+    """
+    try:
+        if engine is None:
+            db_url = os.getenv('DATABASE_URL')
+            engine = create_engine(db_url)
+
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT
+                    COALESCE(r.name, pap.name) AS resource_name,
+                    uc.name                    AS commodity_name,
+                    uc.api_name,
+                    uc.usda_code,
+                    m.match_tier,
+                    m.note
+                FROM resource_usda_commodity_map m
+                    LEFT JOIN resource           r   ON m.resource_id           = r.id
+                    LEFT JOIN primary_ag_product pap ON m.primary_ag_product_id = pap.id
+                    LEFT JOIN usda_commodity     uc  ON m.usda_commodity_id     = uc.id
+                WHERE m.match_tier != 'UNMAPPED'
+                ORDER BY resource_name
+            """))
+            rows = result.fetchall()
+
+        df = pd.DataFrame(rows, columns=[
+            'resource_name', 'commodity_name', 'api_name', 'usda_code', 'match_tier', 'note'
+        ])
+
+        # For rows where the DB has no api_name (NULL → NaN in pandas), compute
+        # the value from reviewed_api_mappings.py so the CSV is always complete.
+        def _fallback_api_name(row):
+            api = row['api_name']
+            if pd.notna(api) and str(api).strip() not in ('', 'nan'):
+                return api
+            if pd.notna(row['commodity_name']):
+                return _get_api_name(str(row['commodity_name']).upper())
+            return None
+
+        df['api_name'] = df.apply(_fallback_api_name, axis=1)
+
+        df.to_csv(CSV_MAPPINGS_FILE, index=False)
+        print(f"\u2713 Exported {len(df)} mappings \u2192 {CSV_MAPPINGS_FILE}")
+        return True
+
+    except Exception as e:
+        print(f"\u26a0 Could not export commodity_mappings.csv: {e}")
+        return False
+
+
 # ============================================================================
 # Main CLI
 # ============================================================================
@@ -1268,7 +1662,7 @@ def main():
                        help='Auto-match clear matches (>90%% similarity)')
     parser.add_argument('--review', action='store_true',
                        help='Interactively review fuzzy matches')
-    parser.add_argument('--save', action='store_true',
+    parser.add_argument('--save-to-db', action='store_true',
                        help='Save approved mappings to database')
     parser.add_argument('--full-workflow', action='store_true',
                        help='Run complete workflow (fetch → auto-match → review → save)')
@@ -1276,6 +1670,12 @@ def main():
                        help='Interactive mapping management (view, edit, delete mappings)')
     parser.add_argument('--populate-commodities', action='store_true',
                         help='Populate all scraped commodities into database')
+    parser.add_argument('--export-csv', action='store_true',
+                        help='Export current DB mappings to commodity_mappings.csv (overwrites existing file)')
+    parser.add_argument('--build-api-mappings', action='store_true',
+                        help='Show which DB commodities need api_name entries in reviewed_api_mappings.py')
+    parser.add_argument('--apply-api-names', action='store_true',
+                        help='Backfill api_name on all usda_commodity rows from reviewed_api_mappings.py')
 
     args = parser.parse_args()
 
@@ -1286,7 +1686,19 @@ def main():
             print("\n💡 Next step: Run --populate-commodities to load them into the database")
 
     if args.populate_commodities or args.full_workflow:
-        populate_usda_commodities_to_database()
+        print("\n⚠\u26a0\u26a0  --populate-commodities is DISABLED for DB writes.")
+        print("   The 400+ NASS commodity scrape is kept as a LOCAL CACHE ONLY")
+        print("   (.cache/ca_usda_commodities.json) for use by the fuzzy matcher.")
+        print("   usda_commodity rows are seeded EXCLUSIVELY from commodity_mappings.csv")
+        print("   via seed_commodity_mappings.py. This ensures teardown/rebuild always")
+        print("   produces a consistent DB state.")
+        print("\n   Run --fetch-ca-commodities to refresh the local cache.")
+        if args.populate_commodities:
+            # Ensure cache is fresh so --review/--auto-match work after this call
+            if not CA_COMMODITIES_CACHE.exists():
+                fetch_ca_commodities()
+            else:
+                print(f"   Cache already present: {CA_COMMODITIES_CACHE}")
 
     if args.auto_match or args.full_workflow:
         commodities = load_ca_commodities()
@@ -1296,8 +1708,25 @@ def main():
     if args.review or args.full_workflow:
         interactive_review()
 
-    if args.save or args.full_workflow:
+    if args.save_to_db or args.full_workflow:
         save_mappings_to_database()
+
+    if args.export_csv:
+        existing = CSV_MAPPINGS_FILE.exists()
+        if existing:
+            confirm = input(f"\n⚠  {CSV_MAPPINGS_FILE.name} already exists. Overwrite? (y/N): ").strip().lower()
+            if confirm != 'y':
+                print("Cancelled. Existing file unchanged.")
+            else:
+                export_commodity_mappings_csv()
+        else:
+            export_commodity_mappings_csv()
+
+    if args.build_api_mappings:
+        build_api_mappings_draft()
+
+    if args.apply_api_names:
+        apply_api_names_to_db()
 
     if args.manage:
         manage_commodity_mappings()
