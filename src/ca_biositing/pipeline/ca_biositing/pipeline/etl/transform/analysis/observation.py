@@ -128,6 +128,14 @@ def transform_observation(
             obs_df = normalized_df[required_cols].copy().rename(columns={'analysis_type': 'record_type'})
 
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
+
+            # Remove duplicates based on (record_id, record_type, parameter_id) to avoid ON CONFLICT errors
+            # Observations table usually has a unique constraint on these three
+            if obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).any():
+                dupes_count = obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).sum()
+                logger.warning(f"Observation: Removing {dupes_count} duplicate observations from transform output.")
+                obs_df = obs_df.drop_duplicates(subset=['record_id', 'record_type', 'parameter_id'], keep='first')
+
             observation_data.append(obs_df)
         except KeyError as e:
             logger.error(f"Missing required column for observation transform: {e}")
@@ -137,4 +145,12 @@ def transform_observation(
         logger.warning("No observation data produced during transform")
         return pd.DataFrame()
 
-    return pd.concat(observation_data, ignore_index=True)
+    final_obs_df = pd.concat(observation_data, ignore_index=True)
+
+    # Final check across all source dataframes
+    if final_obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).any():
+         dupes_count = final_obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).sum()
+         logger.warning(f"Observation: Removing {dupes_count} duplicate observations across all source dataframes.")
+         final_obs_df = final_obs_df.drop_duplicates(subset=['record_id', 'record_type', 'parameter_id'], keep='first')
+
+    return final_obs_df

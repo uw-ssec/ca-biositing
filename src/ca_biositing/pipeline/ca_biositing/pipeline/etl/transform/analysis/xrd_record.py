@@ -114,6 +114,11 @@ def transform_xrd_record(
 
         if 'record_id' in record_df.columns:
             record_df = record_df.dropna(subset=['record_id'])
+            # Remove duplicates based on record_id to avoid ON CONFLICT errors
+            if record_df.duplicated(subset=['record_id']).any():
+                dupes = record_df[record_df.duplicated(subset=['record_id'])]['record_id'].unique().tolist()
+                logger.warning(f"XrdRecord: Removing duplicate record_ids from transform output: {dupes}")
+                record_df = record_df.drop_duplicates(subset=['record_id'], keep='first')
         else:
             logger.error("record_id missing from XrdRecord transform")
             return pd.DataFrame()

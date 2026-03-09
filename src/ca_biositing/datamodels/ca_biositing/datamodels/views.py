@@ -176,7 +176,7 @@ ANALYSIS_DATA_VIEW = (
             PretreatmentRecord.resource_id,
         ),
     )
-    .outerjoin(PreparedSample, (Observation.record_id == PreparedSample.record_id))
+    .outerjoin(PreparedSample, (Observation.record_id == cast(PreparedSample.id, String)))
     .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
     .outerjoin(LocationAddress, LocationAddress.id == FieldSample.sampling_location_id)
     .where(
