@@ -425,16 +425,27 @@ geographic identifiers (FIPS geoid codes) as primary query parameters:
 ```text
 /v1/feedstocks/
 ├── /usda/census/                          # USDA Census agricultural data
+│   ├── GET /crops                                           # Discovery: available crops
+│   ├── GET /resources                                       # Discovery: available resources
+│   ├── GET /geoids                                          # Discovery: available geoids
+│   ├── GET /parameters                                      # Discovery: available parameters
 │   ├── GET /crops/{crop}/geoid/{geoid}/parameters           # All census parameters
 │   ├── GET /crops/{crop}/geoid/{geoid}/parameters/{param}   # Single census parameter
 │   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # By resource name
 │   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
 ├── /usda/survey/                          # USDA Survey agricultural data
+│   ├── GET /crops                                           # Discovery: available crops
+│   ├── GET /resources                                       # Discovery: available resources
+│   ├── GET /geoids                                          # Discovery: available geoids
+│   ├── GET /parameters                                      # Discovery: available parameters
 │   ├── GET /crops/{crop}/geoid/{geoid}/parameters           # All survey parameters
 │   ├── GET /crops/{crop}/geoid/{geoid}/parameters/{param}   # Single survey parameter
 │   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # By resource name
 │   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
 ├── /analysis/                             # Laboratory analysis data
+│   ├── GET /resources                                       # Discovery: available resources
+│   ├── GET /geoids                                          # Discovery: available geoids
+│   ├── GET /parameters                                      # Discovery: available parameters
 │   ├── GET /resources/{resource}/geoid/{geoid}/parameters   # All analysis parameters
 │   └── GET /resources/{resource}/geoid/{geoid}/parameters/{param}
 └── /availability/                         # Seasonal availability

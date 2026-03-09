@@ -129,6 +129,12 @@ class AnalysisListResponse(BaseModel):
     data: list[DataItemResponse] = Field(..., description="List of parameter data")
 
 
+class DiscoveryResponse(BaseModel):
+    """List of distinct queryable values for a given field."""
+
+    values: list[str] = Field(..., description="Distinct non-NULL values available for querying")
+
+
 class AvailabilityResponse(BaseModel):
     """Response for resource availability data.
 
