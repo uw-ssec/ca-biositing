@@ -28,6 +28,8 @@ class SecretResources:
     postgres_password_secret: gcp.secretmanager.Secret = None
     jwt_secret: random.RandomPassword = None
     jwt_secret_sm: gcp.secretmanager.Secret = None
+    admin_password: random.RandomPassword = None
+    admin_password_sm: gcp.secretmanager.Secret = None
 
 
 def create_secrets(
@@ -201,6 +203,26 @@ def create_secrets(
         secret_data=jwt_secret.result,
     )
 
+    # Admin user password for webservice API authentication
+    admin_password = random.RandomPassword(
+        "admin-password", length=32, special=False
+    )
+
+    admin_password_sm = gcp.secretmanager.Secret(
+        "admin-password-secret",
+        secret_id="biocirv-staging-admin-password",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "admin-password-version",
+        secret=admin_password_sm.id,
+        secret_data=admin_password.result,
+    )
+
     return SecretResources(
         db_password=db_password,
         db_user=db_user,
@@ -217,4 +239,6 @@ def create_secrets(
         postgres_password_secret=postgres_password_secret,
         jwt_secret=jwt_secret,
         jwt_secret_sm=jwt_secret_sm,
+        admin_password=admin_password,
+        admin_password_sm=admin_password_sm,
     )

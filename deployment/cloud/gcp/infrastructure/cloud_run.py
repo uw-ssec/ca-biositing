@@ -26,6 +26,7 @@ from iam import IAMResources
 class CloudRunResources:
     webservice: gcp.cloudrunv2.Service
     migration_job: gcp.cloudrunv2.Job
+    seed_admin_job: gcp.cloudrunv2.Job
     prefect_server: gcp.cloudrunv2.Service
     prefect_worker: gcp.cloudrunv2.Service
 
@@ -185,6 +186,81 @@ def create_cloud_run_resources(
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="INSTANCE_CONNECTION_NAME",
                                 value=sql.instance.connection_name,
+                            ),
+                        ],
+                        volume_mounts=[
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="cloudsql",
+                                mount_path="/cloudsql",
+                            )
+                        ],
+                    )
+                ],
+                volumes=[
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="cloudsql",
+                        cloud_sql_instance=gcp.cloudrunv2.JobTemplateTemplateVolumeCloudSqlInstanceArgs(
+                            instances=[sql.instance.connection_name],
+                        ),
+                    )
+                ],
+            )
+        ),
+        opts=run_opts,
+    )
+
+    # --- 5.3b: Admin User Seed Job ---
+    seed_admin_job = gcp.cloudrunv2.Job(
+        "seed-admin-job",
+        name="biocirv-seed-admin",
+        location=GCP_REGION,
+        template=gcp.cloudrunv2.JobTemplateArgs(
+            template=gcp.cloudrunv2.JobTemplateTemplateArgs(
+                max_retries=1,
+                timeout="120s",
+                service_account=iam.service_accounts["migrate"].email,
+                containers=[
+                    gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
+                        image=WEBSERVICE_IMAGE,
+                        args=[
+                            "python",
+                            "scripts/create_admin.py",
+                            "--username",
+                            "admin",
+                        ],
+                        resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
+                            limits={"cpu": "1", "memory": "512Mi"},
+                        ),
+                        envs=[
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="DB_USER",
+                                value=DB_USER,
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="POSTGRES_DB",
+                                value=DB_NAME,
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="DB_PASS",
+                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
+                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                        secret=secrets.db_password_secret.secret_id,
+                                        version="latest",
+                                    )
+                                ),
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="INSTANCE_CONNECTION_NAME",
+                                value=sql.instance.connection_name,
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
+                                name="ADMIN_PASSWORD",
+                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
+                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
+                                        secret=secrets.admin_password_sm.secret_id,
+                                        version="latest",
+                                    )
+                                ),
                             ),
                         ],
                         volume_mounts=[
@@ -463,6 +539,7 @@ def create_cloud_run_resources(
     return CloudRunResources(
         webservice=webservice,
         migration_job=migration_job,
+        seed_admin_job=seed_admin_job,
         prefect_server=prefect_server,
         prefect_worker=prefect_worker,
     )
