@@ -67,3 +67,8 @@ backups/
 
 # MkDocs build output
 site/
+
+# PR notes
+docs/pr/
+pr_notes/
+scripts/check_pretreatment_duplicates.py
