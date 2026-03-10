@@ -14522,7 +14522,7 @@ packages:
 - pypi: ./src/ca_biositing/webservice
   name: ca-biositing-webservice
   version: 0.1.0
-  sha256: 29400492efae79b87520e643fba904d7c9ac47877fdf271989c188f421a8dd59
+  sha256: a379c0e25122e95d830f6d045da47e1a6838ba528c380edcee0247e1672cd8dc
   requires_dist:
   - ca-biositing-datamodels==0.1.0
   - fastapi>=0.111.0,<0.115.0

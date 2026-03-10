@@ -20,8 +20,28 @@ src/ca_biositing/webservice/
 ├── ca_biositing/
 │   └── webservice/
 │       ├── __init__.py              # Package initialization and version
-│       └── main.py                  # FastAPI application
-├── tests/                           # Test suite (to be added)
+│       ├── main.py                  # FastAPI application
+│       ├── dependencies.py          # Dependency injection (DB session, auth)
+│       ├── exceptions.py            # Custom HTTP exception classes
+│       ├── services/                # Business logic layer
+│       │   ├── analysis_service.py
+│       │   ├── usda_census_service.py
+│       │   ├── usda_survey_service.py
+│       │   ├── _canonical_views.py  # Materialized view selectors
+│       │   └── _usda_lookup_common.py  # Shared normalization helpers
+│       └── v1/
+│           ├── router.py            # API v1 router
+│           ├── auth/
+│           │   └── router.py        # JWT token endpoint
+│           └── feedstocks/          # Protected data route definitions
+│               ├── schemas.py       # Pydantic response models
+│               ├── analysis.py
+│               └── usda/
+│                   ├── census.py
+│                   └── survey.py
+├── tests/                           # Integration smoke tests
+│   ├── conftest.py                  # Fixtures (auth, httpx client)
+│   └── test_smoke.py               # 16 endpoint smoke tests
 ├── LICENSE                          # BSD License
 ├── README.md                        # This file
 └── pyproject.toml                   # Package metadata and dependencies
@@ -86,13 +106,49 @@ from ca_biositing.webservice.main import app
 
 ## Available Endpoints
 
-### Root Endpoint
+### Root & Auth
 
 - **GET** `/` - API information and version
+- **GET** `/v1/health` - Health check
+- **POST** `/v1/auth/token` - Obtain JWT access token
 
-### Hello Endpoint
+### Discovery Endpoints
 
-- **GET** `/hello` - Simple hello world response
+Each endpoint family exposes discovery endpoints that return the distinct
+queryable values. All return `{ "values": ["..."] }`.
+
+| Family   | Endpoints                                                                  |
+| -------- | -------------------------------------------------------------------------- |
+| Analysis | `/v1/feedstocks/analysis/resources`, `/geoids`, `/parameters`              |
+| Census   | `/v1/feedstocks/usda/census/crops`, `/resources`, `/geoids`, `/parameters` |
+| Survey   | `/v1/feedstocks/usda/survey/crops`, `/resources`, `/geoids`, `/parameters` |
+
+### Data Endpoints
+
+All crop, resource, and parameter lookups are **case-insensitive**.
+
+**USDA Census** (`/v1/feedstocks/usda/census/`)
+
+- **GET** `/crops/{crop}/geoid/{geoid}/parameters` - All census parameters for
+  crop + geoid
+- **GET** `/crops/{crop}/geoid/{geoid}/parameters/{param}` - Single parameter
+- **GET** `/resources/{resource}/geoid/{geoid}/parameters` - All parameters by
+  resource
+- **GET** `/resources/{resource}/geoid/{geoid}/parameters/{param}` - Single
+  parameter by resource
+
+**USDA Survey** (`/v1/feedstocks/usda/survey/`) - Same structure as census.
+
+**Analysis** (`/v1/feedstocks/analysis/`)
+
+- **GET** `/resources/{resource}/geoid/{geoid}/parameters` - All analysis
+  parameters
+- **GET** `/resources/{resource}/geoid/{geoid}/parameters/{param}` - Single
+  parameter
+
+Collection endpoints (those ending in `/parameters`) return `200` with an empty
+`data` list when a valid crop/resource + geoid combination has no observations.
+Single-value endpoints return `404` when the specific parameter is not found.
 
 ## Dependencies
 

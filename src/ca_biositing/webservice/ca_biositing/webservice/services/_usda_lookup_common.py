@@ -12,19 +12,19 @@ from ca_biositing.webservice.exceptions import CropNotFoundException
 
 
 def normalize_crop_name(crop_name: Optional[str]) -> str:
-    """Normalize crop names for case- and space-insensitive exact matching."""
+    """Normalize crop names for case-, space-, and underscore-insensitive exact matching."""
     if not crop_name:
         return ""
-    return " ".join(crop_name.split()).lower()
+    return " ".join(crop_name.replace("_", " ").split()).lower()
 
 
 def normalized_sql_text(column):
-    """Normalize SQL text for case- and space-insensitive exact matching.
+    """Normalize SQL text for case-, space-, and underscore-insensitive exact matching.
 
     Three replace passes collapse whitespace runs up to 8 spaces while keeping
     SQLite compatibility in tests.
     """
-    normalized = column
+    normalized = func.replace(column, "_", " ")
     for _ in range(3):
         normalized = func.replace(normalized, "  ", " ")
     return func.lower(func.trim(normalized))
