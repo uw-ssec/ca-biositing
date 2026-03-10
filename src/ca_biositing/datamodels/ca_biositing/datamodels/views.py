@@ -162,6 +162,22 @@ ANALYSIS_DATA_VIEW = (
         & (Observation.record_type == "pretreatment"),
     )
     .outerjoin(
+        PreparedSample,
+        PreparedSample.id
+        == func.coalesce(
+            ProximateRecord.prepared_sample_id,
+            UltimateRecord.prepared_sample_id,
+            CompositionalRecord.prepared_sample_id,
+            IcpRecord.prepared_sample_id,
+            XrfRecord.prepared_sample_id,
+            CalorimetryRecord.prepared_sample_id,
+            XrdRecord.prepared_sample_id,
+            FermentationRecord.prepared_sample_id,
+            PretreatmentRecord.prepared_sample_id,
+        ),
+    )
+    .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
+    .outerjoin(
         Resource,
         Resource.id
         == func.coalesce(
@@ -174,10 +190,9 @@ ANALYSIS_DATA_VIEW = (
             XrdRecord.resource_id,
             FermentationRecord.resource_id,
             PretreatmentRecord.resource_id,
+            FieldSample.resource_id,
         ),
     )
-    .outerjoin(PreparedSample, (Observation.record_id == cast(PreparedSample.id, String)))
-    .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
     .outerjoin(LocationAddress, LocationAddress.id == FieldSample.sampling_location_id)
     .where(
         Observation.record_type.notin_(
