@@ -1,3 +1,6 @@
+"""
+PretreatmentRecord transformation module.
+"""
 import pandas as pd
 from prefect import task, get_run_logger
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
@@ -7,91 +10,47 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_pretreatment_record(
     raw_df: pd.DataFrame,
-    etl_run_id: str | None = None,
+    etl_run_id: int | None = None,
     lineage_group_id: int | None = None
 ) -> pd.DataFrame:
     """
-    Transforms raw DataFrame into the PretreatmentRecord table format.
-    Includes cleaning, coercion, and normalization.
+    Transforms raw pretreatment analysis data into the PretreatmentRecord table format.
     """
     from ca_biositing.datamodels.models import (
+        Contact,
+        Method,
         Resource,
         PreparedSample,
-        Method,
-        Parameter,
-        Unit,
-        Contact,
         Dataset,
-        FileObjectMetadata,
-        Experiment,
         Equipment,
+        Experiment,
         DeconVessel
     )
     logger = get_run_logger()
-    logger.info("Transforming raw data for PretreatmentRecord table")
 
     if raw_df is None or raw_df.empty:
-        logger.error("raw_df is None or empty for PretreatmentRecord transform")
+        logger.warning("No raw data provided to PretreatmentRecord transform")
         return pd.DataFrame()
-
-    # Handle duplicate columns
-    raw_df.columns = [str(c).strip() for c in raw_df.columns]
-    if "" in raw_df.columns:
-        raw_df = raw_df.drop(columns=[""])
-
-    # Pre-clean names to catch normalization-induced duplicates
-    raw_df = cleaning_mod.clean_names_df(raw_df)
-
-    if raw_df.columns.duplicated().any():
-        dupes = raw_df.columns[raw_df.columns.duplicated()].unique().tolist()
-        logger.warning(f"PretreatmentRecord: Duplicate columns found and removed: {dupes}")
-        raw_df = raw_df.loc[:, ~raw_df.columns.duplicated()]
 
     # 1. Cleaning & Coercion
-    df_copy = raw_df.copy()
-    df_copy['dataset'] = 'bioconversion' # Assuming this is the dataset name
-
-    cleaned_df = cleaning_mod.standard_clean(df_copy)
-
-    if cleaned_df is None:
-        logger.error("cleaning_mod.standard_clean returned None for PretreatmentRecord")
-        return pd.DataFrame()
-
-    # Add lineage IDs
-    if etl_run_id is not None:
-        cleaned_df['etl_run_id'] = etl_run_id
-    if lineage_group_id is not None:
-        cleaned_df['lineage_group_id'] = lineage_group_id
-
-    # Mapping logic for Temperature
-    # If parameter is temperature, we want to extract it to a column
-    if 'parameter' in cleaned_df.columns and 'value' in cleaned_df.columns:
-        temp_mask = cleaned_df['parameter'].str.contains('temperature', case=False, na=False)
-        cleaned_df['temperature'] = None
-        cleaned_df.loc[temp_mask, 'temperature'] = cleaned_df.loc[temp_mask, 'value']
-
-    coerced_df = coercion_mod.coerce_columns(
-        cleaned_df,
-        int_cols=['repl_number'],
-        float_cols=['temperature'],
-        datetime_cols=['created_at', 'updated_at']
-    )
+    df = raw_df.copy()
+    df = cleaning_mod.clean_names_df(df)
+    df = cleaning_mod.replace_empty_with_na(df)
 
     # 2. Normalization
     normalize_columns = {
-        'resource': (Resource, 'name'),
-        'prepared_sample': (PreparedSample, 'name'),
-        'preparation_method': (Method, 'name'),
-        'pretreatment_exper_name': (Experiment, 'name'),
-        'decon_method_id': (Method, 'name'),
-        'eh_method_id': (Method, 'name'),
-        'reaction_block_id': (Equipment, 'name'),
-        'analyst_email': (Contact, 'email'),
-        'dataset': (Dataset, 'name'),
-        'raw_data_url': (FileObjectMetadata, 'uri'),
-        'vessel_id': (DeconVessel, 'name')
+        'analyst_email': (Contact, "email"),
+        'preparation_method': Method,
+        'pretreatment_exper_name': Experiment,
+        'decon_method_id': Method,
+        'eh_method_id': Method,
+        'reaction_block_id': Equipment,
+        'vessel_id': DeconVessel,
+        'raw_data_url': Method,  # Placeholder normalization if needed
     }
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+
+    normalized_dfs = normalize_dataframes([df], normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
     rename_map = {
@@ -102,7 +61,8 @@ def transform_pretreatment_record(
         'qc_result': 'qc_pass',
         'note': 'note',
         'etl_run_id': 'etl_run_id',
-        'lineage_group_id': 'lineage_group_id'
+        'lineage_group_id': 'lineage_group_id',
+        'reaction_block_id': 'reaction_block_id'
     }
 
     # Handle normalized columns
@@ -114,6 +74,7 @@ def transform_pretreatment_record(
                           'experiment_id' if col == 'pretreatment_exper_name' else \
                           'pretreatment_method_id' if col == 'decon_method_id' else \
                           'eh_method_id' if col == 'eh_method_id' else \
+                          'reaction_block_id' if col == 'reaction_block_id' else \
                           'vessel_id' if col == 'vessel_id' else \
                           'raw_data_id' if col == 'raw_data_url' else norm_col
             rename_map[norm_col] = target_name
@@ -140,4 +101,4 @@ def transform_pretreatment_record(
         return record_df
     except Exception as e:
         logger.error(f"Error during PretreatmentRecord transform: {e}")
-        return pd.DataFrame()
+        raise

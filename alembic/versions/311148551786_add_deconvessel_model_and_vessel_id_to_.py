@@ -35,7 +35,7 @@ def upgrade() -> None:
     sa.UniqueConstraint('vessel_uuid')
     )
     op.add_column('pretreatment_record', sa.Column('vessel_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'pretreatment_record', 'decon_vessel', ['vessel_id'], ['id'])
+    op.create_foreign_key('pretreatment_record_vessel_id_fkey', 'pretreatment_record', 'decon_vessel', ['vessel_id'], ['id'])
     # ### end Alembic commands ###
 
 

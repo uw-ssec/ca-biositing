@@ -6,7 +6,6 @@ from typing import Optional
 import os
 import pandas as pd
 from prefect import task, get_run_logger
-from ca_biositing.pipeline.utils.gsheet_to_pandas import gsheet_to_df
 
 def create_extractor(gsheet_name: str, worksheet_name: str, task_name: Optional[str] = None):
     """
@@ -15,6 +14,7 @@ def create_extractor(gsheet_name: str, worksheet_name: str, task_name: Optional[
 
     @task(name=task_name or f"extract_{worksheet_name.lower().replace('.', '_').replace('-', '_')}")
     def extract(project_root: Optional[str] = None) -> Optional[pd.DataFrame]:
+        from ca_biositing.pipeline.utils.gsheet_to_pandas import gsheet_to_df
         logger = get_run_logger()
         logger.info(f"Extracting raw data from '{worksheet_name}' in '{gsheet_name}'...")
 

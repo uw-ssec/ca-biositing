@@ -1,5 +1,8 @@
-import pandas as pd
+"""
+PretreatmentRecord load module.
+"""
 import numpy as np
+import pandas as pd
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
 from sqlalchemy.dialects.postgresql import insert
@@ -8,14 +11,14 @@ from sqlalchemy.orm import Session
 @task
 def load_pretreatment_record(df: pd.DataFrame):
     """
-    Upserts Pretreatment records into the database.
+    Loads transformed Pretreatment record data into the database.
+    Performs an upsert based on record_id.
     """
     logger = get_run_logger()
-    if df is None or df.empty:
-        logger.info("No Pretreatment record data to load.")
-        return
 
-    logger.info(f"Upserting {len(df)} Pretreatment records...")
+    if df is None or df.empty:
+        logger.warning("No data provided to PretreatmentRecord load")
+        return
 
     try:
         from ca_biositing.datamodels.models import PretreatmentRecord
@@ -33,22 +36,21 @@ def load_pretreatment_record(df: pd.DataFrame):
 
         if clean_records:
             from ca_biositing.pipeline.utils.engine import engine
-            with engine.connect() as conn:
-                with Session(bind=conn) as session:
-                    stmt = insert(PretreatmentRecord).values(clean_records)
-                    update_dict = {
-                        c.name: stmt.excluded[c.name]
-                        for c in PretreatmentRecord.__table__.columns
-                        if c.name not in ['id', 'created_at', 'record_id']
-                    }
-                    upsert_stmt = stmt.on_conflict_do_update(
-                        index_elements=['record_id'],
-                        set_=update_dict
-                    )
-                    session.execute(upsert_stmt)
-                    session.commit()
+            with Session(engine) as session:
+                stmt = insert(PretreatmentRecord).values(clean_records)
+                update_dict = {
+                    c.name: stmt.excluded[c.name]
+                    for c in PretreatmentRecord.__table__.columns
+                    if c.name not in ['id', 'created_at', 'record_id']
+                }
+                upsert_stmt = stmt.on_conflict_do_update(
+                    index_elements=['record_id'],
+                    set_=update_dict
+                )
+                session.execute(upsert_stmt)
+                session.commit()
 
         logger.info("Successfully upserted Pretreatment records.")
-    except Exception:
-        logger.exception("Failed to load Pretreatment records")
+    except Exception as e:
+        logger.error(f"Error during PretreatmentRecord load: {e}")
         raise

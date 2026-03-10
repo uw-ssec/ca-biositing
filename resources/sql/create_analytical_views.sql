@@ -1,5 +1,5 @@
--- Materialized view definitions for ca_biositing schema
--- Matches Python definitions in src/ca_biositing/datamodels/ca_biositing/datamodels/views.py
+-- [GENERATED] Materialized view definitions for ca_biositing schema
+-- DO NOT EDIT MANUALLY. Matches Python definitions in src/ca_biositing/datamodels/ca_biositing/datamodels/views.py
 
 CREATE SCHEMA IF NOT EXISTS ca_biositing;
 

@@ -1,9 +1,11 @@
-from ..base import BaseEntity
-import sqlalchemy as sa
 from datetime import datetime
 from decimal import Decimal
-from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional
+
+import sqlalchemy as sa
+from sqlmodel import Field, Relationship, SQLModel
+
+from ..base import BaseEntity
 
 
 class Observation(BaseEntity, table=True):

@@ -124,7 +124,7 @@ logger = logging.getLogger(__name__)
 
 def normalize_dataframes(
     dataframes: list[pd.DataFrame] | pd.DataFrame,
-    normalize_columns: dict[str, tuple[Any, str]] | None = None,
+    normalize_columns: dict[str, Any] | None = None,
 ) -> list[pd.DataFrame] | pd.DataFrame:
     """Normalize a DataFrame or a list of DataFrames by replacing name columns with foreign key IDs.
 
@@ -155,7 +155,12 @@ def normalize_dataframes(
                     continue
                 logger.info(f"Processing DataFrame #{i+1} with {len(df)} rows.")
                 df_norm = df.copy()
-                for col, (model, model_name_attr) in normalize_columns.items():
+                for col, model_info in normalize_columns.items():
+                    if isinstance(model_info, tuple):
+                        model, model_name_attr = model_info
+                    else:
+                        model = model_info
+                        model_name_attr = "name"
                     if col not in df_norm.columns:
                         logger.warning(f"Column '{col}' missing in DataFrame #{i+1}; creating '{col}_id' as all-null.")
                         df_norm[f"{col}_id"] = pd.NA

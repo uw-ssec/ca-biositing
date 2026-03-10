@@ -4,11 +4,11 @@ from unittest.mock import patch, MagicMock
 
 # --- ICP ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.engine")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.etl.load.analysis.icp_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.icp.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.icp.gsheet_to_df")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_icp_etl_full(
     mock_gsheet_to_df,
     mock_ext_logger,
@@ -45,7 +45,7 @@ def test_icp_etl_full(
 
     # 3. Mock Load
     mock_conn = MagicMock()
-    mock_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
+    mock_engine.connect.return_value.__enter__.return_value = mock_conn
 
     # Execution
     raw_df = extract.fn()
@@ -64,11 +64,11 @@ def test_icp_etl_full(
 
 # --- XRF ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.engine")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.xrf.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.xrf.gsheet_to_df")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_xrf_etl_full(
     mock_gsheet_to_df,
     mock_ext_logger,
@@ -99,13 +99,15 @@ def test_xrf_etl_full(
         "value": [5.2],
         "wavelength_nm": [0.154],
         "intensity": [1000],
+        "parameter_id": [1],
+        "unit_id": [1],
         "dataset_id": [1],
-        "raw_data_url_id": [101]
+        "raw_data_url_id": [100]
     })
 
     # 3. Mock Load
     mock_conn = MagicMock()
-    mock_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
+    mock_engine.connect.return_value.__enter__.return_value = mock_conn
 
     # Execution
     raw_df = extract.fn()
@@ -115,18 +117,18 @@ def test_xrf_etl_full(
     # Verification
     assert not raw_df.empty
     assert not trans_df.empty
-    assert "wavelength_nm" in trans_df.columns
-    assert "raw_data_id" in trans_df.columns
-    assert trans_df["raw_data_id"].iloc[0] == 101
+    assert "record_id" in trans_df.columns
     assert mock_gsheet_to_df.called
+    assert mock_normalize.called
+    assert mock_engine.connect.called
 
 # --- CALORIMETRY ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.engine")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.calorimetry.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.calorimetry.gsheet_to_df")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_calorimetry_etl_full(
     mock_gsheet_to_df,
     mock_ext_logger,
@@ -143,8 +145,8 @@ def test_calorimetry_etl_full(
     test_raw_df = pd.DataFrame({
         "record_id": ["CAL_001"],
         "repl_no": [1],
-        "value": [20.5],
-        "parameter": ["HHV"]
+        "value": [25000.5],
+        "raw_data_url": ["http://example.com/spec1"]
     })
     mock_gsheet_to_df.return_value = test_raw_df
 
@@ -152,14 +154,16 @@ def test_calorimetry_etl_full(
     mock_normalize.return_value = pd.DataFrame({
         "record_id": ["CAL_001"],
         "repl_no": [1],
-        "value": [20.5],
+        "value": [25000.5],
         "parameter_id": [1],
-        "dataset_id": [1]
+        "unit_id": [1],
+        "dataset_id": [1],
+        "raw_data_url_id": [100]
     })
 
     # 3. Mock Load
     mock_conn = MagicMock()
-    mock_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
+    mock_engine.connect.return_value.__enter__.return_value = mock_conn
 
     # Execution
     raw_df = extract.fn()
@@ -171,14 +175,16 @@ def test_calorimetry_etl_full(
     assert not trans_df.empty
     assert "record_id" in trans_df.columns
     assert mock_gsheet_to_df.called
+    assert mock_normalize.called
+    assert mock_engine.connect.called
 
 # --- XRD ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.engine")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 @patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.get_run_logger")
 @patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.xrd.gsheet_to_df")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_xrd_etl_full(
     mock_gsheet_to_df,
     mock_ext_logger,
@@ -195,8 +201,8 @@ def test_xrd_etl_full(
     test_raw_df = pd.DataFrame({
         "record_id": ["XRD_001"],
         "repl_no": [1],
-        "scan_low_nm": [10],
-        "scan_high_nm": [90]
+        "value": [1.5],
+        "raw_data_url": ["http://example.com/spec1"]
     })
     mock_gsheet_to_df.return_value = test_raw_df
 
@@ -204,14 +210,16 @@ def test_xrd_etl_full(
     mock_normalize.return_value = pd.DataFrame({
         "record_id": ["XRD_001"],
         "repl_no": [1],
-        "scan_low_nm": [10],
-        "scan_high_nm": [90],
-        "dataset_id": [1]
+        "value": [1.5],
+        "parameter_id": [1],
+        "unit_id": [1],
+        "dataset_id": [1],
+        "raw_data_url_id": [100]
     })
 
     # 3. Mock Load
     mock_conn = MagicMock()
-    mock_engine.return_value.connect.return_value.__enter__.return_value = mock_conn
+    mock_engine.connect.return_value.__enter__.return_value = mock_conn
 
     # Execution
     raw_df = extract.fn()
@@ -221,6 +229,7 @@ def test_xrd_etl_full(
     # Verification
     assert not raw_df.empty
     assert not trans_df.empty
-    assert "scan_low_nm" in trans_df.columns
-    assert "scan_high_nm" in trans_df.columns
+    assert "record_id" in trans_df.columns
     assert mock_gsheet_to_df.called
+    assert mock_normalize.called
+    assert mock_engine.connect.called

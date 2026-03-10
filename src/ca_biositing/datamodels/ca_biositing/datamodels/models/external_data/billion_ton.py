@@ -1,9 +1,11 @@
-from ..base import BaseEntity
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional
+
 import sqlalchemy as sa
 from sqlmodel import Field, Relationship, SQLModel
-from typing import Optional
+
+from ..base import BaseEntity
 
 
 class BillionTon2023Record(BaseEntity, table=True):

@@ -1,7 +1,7 @@
 """Merge multiple heads
 
 Revision ID: 64de60aff03d
-Revises: cfe7ab7b7a20, fix_analysis_view_joins
+Revises: d3f1e2a4b5c6, ec0865c36f55
 Create Date: 2026-03-05 09:19:51.181996
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '64de60aff03d'
-down_revision: Union[str, Sequence[str], None] = ('cfe7ab7b7a20', 'ec0865c36f55')
+down_revision: Union[str, Sequence[str], None] = ('d3f1e2a4b5c6', 'ec0865c36f55')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
