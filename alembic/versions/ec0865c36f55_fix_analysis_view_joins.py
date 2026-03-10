@@ -1,6 +1,6 @@
 """Fix analysis_data_view joins and resource mapping
 
-Revision ID: fix_analysis_view_joins
+Revision ID: ec0865c36f55
 Revises: 3b255400a04e
 Create Date: 2026-02-27 00:07:00.000000
 
@@ -18,7 +18,7 @@ from ca_biositing.datamodels.views import (
 )
 
 # revision identifiers, used by Alembic.
-revision: str = 'fix_analysis_view_joins'
+revision: str = 'ec0865c36f55'
 down_revision: Union[str, Sequence[str], None] = '3b255400a04e'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from prefect import task, get_run_logger
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-from ca_biositing.pipeline.utils.engine import engine
 
 @task
 def load_fermentation_record(df: pd.DataFrame):
@@ -33,6 +32,7 @@ def load_fermentation_record(df: pd.DataFrame):
             clean_records.append(clean_record)
 
         if clean_records:
+            from ca_biositing.pipeline.utils.engine import engine
             with engine.connect() as conn:
                 with Session(bind=conn) as session:
                     stmt = insert(FermentationRecord).values(clean_records)

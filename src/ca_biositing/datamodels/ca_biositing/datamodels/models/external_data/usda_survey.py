@@ -70,8 +70,6 @@ class UsdaSurveyRecord(BaseEntity, table=True):
     begin_code: Optional[str] = Field(default=None)
     end_code: Optional[str] = Field(default=None)
     reference_month: Optional[str] = Field(default=None)
-    begin_code: Optional[int] = Field(default=None)
-    end_code: Optional[int] = Field(default=None)
     seasonal_flag: Optional[bool] = Field(default=None)
     note: Optional[str] = Field(default=None)
 

@@ -3,7 +3,6 @@ import sqlalchemy as sa
 from datetime import datetime
 from decimal import Decimal
 from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy import UniqueConstraint
 from typing import Optional
 
 

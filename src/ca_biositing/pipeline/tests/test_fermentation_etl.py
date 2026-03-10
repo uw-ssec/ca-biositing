@@ -109,8 +109,8 @@ def test_fermentation_etl_full(
 
         # Verify columns removed
         assert "temperature" not in trans_df.columns
-        assert "inoculum_volume_L" not in trans_df.columns
-        assert "reaction_volume_L" not in trans_df.columns
+        assert "inoculum_volume_l" not in trans_df.columns
+        assert "reaction_volume_l" not in trans_df.columns
 
         assert mock_gsheet.called
         assert mock_ferm_normalize.called

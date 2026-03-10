@@ -30,8 +30,8 @@ def transform_pretreatment_record(
     logger = get_run_logger()
     logger.info("Transforming raw data for PretreatmentRecord table")
 
-    if raw_df is None:
-        logger.error("raw_df is None for PretreatmentRecord transform")
+    if raw_df is None or raw_df.empty:
+        logger.error("raw_df is None or empty for PretreatmentRecord transform")
         return pd.DataFrame()
 
     # Handle duplicate columns

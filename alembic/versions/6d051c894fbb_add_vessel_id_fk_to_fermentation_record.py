@@ -44,5 +44,5 @@ def downgrade() -> None:
                existing_type=sqlmodel.sql.sqltypes.AutoString(),
                type_=sa.INTEGER(),
                existing_nullable=True)
-    op.drop_constraint(None, 'fermentation_record', type_='foreignkey')
+    op.drop_constraint('fermentation_record_vessel_id_fkey', 'fermentation_record', type_='foreignkey')
     # ### end Alembic commands ###
