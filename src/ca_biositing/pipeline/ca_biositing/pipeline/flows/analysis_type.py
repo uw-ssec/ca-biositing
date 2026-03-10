@@ -1,5 +1,5 @@
 from prefect import flow
-from ca_biositing.pipeline.etl.extract.experiments import extract_experiments
+from ca_biositing.pipeline.etl.extract.experiments import extract as extract_experiments
 from ca_biositing.pipeline.etl.transform.analysis.analysis_type import transform_analysis_analysis_type
 from ca_biositing.pipeline.etl.load.analysis.analysis_type import load_analysis_analysis_type
 
