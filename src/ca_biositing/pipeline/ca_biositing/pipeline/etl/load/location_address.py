@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from prefect import task, get_run_logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from ca_biositing.pipeline.utils.engine import engine, get_engine
+from ca_biositing.pipeline.utils.engine import get_engine
+from ca_biositing.pipeline.utils.geo_utils import get_geoid
 
 @task
 def load_location_address(df: pd.DataFrame):
@@ -42,35 +43,31 @@ def load_location_address(df: pd.DataFrame):
             places = session.execute(select(Place.geoid, Place.county_name)).all()
             county_to_geoid = {p.county_name.lower(): p.geoid for p in places if p.county_name}
 
-            def get_geoid(val):
-                if not val: return '06000'
-                val_clean = str(val).strip().lower()
-                if val_clean in county_to_geoid: return county_to_geoid[val_clean]
-                if f"{val_clean} county" in county_to_geoid: return county_to_geoid[f"{val_clean} county"]
-                return '06000'
+            # Fetch all existing LocationAddress records for bulk lookup
+            existing_addresses = session.execute(select(LocationAddress)).scalars().all()
+            addr_map = {}
+            for a in existing_addresses:
+                # Key includes ZIP as per plan
+                key = (a.geography_id, a.address_line1, a.city, a.zip)
+                addr_map[key] = a
 
             for record in records:
                 # Map raw sampling_location to geoid
                 raw_loc = record.get('sampling_location')
-                geography_id = get_geoid(raw_loc)
+                geography_id = get_geoid(raw_loc, county_to_geoid)
 
                 address_line1 = record.get('address_line1')
                 city = record.get('city')
+                zip_code = record.get('zip')
 
-                # Check for existing record
-                stmt = select(LocationAddress).where(LocationAddress.geography_id == geography_id)
-                if address_line1:
-                    stmt = stmt.where(LocationAddress.address_line1 == address_line1)
-                else:
-                    stmt = stmt.where(LocationAddress.address_line1.is_(None))
+                # Standardize for lookup
+                addr1_std = str(address_line1).strip() if address_line1 else None
+                city_std = str(city).strip() if city else None
+                zip_std = str(zip_code).strip() if zip_code else None
 
-                if city:
-                    stmt = stmt.where(LocationAddress.city == city)
-                else:
-                    stmt = stmt.where(LocationAddress.city.is_(None))
-
-                # Fetch only one to avoid MultipleResultsFound
-                existing_record = session.execute(stmt).scalars().first()
+                # Check for existing record using in-memory map
+                lookup_key = (geography_id, addr1_std, city_std, zip_std)
+                existing_record = addr_map.get(lookup_key)
 
                 clean_record = {k: v for k, v in record.items() if k in table_columns}
                 clean_record['geography_id'] = geography_id

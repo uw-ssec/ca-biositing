@@ -122,6 +122,9 @@ def transform_field_sample(
     # 5. Select and Rename Columns (from notebook)
     # Note: 'sampling_location_id' will be linked during the loading phase
     # based on the location details preserved in the metadata.
+    # Mapping 'qty' to 'amount_collected' as per FieldSample model.
+    # Note: storage_mode columns are used for normalization but dropped from final
+    # selection if not explicitly mapped in rename_map.
     rename_map = {
         'field_sample_name': 'name',
         'resource_id': 'resource_id',
@@ -138,8 +141,9 @@ def transform_field_sample(
         'sample_notes': 'note'
     }
 
-    # Preserve raw location info for linking in load step
-    location_link_cols = ['sampling_location', 'sampling_street', 'sampling_city']
+    # Preserve raw location info for linking in load step.
+    # ZIP added to support improved uniqueness checks.
+    location_link_cols = ['sampling_location', 'sampling_street', 'sampling_city', 'sampling_zip']
     for col in location_link_cols:
         if col in normalized_df.columns:
             rename_map[col] = col

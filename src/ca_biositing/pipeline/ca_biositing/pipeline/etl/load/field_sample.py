@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from prefect import task, get_run_logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from ca_biositing.pipeline.utils.engine import engine, get_engine
+from ca_biositing.pipeline.utils.engine import get_engine
+from ca_biositing.pipeline.utils.geo_utils import get_geoid
 
 @task
 def load_field_sample(df: pd.DataFrame):
@@ -42,18 +43,25 @@ def load_field_sample(df: pd.DataFrame):
             places = session.execute(select(Place.geoid, Place.county_name)).all()
             county_to_geoid = {p.county_name.lower(): p.geoid for p in places if p.county_name}
 
-            def get_geoid(val):
-                if not val: return '06000'
-                val_clean = str(val).strip().lower()
-                if val_clean in county_to_geoid: return county_to_geoid[val_clean]
-                if f"{val_clean} county" in county_to_geoid: return county_to_geoid[f"{val_clean} county"]
-                return '06000'
-
-            addresses = session.execute(select(LocationAddress.id, LocationAddress.geography_id, LocationAddress.address_line1, LocationAddress.city)).all()
+            # Fetch all existing LocationAddress records into memory for bulk lookup
+            # Including ZIP in the lookup key as per plan
+            addresses = session.execute(
+                select(
+                    LocationAddress.id,
+                    LocationAddress.geography_id,
+                    LocationAddress.address_line1,
+                    LocationAddress.city,
+                    LocationAddress.zip
+                )
+            ).all()
             addr_map = {}
             for a in addresses:
-                key = (a.geography_id, a.address_line1, a.city)
+                key = (a.geography_id, a.address_line1, a.city, a.zip)
                 addr_map[key] = a.id
+
+            # Fetch all existing FieldSample names to avoid N+1 queries
+            existing_samples = session.execute(select(FieldSample)).scalars().all()
+            samples_map = {s.name: s for s in existing_samples}
 
             for record in records:
                 name = record.get('name')
@@ -62,19 +70,20 @@ def load_field_sample(df: pd.DataFrame):
                     continue
 
                 # Determine sampling_location_id
-                geoid = get_geoid(record.get('sampling_location'))
+                geoid = get_geoid(record.get('sampling_location'), county_to_geoid)
                 addr1 = record.get('sampling_street')
                 city = record.get('sampling_city')
+                zip_code = record.get('sampling_zip')
 
                 # Standardize for lookup
                 addr1 = str(addr1).strip() if addr1 else None
                 city = str(city).strip() if city else None
+                zip_code = str(zip_code).strip() if zip_code else None
 
-                sampling_location_id = addr_map.get((geoid, addr1, city))
+                sampling_location_id = addr_map.get((geoid, addr1, city, zip_code))
 
-                # Check for existing record by name
-                stmt = select(FieldSample).where(FieldSample.name == name)
-                existing_record = session.execute(stmt).scalar_one_or_none()
+                # Check for existing record by name using in-memory map
+                existing_record = samples_map.get(name)
 
                 clean_record = {k: v for k, v in record.items() if k in table_columns}
                 clean_record['sampling_location_id'] = sampling_location_id

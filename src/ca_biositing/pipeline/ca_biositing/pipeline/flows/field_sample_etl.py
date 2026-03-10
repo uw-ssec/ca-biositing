@@ -6,6 +6,8 @@ from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import tran
 from ca_biositing.pipeline.etl.load.location_address import load_location_address
 from ca_biositing.pipeline.etl.load.field_sample import load_field_sample
 from ca_biositing.pipeline.utils.lineage import create_lineage_group, create_etl_run_record
+from ca_biositing.datamodels.views import refresh_all_views
+from ca_biositing.pipeline.utils.engine import engine
 
 @flow(name="Field Sample ETL")
 def field_sample_etl_flow():
@@ -54,6 +56,14 @@ def field_sample_etl_flow():
         load_field_sample(transformed_df)
     else:
         logger.warning("No data to load.")
+
+    # 6. Refresh Materialized Views
+    logger.info("Refreshing materialized views...")
+    try:
+        refresh_all_views(engine)
+        logger.info("Successfully refreshed materialized views.")
+    except Exception as e:
+        logger.error(f"Failed to refresh materialized views: {e}")
 
     logger.info("Field Sample ETL flow completed successfully.")
 

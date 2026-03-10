@@ -66,8 +66,8 @@ def transform_location_address(
             available_rename = {k: v for k, v in rename_map.items() if k in locations.columns}
             locations = locations.rename(columns=available_rename)
 
-            # Add some defaults
-            locations['is_anonymous'] = True
+            # Determine is_anonymous: False if address_line1 exists, else True
+            locations['is_anonymous'] = locations['address_line1'].isna() | (locations['address_line1'] == "")
 
     # Add lineage tracking metadata
     if etl_run_id:
