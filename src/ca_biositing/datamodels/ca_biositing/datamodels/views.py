@@ -25,6 +25,7 @@ from .models import (
     UsdaCensusRecord,
     UsdaSurveyRecord,
     UsdaCommodity,
+    ResourceUsdaCommodityMap,
     BillionTon2023Record,
     # General analysis models
     Observation,
@@ -39,6 +40,7 @@ from .models import (
     # Sample models
     PreparedSample,
     FieldSample,
+    LocationAddress,
     # Resource and place models
     Resource,
     Place,
@@ -82,17 +84,24 @@ LANDIQ_TILESET_VIEW = (
 )
 
 # --- 3. analysis_data_view ---
+AnalysisDimensionUnit = aliased(Unit, name="analysis_du")
 ANALYSIS_DATA_VIEW = (
     select(
         Observation.id,
+        Resource.id.label("resource_id"),
         Resource.name.label("resource"),
-        literal("06000").label("geoid"),
+        LocationAddress.geography_id.label("geoid"),
         Parameter.name.label("parameter"),
         Observation.value,
         Unit.name.label("unit"),
+        DimensionType.name.label("dimension"),
+        Observation.dimension_value,
+        AnalysisDimensionUnit.name.label("dimension_unit"),
     )
     .join(Parameter, Observation.parameter_id == Parameter.id)
     .join(Unit, Observation.unit_id == Unit.id)
+    .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
+    .outerjoin(AnalysisDimensionUnit, Observation.dimension_unit_id == AnalysisDimensionUnit.id)
     .outerjoin(
         ProximateRecord,
         (Observation.record_id == ProximateRecord.record_id)
@@ -124,6 +133,7 @@ ANALYSIS_DATA_VIEW = (
         ),
     )
     .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
+    .outerjoin(LocationAddress, LocationAddress.id == FieldSample.sampling_location_id)
     .outerjoin(Resource, Resource.id == FieldSample.resource_id)
 )
 
@@ -131,7 +141,10 @@ ANALYSIS_DATA_VIEW = (
 # Create aliased Unit for dimension_unit
 DimensionUnit = aliased(Unit, name="du")
 
-USDA_CENSUS_VIEW = (
+# V1: original view using UsdaCommodity.name (api_name not yet added at this
+# point in the migration chain; see migration 9c5c72c6d059). Updated to use
+# api_name in migration b6aa2fc6cd42.
+USDA_CENSUS_VIEW_V1 = (
     select(
         Observation.id,
         UsdaCommodity.name.label("usda_crop"),
@@ -156,9 +169,37 @@ USDA_CENSUS_VIEW = (
     .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
 )
 
+USDA_CENSUS_VIEW = (
+    select(
+        Observation.id,
+        func.lower(UsdaCommodity.api_name).label("usda_crop"),
+        Place.geoid,
+        Parameter.name.label("parameter"),
+        Observation.value,
+        Unit.name.label("unit"),
+        DimensionType.name.label("dimension"),
+        Observation.dimension_value,
+        DimensionUnit.name.label("dimension_unit"),
+        UsdaCommodity.id.label("commodity_id"),
+        UsdaCensusRecord.id.label("source_record_id"),
+        UsdaCensusRecord.year.label("record_year"),
+    )
+    .join(
+        UsdaCensusRecord,
+        (Observation.record_id == cast(UsdaCensusRecord.id, String))
+        & (Observation.record_type == "usda_census_record"),
+    )
+    .join(UsdaCommodity, UsdaCensusRecord.commodity_code == UsdaCommodity.id)
+    .join(Place, UsdaCensusRecord.geoid == Place.geoid)
+    .join(Parameter, Observation.parameter_id == Parameter.id)
+    .join(Unit, Observation.unit_id == Unit.id)
+    .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
+    .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
+)
+
 # --- 5. usda_survey_view ---
-# Mirrors usda_census_view with UsdaSurveyRecord
-USDA_SURVEY_VIEW = (
+# V1: original view using UsdaCommodity.name (see USDA_CENSUS_VIEW_V1 note above)
+USDA_SURVEY_VIEW_V1 = (
     select(
         Observation.id,
         UsdaCommodity.name.label("usda_crop"),
@@ -183,7 +224,56 @@ USDA_SURVEY_VIEW = (
     .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
 )
 
-# --- 6. billion_ton_tileset_view ---
+# Mirrors usda_census_view with UsdaSurveyRecord
+USDA_SURVEY_VIEW = (
+    select(
+        Observation.id,
+        func.lower(UsdaCommodity.api_name).label("usda_crop"),
+        Place.geoid,
+        Parameter.name.label("parameter"),
+        Observation.value,
+        Unit.name.label("unit"),
+        DimensionType.name.label("dimension"),
+        Observation.dimension_value,
+        DimensionUnit.name.label("dimension_unit"),
+        UsdaCommodity.id.label("commodity_id"),
+        UsdaSurveyRecord.id.label("source_record_id"),
+        UsdaSurveyRecord.year.label("record_year"),
+        UsdaSurveyRecord.survey_program_id,
+        UsdaSurveyRecord.survey_period,
+        UsdaSurveyRecord.reference_month,
+        UsdaSurveyRecord.seasonal_flag,
+    )
+    .join(
+        UsdaSurveyRecord,
+        (Observation.record_id == cast(UsdaSurveyRecord.id, String))
+        & (Observation.record_type == "usda_survey_record"),
+    )
+    .join(UsdaCommodity, UsdaSurveyRecord.commodity_code == UsdaCommodity.id)
+    .join(Place, UsdaSurveyRecord.geoid == Place.geoid)
+    .join(Parameter, Observation.parameter_id == Parameter.id)
+    .join(Unit, Observation.unit_id == Unit.id)
+    .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
+    .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
+)
+
+# --- 6. usda_resource_commodity_view ---
+# Lightweight view: maps each resource name to its USDA commodity ID.
+# Used by discovery endpoints to list queryable resources without service-layer joins.
+# A commodity may map to multiple resources; this view preserves all mappings.
+USDA_RESOURCE_COMMODITY_VIEW = (
+    select(
+        Resource.name.label("resource"),
+        ResourceUsdaCommodityMap.usda_commodity_id.label("commodity_id"),
+    )
+    .join(ResourceUsdaCommodityMap, ResourceUsdaCommodityMap.resource_id == Resource.id)
+    .where(
+        ResourceUsdaCommodityMap.usda_commodity_id.is_not(None),
+        Resource.name.is_not(None),
+    )
+)
+
+# --- 7. billion_ton_tileset_view ---
 BILLION_TON_TILESET_VIEW = (
     select(
         BillionTon2023Record.id,
@@ -211,13 +301,17 @@ ANALYSIS_AVERAGE_VIEW_SQL = """
     GROUP BY resource, geoid, parameter, unit
 """
 
-# Ordered list for creation (respects inter-view dependencies)
+# Ordered list for creation (respects inter-view dependencies).
+# USDA views use the V1 definitions (UsdaCommodity.name) because this list is
+# used by the initial migration (9c5c72c6d059), before api_name is added in
+# a085cd4a462e. Migration b6aa2fc6cd42 updates them to use api_name directly
+# via USDA_CENSUS_VIEW / USDA_SURVEY_VIEW.
 VIEW_DEFINITIONS = [
     ("landiq_record_view", LANDIQ_RECORD_VIEW),
     ("landiq_tileset_view", LANDIQ_TILESET_VIEW),
     ("analysis_data_view", ANALYSIS_DATA_VIEW),
-    ("usda_census_view", USDA_CENSUS_VIEW),
-    ("usda_survey_view", USDA_SURVEY_VIEW),
+    ("usda_census_view", USDA_CENSUS_VIEW_V1),
+    ("usda_survey_view", USDA_SURVEY_VIEW_V1),
     ("billion_ton_tileset_view", BILLION_TON_TILESET_VIEW),
     # analysis_average_view is last (depends on analysis_data_view)
 ]
@@ -245,5 +339,6 @@ def refresh_all_views(engine):
     with engine.connect() as conn:
         for view_name, _ in VIEW_DEFINITIONS:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.{view_name}"))
+        conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.usda_resource_commodity_view"))
         conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.analysis_average_view"))
         conn.commit()

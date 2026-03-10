@@ -9,22 +9,25 @@ from __future__ import annotations
 from typing import Optional
 
 from sqlalchemy import and_, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session
 
 from ca_biositing.datamodels.models import (
-    DimensionType,
-    Observation,
-    Parameter,
     Resource,
     ResourceUsdaCommodityMap,
-    Unit,
     UsdaCommodity,
-    UsdaSurveyRecord,
+)
+from ca_biositing.webservice.services._usda_lookup_common import (
+    get_commodity_by_name,
+    normalize_crop_name,
+    normalized_sql_text,
 )
 from ca_biositing.webservice.exceptions import (
-    CropNotFoundException,
     ParameterNotFoundException,
     ResourceNotFoundException,
+)
+from ca_biositing.webservice.services._canonical_views import (
+    get_usda_resource_commodity_view,
+    get_usda_survey_view,
 )
 
 
@@ -45,13 +48,7 @@ class UsdaSurveyService:
         Raises:
             CropNotFoundException: If crop not found
         """
-        stmt = select(UsdaCommodity).where(UsdaCommodity.name == crop_name)
-        commodity = session.execute(stmt).scalar_one_or_none()
-
-        if not commodity:
-            raise CropNotFoundException(crop_name)
-
-        return commodity
+        return get_commodity_by_name(session, crop_name)
 
     @staticmethod
     def _get_commodity_by_resource(session: Session, resource_name: str) -> UsdaCommodity:
@@ -67,8 +64,9 @@ class UsdaSurveyService:
         Raises:
             ResourceNotFoundException: If resource not found or no mapping exists
         """
-        # First find the resource
-        stmt = select(Resource).where(Resource.name == resource_name)
+        # First find the resource (case-insensitive)
+        normalized = normalize_crop_name(resource_name)
+        stmt = select(Resource).where(normalized_sql_text(Resource.name) == normalized)
         resource = session.execute(stmt).scalar_one_or_none()
 
         if not resource:
@@ -95,11 +93,8 @@ class UsdaSurveyService:
         commodity_id: int,
         geoid: str,
         parameter_name: Optional[str] = None
-    ) -> tuple[list[dict], Optional[UsdaSurveyRecord]]:
+    ) -> tuple[list[dict], Optional[dict]]:
         """Get observations for a survey record by commodity and geoid.
-
-        Since observations are stored separately with unique record_ids,
-        we query them by matching dataset + commodity + geoid criteria.
 
         Args:
             session: Database session
@@ -108,71 +103,78 @@ class UsdaSurveyService:
             parameter_name: Optional parameter name filter
 
         Returns:
-            Tuple of (list of observation dictionaries, survey record)
+            Tuple of (list of observation dictionaries, survey metadata)
         """
-        # Create alias for the dimension unit join
-        DimensionUnit = aliased(Unit)
+        survey_view = get_usda_survey_view(session)
 
-        # First, find the survey record to get its dataset_id and survey metadata
-        # If multiple records exist for the same commodity/geoid, return the most recent
-        survey_stmt = (
-            select(UsdaSurveyRecord)
+        latest_record_stmt = (
+            select(survey_view.c.source_record_id)
             .where(and_(
-                UsdaSurveyRecord.commodity_code == commodity_id,
-                UsdaSurveyRecord.geoid == geoid
+                survey_view.c.commodity_id == commodity_id,
+                survey_view.c.geoid == geoid,
             ))
-            .order_by(UsdaSurveyRecord.year.desc())
+            .order_by(
+                survey_view.c.record_year.is_(None),
+                survey_view.c.record_year.desc(),
+                survey_view.c.source_record_id.desc(),
+            )
             .limit(1)
         )
-        survey_record = session.execute(survey_stmt).scalars().first()
+        latest_record_id = session.execute(latest_record_stmt).scalar_one_or_none()
 
-        if not survey_record:
+        if latest_record_id is None:
             return [], None
-
-        # Query observations by dataset_id, record_type, and record_id pattern
-        # Observations are linked to survey records via record_id patterns like "survey_{id}_*"
-        survey_record_prefix = f"survey_{survey_record.id}_"
 
         stmt = (
             select(
-                Observation,
-                Parameter.name.label("parameter_name"),
-                Unit.name.label("unit_name"),
-                DimensionType.name.label("dimension_name"),
-                DimensionUnit.name.label("dimension_unit_name"),
+                survey_view.c.id,
+                survey_view.c.parameter,
+                survey_view.c.value,
+                survey_view.c.unit,
+                survey_view.c.dimension,
+                survey_view.c.dimension_value,
+                survey_view.c.dimension_unit,
+                survey_view.c.survey_program_id,
+                survey_view.c.survey_period,
+                survey_view.c.reference_month,
+                survey_view.c.seasonal_flag,
             )
-            .join(Parameter, Observation.parameter_id == Parameter.id)
-            .join(Unit, Observation.unit_id == Unit.id)
-            .outerjoin(DimensionType, Observation.dimension_type_id == DimensionType.id)
-            .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
             .where(and_(
-                Observation.dataset_id == survey_record.dataset_id,
-                Observation.record_type == "survey",
-                Observation.record_id.like(f"{survey_record_prefix}%")
+                survey_view.c.commodity_id == commodity_id,
+                survey_view.c.geoid == geoid,
+                survey_view.c.source_record_id == latest_record_id,
             ))
         )
 
         if parameter_name:
-            stmt = stmt.where(Parameter.name == parameter_name)
+            stmt = stmt.where(normalized_sql_text(survey_view.c.parameter) == normalize_crop_name(parameter_name))
 
         # Order by observation ID for deterministic results
-        stmt = stmt.order_by(Observation.id)
+        stmt = stmt.order_by(survey_view.c.id)
 
         results = session.execute(stmt).all()
 
         observations = []
+        survey_metadata: Optional[dict] = None
         for row in results:
-            obs = row.Observation
+            if survey_metadata is None:
+                survey_metadata = {
+                    "survey_program_id": row.survey_program_id,
+                    "survey_period": row.survey_period,
+                    "reference_month": row.reference_month,
+                    "seasonal_flag": row.seasonal_flag,
+                }
             observations.append({
-                "parameter": row.parameter_name,
-                "value": float(obs.value) if obs.value is not None else None,
-                "unit": row.unit_name,
-                "dimension": row.dimension_name,
-                "dimension_value": float(obs.dimension_value) if obs.dimension_value is not None else None,
-                "dimension_unit": row.dimension_unit_name,
+                "parameter": row.parameter,
+                "value": float(row.value) if row.value is not None else None,
+                "unit": row.unit,
+                "dimension": row.dimension,
+                "dimension_value": float(row.dimension_value)
+                if row.dimension_value is not None else None,
+                "dimension_unit": row.dimension_unit,
             })
 
-        return observations, survey_record
+        return observations, survey_metadata
 
     @staticmethod
     def get_by_crop(
@@ -200,11 +202,11 @@ class UsdaSurveyService:
         commodity = UsdaSurveyService._get_commodity_by_name(session, usda_crop)
 
         # Get observations and survey record
-        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
+        observations, survey_metadata = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid, parameter
         )
 
-        if not observations or not survey_record:
+        if not observations or not survey_metadata:
             raise ParameterNotFoundException(
                 parameter,
                 f"crop {usda_crop} in geoid {geoid}"
@@ -222,10 +224,10 @@ class UsdaSurveyService:
             "dimension": obs["dimension"],
             "dimension_value": obs["dimension_value"],
             "dimension_unit": obs["dimension_unit"],
-            "survey_program_id": survey_record.survey_program_id,
-            "survey_period": survey_record.survey_period,
-            "reference_month": survey_record.reference_month,
-            "seasonal_flag": survey_record.seasonal_flag,
+            "survey_program_id": survey_metadata["survey_program_id"],
+            "survey_period": survey_metadata["survey_period"],
+            "reference_month": survey_metadata["reference_month"],
+            "seasonal_flag": survey_metadata["seasonal_flag"],
         }
 
     @staticmethod
@@ -254,11 +256,11 @@ class UsdaSurveyService:
         commodity = UsdaSurveyService._get_commodity_by_resource(session, resource)
 
         # Get observations and survey record
-        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
+        observations, survey_metadata = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid, parameter
         )
 
-        if not observations or not survey_record:
+        if not observations or not survey_metadata:
             raise ParameterNotFoundException(
                 parameter,
                 f"resource {resource} in geoid {geoid}"
@@ -276,10 +278,10 @@ class UsdaSurveyService:
             "dimension": obs["dimension"],
             "dimension_value": obs["dimension_value"],
             "dimension_unit": obs["dimension_unit"],
-            "survey_program_id": survey_record.survey_program_id,
-            "survey_period": survey_record.survey_period,
-            "reference_month": survey_record.reference_month,
-            "seasonal_flag": survey_record.seasonal_flag,
+            "survey_program_id": survey_metadata["survey_program_id"],
+            "survey_period": survey_metadata["survey_period"],
+            "reference_month": survey_metadata["reference_month"],
+            "seasonal_flag": survey_metadata["seasonal_flag"],
         }
 
     @staticmethod
@@ -296,35 +298,28 @@ class UsdaSurveyService:
             geoid: Geographic identifier
 
         Returns:
-            Dictionary with list of all parameters
+            Dictionary with list of all parameters (may be empty)
 
         Raises:
             CropNotFoundException: If crop not found
-            ParameterNotFoundException: If no data found for crop/geoid
         """
         # Validate crop exists
         commodity = UsdaSurveyService._get_commodity_by_name(session, usda_crop)
 
         # Get all observations and survey record
-        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
+        observations, survey_metadata = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid
         )
-
-        if not observations or not survey_record:
-            raise ParameterNotFoundException(
-                "any parameter",
-                f"crop {usda_crop} in geoid {geoid}"
-            )
 
         return {
             "usda_crop": usda_crop,
             "resource": None,
             "geoid": geoid,
             "data": observations,
-            "survey_program_id": survey_record.survey_program_id,
-            "survey_period": survey_record.survey_period,
-            "reference_month": survey_record.reference_month,
-            "seasonal_flag": survey_record.seasonal_flag,
+            "survey_program_id": survey_metadata["survey_program_id"] if survey_metadata else None,
+            "survey_period": survey_metadata["survey_period"] if survey_metadata else None,
+            "reference_month": survey_metadata["reference_month"] if survey_metadata else None,
+            "seasonal_flag": survey_metadata["seasonal_flag"] if survey_metadata else None,
         }
 
     @staticmethod
@@ -341,33 +336,80 @@ class UsdaSurveyService:
             geoid: Geographic identifier
 
         Returns:
-            Dictionary with list of all parameters
+            Dictionary with list of all parameters (may be empty)
 
         Raises:
             ResourceNotFoundException: If resource not found
-            ParameterNotFoundException: If no data found for resource/geoid
         """
         # Convert resource to commodity
         commodity = UsdaSurveyService._get_commodity_by_resource(session, resource)
 
         # Get all observations and survey record
-        observations, survey_record = UsdaSurveyService._get_observations_for_survey_record(
+        observations, survey_metadata = UsdaSurveyService._get_observations_for_survey_record(
             session, commodity.id, geoid
         )
-
-        if not observations or not survey_record:
-            raise ParameterNotFoundException(
-                "any parameter",
-                f"resource {resource} in geoid {geoid}"
-            )
 
         return {
             "usda_crop": None,
             "resource": resource,
             "geoid": geoid,
             "data": observations,
-            "survey_program_id": survey_record.survey_program_id,
-            "survey_period": survey_record.survey_period,
-            "reference_month": survey_record.reference_month,
-            "seasonal_flag": survey_record.seasonal_flag,
+            "survey_program_id": survey_metadata["survey_program_id"] if survey_metadata else None,
+            "survey_period": survey_metadata["survey_period"] if survey_metadata else None,
+            "reference_month": survey_metadata["reference_month"] if survey_metadata else None,
+            "seasonal_flag": survey_metadata["seasonal_flag"] if survey_metadata else None,
         }
+
+    @staticmethod
+    def list_crops(session: Session) -> list[str]:
+        """Return distinct non-NULL USDA crop names from the survey view."""
+        view = get_usda_survey_view(session)
+        stmt = (
+            select(view.c.usda_crop)
+            .where(view.c.usda_crop.is_not(None))
+            .distinct()
+            .order_by(view.c.usda_crop)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_geoids(session: Session) -> list[str]:
+        """Return distinct non-NULL geoids from the survey view."""
+        view = get_usda_survey_view(session)
+        stmt = (
+            select(view.c.geoid)
+            .where(view.c.geoid.is_not(None))
+            .distinct()
+            .order_by(view.c.geoid)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_parameters(session: Session) -> list[str]:
+        """Return distinct non-NULL parameter names from the survey view."""
+        view = get_usda_survey_view(session)
+        stmt = (
+            select(view.c.parameter)
+            .where(view.c.parameter.is_not(None))
+            .distinct()
+            .order_by(view.c.parameter)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_resources(session: Session) -> list[str]:
+        """Return distinct resource names whose commodities appear in the survey view."""
+        survey_view = get_usda_survey_view(session)
+        resource_commodity_view = get_usda_resource_commodity_view(session)
+        commodity_ids_subq = (
+            select(survey_view.c.commodity_id)
+            .where(survey_view.c.commodity_id.is_not(None))
+            .distinct()
+        )
+        stmt = (
+            select(resource_commodity_view.c.resource)
+            .where(resource_commodity_view.c.commodity_id.in_(commodity_ids_subq))
+            .distinct()
+            .order_by(resource_commodity_view.c.resource)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
