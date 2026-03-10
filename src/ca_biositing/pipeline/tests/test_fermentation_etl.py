@@ -4,11 +4,11 @@ from unittest.mock import patch, MagicMock
 from prefect.testing.utilities import prefect_test_harness
 
 # --- FERMENTATION ETL TEST ---
-@patch("ca_biositing.pipeline.etl.extract.bioconversion_data.gsheet_to_df")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 @patch("ca_biositing.pipeline.etl.transform.analysis.observation.normalize_dataframes")
 @patch("ca_biositing.pipeline.etl.transform.analysis.fermentation_record.normalize_dataframes")
 @patch("ca_biositing.pipeline.etl.load.analysis.observation.get_engine")
-@patch("ca_biositing.pipeline.etl.load.analysis.fermentation_record.engine")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 def test_fermentation_etl_full(
     mock_engine,
     mock_get_engine,
@@ -51,7 +51,7 @@ def test_fermentation_etl_full(
         mock_gsheet.return_value = test_raw_df
 
         # 2. Mock Transform Normalization
-        mock_obs_normalize.return_value = pd.DataFrame({
+        mock_obs_normalize.return_value = [pd.DataFrame({
             "dataset_id": [1],
             "analysis_type": ["fermentation"],
             "record_id": ["FERM_001"],
@@ -61,7 +61,7 @@ def test_fermentation_etl_full(
             "note": ["test"],
             "etl_run_id": [1],
             "lineage_group_id": [1]
-        })
+        })]
 
         mock_ferm_normalize.return_value = pd.DataFrame({
             "record_id": ["FERM_001"],

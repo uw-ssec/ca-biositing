@@ -5,15 +5,9 @@ from unittest.mock import patch, MagicMock
 # --- ICP ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.normalize_dataframes")
 @patch("ca_biositing.pipeline.utils.engine.engine")
-@patch("ca_biositing.pipeline.etl.load.analysis.icp_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.icp_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.icp.get_run_logger")
 @patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_icp_etl_full(
     mock_gsheet_to_df,
-    mock_ext_logger,
-    mock_trans_logger,
-    mock_load_logger,
     mock_engine,
     mock_normalize,
 ):
@@ -65,15 +59,9 @@ def test_icp_etl_full(
 # --- XRF ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.normalize_dataframes")
 @patch("ca_biositing.pipeline.utils.engine.engine")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrf_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.xrf_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.xrf.get_run_logger")
 @patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_xrf_etl_full(
     mock_gsheet_to_df,
-    mock_ext_logger,
-    mock_trans_logger,
-    mock_load_logger,
     mock_engine,
     mock_normalize,
 ):
@@ -125,15 +113,9 @@ def test_xrf_etl_full(
 # --- CALORIMETRY ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.normalize_dataframes")
 @patch("ca_biositing.pipeline.utils.engine.engine")
-@patch("ca_biositing.pipeline.etl.load.analysis.calorimetry_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.calorimetry_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.calorimetry.get_run_logger")
 @patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_calorimetry_etl_full(
     mock_gsheet_to_df,
-    mock_ext_logger,
-    mock_trans_logger,
-    mock_load_logger,
     mock_engine,
     mock_normalize,
 ):
@@ -181,15 +163,9 @@ def test_calorimetry_etl_full(
 # --- XRD ETL TEST ---
 @patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.normalize_dataframes")
 @patch("ca_biositing.pipeline.utils.engine.engine")
-@patch("ca_biositing.pipeline.etl.load.analysis.xrd_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.transform.analysis.xrd_record.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.xrd.get_run_logger")
 @patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_xrd_etl_full(
     mock_gsheet_to_df,
-    mock_ext_logger,
-    mock_trans_logger,
-    mock_load_logger,
     mock_engine,
     mock_normalize,
 ):

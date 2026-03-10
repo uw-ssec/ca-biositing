@@ -41,7 +41,7 @@ def test_pretreatment_etl_full(
         mock_gsheet.return_value = test_raw_df
 
         # 2. Mock Transform
-        mock_obs_normalize.return_value = pd.DataFrame({
+        mock_obs_normalize.return_value = [pd.DataFrame({
             "dataset_id": [1],
             "analysis_type": ["pretreatment"],
             "record_id": ["PRETREAT_001"],
@@ -51,7 +51,7 @@ def test_pretreatment_etl_full(
             "note": ["test"],
             "etl_run_id": [1],
             "lineage_group_id": [1]
-        })
+        })]
 
         mock_prec_normalize.return_value = pd.DataFrame({
             "record_id": ["PRETREAT_001"],
