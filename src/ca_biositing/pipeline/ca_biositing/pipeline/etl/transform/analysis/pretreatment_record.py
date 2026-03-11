@@ -10,8 +10,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_pretreatment_record(
     raw_df: pd.DataFrame,
-    etl_run_id: int | None = None,
-    lineage_group_id: int | None = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw pretreatment analysis data into the PretreatmentRecord table format.
@@ -24,7 +24,8 @@ def transform_pretreatment_record(
         Dataset,
         Equipment,
         Experiment,
-        DeconVessel
+        DeconVessel,
+        FileObjectMetadata
     )
     logger = get_run_logger()
 
@@ -41,15 +42,15 @@ def transform_pretreatment_record(
     normalize_columns = {
         'analyst_email': (Contact, "email"),
         'preparation_method': Method,
-        'pretreatment_exper_name': Experiment,
+        'pretreatment_exper_name': (Experiment, "experiment_name"),
         'decon_method_id': Method,
         'eh_method_id': Method,
         'reaction_block_id': Equipment,
         'vessel_id': DeconVessel,
-        'raw_data_url': Method,  # Placeholder normalization if needed
+        'raw_data_url': (FileObjectMetadata, "uri"),
     }
 
-    normalized_dfs = normalize_dataframes([df], normalize_columns)
+    normalized_dfs = normalize_dataframes(df, normalize_columns)
     normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
@@ -100,5 +101,5 @@ def transform_pretreatment_record(
 
         return record_df
     except Exception as e:
-        logger.error(f"Error during PretreatmentRecord transform: {e}")
+        logger.exception(f"Error during PretreatmentRecord transform: {e}")
         raise

@@ -33,6 +33,7 @@ JOIN polygon p ON lr.polygon_id = p.id
 JOIN primary_ag_product pap ON lr.main_crop = pap.id;
 
 -- 3. analysis_data_view
+-- NOTE: This view must be refreshed BEFORE ca_biositing.analysis_average_view
 CREATE MATERIALIZED VIEW ca_biositing.analysis_data_view AS
 SELECT
     obs.id,
@@ -88,7 +89,7 @@ SELECT
     obs.dimension_value,
     du.name AS dimension_unit
 FROM observation obs
-JOIN usda_census_record ucr ON obs.record_id = ucr.id::text AND obs.record_type = 'usda_census_record'
+JOIN usda_census_record ucr ON obs.record_id = CAST(ucr.id AS text) AND obs.record_type = 'usda_census_record'
 JOIN usda_commodity uc ON ucr.commodity_code = uc.id
 JOIN place p ON ucr.geoid = p.geoid
 JOIN parameter param ON obs.parameter_id = param.id
@@ -109,7 +110,7 @@ SELECT
     obs.dimension_value,
     du.name AS dimension_unit
 FROM observation obs
-JOIN usda_survey_record usr ON obs.record_id = usr.id::text AND obs.record_type = 'usda_survey_record'
+JOIN usda_survey_record usr ON obs.record_id = CAST(usr.id AS text) AND obs.record_type = 'usda_survey_record'
 JOIN usda_commodity uc ON usr.commodity_code = uc.id
 JOIN place p ON usr.geoid = p.geoid
 JOIN parameter param ON obs.parameter_id = param.id

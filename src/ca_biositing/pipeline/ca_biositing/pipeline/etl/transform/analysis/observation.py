@@ -12,8 +12,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_observation(
     raw_dfs: List[pd.DataFrame],
-    etl_run_id: int | None = None,
-    lineage_group_id: int | None = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrames into the Observation table format.
@@ -55,10 +55,13 @@ def transform_observation(
             df = coercion_mod.coerce_columns(df, float_cols=['value'])
 
         # Add lineage tracking if available
-        if etl_run_id is not None:
-            df['etl_run_id'] = etl_run_id
-        if lineage_group_id is not None:
-            df['lineage_group_id'] = lineage_group_id
+        # Ensure they are created unconditionally (set to None if not provided) to prevent mapping failures
+        df['etl_run_id'] = etl_run_id
+        df['lineage_group_id'] = lineage_group_id
+
+        # Re-apply duplicate-column guard after calling clean_names_df()
+        if df.columns.duplicated().any():
+            df = df.loc[:, ~df.columns.duplicated()].copy()
 
         coerced_data.append(df)
 
@@ -92,24 +95,30 @@ def transform_observation(
 
     observation_data = []
     for i, normalized_df in enumerate(normalized_dfs):
-        missing = [c for c in required_cols if c not in normalized_df.columns]
-        if missing:
-            logger.error(
-                f"DataFrame #{i+1} missing columns {missing} for observation transform. "
-                f"Available columns: {normalized_df.columns.tolist()}"
-            )
+        if not isinstance(normalized_df, pd.DataFrame):
+            logger.error(f"Normalized item #{i+1} is not a DataFrame: {type(normalized_df)}")
             continue
+
+        # Ensure required columns exist even if all-null
+        for col in required_cols:
+            if col not in normalized_df.columns:
+                normalized_df[col] = pd.NA
+
         try:
             obs_df = normalized_df[required_cols].copy().rename(columns={'analysis_type': 'record_type'})
 
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
 
-            # Remove duplicates based on (record_id, record_type, parameter_id) to avoid ON CONFLICT errors
-            # Observations table usually has a unique constraint on these three
-            if obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).any():
-                dupes_count = obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).sum()
+            # Remove duplicates based on (record_id, record_type, parameter_id, unit_id) to avoid ON CONFLICT errors
+            # CodeRabbit Review: include unit_id in the subset
+            subset = ['record_id', 'record_type', 'parameter_id', 'unit_id']
+            # Filter subset to only include columns that are actually present in obs_df
+            present_subset = [c for c in subset if c in obs_df.columns]
+
+            if obs_df.duplicated(subset=present_subset).any():
+                dupes_count = obs_df.duplicated(subset=present_subset).sum()
                 logger.warning(f"Observation: Removing {dupes_count} duplicate observations from transform output.")
-                obs_df = obs_df.drop_duplicates(subset=['record_id', 'record_type', 'parameter_id'], keep='first')
+                obs_df = obs_df.drop_duplicates(subset=present_subset, keep='first')
 
             observation_data.append(obs_df)
         except KeyError as e:
@@ -123,9 +132,11 @@ def transform_observation(
     final_obs_df = pd.concat(observation_data, ignore_index=True)
 
     # Final check across all source dataframes
-    if final_obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).any():
-        dupes_count = final_obs_df.duplicated(subset=['record_id', 'record_type', 'parameter_id']).sum()
+    subset = ['record_id', 'record_type', 'parameter_id', 'unit_id']
+    present_subset = [c for c in subset if c in final_obs_df.columns]
+    if final_obs_df.duplicated(subset=present_subset).any():
+        dupes_count = final_obs_df.duplicated(subset=present_subset).sum()
         logger.warning(f"Observation: Removing {dupes_count} duplicate observations across all source dataframes.")
-        final_obs_df = final_obs_df.drop_duplicates(subset=['record_id', 'record_type', 'parameter_id'], keep='first')
+        final_obs_df = final_obs_df.drop_duplicates(subset=present_subset, keep='first')
 
     return final_obs_df

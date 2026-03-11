@@ -10,8 +10,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_icp_record(
     raw_df: pd.DataFrame,
-    etl_run_id: int | None = None,
-    lineage_group_id: int | None = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw ICP analysis data into the IcpRecord table format.
@@ -21,7 +21,8 @@ def transform_icp_record(
         Method,
         Resource,
         PreparedSample,
-        Dataset
+        Dataset,
+        FileObjectMetadata
     )
     logger = get_run_logger()
 
@@ -40,17 +41,17 @@ def transform_icp_record(
         'method_id': Method,
         'resource': Resource,
         'prepared_sample': PreparedSample,
-        'dataset': Dataset
+        'dataset': Dataset,
+        'raw_data_url': (FileObjectMetadata, 'uri')
     }
 
-    normalized_dfs = normalize_dataframes([df], normalize_columns)
+    normalized_dfs = normalize_dataframes(df, normalize_columns)
     normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
     rename_map = {
         'record_id': 'record_id',
-        'replicate_no': 'technical_replicate_no',
-        'raw_data_url': 'raw_data_url',
+        'repl_no': 'technical_replicate_no',
         'note': 'note',
         'etl_run_id': 'etl_run_id',
         'lineage_group_id': 'lineage_group_id'
@@ -64,7 +65,8 @@ def transform_icp_record(
                           'method_id' if col == 'method_id' else \
                           'resource_id' if col == 'resource' else \
                           'prepared_sample_id' if col == 'prepared_sample' else \
-                          'dataset_id' if col == 'dataset' else norm_col
+                          'dataset_id' if col == 'dataset' else \
+                          'raw_data_id' if col == 'raw_data_url' else norm_col
             rename_map[norm_col] = target_name
 
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]

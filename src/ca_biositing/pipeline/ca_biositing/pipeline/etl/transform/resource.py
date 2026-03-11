@@ -22,8 +22,8 @@ EXTRACT_SOURCES: List[str] = ["resources"]
 @task
 def transform(
     data_sources: Dict[str, pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> Optional[pd.DataFrame]:
     """
     Transforms raw data from multiple sources into a structured format.
@@ -96,7 +96,8 @@ def transform(
     }
 
     logger.info("Normalizing data (swapping names for IDs)...")
-    normalized_df = normalize_dataframes(combined_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(combined_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 4. Column Renaming
     # TODO: Update this dictionary to match your source-to-target mapping

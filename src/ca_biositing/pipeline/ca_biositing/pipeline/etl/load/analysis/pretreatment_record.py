@@ -52,5 +52,5 @@ def load_pretreatment_record(df: pd.DataFrame):
 
         logger.info("Successfully upserted Pretreatment records.")
     except Exception as e:
-        logger.error(f"Error during PretreatmentRecord load: {e}")
+        logger.exception(f"Error during PretreatmentRecord load: {e}")
         raise

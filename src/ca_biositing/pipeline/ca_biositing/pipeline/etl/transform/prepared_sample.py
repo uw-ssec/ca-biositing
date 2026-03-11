@@ -18,8 +18,8 @@ EXTRACT_SOURCES: List[str] = ["preparation"]
 @task
 def transform(
     data_sources: Dict[str, pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> Optional[pd.DataFrame]:
     """
     Transforms raw preparation data into a structured format for the prepared_sample table.
@@ -79,7 +79,8 @@ def transform(
     }
 
     logger.info("Normalizing data (swapping names for IDs)...")
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 4. Column Renaming & Selection
     # Based on notebook:
@@ -100,20 +101,23 @@ def transform(
     }
 
     # Add lineage tracking metadata
-    normalized_df['etl_run_id'] = etl_run_id
-    normalized_df['lineage_group_id'] = lineage_group_id
+    if etl_run_id:
+        normalized_df['etl_run_id'] = etl_run_id
+    if lineage_group_id:
+        normalized_df['lineage_group_id'] = lineage_group_id
 
     # Select and rename
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]
+    # Include lineage columns if they were added
+    if 'etl_run_id' in normalized_df.columns:
+        available_cols.append('etl_run_id')
+    if 'lineage_group_id' in normalized_df.columns:
+        available_cols.append('lineage_group_id')
+
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
 
     final_df = normalized_df[available_cols].copy().rename(columns=final_rename)
 
-    # Ensure lineage columns are in the final selection
-    if etl_run_id:
-        final_df['etl_run_id'] = etl_run_id
-    if lineage_group_id:
-        final_df['lineage_group_id'] = lineage_group_id
 
     logger.info(f"Successfully transformed {len(final_df)} records for prepared_sample.")
     return final_df

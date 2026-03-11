@@ -16,8 +16,8 @@ EXTRACT_SOURCES: List[str] = ["billion_ton"]
 @task
 def transform(
     data_sources: Dict[str, pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> Optional[pd.DataFrame]:
     """
     Transforms raw Billion Ton data into the BillionTon2023Record format.
@@ -92,7 +92,8 @@ def transform(
 
     logger.info("Normalizing data (swapping names for IDs)...")
     # Note: normalize_dataframes will create new columns like subclass_id, resource_id, etc.
-    df = normalize_dataframes(df, normalize_columns)
+    normalized_dfs = normalize_dataframes(df, normalize_columns)
+    df = normalized_dfs[0]
 
     # 7. Coercion
     df = coercion_mod.coerce_columns(

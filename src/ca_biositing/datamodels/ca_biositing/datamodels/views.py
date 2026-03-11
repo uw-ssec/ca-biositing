@@ -58,9 +58,6 @@ VIEW_SCHEMA = "ca_biositing"
 # Raw column reference for geometry — bypasses GeoAlchemy2's ST_AsEWKB wrapping
 _geom_col = literal_column("polygon.geom").label("geom")
 
-# Create aliased Unit for dimension_unit (used across multiple views)
-DimensionUnit = aliased(Unit, name="du")
-
 # --- 1. landiq_record_view ---
 LANDIQ_RECORD_VIEW = (
     select(

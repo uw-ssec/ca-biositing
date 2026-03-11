@@ -11,7 +11,7 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 def transform_xrf_record(
     raw_df: pd.DataFrame,
     etl_run_id: str | None = None,
-    lineage_group_id: int | None = None
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrame into the XrfRecord table format.
@@ -86,7 +86,8 @@ def transform_xrf_record(
         'dataset': (Dataset, 'name'),
         'raw_data_url': (FileObjectMetadata, 'uri')
     }
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
     rename_map = {

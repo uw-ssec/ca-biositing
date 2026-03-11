@@ -130,8 +130,7 @@ def upgrade() -> None:
         f"{ANALYSIS_AVERAGE_VIEW_SQL}"
     )
 
-    # Recreate indexes for analysis_data_view (if any existed and were dropped by CASCADE)
-    # The requirement specifically mentions restoring indexes.
+    # Recreate indexes for analysis_data_view
     op.execute(f"CREATE INDEX IF NOT EXISTS idx_analysis_data_view_resource ON {VIEW_SCHEMA}.analysis_data_view (resource)")
     op.execute(f"CREATE INDEX IF NOT EXISTS idx_analysis_data_view_geoid ON {VIEW_SCHEMA}.analysis_data_view (geoid)")
 

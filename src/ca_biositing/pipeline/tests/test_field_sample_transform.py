@@ -42,7 +42,7 @@ def test_transform_field_sample(mock_normalize):
         df_norm["provider_codename_id"] = 10
         df_norm["primary_collector_id"] = 100
         df_norm["dataset_id"] = 500
-        return df_norm
+        return [df_norm]
 
     mock_normalize.side_effect = side_effect
 

@@ -8,8 +8,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_fermentation_record(
     raw_df: pd.DataFrame,
-    etl_run_id: int | None = None,
-    lineage_group_id: int | None = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrame into the FermentationRecord table format.
@@ -81,7 +81,8 @@ def transform_fermentation_record(
         'reactor_vessel': (DeconVessel, 'name'),
         'analysis_equipment': (Equipment, 'name')
     }
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
     rename_map = {
