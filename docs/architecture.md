@@ -1,14 +1,5 @@
 # CA-Biositing Architecture Documentation
 
-## Overview
-
-CA-Biositing is a comprehensive geospatial bioeconomy platform for biodiversity
-data management and analysis, specifically focused on California biositing
-activities. The project combines ETL data pipelines, REST APIs, geospatial
-analysis tools, and web interfaces to support biodiversity research and
-conservation efforts. It processes data from Google Sheets into PostgreSQL
-databases and provides both programmatic and visual access to the data.
-
 ## System Architecture Diagram
 
 ```mermaid
@@ -95,7 +86,7 @@ end
 ### Backend Infrastructure
 
 - **Programming Language**: Python 3.12+
-- **Database**: PostgreSQL 13+ with PostGIS extension
+- **Database**: PostgreSQL 13+ (17 in dev/staging) with PostGIS extension
 - **Database Migrations**: Alembic for schema versioning
 - **Data Models**: SQLModel (combining SQLAlchemy + Pydantic)
 - **API Framework**: FastAPI with automatic OpenAPI documentation
@@ -127,13 +118,15 @@ end
 
 ### Cloud Infrastructure & Services
 
-- **Google Cloud Platform**:
+- **Google Cloud Platform (GCP):**
   - Google Sheets API for data ingestion
-  - Google Cloud credentials management
-  - Potential cloud deployment target
-- **Database Hosting**: Containerized PostgreSQL (development), cloud SQL
-  (production)
-- **Container Registry**: For Docker image distribution
+  - Google Cloud Secret Manager for credentials
+- **Production deployment:** All core infrastructure (database, application
+  containers, orchestration, and secrets) runs on GCP using Cloud SQL, Cloud
+  Run, Artifact Registry, and Secret Manager
+- **Database Hosting:** PostgreSQL 17+ with PostGIS (Cloud SQL on GCP for
+  production, local PostGIS for development)
+- **Container Registry:** GCP Artifact Registry for Docker images
 
 ## Detailed Project Structure
 
@@ -318,6 +311,10 @@ subdirectories (91 models total). Four base mixins (`BaseEntity`, `LookupBase`,
 ### Core Domain Models
 
 #### Resource & Biomass Models (`resource_information/`)
+
+<!--
+TODO (2026-03-12): The "Core Domain Models" section below may be outdated. Review for accuracy in the next documentation update.
+-->
 
 - **Resource**: Core biomass resource definitions
 - **ResourceClass**, **ResourceSubclass**: Hierarchical resource classification
@@ -508,6 +505,10 @@ Environments:
 - **Code Quality**: Pre-commit hooks, linting, formatting
 
 ## Deployment & Operations
+
+<!--
+TODO (2026-03-12): Could change section to be less heavily bullet point reliant and use more descriptive language, with greater explanation of future architecture considerations as well.
+-->
 
 ### Container Orchestration
 

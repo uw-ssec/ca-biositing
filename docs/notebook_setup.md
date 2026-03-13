@@ -1,6 +1,6 @@
 # Notebook Setup Guide for **ca-biositing**
 
-**Purpose** -- Set up Jupyter notebooks with correct imports for the PEP 420
+**Purpose**: Set up Jupyter notebooks with correct imports for the PEP 420
 namespace packages used in this repository.
 
 ---
