@@ -1,4 +1,5 @@
-from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float
+from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY
+from sqlalchemy.dialects.postgresql import array as pg_array
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import expression
 from ca_biositing.datamodels.models.resource_information.resource import Resource, ResourceClass, ResourceSubclass, ResourceMorphology
@@ -21,6 +22,7 @@ from ca_biositing.datamodels.models.aim1_records.ftnir_record import FtnirRecord
 from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
 from ca_biositing.datamodels.models.aim2_records.strain import Strain
 from ca_biositing.datamodels.models.aim2_records.gasification_record import GasificationRecord
+from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 from ca_biositing.datamodels.models.external_data.usda_survey import UsdaMarketRecord, UsdaMarketReport
 from ca_biositing.datamodels.models.external_data.usda_census import UsdaCommodity
 from ca_biositing.datamodels.models.places.location_address import LocationAddress
@@ -64,14 +66,19 @@ resource_analysis_map = union_all(
     select(XrdRecord.resource_id, XrdRecord.record_id, literal("xrd analysis").label("type")),
     select(FtnirRecord.resource_id, FtnirRecord.record_id, literal("ftnir analysis").label("type")),
     select(FermentationRecord.resource_id, FermentationRecord.record_id, literal("fermentation").label("type")),
-    select(GasificationRecord.resource_id, GasificationRecord.record_id, literal("gasification").label("type"))
+    select(GasificationRecord.resource_id, GasificationRecord.record_id, literal("gasification").label("type")),
+    select(PretreatmentRecord.resource_id, PretreatmentRecord.record_id, literal("pretreatment").label("type"))
 ).subquery()
 
 resource_metrics = select(
     resource_analysis_map.c.resource_id,
     func.avg(case((analysis_metrics.c.parameter == "moisture", analysis_metrics.c.value))).label("moisture_percent"),
     func.avg(case((analysis_metrics.c.parameter == "ash", analysis_metrics.c.value))).label("ash_percent"),
-    func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))).label("lignin_percent"),
+    # Lignin content = sum of averages of lignin and lignin+
+    (
+        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))), 0) +
+        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin+", analysis_metrics.c.value))), 0)
+    ).label("lignin_percent"),
     # Sugar content = sum of averages of glucose and xylose
     (
         func.coalesce(func.avg(case((analysis_metrics.c.parameter == "glucose", analysis_metrics.c.value))), 0) +
@@ -87,13 +94,44 @@ resource_metrics = select(
     func.bool_or(resource_analysis_map.c.type == "xrd analysis").label("has_xrd"),
     func.bool_or(resource_analysis_map.c.type == "ftnir analysis").label("has_ftnir"),
     func.bool_or(resource_analysis_map.c.type == "fermentation").label("has_fermentation"),
-    func.bool_or(resource_analysis_map.c.type == "gasification").label("has_gasification")
+    func.bool_or(resource_analysis_map.c.type == "gasification").label("has_gasification"),
+    func.bool_or(resource_analysis_map.c.type == "pretreatment").label("has_pretreatment")
 ).select_from(resource_analysis_map)\
  .join(analysis_metrics, and_(
     resource_analysis_map.c.record_id == analysis_metrics.c.record_id,
     resource_analysis_map.c.type == analysis_metrics.c.record_type
  ), isouter=True)\
  .group_by(resource_analysis_map.c.resource_id).subquery()
+
+# Tag thresholds (10th and 90th percentiles) across all biomass data
+thresholds = select(
+ func.percentile_cont(0.1).within_group(resource_metrics.c.moisture_percent).label("moisture_low"),
+ func.percentile_cont(0.9).within_group(resource_metrics.c.moisture_percent).label("moisture_high"),
+ func.percentile_cont(0.1).within_group(resource_metrics.c.ash_percent).label("ash_low"),
+ func.percentile_cont(0.9).within_group(resource_metrics.c.ash_percent).label("ash_high"),
+ func.percentile_cont(0.1).within_group(resource_metrics.c.lignin_percent).label("lignin_low"),
+ func.percentile_cont(0.9).within_group(resource_metrics.c.lignin_percent).label("lignin_high"),
+ func.percentile_cont(0.1).within_group(resource_metrics.c.sugar_content_percent).label("sugar_low"),
+ func.percentile_cont(0.9).within_group(resource_metrics.c.sugar_content_percent).label("sugar_high")
+).subquery()
+
+# Resource tags generation
+resource_tags = select(
+    resource_metrics.c.resource_id,
+    func.array_remove(
+        pg_array([
+            case((resource_metrics.c.moisture_percent <= thresholds.c.moisture_low, "low moisture"), else_=None),
+            case((resource_metrics.c.moisture_percent >= thresholds.c.moisture_high, "high moisture"), else_=None),
+            case((resource_metrics.c.ash_percent <= thresholds.c.ash_low, "low ash"), else_=None),
+            case((resource_metrics.c.ash_percent >= thresholds.c.ash_high, "high ash"), else_=None),
+            case((resource_metrics.c.lignin_percent <= thresholds.c.lignin_low, "low lignin"), else_=None),
+            case((resource_metrics.c.lignin_percent >= thresholds.c.lignin_high, "high lignin"), else_=None),
+            case((resource_metrics.c.sugar_content_percent <= thresholds.c.sugar_low, "low sugar"), else_=None),
+            case((resource_metrics.c.sugar_content_percent >= thresholds.c.sugar_high, "high sugar"), else_=None)
+        ]),
+        None
+    ).label("tags")
+).select_from(resource_metrics).join(thresholds, literal(True)).subquery()
 
 # Aggregated volume from Billion Ton
 agg_vol = select(
@@ -121,6 +159,7 @@ mv_biomass_search = select(
     resource_metrics.c.sugar_content_percent,
     resource_metrics.c.ash_percent,
     resource_metrics.c.lignin_percent,
+    func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
     mv_biomass_availability.c.from_month.label("season_from_month"),
     mv_biomass_availability.c.to_month.label("season_to_month"),
     mv_biomass_availability.c.year_round,
@@ -135,13 +174,14 @@ mv_biomass_search = select(
     func.coalesce(resource_metrics.c.has_ftnir, False).label("has_ftnir"),
     func.coalesce(resource_metrics.c.has_fermentation, False).label("has_fermentation"),
     func.coalesce(resource_metrics.c.has_gasification, False).label("has_gasification"),
+    func.coalesce(resource_metrics.c.has_pretreatment, False).label("has_pretreatment"),
     case((resource_metrics.c.moisture_percent != None, True), else_=False).label("has_moisture_data"),
     case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar_data"),
     case((ResourceMorphology.morphology_uri != None, True), else_=False).label("has_image"),
     case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
     Resource.created_at,
     Resource.updated_at,
-    func.to_tsvector('english',
+    func.to_tsvector(func.cast('english', Text),
         func.coalesce(Resource.name, '') + ' ' +
         func.coalesce(Resource.description, '') + ' ' +
         func.coalesce(ResourceClass.name, '') + ' ' +
@@ -155,6 +195,7 @@ mv_biomass_search = select(
  .outerjoin(ResourceMorphology, ResourceMorphology.resource_id == Resource.id)\
  .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
  .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
+ .outerjoin(resource_tags, resource_tags.c.resource_id == Resource.id)\
  .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)
 
 
@@ -178,7 +219,8 @@ comp_queries = [
     get_composition_query(IcpRecord, "icp"),
     get_composition_query(CalorimetryRecord, "calorimetry"),
     get_composition_query(XrdRecord, "xrd"),
-    get_composition_query(FtnirRecord, "ftnir")
+    get_composition_query(FtnirRecord, "ftnir"),
+    get_composition_query(PretreatmentRecord, "pretreatment")
 ]
 
 all_measurements = union_all(*comp_queries).subquery()
@@ -253,7 +295,8 @@ sample_queries = [
     get_sample_stats_query(XrdRecord),
     get_sample_stats_query(FtnirRecord),
     get_sample_stats_query(FermentationRecord),
-    get_sample_stats_query(GasificationRecord)
+    get_sample_stats_query(GasificationRecord),
+    get_sample_stats_query(PretreatmentRecord)
 ]
 
 all_samples = union_all(*sample_queries).subquery()
@@ -293,7 +336,7 @@ mv_biomass_fermentation = select(
     Unit.name.label("unit")
 ).select_from(FermentationRecord)\
  .join(Resource, FermentationRecord.resource_id == Resource.id)\
- .join(Strain, FermentationRecord.strain_id == Strain.id)\
+ .outerjoin(Strain, FermentationRecord.strain_id == Strain.id)\
  .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
  .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
  .join(Observation, Observation.record_id == FermentationRecord.record_id)\
