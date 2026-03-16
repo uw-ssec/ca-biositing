@@ -112,52 +112,52 @@ ANALYSIS_DATA_VIEW = (
     .outerjoin(AnalysisDimensionUnit, Observation.dimension_unit_id == AnalysisDimensionUnit.id)
     .outerjoin(
         ProximateRecord,
-        (Observation.record_id == ProximateRecord.record_id)
-        & (Observation.record_type == "proximate analysis"),
+        (func.lower(Observation.record_id) == func.lower(ProximateRecord.record_id))
+        & (func.lower(Observation.record_type) == "proximate analysis"),
     )
     .outerjoin(
         UltimateRecord,
-        (Observation.record_id == UltimateRecord.record_id)
-        & (Observation.record_type == "ultimate analysis"),
+        (func.lower(Observation.record_id) == func.lower(UltimateRecord.record_id))
+        & (func.lower(Observation.record_type) == "ultimate analysis"),
     )
     .outerjoin(
         CompositionalRecord,
-        (Observation.record_id == CompositionalRecord.record_id)
-        & (Observation.record_type == "compositional analysis"),
+        (func.lower(Observation.record_id) == func.lower(CompositionalRecord.record_id))
+        & (func.lower(Observation.record_type) == "compositional analysis"),
     )
     .outerjoin(
         IcpRecord,
-        (Observation.record_id == IcpRecord.record_id)
+        (func.lower(Observation.record_id) == func.lower(IcpRecord.record_id))
         & (
-            (Observation.record_type == "icp analysis")
-            | (Observation.record_type == "icp-oes")
-            | (Observation.record_type == "icp-ms")
+            (func.lower(Observation.record_type) == "icp analysis")
+            | (func.lower(Observation.record_type) == "icp-oes")
+            | (func.lower(Observation.record_type) == "icp-ms")
         ),
     )
     .outerjoin(
         XrfRecord,
-        (Observation.record_id == XrfRecord.record_id)
-        & (Observation.record_type == "xrf analysis"),
+        (func.lower(Observation.record_id) == func.lower(XrfRecord.record_id))
+        & (func.lower(Observation.record_type) == "xrf analysis"),
     )
     .outerjoin(
         CalorimetryRecord,
-        (Observation.record_id == CalorimetryRecord.record_id)
-        & (Observation.record_type == "calorimetry analysis"),
+        (func.lower(Observation.record_id) == func.lower(CalorimetryRecord.record_id))
+        & (func.lower(Observation.record_type) == "calorimetry analysis"),
     )
     .outerjoin(
         XrdRecord,
-        (Observation.record_id == XrdRecord.record_id)
-        & (Observation.record_type == "xrd analysis"),
+        (func.lower(Observation.record_id) == func.lower(XrdRecord.record_id))
+        & (func.lower(Observation.record_type) == "xrd analysis"),
     )
     .outerjoin(
         FermentationRecord,
-        (Observation.record_id == FermentationRecord.record_id)
-        & (Observation.record_type == "fermentation"),
+        (func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))
+        & (func.lower(Observation.record_type) == "fermentation"),
     )
     .outerjoin(
         PretreatmentRecord,
-        (Observation.record_id == PretreatmentRecord.record_id)
-        & (Observation.record_type == "pretreatment"),
+        (func.lower(Observation.record_id) == func.lower(PretreatmentRecord.record_id))
+        & (func.lower(Observation.record_type) == "pretreatment"),
     )
     .outerjoin(
         PreparedSample,
