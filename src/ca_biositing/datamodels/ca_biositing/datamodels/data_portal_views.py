@@ -1,4 +1,5 @@
-from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text
+from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import expression
 from ca_biositing.datamodels.models.resource_information.resource import Resource, ResourceClass, ResourceSubclass, ResourceMorphology
 from ca_biositing.datamodels.models.resource_information.primary_ag_product import PrimaryAgProduct
@@ -6,6 +7,7 @@ from ca_biositing.datamodels.models.external_data.billion_ton import BillionTon2
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
 from ca_biositing.datamodels.models.methods_parameters_units.unit import Unit
+from ca_biositing.datamodels.models.methods_parameters_units.method import Method
 from ca_biositing.datamodels.models.places.place import Place
 from ca_biositing.datamodels.models.resource_information.resource_availability import ResourceAvailability
 from ca_biositing.datamodels.models.aim1_records.compositional_record import CompositionalRecord
@@ -14,19 +16,93 @@ from ca_biositing.datamodels.models.aim1_records.ultimate_record import Ultimate
 from ca_biositing.datamodels.models.aim1_records.xrf_record import XrfRecord
 from ca_biositing.datamodels.models.aim1_records.icp_record import IcpRecord
 from ca_biositing.datamodels.models.aim1_records.calorimetry_record import CalorimetryRecord
+from ca_biositing.datamodels.models.aim1_records.xrd_record import XrdRecord
+from ca_biositing.datamodels.models.aim1_records.ftnir_record import FtnirRecord
 from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
 from ca_biositing.datamodels.models.aim2_records.strain import Strain
 from ca_biositing.datamodels.models.aim2_records.gasification_record import GasificationRecord
 from ca_biositing.datamodels.models.external_data.usda_survey import UsdaMarketRecord, UsdaMarketReport
 from ca_biositing.datamodels.models.external_data.usda_census import UsdaCommodity
 from ca_biositing.datamodels.models.places.location_address import LocationAddress
+from ca_biositing.datamodels.models.field_sampling.field_sample import FieldSample
+from ca_biositing.datamodels.models.people.provider import Provider
+from ca_biositing.datamodels.models.sample_preparation.prepared_sample import PreparedSample
+
+# 4. mv_biomass_availability
+# Aggregating to one row per resource
+mv_biomass_availability = select(
+    Resource.id.label("resource_id"),
+    Resource.name.label("resource_name"),
+    func.min(ResourceAvailability.from_month).label("from_month"),
+    func.max(ResourceAvailability.to_month).label("to_month"),
+    func.bool_or(ResourceAvailability.year_round).label("year_round"),
+    func.avg(ResourceAvailability.residue_factor_dry_tons_acre).label("dry_tons_per_acre"),
+    func.avg(ResourceAvailability.residue_factor_wet_tons_acre).label("wet_tons_per_acre")
+).select_from(ResourceAvailability)\
+ .join(Resource, ResourceAvailability.resource_id == Resource.id)\
+ .group_by(Resource.id, Resource.name).subquery()
 
 # 1. mv_biomass_search
+
+# Subquery for analytical averages (moisture, ash, lignin, sugar)
+# Sugar = glucose + xylose
+analysis_metrics = select(
+    Observation.record_id,
+    Observation.record_type,
+    Parameter.name.label("parameter"),
+    Observation.value
+).join(Parameter, Observation.parameter_id == Parameter.id).subquery()
+
+# Map record_id to resource_id across all analytical types
+resource_analysis_map = union_all(
+    select(CompositionalRecord.resource_id, CompositionalRecord.record_id, literal("compositional analysis").label("type")),
+    select(ProximateRecord.resource_id, ProximateRecord.record_id, literal("proximate analysis").label("type")),
+    select(UltimateRecord.resource_id, UltimateRecord.record_id, literal("ultimate analysis").label("type")),
+    select(XrfRecord.resource_id, XrfRecord.record_id, literal("xrf analysis").label("type")),
+    select(IcpRecord.resource_id, IcpRecord.record_id, literal("icp analysis").label("type")),
+    select(CalorimetryRecord.resource_id, CalorimetryRecord.record_id, literal("calorimetry analysis").label("type")),
+    select(XrdRecord.resource_id, XrdRecord.record_id, literal("xrd analysis").label("type")),
+    select(FtnirRecord.resource_id, FtnirRecord.record_id, literal("ftnir analysis").label("type")),
+    select(FermentationRecord.resource_id, FermentationRecord.record_id, literal("fermentation").label("type")),
+    select(GasificationRecord.resource_id, GasificationRecord.record_id, literal("gasification").label("type"))
+).subquery()
+
+resource_metrics = select(
+    resource_analysis_map.c.resource_id,
+    func.avg(case((analysis_metrics.c.parameter == "moisture", analysis_metrics.c.value))).label("moisture_percent"),
+    func.avg(case((analysis_metrics.c.parameter == "ash", analysis_metrics.c.value))).label("ash_percent"),
+    func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))).label("lignin_percent"),
+    # Sugar content = sum of averages of glucose and xylose
+    (
+        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "glucose", analysis_metrics.c.value))), 0) +
+        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "xylose", analysis_metrics.c.value))), 0)
+    ).label("sugar_content_percent"),
+    # Flags
+    func.bool_or(resource_analysis_map.c.type == "proximate analysis").label("has_proximate"),
+    func.bool_or(resource_analysis_map.c.type == "compositional analysis").label("has_compositional"),
+    func.bool_or(resource_analysis_map.c.type == "ultimate analysis").label("has_ultimate"),
+    func.bool_or(resource_analysis_map.c.type == "xrf analysis").label("has_xrf"),
+    func.bool_or(resource_analysis_map.c.type == "icp analysis").label("has_icp"),
+    func.bool_or(resource_analysis_map.c.type == "calorimetry analysis").label("has_calorimetry"),
+    func.bool_or(resource_analysis_map.c.type == "xrd analysis").label("has_xrd"),
+    func.bool_or(resource_analysis_map.c.type == "ftnir analysis").label("has_ftnir"),
+    func.bool_or(resource_analysis_map.c.type == "fermentation").label("has_fermentation"),
+    func.bool_or(resource_analysis_map.c.type == "gasification").label("has_gasification")
+).select_from(resource_analysis_map)\
+ .join(analysis_metrics, and_(
+    resource_analysis_map.c.record_id == analysis_metrics.c.record_id,
+    resource_analysis_map.c.type == analysis_metrics.c.record_type
+ ), isouter=True)\
+ .group_by(resource_analysis_map.c.resource_id).subquery()
+
 # Aggregated volume from Billion Ton
 agg_vol = select(
     BillionTon2023Record.resource_id,
-    func.sum(BillionTon2023Record.production).label("total_annual_volume")
-).group_by(BillionTon2023Record.resource_id).subquery()
+    func.sum(BillionTon2023Record.production).label("total_annual_volume"),
+    func.count(func.distinct(BillionTon2023Record.geoid)).label("county_count"),
+    func.max(Unit.name).label("volume_unit")
+).join(Unit, BillionTon2023Record.production_unit_id == Unit.id)\
+ .group_by(BillionTon2023Record.resource_id).subquery()
 
 mv_biomass_search = select(
     Resource.id,
@@ -37,16 +113,49 @@ mv_biomass_search = select(
     ResourceSubclass.name.label("resource_subclass"),
     PrimaryAgProduct.name.label("primary_product"),
     ResourceMorphology.morphology_uri.label("image_url"),
+    Resource.uri.label("literature_uri"),
     agg_vol.c.total_annual_volume,
-    # Placeholders for composition flags/metrics - can be expanded later
-    literal(False).label("has_moisture_data"),
-    literal(False).label("has_sugar_data")
+    agg_vol.c.county_count,
+    agg_vol.c.volume_unit,
+    resource_metrics.c.moisture_percent,
+    resource_metrics.c.sugar_content_percent,
+    resource_metrics.c.ash_percent,
+    resource_metrics.c.lignin_percent,
+    mv_biomass_availability.c.from_month.label("season_from_month"),
+    mv_biomass_availability.c.to_month.label("season_to_month"),
+    mv_biomass_availability.c.year_round,
+    # Boolean flags
+    func.coalesce(resource_metrics.c.has_proximate, False).label("has_proximate"),
+    func.coalesce(resource_metrics.c.has_compositional, False).label("has_compositional"),
+    func.coalesce(resource_metrics.c.has_ultimate, False).label("has_ultimate"),
+    func.coalesce(resource_metrics.c.has_xrf, False).label("has_xrf"),
+    func.coalesce(resource_metrics.c.has_icp, False).label("has_icp"),
+    func.coalesce(resource_metrics.c.has_calorimetry, False).label("has_calorimetry"),
+    func.coalesce(resource_metrics.c.has_xrd, False).label("has_xrd"),
+    func.coalesce(resource_metrics.c.has_ftnir, False).label("has_ftnir"),
+    func.coalesce(resource_metrics.c.has_fermentation, False).label("has_fermentation"),
+    func.coalesce(resource_metrics.c.has_gasification, False).label("has_gasification"),
+    case((resource_metrics.c.moisture_percent != None, True), else_=False).label("has_moisture_data"),
+    case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar_data"),
+    case((ResourceMorphology.morphology_uri != None, True), else_=False).label("has_image"),
+    case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
+    Resource.created_at,
+    Resource.updated_at,
+    func.to_tsvector('english',
+        func.coalesce(Resource.name, '') + ' ' +
+        func.coalesce(Resource.description, '') + ' ' +
+        func.coalesce(ResourceClass.name, '') + ' ' +
+        func.coalesce(ResourceSubclass.name, '') + ' ' +
+        func.coalesce(PrimaryAgProduct.name, '')
+    ).label("search_vector")
 ).select_from(Resource)\
  .outerjoin(ResourceClass, Resource.resource_class_id == ResourceClass.id)\
  .outerjoin(ResourceSubclass, Resource.resource_subclass_id == ResourceSubclass.id)\
  .outerjoin(PrimaryAgProduct, Resource.primary_ag_product_id == PrimaryAgProduct.id)\
  .outerjoin(ResourceMorphology, ResourceMorphology.resource_id == Resource.id)\
- .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)
+ .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
+ .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
+ .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)
 
 
 # 2. mv_biomass_composition
@@ -67,12 +176,15 @@ comp_queries = [
     get_composition_query(UltimateRecord, "ultimate"),
     get_composition_query(XrfRecord, "xrf"),
     get_composition_query(IcpRecord, "icp"),
-    get_composition_query(CalorimetryRecord, "calorimetry")
+    get_composition_query(CalorimetryRecord, "calorimetry"),
+    get_composition_query(XrdRecord, "xrd"),
+    get_composition_query(FtnirRecord, "ftnir")
 ]
 
 all_measurements = union_all(*comp_queries).subquery()
 
 mv_biomass_composition = select(
+    func.row_number().over().label("id"),
     all_measurements.c.resource_id,
     Resource.name.label("resource_name"),
     all_measurements.c.analysis_type,
@@ -95,34 +207,32 @@ mv_biomass_composition = select(
 
 
 # 3. mv_biomass_county_production
+EU = aliased(Unit, name="eu")
 mv_biomass_county_production = select(
     func.row_number().over().label("id"),
     BillionTon2023Record.resource_id,
     Resource.name.label("resource_name"),
+    ResourceClass.name.label("resource_class"),
     Place.geoid,
     Place.county_name.label("county"),
     Place.state_name.label("state"),
     BillionTon2023Record.scenario_name.label("scenario"),
+    BillionTon2023Record.price_offered_usd,
     BillionTon2023Record.production,
-    BillionTon2023Record.year_num.label("year") if hasattr(BillionTon2023Record, 'year_num') else literal(2023).label("year") # Assuming year field or static
+    Unit.name.label("production_unit"),
+    BillionTon2023Record.production_energy_content.label("energy_content"),
+    EU.name.label("energy_unit"),
+    BillionTon2023Record.product_density_dtpersqmi.label("density_dt_per_sqmi"),
+    BillionTon2023Record.county_square_miles,
+    literal(2023).label("year")
 ).select_from(BillionTon2023Record)\
  .join(Resource, BillionTon2023Record.resource_id == Resource.id)\
- .join(Place, BillionTon2023Record.geoid == Place.geoid)
+ .outerjoin(ResourceClass, Resource.resource_class_id == ResourceClass.id)\
+ .join(Place, BillionTon2023Record.geoid == Place.geoid)\
+ .outerjoin(Unit, BillionTon2023Record.production_unit_id == Unit.id)\
+ .outerjoin(EU, BillionTon2023Record.energy_content_unit_id == EU.id)
 
 
-# 4. mv_biomass_availability
-# Aggregating to one row per resource
-mv_biomass_availability = select(
-    Resource.id.label("resource_id"),
-    Resource.name.label("resource_name"),
-    func.min(ResourceAvailability.from_month).label("from_month"),
-    func.max(ResourceAvailability.to_month).label("to_month"),
-    func.bool_or(ResourceAvailability.year_round).label("year_round"),
-    func.avg(ResourceAvailability.residue_factor_dry_tons_acre).label("avg_residue_factor_dry"),
-    func.avg(ResourceAvailability.residue_factor_wet_tons_acre).label("avg_residue_factor_wet")
-).select_from(ResourceAvailability)\
- .join(Resource, ResourceAvailability.resource_id == Resource.id)\
- .group_by(Resource.id, Resource.name)
 
 
 # 5. mv_biomass_sample_stats
@@ -139,7 +249,11 @@ sample_queries = [
     get_sample_stats_query(UltimateRecord),
     get_sample_stats_query(XrfRecord),
     get_sample_stats_query(IcpRecord),
-    get_sample_stats_query(CalorimetryRecord)
+    get_sample_stats_query(CalorimetryRecord),
+    get_sample_stats_query(XrdRecord),
+    get_sample_stats_query(FtnirRecord),
+    get_sample_stats_query(FermentationRecord),
+    get_sample_stats_query(GasificationRecord)
 ]
 
 all_samples = union_all(*sample_queries).subquery()
@@ -148,41 +262,66 @@ mv_biomass_sample_stats = select(
     Resource.id.label("resource_id"),
     Resource.name.label("resource_name"),
     func.count(func.distinct(all_samples.c.prepared_sample_id)).label("sample_count"),
+    func.count(func.distinct(Provider.id)).label("supplier_count"),
     func.count(func.distinct(all_samples.c.dataset_id)).label("dataset_count"),
     func.count().label("total_record_count")
 ).select_from(Resource)\
  .outerjoin(all_samples, all_samples.c.resource_id == Resource.id)\
+ .outerjoin(PreparedSample, cast(all_samples.c.prepared_sample_id, Integer) == PreparedSample.id)\
+ .outerjoin(FieldSample, PreparedSample.field_sample_id == FieldSample.id)\
+ .outerjoin(Provider, FieldSample.provider_id == Provider.id)\
  .group_by(Resource.id, Resource.name)
 
 
 # 6. mv_biomass_fermentation
+PM = aliased(Method, name="pm")
+EM = aliased(Method, name="em")
+
 mv_biomass_fermentation = select(
+    func.row_number().over().label("id"),
     FermentationRecord.resource_id,
+    Resource.name.label("resource_name"),
     Strain.name.label("strain_name"),
-    Parameter.name.label("parameter_name"),
+    PM.name.label("pretreatment_method"),
+    EM.name.label("enzyme_name"),
+    Parameter.name.label("product_name"),
     func.avg(Observation.value).label("avg_value"),
     func.min(Observation.value).label("min_value"),
     func.max(Observation.value).label("max_value"),
-    func.count().label("observation_count")
+    func.stddev(Observation.value).label("std_dev"),
+    func.count().label("observation_count"),
+    Unit.name.label("unit")
 ).select_from(FermentationRecord)\
+ .join(Resource, FermentationRecord.resource_id == Resource.id)\
  .join(Strain, FermentationRecord.strain_id == Strain.id)\
+ .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
+ .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
  .join(Observation, Observation.record_id == FermentationRecord.record_id)\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
- .group_by(FermentationRecord.resource_id, Strain.name, Parameter.name)
+ .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .group_by(FermentationRecord.resource_id, Resource.name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)
 
 
 # 7. mv_biomass_gasification
 mv_biomass_gasification = select(
+    func.row_number().over().label("id"),
     GasificationRecord.resource_id,
+    Resource.name.label("resource_name"),
     Parameter.name.label("parameter_name"),
     func.avg(Observation.value).label("avg_value"),
     func.min(Observation.value).label("min_value"),
     func.max(Observation.value).label("max_value"),
-    func.count().label("observation_count")
+    func.stddev(Observation.value).label("std_dev"),
+    func.count().label("observation_count"),
+    Unit.name.label("unit"),
+    func.avg(GasificationRecord.bed_temperature).label("bed_temperature"),
+    func.avg(GasificationRecord.gas_flow_rate).label("gas_flow_rate")
 ).select_from(GasificationRecord)\
+ .join(Resource, GasificationRecord.resource_id == Resource.id)\
  .join(Observation, Observation.record_id == GasificationRecord.record_id)\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
- .group_by(GasificationRecord.resource_id, Parameter.name)
+ .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .group_by(GasificationRecord.resource_id, Resource.name, Parameter.name, Unit.name)
 
 
 # 8. mv_biomass_pricing
