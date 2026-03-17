@@ -64,6 +64,7 @@ def field_sample_etl_flow():
         logger.info("Successfully refreshed materialized views.")
     except Exception as e:
         logger.error(f"Failed to refresh materialized views: {e}")
+        raise
 
     logger.info("Field Sample ETL flow completed successfully.")
 

@@ -119,6 +119,19 @@ def transform_field_sample(
     logger.info("Normalizing joined data (swapping names for IDs)...")
     normalized_df = normalize_dataframes(joined_df, normalize_columns)
 
+    # Coalesce storage method ID columns to handle variations in source headers
+    # (e.g., 'field_storage_method', 'field_storage_mode', 'storage_mode')
+    storage_id_cols = ['field_storage_method_id', 'field_storage_mode_id', 'storage_mode_id']
+    target_col = 'field_storage_method_id'
+
+    # Initialize target column if missing
+    if target_col not in normalized_df.columns:
+        normalized_df[target_col] = None
+
+    for col in storage_id_cols:
+        if col in normalized_df.columns and col != target_col:
+            normalized_df[target_col] = normalized_df[target_col].combine_first(normalized_df[col])
+
     # 5. Select and Rename Columns (from notebook)
     # Note: 'sampling_location_id' will be linked during the loading phase
     # based on the location details preserved in the metadata.
