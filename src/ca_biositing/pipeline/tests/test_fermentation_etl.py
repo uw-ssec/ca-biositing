@@ -63,7 +63,7 @@ def test_fermentation_etl_full(
             "lineage_group_id": [1]
         })]
 
-        mock_ferm_normalize.return_value = pd.DataFrame({
+        mock_ferm_normalize.return_value = [pd.DataFrame({
             "record_id": ["FERM_001"],
             "replicate_no": [1],
             "well_position": ["B2"],
@@ -74,7 +74,7 @@ def test_fermentation_etl_full(
             "analysis_equipment_id": [40],
             "raw_data_url_id": [100],
             "dataset_id": [1]
-        })
+        })]
 
         # 3. Mock Load
         mock_conn = MagicMock()

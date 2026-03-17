@@ -48,7 +48,11 @@ def load_location_address(df: pd.DataFrame):
             addr_map = {}
             for a in existing_addresses:
                 # Key includes ZIP as per plan
-                key = (a.geography_id, a.address_line1, a.city, a.zip)
+                # Standardize existing record keys for lookup to ensure matching works
+                addr1_std = str(a.address_line1).strip().lower() if a.address_line1 else None
+                city_std = str(a.city).strip().lower() if a.city else None
+                zip_std = str(a.zip).strip() if a.zip else None
+                key = (a.geography_id, addr1_std, city_std, zip_std)
                 addr_map[key] = a
 
             for record in records:

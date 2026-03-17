@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 import pandas as pd
+import pytest
 
 
 def test_extract_basic_sample_info_import():
@@ -52,7 +53,6 @@ def test_extract_basic_sample_info_failure(mock_gsheet_to_df, mock_logger):
     mock_gsheet_to_df.return_value = None
 
     # Call the function directly (not as a Prefect task)
-    result = extract.fn()
-
-    # Verify it returns None on failure
-    assert result is None
+    # The factory-generated extract function raises RuntimeError when raw_df is None
+    with pytest.raises(RuntimeError, match="Extractor returned None"):
+        extract.fn()

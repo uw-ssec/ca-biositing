@@ -84,7 +84,7 @@ def test_transform_success(mock_normalize, mock_logger, sample_billion_ton_df):
         # resource -> resource_id
         for col in normalize_columns.keys():
             df_copy[f"{col}_id"] = 1
-        return df_copy
+        return [df_copy]
 
     mock_normalize.side_effect = side_effect
 
@@ -140,7 +140,7 @@ def test_transform_filter_california(mock_logger, sample_billion_ton_df):
     data_sources = {"billion_ton": df_mixed}
 
     # We mock normalize_dataframes to avoid DB connection
-    with patch("ca_biositing.pipeline.etl.transform.billion_ton.normalize_dataframes", side_effect=lambda df, cols: df):
+    with patch("ca_biositing.pipeline.etl.transform.billion_ton.normalize_dataframes", side_effect=lambda df, cols: [df]):
         result = transform.fn(data_sources)
         # Should only have California records (2 from fixture)
         assert len(result) == 2
