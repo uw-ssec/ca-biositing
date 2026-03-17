@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import transform_field_sample
 
 @patch("ca_biositing.pipeline.etl.transform.field_sampling.field_sample.normalize_dataframes")
-@patch("ca_biositing.pipeline.etl.transform.field_sampling.field_sample.Session", create=True)
-@patch("ca_biositing.pipeline.etl.transform.field_sampling.field_sample.engine", create=True)
+@patch("sqlmodel.Session")
+@patch("ca_biositing.pipeline.utils.engine.engine")
 def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
     # 1. Setup Mock Data
     metadata_raw = pd.DataFrame({
@@ -20,7 +20,8 @@ def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
         "Sample_Source": ["Source A", "Source B", "Source C"],
         "Prepared_Sample": ["Sample A", "Sample B", "Sample C"],
         "Storage_Mode": ["Method A", "Method B", "Method C"],
-        "Sample_Unit": ["core", "Core", "not_core"]
+        "Sample_Unit": ["core", "Core", "not_core"],
+        "County": ["San Joaquin", "San Joaquin", "San Joaquin"]
     })
 
     provider_raw = pd.DataFrame({
@@ -37,7 +38,7 @@ def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
     }
 
     # 2. Mock normalize_dataframes to return a DF with expected ID columns
-    def side_effect(df, normalize_columns):
+    def side_effect_normalize(df, normalize_columns):
         df_norm = df.copy()
         df_norm["resource_id"] = 1
         df_norm["provider_codename_id"] = 10
@@ -45,7 +46,7 @@ def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
         df_norm["dataset_id"] = 1
         return [df_norm]
 
-    mock_normalize.side_effect = side_effect
+    mock_normalize.side_effect = side_effect_normalize
 
     # 3. Mock Database Session
     mock_session_obj = MagicMock()
@@ -71,7 +72,7 @@ def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
     # Deduplication based on field_sample_name
     assert len(result_df) == 2
 
-    # Check columns (using the rename_map names)
+    # Check columns
     assert "name" in result_df.columns
     assert "resource_id" in result_df.columns
     assert "provider_id" in result_df.columns
