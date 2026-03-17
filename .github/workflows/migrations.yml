@@ -1,0 +1,73 @@
+name: Migrations
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "alembic/**"
+      - "alembic.ini"
+      - "src/ca_biositing/datamodels/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/migrations.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "alembic/**"
+      - "alembic.ini"
+      - "src/ca_biositing/datamodels/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/migrations.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  migrations:
+    name: Test Alembic Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: biocirv_user
+          POSTGRES_PASSWORD: biocirv_dev_password
+          POSTGRES_DB: biocirv_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biocirv_user -d biocirv_db"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      # CI-only credentials for ephemeral PostGIS service container.
+      # These are NOT used in staging or production environments.
+      DATABASE_URL: postgresql+psycopg2://biocirv_user:biocirv_dev_password@localhost:5432/biocirv_db
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: py312
+
+      - name: Run migrations (upgrade)
+        run: pixi run -e py312 alembic upgrade head
+
+      - name: Verify migration head matches models
+        run: pixi run -e py312 alembic check
+
+      - name: Run migrations (downgrade)
+        run: pixi run -e py312 alembic downgrade base

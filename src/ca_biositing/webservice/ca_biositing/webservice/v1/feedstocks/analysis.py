@@ -14,9 +14,52 @@ from ca_biositing.webservice.services.analysis_service import AnalysisService
 from ca_biositing.webservice.v1.feedstocks.schemas import (
     AnalysisDataResponse,
     AnalysisListResponse,
+    DiscoveryResponse,
 )
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
+
+
+@router.get("/resources", response_model=DiscoveryResponse)
+def list_analysis_resources(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct resource names available for analysis queries.
+
+    Example:
+        GET /v1/feedstocks/analysis/resources
+
+    Returns:
+        DiscoveryResponse with list of resource name strings
+    """
+    return DiscoveryResponse(values=AnalysisService.list_resources(session))
+
+
+@router.get("/geoids", response_model=DiscoveryResponse)
+def list_analysis_geoids(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct geoids available for analysis queries.
+
+    Returns an empty list until the known analysis_data_view geoid bug is resolved.
+    Use GET /v1/feedstocks/analysis/resources to discover available resources.
+
+    Example:
+        GET /v1/feedstocks/analysis/geoids
+
+    Returns:
+        DiscoveryResponse with list of geoid strings
+    """
+    return DiscoveryResponse(values=AnalysisService.list_geoids(session))
+
+
+@router.get("/parameters", response_model=DiscoveryResponse)
+def list_analysis_parameters(session: SessionDep) -> DiscoveryResponse:
+    """List all distinct parameter names available for analysis queries.
+
+    Example:
+        GET /v1/feedstocks/analysis/parameters
+
+    Returns:
+        DiscoveryResponse with list of parameter name strings
+    """
+    return DiscoveryResponse(values=AnalysisService.list_parameters(session))
 
 
 @router.get(
@@ -25,16 +68,35 @@ router = APIRouter(prefix="/analysis", tags=["Analysis"])
 )
 def get_analysis_data_by_resource(
     session: SessionDep,
-    resource: str = Path(..., description="Resource name (e.g., almond_hulls, corn_stover)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
-    parameter: str = Path(..., description="Parameter name (e.g., ash, moisture)"),
+    resource: str = Path(
+        ...,
+        description=(
+            "Resource name (e.g., almond hulls, corn stover whole). "
+            "Case-insensitive; spaces and underscores are treated equivalently. "
+            "Use GET /v1/feedstocks/analysis/resources to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (county FIPS code). "
+            "Use GET /v1/feedstocks/analysis/geoids to discover available values."
+        ),
+    ),
+    parameter: str = Path(
+        ...,
+        description=(
+            "Parameter name (e.g., ash, moisture, nitrogen). "
+            "Use GET /v1/feedstocks/analysis/parameters to discover available values."
+        ),
+    ),
 ) -> AnalysisDataResponse:
     """Get a single analysis parameter for a specific resource and geographic area.
 
     Queries analysis data from proximate, ultimate, and compositional analysis records.
 
     Example:
-        GET /v1/feedstocks/analysis/resources/almond_hulls/geoid/06001/parameters/ash
+        GET /v1/feedstocks/analysis/resources/almond hulls/geoid/06047/parameters/ash
 
     Args:
         session: Database session (injected)
@@ -59,15 +121,28 @@ def get_analysis_data_by_resource(
 )
 def list_analysis_data_by_resource(
     session: SessionDep,
-    resource: str = Path(..., description="Resource name (e.g., almond_hulls, corn_stover)"),
-    geoid: str = Path(..., description="Geographic identifier (e.g., 06001)"),
+    resource: str = Path(
+        ...,
+        description=(
+            "Resource name (e.g., almond hulls, corn stover whole). "
+            "Case-insensitive; spaces and underscores are treated equivalently. "
+            "Use GET /v1/feedstocks/analysis/resources to discover available values."
+        ),
+    ),
+    geoid: str = Path(
+        ...,
+        description=(
+            "Geographic identifier (county FIPS code). "
+            "Use GET /v1/feedstocks/analysis/geoids to discover available values."
+        ),
+    ),
 ) -> AnalysisListResponse:
     """List all analysis parameters for a specific resource and geographic area.
 
     Queries all available analysis data from proximate, ultimate, and compositional records.
 
     Example:
-        GET /v1/feedstocks/analysis/resources/almond_hulls/geoid/06001/parameters
+        GET /v1/feedstocks/analysis/resources/almond hulls/geoid/06047/parameters
 
     Args:
         session: Database session (injected)

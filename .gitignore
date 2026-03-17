@@ -68,3 +68,5 @@ backups/
 
 # PR Plans
 docs/pr/
+# MkDocs build output
+site/

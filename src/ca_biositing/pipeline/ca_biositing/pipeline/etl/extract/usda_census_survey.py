@@ -1,6 +1,6 @@
 """
-USDA Census and Survey Data Extraction
----
+USDA Census and Survey Data Extraction.
+
 This module extracts agricultural census and survey data from the USDA NASS
 Quick Stats API for California.
 Data includes:
