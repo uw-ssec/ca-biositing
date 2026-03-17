@@ -1,7 +1,7 @@
 """Add uri to resource
 
 Revision ID: 23a53daf6d9f
-Revises: b695bb1dbf9f
+Revises: 64de60aff03d
 Create Date: 2026-03-16 11:13:09.435377
 
 """
@@ -13,7 +13,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = '23a53daf6d9f'
-down_revision: Union[str, Sequence[str], None] = 'b695bb1dbf9f'
+down_revision: Union[str, Sequence[str], None] = '64de60aff03d'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

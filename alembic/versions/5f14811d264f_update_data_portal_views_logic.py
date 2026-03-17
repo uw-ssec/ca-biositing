@@ -1,7 +1,7 @@
 """Update data portal views logic
 
 Revision ID: 5f14811d264f
-Revises: 23a53daf6d9f
+Revises: b695bb1dbf9f
 Create Date: 2026-03-16 11:24:06.273089
 
 """
@@ -20,7 +20,7 @@ from ca_biositing.datamodels.data_portal_views import (
 
 # revision identifiers, used by Alembic.
 revision: str = '5f14811d264f'
-down_revision: Union[str, Sequence[str], None] = '23a53daf6d9f'
+down_revision: Union[str, Sequence[str], None] = 'b695bb1dbf9f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

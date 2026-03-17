@@ -1,7 +1,7 @@
 """add_data_portal_views
 
 Revision ID: f5ac1b135099
-Revises: 64de60aff03d
+Revises: 23a53daf6d9f
 Create Date: 2026-03-08 23:03:39.654496
 
 """
@@ -23,7 +23,7 @@ from ca_biositing.datamodels.data_portal_views import (
 
 # revision identifiers, used by Alembic.
 revision: str = 'f5ac1b135099'
-down_revision: Union[str, Sequence[str], None] = '64de60aff03d'
+down_revision: Union[str, Sequence[str], None] = '23a53daf6d9f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -87,10 +87,10 @@ def upgrade() -> None:
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_sample_stats_resource_id ON data_portal.mv_biomass_sample_stats (resource_id)")
 
     create_mv("mv_biomass_fermentation", mv_biomass_fermentation)
-    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_fermentation_key ON data_portal.mv_biomass_fermentation (resource_id, strain_name, parameter_name)")
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_fermentation_key ON data_portal.mv_biomass_fermentation (resource_id, strain_name, product_name)")
 
     create_mv("mv_biomass_gasification", mv_biomass_gasification)
-    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_gasification_key ON data_portal.mv_biomass_gasification (resource_id, parameter_name)")
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_gasification_key ON data_portal.mv_biomass_gasification (resource_id, parameter_name, reactor_type)")
 
     create_mv("mv_biomass_pricing", mv_biomass_pricing)
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_pricing_id ON data_portal.mv_biomass_pricing (id)")

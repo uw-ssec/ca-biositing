@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY
+from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text
 from sqlalchemy.dialects.postgresql import array as pg_array
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import expression
@@ -76,14 +76,30 @@ resource_metrics = select(
     func.avg(case((analysis_metrics.c.parameter == "moisture", analysis_metrics.c.value))).label("moisture_percent"),
     func.avg(case((analysis_metrics.c.parameter == "ash", analysis_metrics.c.value))).label("ash_percent"),
     # Lignin content = sum of averages of lignin and lignin+
-    (
-        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))), 0) +
-        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin+", analysis_metrics.c.value))), 0)
+    # Returns NULL if neither parameter is present for the resource
+    case(
+        (
+            or_(
+                func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))).is_not(None),
+                func.avg(case((analysis_metrics.c.parameter == "lignin+", analysis_metrics.c.value))).is_not(None)
+            ),
+            func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin", analysis_metrics.c.value))), 0) +
+            func.coalesce(func.avg(case((analysis_metrics.c.parameter == "lignin+", analysis_metrics.c.value))), 0)
+        ),
+        else_=None
     ).label("lignin_percent"),
     # Sugar content = sum of averages of glucose and xylose
-    (
-        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "glucose", analysis_metrics.c.value))), 0) +
-        func.coalesce(func.avg(case((analysis_metrics.c.parameter == "xylose", analysis_metrics.c.value))), 0)
+    # Returns NULL if neither parameter is present for the resource
+    case(
+        (
+            or_(
+                func.avg(case((analysis_metrics.c.parameter == "glucose", analysis_metrics.c.value))).is_not(None),
+                func.avg(case((analysis_metrics.c.parameter == "xylose", analysis_metrics.c.value))).is_not(None)
+            ),
+            func.coalesce(func.avg(case((analysis_metrics.c.parameter == "glucose", analysis_metrics.c.value))), 0) +
+            func.coalesce(func.avg(case((analysis_metrics.c.parameter == "xylose", analysis_metrics.c.value))), 0)
+        ),
+        else_=None
     ).label("sugar_content_percent"),
     # Flags
     func.bool_or(resource_analysis_map.c.type == "proximate analysis").label("has_proximate"),
@@ -182,7 +198,7 @@ mv_biomass_search = select(
     case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
     Resource.created_at,
     Resource.updated_at,
-    func.to_tsvector(func.cast('english', Text),
+    func.to_tsvector(text("'english'"),
         func.coalesce(Resource.name, '') + ' ' +
         func.coalesce(Resource.description, '') + ' ' +
         func.coalesce(ResourceClass.name, '') + ' ' +
