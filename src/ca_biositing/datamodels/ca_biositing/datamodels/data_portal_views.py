@@ -24,7 +24,8 @@ from ca_biositing.datamodels.models.aim2_records.strain import Strain
 from ca_biositing.datamodels.models.aim2_records.gasification_record import GasificationRecord
 from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 from ca_biositing.datamodels.models.external_data.usda_survey import UsdaMarketRecord, UsdaMarketReport
-from ca_biositing.datamodels.models.external_data.usda_census import UsdaCommodity
+from ca_biositing.datamodels.models.external_data.usda_census import UsdaCensusRecord, UsdaCommodity
+from ca_biositing.datamodels.models.external_data.resource_usda_commodity_map import ResourceUsdaCommodityMap
 from ca_biositing.datamodels.models.places.location_address import LocationAddress
 from ca_biositing.datamodels.models.field_sampling.field_sample import FieldSample
 from ca_biositing.datamodels.models.people.provider import Provider
@@ -350,6 +351,7 @@ mv_biomass_gasification = select(
     func.row_number().over().label("id"),
     GasificationRecord.resource_id,
     Resource.name.label("resource_name"),
+    Method.name.label("reactor_type"),
     Parameter.name.label("parameter_name"),
     func.avg(Observation.value).label("avg_value"),
     func.min(Observation.value).label("min_value"),
@@ -361,26 +363,78 @@ mv_biomass_gasification = select(
     func.avg(GasificationRecord.gas_flow_rate).label("gas_flow_rate")
 ).select_from(GasificationRecord)\
  .join(Resource, GasificationRecord.resource_id == Resource.id)\
+ .outerjoin(Method, GasificationRecord.method_id == Method.id)\
  .join(Observation, Observation.record_id == GasificationRecord.record_id)\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
- .group_by(GasificationRecord.resource_id, Resource.name, Parameter.name, Unit.name)
+ .group_by(GasificationRecord.resource_id, Resource.name, Method.name, Parameter.name, Unit.name)
 
 
 # 8. mv_biomass_pricing
+# Aggregating market pricing from USDA survey data
+pricing_obs = select(
+    Observation.record_id,
+    func.avg(Observation.value).label("price_avg"),
+    func.min(Observation.value).label("price_min"),
+    func.max(Observation.value).label("price_max"),
+    Unit.name.label("price_unit")
+).join(Parameter, Observation.parameter_id == Parameter.id)\
+ .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .where(and_(Observation.record_type == "usda_market_record", func.lower(Parameter.name) == "price received"))\
+ .group_by(Observation.record_id, Unit.name).subquery()
+
 mv_biomass_pricing = select(
     func.row_number().over().label("id"),
     UsdaCommodity.name.label("commodity_name"),
+    Place.geoid,
     Place.county_name.label("county"),
     Place.state_name.label("state"),
     UsdaMarketRecord.report_date,
     UsdaMarketRecord.market_type_category,
     UsdaMarketRecord.sale_type,
-    literal(0).label("price_min"),
-    literal(0).label("price_max"),
-    literal(0).label("price_avg")
+    pricing_obs.c.price_min,
+    pricing_obs.c.price_max,
+    pricing_obs.c.price_avg,
+    pricing_obs.c.price_unit
 ).select_from(UsdaMarketRecord)\
  .join(UsdaMarketReport, UsdaMarketRecord.report_id == UsdaMarketReport.id)\
  .join(UsdaCommodity, UsdaMarketRecord.commodity_id == UsdaCommodity.id)\
  .outerjoin(LocationAddress, UsdaMarketReport.office_city_id == LocationAddress.id)\
- .outerjoin(Place, LocationAddress.geography_id == Place.geoid)
+ .outerjoin(Place, LocationAddress.geography_id == Place.geoid)\
+ .join(pricing_obs, cast(UsdaMarketRecord.id, String) == pricing_obs.c.record_id)
+
+
+# 9. mv_usda_county_production
+# Bridging USDA Census data with BioCirV Resources and residue factors
+census_obs = select(
+    Observation.record_id,
+    func.max(case((func.lower(Parameter.name) == "production", Observation.value))).label("primary_product_volume"),
+    func.max(case((func.lower(Parameter.name) == "area harvested", Observation.value))).label("harvested_acres"),
+    func.max(case((func.lower(Parameter.name) == "production", Unit.name))).label("volume_unit")
+).join(Parameter, Observation.parameter_id == Parameter.id)\
+ .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .where(Observation.record_type == "usda_census_record")\
+ .group_by(Observation.record_id).subquery()
+
+mv_usda_county_production = select(
+    func.row_number().over().label("id"),
+    Resource.id.label("resource_id"),
+    Resource.name.label("resource_name"),
+    Place.geoid,
+    Place.county_name.label("county"),
+    Place.state_name.label("state"),
+    UsdaCensusRecord.year,
+    census_obs.c.primary_product_volume,
+    census_obs.c.volume_unit,
+    literal(None).label("known_biomass_volume"),
+    (census_obs.c.harvested_acres * ResourceAvailability.residue_factor_dry_tons_acre).label("calculated_estimate_volume"),
+    literal("dry tons").label("biomass_unit")
+).select_from(UsdaCensusRecord)\
+ .join(ResourceUsdaCommodityMap, UsdaCensusRecord.commodity_code == ResourceUsdaCommodityMap.usda_commodity_id)\
+ .join(Resource, ResourceUsdaCommodityMap.resource_id == Resource.id)\
+ .join(Place, UsdaCensusRecord.geoid == Place.geoid)\
+ .join(census_obs, cast(UsdaCensusRecord.id, String) == census_obs.c.record_id)\
+ .outerjoin(ResourceAvailability, and_(
+    Resource.id == ResourceAvailability.resource_id,
+    Place.geoid == ResourceAvailability.geoid
+ ))
