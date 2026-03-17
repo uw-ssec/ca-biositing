@@ -409,7 +409,14 @@ mv_biomass_pricing = select(
 census_obs = select(
     Observation.record_id,
     func.max(case((func.lower(Parameter.name) == "production", Observation.value))).label("primary_product_volume"),
-    func.max(case((func.lower(Parameter.name) == "area harvested", Observation.value))).label("harvested_acres"),
+    # Broadening acre search to include various USDA area metrics
+    func.max(case((func.lower(Parameter.name).in_([
+        "area harvested",
+        "area in production",
+        "area bearing",
+        "area bearing & non-bearing",
+        "area planted"
+    ]), Observation.value))).label("production_acres"),
     func.max(case((func.lower(Parameter.name) == "production", Unit.name))).label("volume_unit")
 ).join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
@@ -420,18 +427,21 @@ mv_usda_county_production = select(
     func.row_number().over().label("id"),
     Resource.id.label("resource_id"),
     Resource.name.label("resource_name"),
+    PrimaryAgProduct.name.label("primary_ag_product"),
     Place.geoid,
     Place.county_name.label("county"),
     Place.state_name.label("state"),
-    UsdaCensusRecord.year,
+    UsdaCensusRecord.year.label("dataset_year"),
     census_obs.c.primary_product_volume,
     census_obs.c.volume_unit,
+    census_obs.c.production_acres,
     literal(None).label("known_biomass_volume"),
-    (census_obs.c.harvested_acres * ResourceAvailability.residue_factor_dry_tons_acre).label("calculated_estimate_volume"),
+    (census_obs.c.production_acres * ResourceAvailability.residue_factor_dry_tons_acre).label("calculated_estimate_volume"),
     literal("dry tons").label("biomass_unit")
 ).select_from(UsdaCensusRecord)\
  .join(ResourceUsdaCommodityMap, UsdaCensusRecord.commodity_code == ResourceUsdaCommodityMap.usda_commodity_id)\
  .join(Resource, ResourceUsdaCommodityMap.resource_id == Resource.id)\
+ .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)\
  .join(Place, UsdaCensusRecord.geoid == Place.geoid)\
  .join(census_obs, cast(UsdaCensusRecord.id, String) == census_obs.c.record_id)\
  .outerjoin(ResourceAvailability, and_(
