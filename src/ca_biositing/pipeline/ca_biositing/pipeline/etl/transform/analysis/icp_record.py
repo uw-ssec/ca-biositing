@@ -87,13 +87,14 @@ def transform_icp_record(
         # 2. Detect record_id collisions with differing payloads
         if record_df.duplicated(subset=['record_id']).any():
             dupe_ids = record_df[record_df.duplicated(subset=['record_id'])]['record_id'].unique().tolist()
-            logger.error(f"IcpRecord: Detected duplicate record_ids with differing payloads: {dupe_ids}")
+            logger.warning(f"IcpRecord: Detected {len(dupe_ids)} duplicate record_ids with differing payloads. Keeping first occurrence. Duplicates: {dupe_ids}")
             # Log specific differences for the first few duplicates to help debugging
             for rid in dupe_ids[:5]:
                 conflicting_rows = record_df[record_df['record_id'] == rid]
-                logger.error(f"Conflicting payloads for record_id '{rid}':\n{conflicting_rows.to_string()}")
+                logger.warning(f"Conflicting payloads for record_id '{rid}':\n{conflicting_rows.to_string()}")
 
-            raise ValueError(f"IcpRecord transform failed due to duplicate record_ids with differing payloads: {dupe_ids}")
+            # Keep the first occurrence of each record_id
+            record_df = record_df.drop_duplicates(subset=['record_id'], keep='first')
     else:
         logger.error("record_id missing from IcpRecord transform")
         return pd.DataFrame()

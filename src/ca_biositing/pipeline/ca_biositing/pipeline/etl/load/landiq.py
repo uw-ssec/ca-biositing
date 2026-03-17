@@ -163,7 +163,7 @@ def load_landiq_record(df: pd.DataFrame):
                 dataset_names = df['dataset_id'].unique().tolist() if 'dataset_id' in df.columns else []
                 for name in dataset_names:
                     if name:
-                        existing = session.execute(select(Dataset).where(Dataset.name == name)).scalar_one_or_none()
+                        existing = session.execute(select(Dataset).where(Dataset.name == name)).scalars().first()
                         if not existing:
                             session.add(Dataset(name=name))
                 session.flush()
@@ -179,7 +179,7 @@ def load_landiq_record(df: pd.DataFrame):
                 crop_names = [n for n in crop_names if str(n).strip() and str(n).lower() != 'none']
 
                 for name in crop_names:
-                    existing = session.execute(select(PrimaryAgProduct).where(PrimaryAgProduct.name == name)).scalar_one_or_none()
+                    existing = session.execute(select(PrimaryAgProduct).where(PrimaryAgProduct.name == name)).scalars().first()
                     if not existing:
                         session.add(PrimaryAgProduct(name=name))
                 session.flush()

@@ -12,7 +12,11 @@ def create_extractor(gsheet_name: str, worksheet_name: str, task_name: Optional[
     Creates a Prefect task for extracting data from a specific GSheet worksheet.
     """
 
-    @task(name=task_name or f"extract_{worksheet_name.lower().replace('.', '_').replace('-', '_')}")
+    @task(
+        name=task_name or f"extract_{worksheet_name.lower().replace('.', '_').replace('-', '_')}",
+        retries=3,
+        retry_delay_seconds=10
+    )
     def extract(project_root: Optional[str] = None) -> pd.DataFrame:
         from ca_biositing.pipeline.utils.gsheet_to_pandas import gsheet_to_df
         logger = get_run_logger()
