@@ -32,9 +32,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/uw-ssec/ca-biositing"
-Repository = "https://github.com/uw-ssec/ca-biositing.git"
-Issues = "https://github.com/uw-ssec/ca-biositing/issues"
+Homepage = "https://github.com/sustainability-software-lab/ca-biositing"
+Repository = "https://github.com/sustainability-software-lab/ca-biositing.git"
+Issues = "https://github.com/sustainability-software-lab/ca-biositing/issues"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["ca_biositing"]
