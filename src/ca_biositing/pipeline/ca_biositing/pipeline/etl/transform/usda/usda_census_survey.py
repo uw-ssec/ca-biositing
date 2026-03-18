@@ -1,7 +1,7 @@
 # File: src/ca_biositing/pipeline/etl/transform/usda/usda_census_survey.py
 """
-USDA Census/Survey Data Transform
----
+USDA Census/Survey Data Transform.
+
 Transforms raw USDA API data into normalized records ready for loading.
 """
 

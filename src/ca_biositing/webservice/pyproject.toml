@@ -54,3 +54,8 @@ exclude = [
     "**/.ipynb_checkpoints",
     "**/* copy.py",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests requiring a live server and seeded DB (deselect with '-m not integration')",
+]

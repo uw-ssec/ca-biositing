@@ -45,6 +45,11 @@ def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
         print(f"📊 Reading mapping file: {csv_path}")
         df = pd.read_csv(csv_path)
 
+        # Normalize key mapping columns for stable joins and API-facing output
+        for col in ["commodity_name", "api_name", "resource_name"]:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.strip().str.lower()
+
         # Filter out unmapped entries
         mapped_df = df[df['match_tier'] != 'UNMAPPED'].copy()
         print(f"📊 Found {len(mapped_df)} mapped commodities (excluding {len(df) - len(mapped_df)} unmapped)")
@@ -161,7 +166,7 @@ def check_seeding_prerequisites(engine=None) -> dict:
     """
     try:
         if engine is None:
-            engine = get_local_engine()
+            engine = get_engine()
 
         with engine.connect() as conn:
             # Check resource table
