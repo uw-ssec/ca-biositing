@@ -27,14 +27,16 @@ def load(primary_ag_product_df: pd.DataFrame):
     with Session(engine) as session:
         statement = select(PrimaryAgProduct.name)
         existing_products = session.exec(statement).all()
-        existing_product_names = set(existing_products)
+        # Use a case-insensitive set for lookups
+        existing_product_names_lower = {p.lower() for p in existing_products if p}
 
         records_to_add = []
         for product_name in primary_ag_product_df[column_name]:
-            if product_name not in existing_product_names:
-                product = PrimaryAgProduct(name=product_name)
+            if product_name and product_name.lower() not in existing_product_names_lower:
+                # Enforce lowercase on insertion for consistency
+                product = PrimaryAgProduct(name=product_name.lower())
                 records_to_add.append(product)
-                existing_product_names.add(product_name)  # Add to set to avoid re-adding in same batch
+                existing_product_names_lower.add(product_name.lower())
 
         if records_to_add:
             session.add_all(records_to_add)

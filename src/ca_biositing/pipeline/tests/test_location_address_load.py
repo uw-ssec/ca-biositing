@@ -36,12 +36,12 @@ def test_load_location_address_insert(mock_get_engine, session, engine):
     stockton = session.exec(select(LocationAddress).where(LocationAddress.city == 'Stockton')).one()
     assert stockton.geography_id == "06077"
     assert stockton.address_line1 == "123 Main St"
-    assert stockton.is_anonymous == False
+    assert stockton.is_anonymous is False
 
     # Fresno record
     fresno = session.exec(select(LocationAddress).where(LocationAddress.city == 'Fresno')).one()
     assert fresno.geography_id == "06019"
-    assert fresno.is_anonymous == True
+    assert fresno.is_anonymous is True
 
 @patch("ca_biositing.pipeline.etl.load.location_address.get_engine")
 def test_load_location_address_update(mock_get_engine, session, engine):
@@ -82,6 +82,6 @@ def test_load_location_address_update(mock_get_engine, session, engine):
         LocationAddress.geography_id == "06077",
         LocationAddress.address_line1 == "123 Old St"
     )).one()
-    assert updated.is_anonymous == True
+    assert updated.is_anonymous is True
     from sqlalchemy import func
     assert session.exec(select(func.count(LocationAddress.id))).one() == 1

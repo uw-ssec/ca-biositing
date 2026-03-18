@@ -17,7 +17,7 @@ from .core import EntityLineage, EtlRun, LineageGroup
 from .data_sources_metadata import DataSource, DataSourceType, FileObjectMetadata, LocationResolution, SourceType
 
 # Experiment Equipment
-from .experiment_equipment import Equipment, Experiment, ExperimentAnalysis, ExperimentEquipment, ExperimentMethod, ExperimentPreparedSample
+from .experiment_equipment import DeconVessel, Equipment, Experiment, ExperimentAnalysis, ExperimentEquipment, ExperimentMethod, ExperimentPreparedSample
 
 # External Data
 from .external_data import BillionTon2023Record, LandiqRecord, LandiqResourceMapping, Polygon, ResourceUsdaCommodityMap, UsdaCensusRecord, UsdaCommodity, UsdaDomain, UsdaMarketRecord, UsdaMarketReport, UsdaStatisticCategory, UsdaSurveyProgram, UsdaSurveyRecord, UsdaTermMap

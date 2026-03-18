@@ -167,13 +167,16 @@ class TestListCensusByCrop:
         assert "FAKE_CROP" in response.json()["detail"]
 
     def test_list_no_data_for_geoid(self, client: TestClient, test_census_data):
-        """Test 404 when no data exists for crop/geoid combination."""
+        """Test empty list when no data exists for crop/geoid combination."""
         response = client.get(
             "/v1/feedstocks/usda/census/crops/CORN/geoid/99999/parameters"
         )
 
-        assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+        assert response.status_code == 200
+        data = response.json()
+        assert data["usda_crop"] == "CORN"
+        assert data["geoid"] == "99999"
+        assert data["data"] == []
 
 
 class TestListCensusByResource:

@@ -71,5 +71,10 @@ docs/pr/
 # MkDocs build output
 site/
 
+# PR notes
+docs/pr/
+pr_notes/
+scripts/check_pretreatment_duplicates.py
+
 # hatch-vcs generated version files
 _version.py

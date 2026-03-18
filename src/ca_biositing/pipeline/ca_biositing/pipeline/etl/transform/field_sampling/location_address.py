@@ -67,7 +67,11 @@ def transform_location_address(
             locations = locations.rename(columns=available_rename)
 
             # Determine is_anonymous: False if address_line1 exists, else True
-            locations['is_anonymous'] = locations['address_line1'].isna() | (locations['address_line1'] == "")
+            # Use a guard to ensure address_line1 is present in the DataFrame before calculating is_anonymous
+            if 'address_line1' in locations.columns:
+                locations['is_anonymous'] = locations['address_line1'].isna() | (locations['address_line1'] == "")
+            else:
+                locations['is_anonymous'] = True
 
     # Add lineage tracking metadata
     if etl_run_id:

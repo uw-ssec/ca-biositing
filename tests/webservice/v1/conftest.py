@@ -16,8 +16,10 @@ from ca_biositing.datamodels.models import ApiUser
 from ca_biositing.webservice.dependencies import get_current_user
 from sqlmodel import SQLModel
 from ca_biositing.datamodels.models import (
+    CalorimetryRecord,
     CompositionalRecord,
     DimensionType,
+    FermentationRecord,
     FieldSample,
     IcpRecord,
     LocationAddress,
@@ -25,6 +27,7 @@ from ca_biositing.datamodels.models import (
     Parameter,
     Place,
     PreparedSample,
+    PretreatmentRecord,
     PrimaryAgProduct,
     ProximateRecord,
     Resource,
@@ -36,6 +39,8 @@ from ca_biositing.datamodels.models import (
     UsdaCommodity,
     UsdaSurveyProgram,
     UsdaSurveyRecord,
+    XrdRecord,
+    XrfRecord,
 )
 from ca_biositing.webservice.main import app
 
@@ -75,6 +80,11 @@ def engine_fixture():
         UltimateRecord.__table__.create(connection, checkfirst=True)
         CompositionalRecord.__table__.create(connection, checkfirst=True)
         IcpRecord.__table__.create(connection, checkfirst=True)
+        XrfRecord.__table__.create(connection, checkfirst=True)
+        CalorimetryRecord.__table__.create(connection, checkfirst=True)
+        XrdRecord.__table__.create(connection, checkfirst=True)
+        FermentationRecord.__table__.create(connection, checkfirst=True)
+        PretreatmentRecord.__table__.create(connection, checkfirst=True)
         ResourceAvailability.__table__.create(connection, checkfirst=True)
 
     return engine

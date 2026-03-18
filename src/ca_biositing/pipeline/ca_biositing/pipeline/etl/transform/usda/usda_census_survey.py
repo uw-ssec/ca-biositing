@@ -417,17 +417,17 @@ def _build_lookup_maps():
         # Commodities - use api_name instead of name since that's what USDA API returns
         result = conn.execute(text("SELECT id, api_name FROM usda_commodity"))
         for row in result:
-            commodity_map[row[1].upper()] = row[0]
+            commodity_map[row[1].lower()] = row[0]
 
         # Parameters
         result = conn.execute(text("SELECT id, name FROM parameter"))
         for row in result:
-            parameter_map[row[1].upper()] = row[0]
+            parameter_map[row[1].lower()] = row[0]
 
         # Units
         result = conn.execute(text("SELECT id, name FROM unit"))
         for row in result:
-            unit_map[row[1].upper()] = row[0]
+            unit_map[row[1].lower()] = row[0]
 
     return commodity_map, parameter_map, unit_map
 

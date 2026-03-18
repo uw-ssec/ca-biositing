@@ -8,7 +8,7 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 def transform_xrd_record(
     raw_df: pd.DataFrame,
     etl_run_id: str | None = None,
-    lineage_group_id: int | None = None
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrame into the XrdRecord table format.
@@ -84,7 +84,8 @@ def transform_xrd_record(
         'dataset': (Dataset, 'name'),
         'spectral_url': (FileObjectMetadata, 'uri')
     }
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 3. Table Specific Mapping
     rename_map = {
@@ -114,6 +115,11 @@ def transform_xrd_record(
 
         if 'record_id' in record_df.columns:
             record_df = record_df.dropna(subset=['record_id'])
+            # Remove duplicates based on record_id to avoid ON CONFLICT errors
+            if record_df.duplicated(subset=['record_id']).any():
+                dupes = record_df[record_df.duplicated(subset=['record_id'])]['record_id'].unique().tolist()
+                logger.warning(f"XrdRecord: Removing duplicate record_ids from transform output: {dupes}")
+                record_df = record_df.drop_duplicates(subset=['record_id'], keep='first')
         else:
             logger.error("record_id missing from XrdRecord transform")
             return pd.DataFrame()
