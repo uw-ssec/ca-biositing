@@ -14489,8 +14489,8 @@ packages:
   timestamp: 1764291826235
 - pypi: ./src/ca_biositing/datamodels
   name: ca-biositing-datamodels
-  version: 0.1.dev81
-  sha256: 6e3ecb962f55a2eb1e9dff4fe1c5c4eed6252bba6a523c657a8767342650cbaf
+  version: 0.1.dev82
+  sha256: 8b08c68d9977422945b798348469f8a3dc23ed7b29dafd3af77748bda8e20401
   requires_dist:
   - alembic>=1.13.2,<2
   - geoalchemy2>=0.15.0,<0.16
@@ -14503,8 +14503,8 @@ packages:
   editable: true
 - pypi: ./src/ca_biositing/pipeline
   name: ca-biositing-pipeline
-  version: 0.1.dev81
-  sha256: 8d527aa0e77384c65cbc8f5b4d0f21df7d49e6894ea4cdebd7a1552b2ac25450
+  version: 0.1.dev82
+  sha256: 2f3557e9c976db09eb9d68d28d2678a94eaf3c0b6e83fe0a2a6f2f4614cb3bd9
   requires_dist:
   - asyncpg
   - ca-biositing-datamodels
@@ -14521,8 +14521,8 @@ packages:
   editable: true
 - pypi: ./src/ca_biositing/webservice
   name: ca-biositing-webservice
-  version: 0.1.dev81
-  sha256: dd1d56927eceae66fe81a0669fde278c57aea9513d4e58018bec88c6ffda7344
+  version: 0.1.dev82
+  sha256: a1c2984c1af75319c9dee1c99fcfc08869b429266a23b92e6c77c72311d0e1c7
   requires_dist:
   - ca-biositing-datamodels
   - fastapi>=0.111.0,<0.115.0

@@ -7,8 +7,6 @@ application, including ETL pipelines and API services.
 
 from __future__ import annotations
 
-from importlib.metadata import version
-
-__version__ = version("ca-biositing-datamodels")
+from ca_biositing.datamodels._version import __version__
 
 __all__ = ["__version__"]

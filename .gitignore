@@ -67,3 +67,6 @@ backups/
 
 # MkDocs build output
 site/
+
+# hatch-vcs generated version files
+_version.py

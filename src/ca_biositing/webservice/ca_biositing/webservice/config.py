@@ -5,8 +5,9 @@ This module provides API-specific configuration using Pydantic Settings.
 
 from __future__ import annotations
 
-from importlib.metadata import version
 from typing import List
+
+from ca_biositing.webservice._version import __version__ as _pkg_version
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -35,7 +36,7 @@ class WebServiceConfig(BaseSettings):
 
     api_title: str = "CA Biositing API"
     api_description: str = "REST API for CA Biositing bioeconomy data"
-    api_version: str = version("ca-biositing-webservice")
+    api_version: str = _pkg_version
 
     # CORS configuration
     cors_origins: List[str] = [

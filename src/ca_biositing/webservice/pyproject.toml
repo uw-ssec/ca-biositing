@@ -50,6 +50,9 @@ source = "vcs"
 raw-options.root = "../../.."
 raw-options.local_scheme = "no-local-version"
 
+[tool.hatch.build.hooks.vcs]
+version-file = "ca_biositing/webservice/_version.py"
+
 [tool.hatch.build.targets.sdist]
 exclude = [
     "tests/",
