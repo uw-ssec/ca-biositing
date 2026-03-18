@@ -7,14 +7,16 @@ def test_datamodels_import():
     """Test that datamodels package can be imported."""
     from ca_biositing import datamodels
 
-    assert datamodels.__version__ == "0.1.0"
+    assert isinstance(datamodels.__version__, str)
+    assert datamodels.__version__
 
 
 def test_pipeline_import():
     """Test that pipeline package can be imported."""
     from ca_biositing import pipeline
 
-    assert pipeline.__version__ == "0.1.0"
+    assert isinstance(pipeline.__version__, str)
+    assert pipeline.__version__
 
 
 def test_model_imports():

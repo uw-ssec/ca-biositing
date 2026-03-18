@@ -5,8 +5,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -1709,8 +1707,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -3071,8 +3067,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -3466,8 +3460,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -4860,8 +4852,6 @@ environments:
   frontend:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -4917,8 +4907,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -7217,8 +7205,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -8654,8 +8640,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -10084,8 +10068,6 @@ environments:
     - url: https://conda.anaconda.org/conda-forge/
     indexes:
     - https://pypi.org/simple
-    options:
-      pypi-prerelease-mode: if-necessary-or-explicit
     packages:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -14507,8 +14489,8 @@ packages:
   timestamp: 1764291826235
 - pypi: ./src/ca_biositing/datamodels
   name: ca-biositing-datamodels
-  version: 0.1.0
-  sha256: b9302b3deac029459e27a2ac668a7cf7a7ade5cfcd159e358fdcbf9acabf11e7
+  version: 0.1.dev81
+  sha256: 6e3ecb962f55a2eb1e9dff4fe1c5c4eed6252bba6a523c657a8767342650cbaf
   requires_dist:
   - alembic>=1.13.2,<2
   - geoalchemy2>=0.15.0,<0.16
@@ -14518,13 +14500,14 @@ packages:
   - sqlalchemy>=2.0.0
   - sqlmodel>=0.0.19,<0.1
   requires_python: '>=3.12'
+  editable: true
 - pypi: ./src/ca_biositing/pipeline
   name: ca-biositing-pipeline
-  version: 0.1.0
-  sha256: 307df32f5eaaeccdd665f7f052ab08dff798949705fd65e4dfcefa2351f716ef
+  version: 0.1.dev81
+  sha256: 8d527aa0e77384c65cbc8f5b4d0f21df7d49e6894ea4cdebd7a1552b2ac25450
   requires_dist:
   - asyncpg
-  - ca-biositing-datamodels==0.1.0
+  - ca-biositing-datamodels
   - geopandas
   - google-auth-oauthlib
   - gspread
@@ -14535,12 +14518,13 @@ packages:
   - pyogrio
   - python-dotenv>=1.0.1,<2
   requires_python: '>=3.12'
+  editable: true
 - pypi: ./src/ca_biositing/webservice
   name: ca-biositing-webservice
-  version: 0.1.0
-  sha256: 618e9ecb6ae950c7d8a65a4e8550fd71f1f1663fe5fe6c3b917655f2a837c1db
+  version: 0.1.dev81
+  sha256: dd1d56927eceae66fe81a0669fde278c57aea9513d4e58018bec88c6ffda7344
   requires_dist:
-  - ca-biositing-datamodels==0.1.0
+  - ca-biositing-datamodels
   - fastapi>=0.111.0,<0.115.0
   - httpx>=0.27.0
   - pwdlib[argon2]>=0.2.0
@@ -14548,6 +14532,7 @@ packages:
   - python-multipart>=0.0.9
   - uvicorn>=0.30.0,<1
   requires_python: '>=3.12'
+  editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.10.5-hbd8a1cb_0.conda
   sha256: 3b5ad78b8bb61b6cdc0978a6a99f8dfb2cc789a451378d054698441005ecbdb6
   md5: f9e5fbc24009179e8b0409624691758a
