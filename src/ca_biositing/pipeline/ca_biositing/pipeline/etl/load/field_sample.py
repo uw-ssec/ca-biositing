@@ -5,11 +5,13 @@ from prefect import task, get_run_logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from ca_biositing.pipeline.utils.engine import get_engine
+from ca_biositing.pipeline.utils.geo_utils import get_geoid
 
 @task
 def load_field_sample(df: pd.DataFrame):
     """
-    Upserts FieldSample records into the database based on the 'name' column.
+    Upserts FieldSample records into the database.
+    Links sampling_location_id based on preserved location metadata.
     """
     import logging
     import sys
@@ -29,42 +31,77 @@ def load_field_sample(df: pd.DataFrame):
     logger.info(f"Upserting {len(df)} FieldSample records...")
 
     try:
-        from ca_biositing.datamodels.models import FieldSample
+        from ca_biositing.datamodels.models import FieldSample, LocationAddress, Place
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in FieldSample.__table__.columns}
 
         # Replace NaN with None for database compatibility
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
-        engine = get_engine()
-        with engine.connect() as conn:
-            with Session(bind=conn) as session:
-                for record in records:
-                    name = record.get('name')
-                    if not name:
-                        logger.warning("Skipping record with missing 'name'.")
-                        continue
+        with Session(get_engine()) as session:
+            # Prepare geography mapping and location mapping
+            places = session.execute(select(Place.geoid, Place.county_name)).all()
+            county_to_geoid = {p.county_name.lower(): p.geoid for p in places if p.county_name}
 
-                    # Check for existing record by name
-                    stmt = select(FieldSample).where(FieldSample.name == name)
-                    existing_record = session.execute(stmt).scalar_one_or_none()
+            # Fetch all existing LocationAddress records into memory for bulk lookup
+            # Including ZIP in the lookup key as per plan
+            addresses = session.execute(
+                select(
+                    LocationAddress.id,
+                    LocationAddress.geography_id,
+                    LocationAddress.address_line1,
+                    LocationAddress.city,
+                    LocationAddress.zip
+                )
+            ).all()
+            addr_map = {}
+            for a in addresses:
+                key = (a.geography_id, a.address_line1, a.city, a.zip)
+                addr_map[key] = a.id
 
-                    clean_record = {k: v for k, v in record.items() if k in table_columns}
-                    clean_record['updated_at'] = now
+            # Fetch all existing FieldSample names to avoid N+1 queries
+            existing_samples = session.execute(select(FieldSample)).scalars().all()
+            samples_map = {s.name: s for s in existing_samples}
 
-                    if existing_record:
-                        # Update existing record
-                        for key, value in clean_record.items():
-                            if key not in ['id', 'created_at']:
-                                setattr(existing_record, key, value)
-                    else:
-                        # Create new record
-                        if clean_record.get('created_at') is None:
-                            clean_record['created_at'] = now
-                        new_fs = FieldSample(**clean_record)
-                        session.add(new_fs)
+            for record in records:
+                name = record.get('name')
+                if not name:
+                    logger.warning("Skipping record with missing 'name'.")
+                    continue
 
-                session.commit()
+                # Determine sampling_location_id
+                geoid = get_geoid(record.get('sampling_location'), county_to_geoid)
+                addr1 = record.get('sampling_street')
+                city = record.get('sampling_city')
+                zip_code = record.get('sampling_zip')
+
+                # Standardize for lookup
+                addr1 = str(addr1).strip() if addr1 else None
+                city = str(city).strip() if city else None
+                zip_code = str(zip_code).strip() if zip_code else None
+
+                sampling_location_id = addr_map.get((geoid, addr1, city, zip_code))
+
+                # Check for existing record by name using in-memory map
+                existing_record = samples_map.get(name)
+
+                clean_record = {k: v for k, v in record.items() if k in table_columns}
+                clean_record['sampling_location_id'] = sampling_location_id
+                clean_record['updated_at'] = now
+
+                if existing_record:
+                    # Update existing record
+                    for key, value in clean_record.items():
+                        if key not in ['id', 'created_at']:
+                            setattr(existing_record, key, value)
+                else:
+                    # Create new record
+                    if clean_record.get('created_at') is None:
+                        clean_record['created_at'] = now
+                    new_fs = FieldSample(**clean_record)
+                    session.add(new_fs)
+
+            session.commit()
         logger.info("Successfully upserted FieldSample records.")
     except Exception as e:
         logger.error(f"Failed to load FieldSample records: {e}")
