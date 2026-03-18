@@ -30,13 +30,43 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
       - name: Build and inspect ${{ matrix.package }} package
         uses: hynek/build-and-inspect-python-package@v2
         with:
           path: src/ca_biositing/${{ matrix.package }}
           upload-name-suffix: -${{ matrix.package }}
 
-  publish:
+  publish-testpypi:
+    needs: [dist]
+    name: Publish ${{ matrix.package }} to TestPyPI
+    environment: testpypi
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    # Publish to TestPyPI on pushes to main and on PRs (not on releases)
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [datamodels, pipeline, webservice]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Packages-${{ matrix.package }}
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          # Skip existing avoids failures when the same version is
+          # already on TestPyPI (common across PRs and re-runs).
+          skip-existing: true
+
+  publish-pypi:
     needs: [dist]
     name: Publish ${{ matrix.package }} to PyPI
     environment: pypi
@@ -45,9 +75,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     strategy:
+      fail-fast: false
       matrix:
         package: [datamodels, pipeline, webservice]
-
     steps:
       - uses: actions/download-artifact@v4
         with:
