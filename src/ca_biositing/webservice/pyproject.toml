@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -16,13 +16,13 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
 ]
 dynamic = ["version"]
 dependencies = [
-    "ca-biositing-datamodels==0.1.0",
+    "ca-biositing-datamodels",
     "fastapi>=0.111.0,<0.115.0",
     "uvicorn>=0.30.0,<1",
     "httpx>=0.27.0",
@@ -46,7 +46,12 @@ exclude = [
 ]
 
 [tool.hatch.version]
-path = "ca_biositing/webservice/__init__.py"
+source = "vcs"
+raw-options.root = "../../.."
+raw-options.local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "ca_biositing/webservice/_version.py"
 
 [tool.hatch.build.targets.sdist]
 exclude = [

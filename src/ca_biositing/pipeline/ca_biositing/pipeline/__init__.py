@@ -6,6 +6,6 @@ for processing bioeconomy data for the CA Biositing project.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+from ca_biositing.pipeline._version import __version__
 
 __all__ = ["__version__"]
