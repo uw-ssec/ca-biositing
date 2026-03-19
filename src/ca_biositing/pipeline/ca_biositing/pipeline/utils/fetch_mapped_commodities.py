@@ -78,8 +78,8 @@ def get_mapped_commodity_ids(engine=None, use_api_names=True) -> Optional[List[s
             try:
                 from .seed_commodity_mappings import backfill_usda_commodity_metadata
                 backfill_usda_commodity_metadata(engine=engine)
-            except Exception:
-                pass  # Non-fatal — main query proceeds regardless
+            except Exception as exc:
+                print(f"Warning: Could not backfill usda_commodity metadata before lookup: {exc}")
 
             # Return ONLY commodities that are mapped to resources
             # Prefer api_name when available (after schema migration)

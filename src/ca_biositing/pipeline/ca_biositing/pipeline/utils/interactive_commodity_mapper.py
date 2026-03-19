@@ -767,9 +767,9 @@ def interactive_review():
                             print(f"  ✓ Matched '{resource['name']}' to '{manual_commodity['name']}' (MANUAL_{match_tier})")
                             break  # Exit manual entry loop
                         else:
-                            print(f"\nError: Commodity code '{manual_code}' not found in database.")
-                            print("Please add this commodity to the usda_commodity table first using:")
-                            print(f"  pixi run python interactive_commodity_mapper.py --populate-commodities")
+                            print(f"\nError: Commodity code '{manual_code}' not found in local cache.")
+                            print("Please refresh the commodity cache first using:")
+                            print("  pixi run python interactive_commodity_mapper.py --fetch-ca-commodities")
                             print("Or verify the correct code from USDA NASS website.\n")
                             continue  # Ask for code again
                     else:
@@ -785,10 +785,10 @@ def interactive_review():
                     # Put the resource back at the beginning of pending for re-review
                     pending.insert(i, {
                         'resource': last_match['resource'],
-                        'candidates': find_best_matches(last_match['resource']['name'], load_usda_commodities())
+                        'candidates': find_best_matches(last_match['resource']['name'], load_ca_commodities())
                     })
                     print(f"\n  ↶ Undid match: '{last_match['resource']['name']}' → '{last_commodity_name}'")
-                    print(f"    Resource moved back to pending review.")
+                    print("    Resource moved back to pending review.")
                     continue  # Stay on current resource, but now we have one more pending
                 else:
                     print("\n  No matches to undo.")
@@ -983,9 +983,9 @@ def save_mappings_to_database():
 
     # Clear the approved matches since they've been saved
     save_approved_matches([])
-    print(f"✓ Cleared approved matches cache")
-    print(f"\n📋 To update commodity_mappings.csv from the current DB state, run:")
-    print(f"       python interactive_commodity_mapper.py --export-csv")
+    print("✓ Cleared approved matches cache")
+    print("\n📋 To update commodity_mappings.csv from the current DB state, run:")
+    print("       python interactive_commodity_mapper.py --export-csv")
 
 
 def save_unmatched_resources_to_database():
@@ -1134,7 +1134,6 @@ def revise_mapping_interactive(engine, mapping_row):
     db_id        = mapping_row[0]
     resource_name = mapping_row[1]
     current_commodity = mapping_row[2]
-    pap_id       = mapping_row[6]
 
     print(f"\nRevising: '{resource_name}'")
     print(f"  Current mapping: {current_commodity}")
@@ -1407,8 +1406,8 @@ def find_unmapped_resources(engine):
             print(f"  {resource[1]} ({resource[2]})")
 
         if unmapped:
-            print(f"\nTo map these resources, run:")
-            print(f"  python interactive_commodity_mapper.py --auto-match --review --save-to-db")
+            print("\nTo map these resources, run:")
+            print("  python interactive_commodity_mapper.py --auto-match --review --save-to-db")
 
 
 # ============================================================================

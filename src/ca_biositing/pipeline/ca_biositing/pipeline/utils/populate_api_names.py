@@ -24,7 +24,7 @@ The source of truth for api_name values is reviewed_api_mappings.py
 import os
 from sqlalchemy import create_engine, text
 from datetime import datetime, UTC
-from .reviewed_api_mappings import OFFICIAL_API_MAPPINGS
+from .reviewed_api_mappings import get_api_name
 
 def populate_api_names(engine=None, dry_run=False):
     """
@@ -78,9 +78,15 @@ def populate_api_names(engine=None, dry_run=False):
                     continue
 
                 # Get the API name from our mapping
-                api_name = OFFICIAL_API_MAPPINGS.get(name, name)
+                api_name = get_api_name(name)
 
-                if api_name == name:
+                if api_name is None:
+                    # DISABLED entry — leave api_name NULL
+                    status = "DISABLED"
+                    stats['unmapped_commodities'] += 1
+                    print(f"  {status}: {name:<25} (skipped — disabled)")
+                    continue
+                elif api_name == name:
                     # Exact match - no mapping needed
                     status = "EXACT"
                     stats['exact_matches'] += 1

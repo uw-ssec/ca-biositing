@@ -157,7 +157,6 @@ OFFICIAL_API_MAPPINGS: Dict[str, str] = {
     'HAY  OTHER (DRY)': 'HAY',
     'HAZELNUTS': 'HAZELNUTS',
     'HOGS': 'HOGS',
-    'HOGS': 'HOGS',
     'HOPS': 'HOPS',
     'ICE CREAM  HARD': 'ICE CREAM',
     'ICE CREAM  LOWFAT  HARD': 'ICE CREAM',
@@ -188,7 +187,6 @@ OFFICIAL_API_MAPPINGS: Dict[str, str] = {
     'MILK  WHOLE  EVAPORATED & CONDENSED  CASE': 'MILK',
     'MILLET (PROSO)': 'MILLET',
     'MOHAIR': 'MOHAIR',
-    'MUSTARD': 'MUSTARD',
     'MUSTARD': 'MUSTARD',
     'NECTARINES': 'NECTARINES',
     'OATS': 'OATS',
@@ -436,7 +434,6 @@ DISABLED_API_MAPPINGS: Dict[str, str] = {
     'ANGORA': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'ARTICHOKE': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'BARROWS & GILTS': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
-    'BARROWS & GILTS': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'BARTLETT PEARS': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'BEANS GARBANZO (CHICK PEAS)': 'not in QuickStats API list',  # heuristic guess: 'BEANS GARBANZO' — verify before moving to OFFICIAL
     'BEANS GARBANZO (LARGE)': 'not in QuickStats API list',  # heuristic guess: 'BEANS GARBANZO' — verify before moving to OFFICIAL
@@ -539,7 +536,6 @@ DISABLED_API_MAPPINGS: Dict[str, str] = {
     'NATIVE PECANS': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'NIAGARA GRAPES': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'NONFAT DRY MILK FOR HUMAN CONSUMPTION': 'not in QuickStats API list',  # heuristic guess: 'NONFAT DRY MILK' — verify before moving to OFFICIAL
-    'NONFAT DRY MILK FOR HUMAN CONSUMPTION': 'not in QuickStats API list',  # heuristic guess: 'NONFAT DRY MILK' — verify before moving to OFFICIAL
     'NUMBER OF PIGS PER LITTER': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'OLD': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'ONIONS - SPRING': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
@@ -621,7 +617,6 @@ DISABLED_API_MAPPINGS: Dict[str, str] = {
     'TOBACCO MISC DOMESTIC PERIQUE (TYPE 72)': 'not in QuickStats API list',  # heuristic guess: 'TOBACCO MISC DOMESTIC PERIQUE' — verify before moving to OFFICIAL
     'TOBACCO NON-CIGAR TYPES ALL (CLASS 1-3)': 'not in QuickStats API list',  # heuristic guess: 'TOBACCO NON-CIGAR TYPES ALL' — verify before moving to OFFICIAL
     'TOTAL': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
-    'TOTAL': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'TOTAL MATURE': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'TOTAL POULTRY': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'TOTAL RED MEAT': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
@@ -641,7 +636,6 @@ DISABLED_API_MAPPINGS: Dict[str, str] = {
     'CHIVES': 'not in QuickStats API list',  # not a QuickStats commodity_desc
     'RABBITS': 'not in QuickStats API list',  # not a QuickStats commodity_desc
     'WILD BLUEBERRIES': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
-    'YOUNG': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
     'YOUNG': 'not in QuickStats API list',  # heuristic unchanged — find the correct QuickStats name
 }
 

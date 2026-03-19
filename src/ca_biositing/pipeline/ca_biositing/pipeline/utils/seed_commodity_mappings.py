@@ -24,9 +24,11 @@ try:
 except ImportError:
     try:
         from reviewed_api_mappings import get_api_name as _get_api_name  # type: ignore[import]
-    except ImportError:
-        def _get_api_name(name: str) -> str:  # type: ignore[misc]
-            return name
+    except ImportError as e:
+        raise ImportError(
+            "Unable to import 'get_api_name' from 'reviewed_api_mappings'. "
+            "This module is required as the source of truth for api_name values."
+        ) from e
 
 
 def seed_commodity_mappings_from_csv(csv_path: str = None, engine=None) -> bool:
@@ -249,6 +251,7 @@ def backfill_usda_commodity_metadata(engine=None, csv_path: str = None) -> int:
             current_dir = os.path.dirname(__file__)
             csv_path = os.path.join(current_dir, "commodity_mappings.csv")
         if not os.path.exists(csv_path):
+            print(f"Warning: backfill_usda_commodity_metadata: CSV not found at {csv_path}")
             return 0
 
         NASS_URI = (
