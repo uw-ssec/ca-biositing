@@ -50,28 +50,47 @@ src/ca_biositing/datamodels/
 The 91 models span 15 domain subdirectories:
 
 **Core and Infrastructure**
-- `base.py` — Base classes (`BaseEntity`, `LookupBase`, `Aim1RecordBase`, `Aim2RecordBase`)
-- `core/` — ETL run tracking and lineage (`EtlRun`, `EntityLineage`, `LineageGroup`)
-- `infrastructure/` — Infrastructure facility records (biodiesel plants, landfills, ethanol biorefineries)
-- `misc/` — Additional infrastructure models (MSW digesters, SAF plants, wastewater treatment)
-- `places/` — Location and address models (`Place`, `LocationAddress`, `LocationResolution`)
+
+- `base.py` — Base classes (`BaseEntity`, `LookupBase`, `Aim1RecordBase`,
+  `Aim2RecordBase`)
+- `core/` — ETL run tracking and lineage (`EtlRun`, `EntityLineage`,
+  `LineageGroup`)
+- `infrastructure/` — Infrastructure facility records (biodiesel plants,
+  landfills, ethanol biorefineries)
+- `misc/` — Additional infrastructure models (MSW digesters, SAF plants,
+  wastewater treatment)
+- `places/` — Location and address models (`Place`, `LocationAddress`,
+  `LocationResolution`)
 - `people/` — Contact and provider information (`Contact`, `Provider`)
-- `data_sources_metadata/` — Data source tracking (`DataSource`, `Dataset`, `FileObjectMetadata`)
+- `data_sources_metadata/` — Data source tracking (`DataSource`, `Dataset`,
+  `FileObjectMetadata`)
 
 **Resources and Sampling**
-- `resource_information/` — Core resource entities (`Resource`, `ResourceClass`, `ResourceSubclass`, `ResourceAvailability`, `Strain`)
-- `field_sampling/` — Field sampling data (`FieldSample`, `HarvestMethod`, `CollectionMethod`, `SoilType`)
-- `sample_preparation/` — Sample processing (`PreparedSample`, `PreparationMethod`, `ProcessingMethod`)
+
+- `resource_information/` — Core resource entities (`Resource`, `ResourceClass`,
+  `ResourceSubclass`, `ResourceAvailability`, `Strain`)
+- `field_sampling/` — Field sampling data (`FieldSample`, `HarvestMethod`,
+  `CollectionMethod`, `SoilType`)
+- `sample_preparation/` — Sample processing (`PreparedSample`,
+  `PreparationMethod`, `ProcessingMethod`)
 
 **Experiments and Analysis**
-- `experiment_equipment/` — Experimental setup (`Experiment`, `Equipment`, `ExperimentAnalysis`)
-- `methods_parameters_units/` — Methods, parameters, and units (`Method`, `Parameter`, `Unit`, `MethodCategory`)
-- `general_analysis/` — Observations and analysis results (`Observation`, `AnalysisType`, `PhysicalCharacteristic`)
-- `aim1_records/` — Aim 1 analytical records (proximate, ultimate, compositional, ICP, XRD, XRF)
-- `aim2_records/` — Aim 2 processing records (autoclave, fermentation, gasification, pretreatment)
+
+- `experiment_equipment/` — Experimental setup (`Experiment`, `Equipment`,
+  `ExperimentAnalysis`)
+- `methods_parameters_units/` — Methods, parameters, and units (`Method`,
+  `Parameter`, `Unit`, `MethodCategory`)
+- `general_analysis/` — Observations and analysis results (`Observation`,
+  `AnalysisType`, `PhysicalCharacteristic`)
+- `aim1_records/` — Aim 1 analytical records (proximate, ultimate,
+  compositional, ICP, XRD, XRF)
+- `aim2_records/` — Aim 2 processing records (autoclave, fermentation,
+  gasification, pretreatment)
 
 **External Data**
-- `external_data/` — Integration with external datasets (LandIQ, USDA Census, USDA Survey, Billion Ton 2023, USDA Market)
+
+- `external_data/` — Integration with external datasets (LandIQ, USDA Census,
+  USDA Survey, Billion Ton 2023, USDA Market)
 
 ## Development Setup
 
@@ -94,7 +113,8 @@ pip install -e .
    under `models/`, or create a new subdirectory if needed.
 2. **Re-export** — Add the import to `models/__init__.py` so the model is
    available from `ca_biositing.datamodels.models`.
-3. **Generate migration** — Run `pixi run migrate-autogenerate -m "Add new model"`.
+3. **Generate migration** — Run
+   `pixi run migrate-autogenerate -m "Add new model"`.
 4. **Review** — Check the generated migration in `alembic/versions/`.
 5. **Apply** — Run `pixi run migrate` to update the database.
 

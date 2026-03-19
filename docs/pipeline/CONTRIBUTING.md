@@ -53,7 +53,9 @@ src/ca_biositing/pipeline/
 **Flows** (`flows/`) — Prefect flows that combine extract/transform/load steps.
 
 **Utilities** (`utils/`)
-- `lookup_utils.py` — Foreign key helpers (`replace_name_with_id_df`, `replace_id_with_name_df`)
+
+- `lookup_utils.py` — Foreign key helpers (`replace_name_with_id_df`,
+  `replace_id_with_name_df`)
 - `gsheet_to_pandas.py` — Google Sheets to DataFrame conversion
 
 ## Development Setup
@@ -78,7 +80,8 @@ Copy `.env.example` to `.env` and fill in the database connection settings.
 Detailed step-by-step guides live alongside this file:
 
 - **[DOCKER_WORKFLOW.md](./DOCKER_WORKFLOW.md)** — Managing dev containers
-- **[ETL_WORKFLOW.md](./ETL_WORKFLOW.md)** — Running and extending the ETL pipeline
+- **[ETL_WORKFLOW.md](./ETL_WORKFLOW.md)** — Running and extending the ETL
+  pipeline
 - **[ALEMBIC_WORKFLOW.md](./ALEMBIC_WORKFLOW.md)** — Database schema migrations
 - **[GCP_SETUP.md](./GCP_SETUP.md)** — Google Sheets API / service account setup
 - **[PREFECT_WORKFLOW.md](./PREFECT_WORKFLOW.md)** — Prefect flow orchestration
@@ -93,9 +96,10 @@ Detailed step-by-step guides live alongside this file:
 
 Use `etl/templates/` as a starting point.
 
-> **Note:** Database models are managed in the separate `ca-biositing-datamodels`
-> package. See [`docs/datamodels/CONTRIBUTING.md`](../datamodels/CONTRIBUTING.md)
-> for adding new models.
+> **Note:** Database models are managed in the separate
+> `ca-biositing-datamodels` package. See
+> [`docs/datamodels/CONTRIBUTING.md`](../datamodels/CONTRIBUTING.md) for adding
+> new models.
 
 ## Getting Started (Docker Environment)
 
@@ -115,8 +119,8 @@ Use `etl/templates/` as a starting point.
    pixi run run-etl
    ```
 
-See [DOCKER_WORKFLOW.md](./DOCKER_WORKFLOW.md) and [ETL_WORKFLOW.md](./ETL_WORKFLOW.md)
-for detailed instructions.
+See [DOCKER_WORKFLOW.md](./DOCKER_WORKFLOW.md) and
+[ETL_WORKFLOW.md](./ETL_WORKFLOW.md) for detailed instructions.
 
 ## Testing
 

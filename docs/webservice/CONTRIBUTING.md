@@ -74,27 +74,33 @@ Interactive docs are available at `http://localhost:8000/docs`.
 Each data family exposes discovery endpoints returning distinct queryable values
 (all return `{ "values": ["..."] }`):
 
-| Family   | Endpoints                                                                   |
-| -------- | --------------------------------------------------------------------------- |
-| Analysis | `/v1/feedstocks/analysis/resources`, `/geoids`, `/parameters`               |
-| Census   | `/v1/feedstocks/usda/census/crops`, `/resources`, `/geoids`, `/parameters`  |
-| Survey   | `/v1/feedstocks/usda/survey/crops`, `/resources`, `/geoids`, `/parameters`  |
+| Family   | Endpoints                                                                  |
+| -------- | -------------------------------------------------------------------------- |
+| Analysis | `/v1/feedstocks/analysis/resources`, `/geoids`, `/parameters`              |
+| Census   | `/v1/feedstocks/usda/census/crops`, `/resources`, `/geoids`, `/parameters` |
+| Survey   | `/v1/feedstocks/usda/survey/crops`, `/resources`, `/geoids`, `/parameters` |
 
 ### Data Endpoints
 
 All crop, resource, and parameter lookups are **case-insensitive**.
 
 **USDA Census** (`/v1/feedstocks/usda/census/`)
-- `GET /crops/{crop}/geoid/{geoid}/parameters` — All census parameters for crop + geoid
+
+- `GET /crops/{crop}/geoid/{geoid}/parameters` — All census parameters for
+  crop + geoid
 - `GET /crops/{crop}/geoid/{geoid}/parameters/{param}` — Single parameter
-- `GET /resources/{resource}/geoid/{geoid}/parameters` — All parameters by resource
-- `GET /resources/{resource}/geoid/{geoid}/parameters/{param}` — Single parameter by resource
+- `GET /resources/{resource}/geoid/{geoid}/parameters` — All parameters by
+  resource
+- `GET /resources/{resource}/geoid/{geoid}/parameters/{param}` — Single
+  parameter by resource
 
 **USDA Survey** (`/v1/feedstocks/usda/survey/`) — Same structure as Census.
 
 **Analysis** (`/v1/feedstocks/analysis/`)
+
 - `GET /resources/{resource}/geoid/{geoid}/parameters` — All analysis parameters
-- `GET /resources/{resource}/geoid/{geoid}/parameters/{param}` — Single parameter
+- `GET /resources/{resource}/geoid/{geoid}/parameters/{param}` — Single
+  parameter
 
 Collection endpoints return `200` with an empty `data` list when a valid
 crop/resource + geoid has no observations. Single-value endpoints return `404`
