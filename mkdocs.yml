@@ -57,11 +57,14 @@ nav:
       - Prefect Workflow: pipeline/PREFECT_WORKFLOW.md
       - GCP Setup: pipeline/GCP_SETUP.md
       - USDA ETL Guide: pipeline/USDA/USDA_ETL_GUIDE.md
+      - Contributing: pipeline/CONTRIBUTING.md
   - Datamodels:
       - Overview: datamodels/README.md
       - SQL-First Workflow: datamodels/SQL_FIRST_WORKFLOW.md
+      - Contributing: datamodels/CONTRIBUTING.md
   - Webservice:
       - Overview: webservice/README.md
+      - Contributing: webservice/CONTRIBUTING.md
   - Resources:
       - Overview: resources/README.md
   - API Reference:

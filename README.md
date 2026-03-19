@@ -221,8 +221,7 @@ Database models for:
 - Metadata and samples
 - Organizations and contacts
 
-**Documentation**:
-[`src/ca_biositing/datamodels/README.md`](src/ca_biositing/datamodels/README.md)
+**Documentation**: [`datamodels/README.md`](datamodels/README.md)
 
 ### 2. ETL Pipeline (`ca_biositing.pipeline`)
 
@@ -233,15 +232,14 @@ Prefect-orchestrated workflows for:
 - Database loading and updates
 - Lookup table management
 
-**Documentation**:
-[`src/ca_biositing/pipeline/README.md`](src/ca_biositing/pipeline/README.md)
+**Documentation**: [`pipeline/README.md`](pipeline/README.md)
 
 **Guides**:
 
-- [Docker Workflow](docs/pipeline/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](docs/pipeline/PREFECT_WORKFLOW.md)
-- [ETL Development](docs/pipeline/ETL_WORKFLOW.md)
-- [Database Migrations](docs/pipeline/ALEMBIC_WORKFLOW.md)
+- [Docker Workflow](pipeline/DOCKER_WORKFLOW.md)
+- [Prefect Workflow](pipeline/PREFECT_WORKFLOW.md)
+- [ETL Development](pipeline/ETL_WORKFLOW.md)
+- [Database Migrations](pipeline/ALEMBIC_WORKFLOW.md)
 
 ### 3. Web Service (`ca_biositing.webservice`)
 
@@ -251,8 +249,7 @@ FastAPI REST API providing:
 - Interactive API documentation (Swagger/OpenAPI)
 - Type-safe endpoints using Pydantic
 
-**Documentation**:
-[`src/ca_biositing/webservice/README.md`](src/ca_biositing/webservice/README.md)
+**Documentation**: [`webservice/README.md`](webservice/README.md)
 
 ### 4. Deployment Resources (`resources/`)
 
