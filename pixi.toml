@@ -40,6 +40,7 @@ pydrive2 = ">=1.21.3,<2"
 geopandas = ">=1.1.2,<2"
 pyogrio = ">=0.10.0"
 proj = "*"
+pandas = ">=2.2,<3"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
