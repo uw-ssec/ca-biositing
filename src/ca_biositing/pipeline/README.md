@@ -53,10 +53,12 @@ primary_ag_product_flow()
 
 ## Acknowledgement
 
-We acknowledge software engineering support from
-the University of Washington [Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/),
-as part of the Schmidt Futures [Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/).
+We acknowledge software engineering support from the University of Washington
+[Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/),
+as part of the Schmidt Futures
+[Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/).
 
 ## License
 
-CA Biositing Pipeline is licensed under the open source [BSD 3-Clause License](https://opensource.org/license/bsd-3-clause).
+CA Biositing Pipeline is licensed under the open source
+[BSD 3-Clause License](https://opensource.org/license/bsd-3-clause).
