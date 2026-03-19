@@ -90,8 +90,7 @@ pixi run python src/ca_biositing/pipeline/tests/test_usda_comprehensive.py
 
 - **`test_seeding.py`**: Commodity mapping seeding
 - **`test_api_names.py`**: API connectivity and mappings
-- **`scripts/USDA/usda_availability.py`**: Data availability by
-  commodity/county
+- **`scripts/USDA/usda_availability.py`**: Data availability by commodity/county
 - **SQL scripts**: Various diagnostic queries
 
 ## Infrastructure Status ✅ WORKING
@@ -255,10 +254,10 @@ work. See [USDA_ETL_GUIDE.md](USDA_ETL_GUIDE.md) for current operational status.
 ### **High Priority**
 
 - **Database Schema Enhancements**:
-  - Add `UNIQUE (name)` on `usda_commodity` for safe upsert semantics
-    (deferred until AMS integration design is finalized)
-  - Switch seeder from check-then-insert to atomic `ON CONFLICT` upsert once
-    the uniqueness decision is finalized
+  - Add `UNIQUE (name)` on `usda_commodity` for safe upsert semantics (deferred
+    until AMS integration design is finalized)
+  - Switch seeder from check-then-insert to atomic `ON CONFLICT` upsert once the
+    uniqueness decision is finalized
 
 ### **Medium Priority**
 

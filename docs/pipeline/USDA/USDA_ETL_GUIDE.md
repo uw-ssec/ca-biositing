@@ -71,9 +71,12 @@ USDA ETL Pipeline Components:
 
 ### 🔗 **Data Flow**
 
-1. **Extract**: API → Raw CSV (~10,000+ raw records from 15 commodities across 3 counties)
-2. **Transform**: Raw CSV → Cleaned CSV (filtered and deduplicated for database insertion)
-3. **Load**: Cleaned CSV → Database (1,048 parent records: 241 census + 807 survey; 4,524 observations)
+1. **Extract**: API → Raw CSV (~10,000+ raw records from 15 commodities across 3
+   counties)
+2. **Transform**: Raw CSV → Cleaned CSV (filtered and deduplicated for database
+   insertion)
+3. **Load**: Cleaned CSV → Database (1,048 parent records: 241 census + 807
+   survey; 4,524 observations)
 
 ## Key Components
 
@@ -242,8 +245,10 @@ Located in `src/ca_biositing/pipeline/tests/USDA/`:
 ### **Success Metrics**
 
 - **Extract Success**: 15/15 commodities (100% - all mapped)
-- **Transform Success**: ~55% raw records survive filtering (4,524 observations retained)
-- **Load Success**: 100% of valid transformed records loaded (1,048 parent records + 4,524 observations)
+- **Transform Success**: ~55% raw records survive filtering (4,524 observations
+  retained)
+- **Load Success**: 100% of valid transformed records loaded (1,048 parent
+  records + 4,524 observations)
 - **Database Seeding**: 15 mapped commodities (all with valid api_name)
 
 ### **Common Issues**
