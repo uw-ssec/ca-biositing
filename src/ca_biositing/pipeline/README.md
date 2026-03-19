@@ -55,7 +55,7 @@ primary_ag_product_flow()
 
 We acknowledge software engineering support from the University of Washington
 [Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/),
-as part of the Schmidt Futures
+as part of the Schmidt Sciences
 [Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/).
 
 ## License
