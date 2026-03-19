@@ -405,7 +405,8 @@ def transform(
 
 def _build_lookup_maps():
     """Build commodity, parameter, unit maps from database"""
-    from sqlalchemy import text
+    from sqlmodel import Session, select
+    from ca_biositing.datamodels.models import UsdaCommodity, Parameter, Unit
 
     engine = get_engine()
 
@@ -413,21 +414,30 @@ def _build_lookup_maps():
     parameter_map = {}
     unit_map = {}
 
-    with engine.connect() as conn:
-        # Commodities - use api_name instead of name since that's what USDA API returns
-        result = conn.execute(text("SELECT id, api_name FROM usda_commodity"))
-        for row in result:
-            commodity_map[row[1].lower()] = row[0]
+    with Session(engine) as session:
+        # Commodities - use api_name instead of name since that's what USDA API returns.
+        # Rows with NULL api_name (DISABLED entries) are intentionally skipped —
+        # they have no QuickStats counterpart and should not appear in transform output.
+        commodities = session.exec(
+            select(UsdaCommodity.id, UsdaCommodity.api_name)
+            .where(UsdaCommodity.api_name.isnot(None))  # type: ignore[union-attr]
+        ).all()
+        for row in commodities:
+            key = row.api_name.upper()
+            if key in commodity_map and commodity_map[key] != row.id:
+                raise ValueError(
+                    f"Duplicate api_name '{row.api_name}' maps to usda_commodity IDs "
+                    f"{commodity_map[key]} and {row.id} — fix in reviewed_api_mappings.py"
+                )
+            commodity_map[key] = row.id
 
         # Parameters
-        result = conn.execute(text("SELECT id, name FROM parameter"))
-        for row in result:
-            parameter_map[row[1].lower()] = row[0]
+        for row in session.exec(select(Parameter.id, Parameter.name)).all():
+            parameter_map[row.name.upper()] = row.id
 
         # Units
-        result = conn.execute(text("SELECT id, name FROM unit"))
-        for row in result:
-            unit_map[row[1].lower()] = row[0]
+        for row in session.exec(select(Unit.id, Unit.name)).all():
+            unit_map[row.name.upper()] = row.id
 
     return commodity_map, parameter_map, unit_map
 

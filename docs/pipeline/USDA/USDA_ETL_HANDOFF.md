@@ -1,7 +1,7 @@
 # USDA ETL Pipeline Status Document
 
-**Date:** February 11, 2026 **Branch:** `usda_etl_feat` **Status:** ✅
-**WORKING**
+**Date:** February 11, 2026 (historical snapshot; see USDA_ETL_GUIDE.md for
+current architecture) **Status:** ✅ **WORKING**
 
 ## Current Status: WORKING ETL PIPELINE
 
@@ -66,7 +66,7 @@ The ETL has successfully added USDA-specific parameters and units:
 
 ### ⭐ Recommended Post-ETL Validation
 
-**File**: `src/ca_biositing/pipeline/tests/USDA/test_usda_comprehensive.py`
+**File**: `src/ca_biositing/pipeline/tests/test_usda_comprehensive.py`
 
 **Usage**:
 
@@ -75,7 +75,7 @@ The ETL has successfully added USDA-specific parameters and units:
 pixi run run-etl
 
 # Validate results
-pixi run python src/ca_biositing/pipeline/tests/USDA/test_usda_comprehensive.py
+pixi run python src/ca_biositing/pipeline/tests/test_usda_comprehensive.py
 ```
 
 **Provides comprehensive analysis**:
@@ -90,7 +90,7 @@ pixi run python src/ca_biositing/pipeline/tests/USDA/test_usda_comprehensive.py
 
 - **`test_seeding.py`**: Commodity mapping seeding
 - **`test_api_names.py`**: API connectivity and mappings
-- **`test_usda_availability.py`**: Data availability by commodity/county
+- **`scripts/USDA/usda_availability.py`**: Data availability by commodity/county
 - **SQL scripts**: Various diagnostic queries
 
 ## Infrastructure Status ✅ WORKING
@@ -118,7 +118,7 @@ pixi run start-services
 pixi run run-etl
 
 # Validate ETL results
-pixi run python src/ca_biositing/pipeline/tests/USDA/test_usda_comprehensive.py
+pixi run python src/ca_biositing/pipeline/tests/test_usda_comprehensive.py
 
 # Check service status
 pixi run service-status
@@ -245,6 +245,32 @@ pixi run rebuild-services
   commodities
 - **Commodity Expansion**: Additional commodities can be added via resource
   mapping
+
+## Deferred Decisions & TODOs (March 2026)
+
+The following decisions were deferred pending design confirmation and additional
+work. See [USDA_ETL_GUIDE.md](USDA_ETL_GUIDE.md) for current operational status.
+
+### **High Priority**
+
+- **Database Schema Enhancements**:
+  - Add `UNIQUE (name)` on `usda_commodity` for safe upsert semantics (deferred
+    until AMS integration design is finalized)
+  - Switch seeder from check-then-insert to atomic `ON CONFLICT` upsert once the
+    uniqueness decision is finalized
+
+### **Medium Priority**
+
+- **Comprehensive Commodity Mapping Maintenance**:
+  - Continue review/curation of `OFFICIAL_API_MAPPINGS` and
+    `DISABLED_API_MAPPINGS`
+  - Periodically validate mappings against live QuickStats commodity list
+  - Keep mapper export + seed workflow as the operational source of truth
+
+### **Template Improvements**
+
+- Update Google Sheets extraction templates to use actual sheet names
+- Replace placeholder TODOs in template files with real configuration
 
 ## Documentation References
 
