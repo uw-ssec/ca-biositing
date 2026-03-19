@@ -25,7 +25,7 @@ dependencies = [
     "ca-biositing-datamodels",
     "pandas>=2.2.0,<3",
     "asyncpg",
-    "prefect",
+    "prefect>=3,<4",
     "gspread",
     "gspread-dataframe",
     "pyjanitor",

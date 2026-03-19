@@ -41,6 +41,10 @@ geopandas = ">=1.1.2,<2"
 pyogrio = ">=0.10.0"
 proj = "*"
 pandas = ">=2.2,<3"
+# Pin these to versions compatible with prefect 3.x (pypi)
+packaging = "<25.1"
+importlib-metadata = "<8.8"
+pytz = "<2026"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -275,7 +279,7 @@ ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true 
 # Alembic is required for generating migrations inside the worker container
 alembic = ">=1.13.2,<2"
 # Prefect is required for `prefect flow-run execute` inside Cloud Run flow jobs
-prefect = "*"
+prefect = ">=3,<4"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -341,7 +345,7 @@ description = "Install Pulumi CLI. Set PULUMI_VERSION env var to install a speci
 postgresql = "*"
 
 [feature.cloud.pypi-dependencies]
-prefect = "*"
+prefect = ">=3,<4"
 
 # Pulumi tasks (run via Docker to avoid macOS gRPC/fork crash)
 [feature.cloud.tasks.cloud-bootstrap]
