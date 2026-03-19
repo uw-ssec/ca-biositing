@@ -31,7 +31,6 @@ frontend/dist/
 *.swo
 
 # Git
-.git/
 .gitignore
 
 # OS
