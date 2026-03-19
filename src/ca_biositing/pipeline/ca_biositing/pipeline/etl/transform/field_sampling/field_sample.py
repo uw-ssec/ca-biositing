@@ -18,8 +18,8 @@ EXTRACT_SOURCES: List[str] = ["samplemetadata", "provider_info"]
 @task
 def transform_field_sample(
     data_sources: Dict[str, pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> Optional[pd.DataFrame]:
     """
     Transforms raw sample metadata and provider info into the FieldSample table format.
@@ -42,7 +42,8 @@ def transform_field_sample(
         PrimaryAgProduct,
         PreparedSample,
         Method,
-        FieldStorageMethod
+        FieldStorageMethod,
+        Place
     )
 
     # 1. Input Validation
@@ -111,35 +112,105 @@ def transform_field_sample(
         'storage_mode': (FieldStorageMethod, 'name'),
         'field_storage_method': (FieldStorageMethod, 'name'),
         'field_storage_mode': (FieldStorageMethod, 'name'),
-        'county': (LocationAddress, 'county'),
         'primary_ag_product': (PrimaryAgProduct, 'name'),
-        'provider_type': (Provider, 'type'),
         'dataset': (Dataset, 'name'),
-        'field_storage_location': (LocationAddress, 'full_address'),
+        'field_storage_location': (LocationAddress, 'address_line1'),
     }
 
     logger.info("Normalizing joined data (swapping names for IDs)...")
-    normalized_df = normalize_dataframes(joined_df, normalize_columns)
+
+    # Manual normalization for Place (County) to avoid NotNullViolation on geoid
+    # and provide a resilient lookup that defaults to state-level GEOID.
+    from ca_biositing.pipeline.utils.geo_utils import get_geoid
+    from sqlmodel import Session, select
+    from ca_biositing.pipeline.utils.engine import engine
+
+    with Session(engine) as session:
+        places = session.exec(select(Place.geoid, Place.county_name)).all()
+        county_to_geoid = {p.county_name.lower(): p.geoid for p in places if p.county_name}
+
+    joined_df['county_id'] = joined_df['county'].apply(lambda x: get_geoid(x, county_to_geoid))
+
+    normalized_dfs = normalize_dataframes(joined_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
+
+    # 4b. Bridge County (Place) to LocationAddress
+    # We need to find or create a generic LocationAddress for each County
+    if 'county_id' in normalized_df.columns:
+        logger.info("Bridging County (Place) to LocationAddress...")
+        from sqlmodel import Session, select
+        from ca_biositing.pipeline.utils.engine import engine
+
+        with Session(engine) as session:
+            # Get unique county_ids (these are geoids from Place table)
+            county_ids = normalized_df['county_id'].dropna().unique()
+            place_to_address_map = {}
+
+            for geoid in county_ids:
+                # Find or create LocationAddress with address_line1 IS NULL and geography_id = geoid
+                stmt = select(LocationAddress).where(
+                    LocationAddress.geography_id == geoid,
+                    LocationAddress.address_line1 == None
+                )
+                address = session.exec(stmt).first()
+
+                if not address:
+                    logger.info(f"Creating new generic LocationAddress for county geoid: {geoid}")
+                    address = LocationAddress(geography_id=geoid, address_line1=None)
+                    session.add(address)
+                    session.flush()
+
+                place_to_address_map[geoid] = address.id
+
+            session.commit()
+
+            # Map county_id (Place.geoid) to sampling_location_id (LocationAddress.id)
+            normalized_df['sampling_location_id'] = normalized_df['county_id'].map(place_to_address_map)
+            logger.info(f"Mapped {len(place_to_address_map)} counties to LocationAddresses")
+
+    # Coalesce storage method ID columns to handle variations in source headers
+    # (e.g., 'field_storage_method', 'field_storage_mode', 'storage_mode')
+    storage_id_cols = ['field_storage_method_id', 'field_storage_mode_id', 'storage_mode_id']
+    target_col = 'field_storage_method_id'
+
+    # Initialize target column if missing
+    if target_col not in normalized_df.columns:
+        normalized_df[target_col] = None
+
+    for col in storage_id_cols:
+        if col in normalized_df.columns and col != target_col:
+            normalized_df[target_col] = normalized_df[target_col].combine_first(normalized_df[col])
 
     # 5. Select and Rename Columns (from notebook)
+    # Note: 'sampling_location_id' will be linked during the loading phase
+    # based on the location details preserved in the metadata.
+    # Mapping 'qty' to 'amount_collected' as per FieldSample model.
+    # Note: storage_mode columns are used for normalization but dropped from final
+    # selection if not explicitly mapped in rename_map.
     rename_map = {
         'field_sample_name': 'name',
         'resource_id': 'resource_id',
         'provider_codename_id': 'provider_id',
         'primary_collector_id': 'collector_id',
         'sample_source': 'sample_collection_source',
-        'qty': 'qty',
+        'qty': 'amount_collected',
         'sample_unit_id': 'amount_collected_unit_id',
-        'county_id': 'sampling_location_id',
+        'sampling_location_id': 'sampling_location_id',
         'storage_mode_id': 'field_storage_method_id',
         'field_storage_method_id': 'field_storage_method_id',
-        'field_storage_mode_id': 'field_storage_method_id',
         'storage_dur_value': 'field_storage_duration_value',
         'storage_dur_units_id': 'field_storage_duration_unit_id',
         'field_storage_location_id': 'field_storage_location_id',
         'sample_ts': 'collection_timestamp',
         'sample_notes': 'note'
     }
+
+    # Preserve raw location info for linking in load step.
+    # ZIP added to support improved uniqueness checks.
+    location_link_cols = ['sampling_location', 'sampling_street', 'sampling_city', 'sampling_zip']
+    for col in location_link_cols:
+        if col in normalized_df.columns:
+            rename_map[col] = col
 
     # Filter rename_map to only include columns that exist in normalized_df
     available_rename = {k: v for k, v in rename_map.items() if k in normalized_df.columns}

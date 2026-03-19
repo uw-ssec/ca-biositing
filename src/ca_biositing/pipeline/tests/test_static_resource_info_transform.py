@@ -30,7 +30,7 @@ def test_transform_static_resource_info(mock_normalize):
         df_norm["resource_id"] = [101, 102, 103]
         # Mock landiq_crop_name lookups (now normalized to PrimaryAgProduct)
         df_norm["landiq_crop_name_id"] = [1001, 1002, 1003]
-        return df_norm
+        return [df_norm]
 
     mock_normalize.side_effect = side_effect
 

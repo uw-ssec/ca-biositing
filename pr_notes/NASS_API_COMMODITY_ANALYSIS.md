@@ -1,5 +1,9 @@
 # USDA NASS API Commodity Analysis Summary
 
+**Status:** Historic Analysis (February 2026) - Root cause analysis that led to
+the commodity mapping architecture described in
+[USDA_ETL_GUIDE.md](USDA_ETL_GUIDE.md)
+
 **Date:** February 5, 2026 **Analysis Goal:** Resolve commodity name mismatches
 causing ETL to retrieve only 4-6 of 17 expected commodities
 

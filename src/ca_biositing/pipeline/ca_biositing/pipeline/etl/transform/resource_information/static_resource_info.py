@@ -17,8 +17,8 @@ EXTRACT_SOURCES: List[str] = ["static_resource_info"]
 @task
 def transform_static_resource_info(
     data_sources: Dict[str, pd.DataFrame],
-    etl_run_id: int = None,
-    lineage_group_id: int = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> Dict[str, pd.DataFrame]:
     """
     Transforms raw static resource info into:
@@ -77,7 +77,8 @@ def transform_static_resource_info(
     }
 
     logger.info("Normalizing data (swapping names for IDs)...")
-    normalized_df = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
+    normalized_df = normalized_dfs[0]
 
     # 4. Create LandiqResourceMapping DataFrame
     # Target slots: landiq_crop_name (ID), resource_id

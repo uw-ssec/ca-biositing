@@ -12,8 +12,8 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 @task
 def transform_observation(
     raw_dfs: List[pd.DataFrame],
-    etl_run_id: int | None = None,
-    lineage_group_id: int | None = None
+    etl_run_id: str | None = None,
+    lineage_group_id: str | None = None
 ) -> pd.DataFrame:
     """
     Transforms raw DataFrames into the Observation table format.
@@ -42,67 +42,45 @@ def transform_observation(
 
         # Check for duplicate columns which cause 'AttributeError: DataFrame object has no attribute str' in cleaning
         # Aggressive cleaning of duplicate/empty columns before processing
-        # This handles cases like 'Upload_status' vs 'Upload Status' and hidden empty columns
-        # First, strip whitespace and drop purely empty columns
-        df = df.copy()
-        df.columns = [str(c).strip() for c in df.columns]
-        if "" in df.columns:
-            df = df.drop(columns=[""])
+        df = df.loc[:, ~df.columns.duplicated()].copy()
+        df = df.loc[:, df.columns.notnull()]
+        df = df.loc[:, (df.columns != '')]
 
-        # Apply name cleaning EARLY to catch duplicates that arise from normalization (e.g. 'Upload Status' -> 'upload_status')
+        # Use shared cleaning functions
         df = cleaning_mod.clean_names_df(df)
+        df = cleaning_mod.replace_empty_with_na(df)
 
+        # Basic coercion for Observation fields
+        if 'value' in df.columns:
+            df = coercion_mod.coerce_columns(df, float_cols=['value'])
+
+        # Add lineage tracking if available
+        # Ensure they are created unconditionally (set to None if not provided) to prevent mapping failures
+        df['etl_run_id'] = etl_run_id
+        df['lineage_group_id'] = lineage_group_id
+
+        # Re-apply duplicate-column guard after calling clean_names_df()
         if df.columns.duplicated().any():
-            dupes = df.columns[df.columns.duplicated()].unique().tolist()
-            logger.warning(f"DataFrame at index {i} has duplicate columns after name cleaning: {dupes}. Keeping first occurrence.")
-            # Keep only the first occurrence of each column name
-            df = df.loc[:, ~df.columns.duplicated()]
+            df = df.loc[:, ~df.columns.duplicated()].copy()
 
-        df_copy = df.copy()
-        df_copy['dataset'] = 'biocirv'
+        coerced_data.append(df)
 
-        logger.info(f"Cleaning DataFrame #{i+1} with columns: {df_copy.columns.tolist()}")
-        # standard_clean will call clean_names again, but it's now idempotent and safe
-        cleaned_df = cleaning_mod.standard_clean(df_copy)
-
-        if cleaned_df is None:
-            logger.warning(f"cleaning_mod.standard_clean returned None for DataFrame #{i+1}. Skipping.")
-            continue
-
-        if etl_run_id is not None:
-            cleaned_df['etl_run_id'] = etl_run_id
-        if lineage_group_id is not None:
-            cleaned_df['lineage_group_id'] = lineage_group_id
-
-        coerced_df = coercion_mod.coerce_columns(
-            cleaned_df,
-            int_cols=['repl_no'],
-            float_cols=['value'],
-            datetime_cols=['created_at', 'updated_at']
-        )
-        coerced_data.append(coerced_df)
-
-    # 2. Normalization
+    # 2. Normalization (Resource, Sample, Parameter, Unit, etc.)
     normalize_columns = {
-        'resource': (Resource, 'name'),
-        'prepared_sample': (PreparedSample, 'name'),
-        'preparation_method': (Method, 'name'),
-        'parameter': (Parameter, 'name'),
-        'unit': (Unit, 'name'),
-        'sample_unit': (Unit, 'name'),
-        'analyst_email': (Contact, 'email'),
-        'primary_ag_product': (PrimaryAgProduct, 'name'),
-        'provider_code': (Provider, 'codename'),
-        'dataset': (Dataset, 'name')
+        'resource': Resource,
+        'prepared_sample': PreparedSample,
+        'method_id': Method,
+        'parameter': Parameter,
+        'unit': Unit,
+        'analyst_email': (Contact, "email"),
+        'main_crop': PrimaryAgProduct,
+        'provider': Provider,
+        'dataset': Dataset,
     }
 
-    if not coerced_data:
-        return pd.DataFrame()
-
     normalized_dfs = normalize_dataframes(coerced_data, normalize_columns)
-    if isinstance(normalized_dfs, pd.DataFrame):
-        normalized_dfs = [normalized_dfs]
 
+    # 3. Final Mapping to Observation table
     required_cols = [
         'dataset_id',
         'analysis_type',
@@ -117,17 +95,31 @@ def transform_observation(
 
     observation_data = []
     for i, normalized_df in enumerate(normalized_dfs):
-        missing = [c for c in required_cols if c not in normalized_df.columns]
-        if missing:
-            logger.error(
-                f"DataFrame #{i+1} missing columns {missing} for observation transform. "
-                f"Available columns: {normalized_df.columns.tolist()}"
-            )
+        if not isinstance(normalized_df, pd.DataFrame):
+            logger.error(f"Normalized item #{i+1} is not a DataFrame: {type(normalized_df)}")
             continue
+
+        # Ensure required columns exist even if all-null
+        for col in required_cols:
+            if col not in normalized_df.columns:
+                normalized_df[col] = pd.NA
+
         try:
             obs_df = normalized_df[required_cols].copy().rename(columns={'analysis_type': 'record_type'})
 
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
+
+            # Remove duplicates based on (record_id, record_type, parameter_id, unit_id) to avoid ON CONFLICT errors
+            # CodeRabbit Review: include unit_id in the subset
+            subset = ['record_id', 'record_type', 'parameter_id', 'unit_id']
+            # Filter subset to only include columns that are actually present in obs_df
+            present_subset = [c for c in subset if c in obs_df.columns]
+
+            if obs_df.duplicated(subset=present_subset).any():
+                dupes_count = obs_df.duplicated(subset=present_subset).sum()
+                logger.warning(f"Observation: Removing {dupes_count} duplicate observations from transform output.")
+                obs_df = obs_df.drop_duplicates(subset=present_subset, keep='first')
+
             observation_data.append(obs_df)
         except KeyError as e:
             logger.error(f"Missing required column for observation transform: {e}")
@@ -137,4 +129,14 @@ def transform_observation(
         logger.warning("No observation data produced during transform")
         return pd.DataFrame()
 
-    return pd.concat(observation_data, ignore_index=True)
+    final_obs_df = pd.concat(observation_data, ignore_index=True)
+
+    # Final check across all source dataframes
+    subset = ['record_id', 'record_type', 'parameter_id', 'unit_id']
+    present_subset = [c for c in subset if c in final_obs_df.columns]
+    if final_obs_df.duplicated(subset=present_subset).any():
+        dupes_count = final_obs_df.duplicated(subset=present_subset).sum()
+        logger.warning(f"Observation: Removing {dupes_count} duplicate observations across all source dataframes.")
+        final_obs_df = final_obs_df.drop_duplicates(subset=present_subset, keep='first')
+
+    return final_obs_df

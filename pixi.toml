@@ -40,6 +40,11 @@ pydrive2 = ">=1.21.3,<2"
 geopandas = ">=1.1.2,<2"
 pyogrio = ">=0.10.0"
 proj = "*"
+pandas = ">=2.2,<3"
+# Pin these to versions compatible with prefect 3.x (pypi)
+packaging = "<25.1"
+importlib-metadata = "<8.8"
+pytz = "<2026"
 
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
@@ -274,7 +279,7 @@ ca-biositing-pipeline = { path = "./src/ca_biositing/pipeline", editable = true 
 # Alembic is required for generating migrations inside the worker container
 alembic = ">=1.13.2,<2"
 # Prefect is required for `prefect flow-run execute` inside Cloud Run flow jobs
-prefect = "*"
+prefect = ">=3,<4"
 
 [feature.pipeline.tasks.deploy]
 args = [
@@ -340,7 +345,7 @@ description = "Install Pulumi CLI. Set PULUMI_VERSION env var to install a speci
 postgresql = "*"
 
 [feature.cloud.pypi-dependencies]
-prefect = "*"
+prefect = ">=3,<4"
 
 # Pulumi tasks (run via Docker to avoid macOS gRPC/fork crash)
 [feature.cloud.tasks.cloud-bootstrap]
@@ -359,6 +364,10 @@ description = "Build and push Docker images to GCR via Google Cloud Build."
 cmd = "gcloud run jobs update biocirv-alembic-migrate --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
 depends-on = ["cloud-build-images"]
 description = "Build pipeline image, refresh the migration job digest, and apply Alembic migrations."
+
+[feature.cloud.tasks.cloud-seed-admin]
+cmd = "gcloud run jobs execute biocirv-seed-admin --region=us-west1 --wait"
+description = "Seed the admin user in the staging database."
 
 [feature.cloud.tasks.cloud-plan]
 cmd = "docker run --rm -v $PWD/deployment/cloud/gcp/infrastructure:/app -v $HOME/.config/gcloud:/home/pulumi/.config/gcloud:ro -e PULUMI_CONFIG_PASSPHRASE= -e GOOGLE_APPLICATION_CREDENTIALS=/home/pulumi/.config/gcloud/application_default_credentials.json ca-biositing-pulumi python deploy.py preview"

@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 import pandas as pd
+import pytest
 
 
 def test_extract_basic_sample_info_import():
@@ -11,8 +12,8 @@ def test_extract_basic_sample_info_import():
     assert callable(extract.fn)  # Prefect task has .fn attribute
 
 
-@patch("ca_biositing.pipeline.etl.extract.basic_sample_info.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.basic_sample_info.gsheet_to_df")
+@patch("ca_biositing.pipeline.etl.extract.factory.get_run_logger")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_extract_basic_sample_info_success(mock_gsheet_to_df, mock_logger):
     """Test successful extraction of basic sample info."""
     from ca_biositing.pipeline.etl.extract.basic_sample_info import extract
@@ -38,8 +39,8 @@ def test_extract_basic_sample_info_success(mock_gsheet_to_df, mock_logger):
     assert "sample_name" in result.columns
 
 
-@patch("ca_biositing.pipeline.etl.extract.basic_sample_info.get_run_logger")
-@patch("ca_biositing.pipeline.etl.extract.basic_sample_info.gsheet_to_df")
+@patch("ca_biositing.pipeline.etl.extract.factory.get_run_logger")
+@patch("ca_biositing.pipeline.utils.gsheet_to_pandas.gsheet_to_df")
 def test_extract_basic_sample_info_failure(mock_gsheet_to_df, mock_logger):
     """Test extraction failure handling."""
     from ca_biositing.pipeline.etl.extract.basic_sample_info import extract
@@ -52,7 +53,6 @@ def test_extract_basic_sample_info_failure(mock_gsheet_to_df, mock_logger):
     mock_gsheet_to_df.return_value = None
 
     # Call the function directly (not as a Prefect task)
-    result = extract.fn()
-
-    # Verify it returns None on failure
-    assert result is None
+    # The factory-generated extract function raises RuntimeError when raw_df is None
+    with pytest.raises(RuntimeError, match="Extractor returned None"):
+        extract.fn()

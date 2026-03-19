@@ -23,6 +23,8 @@ COPY --from=build /app/.pixi/envs/webservice /app/.pixi/envs/webservice
 COPY --from=build /shell-hook.sh /shell-hook.sh
 # copy the source so editable installs resolve correctly
 COPY --from=build /app/src /app/src
+# copy admin seeding script
+COPY --from=build /app/scripts/create_admin.py /app/scripts/create_admin.py
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \

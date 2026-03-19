@@ -71,10 +71,12 @@ USDA ETL Pipeline Components:
 
 ### 🔗 **Data Flow**
 
-1. **Extract**: API → Raw CSV (~10,000 records typical, now 15 commodities)
-2. **Transform**: Raw CSV → Cleaned CSV (~5,400 records after filtering)
-3. **Load**: Cleaned CSV → Database (~2,500 unique observations + parent
-   records)
+1. **Extract**: API → Raw CSV (~10,000+ raw records from 15 commodities across 3
+   counties)
+2. **Transform**: Raw CSV → Cleaned CSV (filtered and deduplicated for database
+   insertion)
+3. **Load**: Cleaned CSV → Database (1,048 parent records: 241 census + 807
+   survey; 4,524 observations)
 
 ## Key Components
 
@@ -242,10 +244,12 @@ Located in `src/ca_biositing/pipeline/tests/USDA/`:
 
 ### **Success Metrics**
 
-- **Extract Success**: 15/16 commodities (94% success rate)
-- **Transform Success**: ~54% raw records survive filtering
-- **Load Success**: 100% of valid transformed records loaded
-- **Database Seeding**: 40 commodity mappings, 16 USDA commodities
+- **Extract Success**: 15/15 commodities (100% - all mapped)
+- **Transform Success**: ~55% raw records survive filtering (4,524 observations
+  retained)
+- **Load Success**: 100% of valid transformed records loaded (1,048 parent
+  records + 4,524 observations)
+- **Database Seeding**: 15 mapped commodities (all with valid api_name)
 
 ### **Common Issues**
 
@@ -272,30 +276,5 @@ The pipeline provides detailed logging at key stages:
 - Error reporting with context
 - Performance timing
 
-## Future Development TODOs
-
-### **High Priority**
-
-- **Database Schema Enhancements**:
-  - Add UNIQUE constraint on `usda_commodity.usda_code` for better conflict
-    handling
-  - Add `created_at` and `updated_at` columns to `usda_commodity` table
-  - Switch to `ON CONFLICT` clauses after adding constraints
-
-### **Medium Priority**
-
-- **Comprehensive Commodity Mapping** (See
-  `FUTURE_TODO_FULL_COMMODITY_MAPPING.md`):
-  - Expand from current 17 commodities to all 465 USDA NASS API commodities
-  - Create categorization system for commodity types (crops, livestock,
-    byproducts)
-  - Build comprehensive mapping structure for broader agricultural analysis
-  - Estimated effort: 1-2 days
-
-### **Template Improvements**
-
-- Update Google Sheets extraction templates to use actual sheet names
-- Replace placeholder TODOs in template files with real configuration
-
-For operational troubleshooting, see the
+For operational troubleshooting and historical context, see
 [USDA ETL Handoff Document](USDA_ETL_HANDOFF.md).

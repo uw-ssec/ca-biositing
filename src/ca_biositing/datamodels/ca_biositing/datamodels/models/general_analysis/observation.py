@@ -1,17 +1,22 @@
-from ..base import BaseEntity
 from datetime import datetime
 from decimal import Decimal
-from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy import UniqueConstraint
 from typing import Optional
+
+import sqlalchemy as sa
+from sqlmodel import Field, Relationship, SQLModel
+
+from ..base import BaseEntity
 
 
 class Observation(BaseEntity, table=True):
     __tablename__ = "observation"
     __table_args__ = (
-        UniqueConstraint(
-            'record_id', 'record_type', 'parameter_id', 'unit_id',
-            name='observation_unique_key'
+        sa.UniqueConstraint(
+            "record_id",
+            "record_type",
+            "parameter_id",
+            "unit_id",
+            name="observation_unique_key",
         ),
     )
 
