@@ -45,7 +45,7 @@ ca-biositing/
 
 ```bash
 # Clone the repository
-git clone https://github.com/uw-ssec/ca-biositing.git
+git clone https://github.com/sustainability-software-lab/ca-biositing.git
 cd ca-biositing
 
 # Install dependencies with Pixi
@@ -221,8 +221,7 @@ Database models for:
 - Metadata and samples
 - Organizations and contacts
 
-**Documentation**:
-[`src/ca_biositing/datamodels/README.md`](src/ca_biositing/datamodels/README.md)
+**Documentation**: [`datamodels/README.md`](datamodels/README.md)
 
 ### 2. ETL Pipeline (`ca_biositing.pipeline`)
 
@@ -233,15 +232,14 @@ Prefect-orchestrated workflows for:
 - Database loading and updates
 - Lookup table management
 
-**Documentation**:
-[`src/ca_biositing/pipeline/README.md`](src/ca_biositing/pipeline/README.md)
+**Documentation**: [`pipeline/README.md`](pipeline/README.md)
 
 **Guides**:
 
-- [Docker Workflow](docs/pipeline/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](docs/pipeline/PREFECT_WORKFLOW.md)
-- [ETL Development](docs/pipeline/ETL_WORKFLOW.md)
-- [Database Migrations](docs/pipeline/ALEMBIC_WORKFLOW.md)
+- [Docker Workflow](pipeline/DOCKER_WORKFLOW.md)
+- [Prefect Workflow](pipeline/PREFECT_WORKFLOW.md)
+- [ETL Development](pipeline/ETL_WORKFLOW.md)
+- [Database Migrations](pipeline/ALEMBIC_WORKFLOW.md)
 
 ### 3. Web Service (`ca_biositing.webservice`)
 
@@ -251,8 +249,7 @@ FastAPI REST API providing:
 - Interactive API documentation (Swagger/OpenAPI)
 - Type-safe endpoints using Pydantic
 
-**Documentation**:
-[`src/ca_biositing/webservice/README.md`](src/ca_biositing/webservice/README.md)
+**Documentation**: [`webservice/README.md`](webservice/README.md)
 
 ### 4. Deployment Resources (`resources/`)
 
@@ -347,7 +344,7 @@ Most documentation should live in the relevant directories within the `docs`
 folder.
 
 When adding new pages to the documentation, make sure you update the
-[`mkdocs.yml` file](https://github.com/uw-ssec/ca-biositing/blob/main/mkdocs.yml)
+[`mkdocs.yml` file](https://github.com/sustainability-software-lab/ca-biositing/blob/main/mkdocs.yml)
 so they can be rendered on the website.
 
 If you need to add documentation referencing a file that lives elsewhere in the

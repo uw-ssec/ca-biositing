@@ -326,9 +326,13 @@ following the project conventions.
 - **Version**: 0.1.0
 - **Python**: >= 3.12
 - **License**: BSD License
-- **Repository**: <https://github.com/uw-ssec/ca-biositing>
+- **Repository**: <https://github.com/sustainability-software-lab/ca-biositing>
 
 ## Contributing
 
-See the main project's `CONTRIBUTING.md` for guidelines on contributing to this
-package.
+This package has its own contributing guide covering package structure, how to
+add ETL pipelines, Docker workflows, and testing:
+[Contributing to CA Biositing Pipeline](./CONTRIBUTING.md)
+
+For general project guidelines (branching, PRs, commit style), see the project's
+[CONTRIBUTING.md](../CONTRIBUTING.md).

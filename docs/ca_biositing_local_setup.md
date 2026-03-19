@@ -18,7 +18,7 @@ Docker infrastructure.
 ### Commands
 
 ```bash
-git clone https://github.com/uw-ssec/ca-biositing.git
+git clone https://github.com/sustainability-software-lab/ca-biositing.git
 cd ca-biositing
 pixi install
 pixi shell
