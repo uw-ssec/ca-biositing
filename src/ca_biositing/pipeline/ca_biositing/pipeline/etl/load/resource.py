@@ -47,7 +47,11 @@ def load_resource(df: pd.DataFrame):
                     clean_record['updated_at'] = now
 
                     # Manual Check-and-Update (since 'name' lacks a unique constraint)
-                    existing_record = session.query(Resource).filter(Resource.name == clean_record['name']).first()
+                    # Use case-insensitive lookup to prevent duplicates
+                    from sqlalchemy import func
+                    existing_record = session.query(Resource).filter(
+                        func.lower(Resource.name) == clean_record['name'].lower()
+                    ).first()
 
                     if existing_record:
                         # Update existing record

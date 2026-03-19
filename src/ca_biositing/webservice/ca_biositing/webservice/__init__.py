@@ -6,6 +6,6 @@ It provides REST API endpoints for accessing bioeconomy data.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+from ca_biositing.webservice._version import __version__
 
 __all__ = ["__version__"]

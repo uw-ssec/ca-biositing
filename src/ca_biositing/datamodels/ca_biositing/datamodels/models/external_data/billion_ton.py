@@ -1,9 +1,11 @@
-from ..base import BaseEntity
 from datetime import datetime
 from decimal import Decimal
-from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional
-from sqlalchemy import BigInteger
+
+import sqlalchemy as sa
+from sqlmodel import Field, Relationship, SQLModel
+
+from ..base import BaseEntity
 
 
 class BillionTon2023Record(BaseEntity, table=True):
@@ -20,7 +22,7 @@ class BillionTon2023Record(BaseEntity, table=True):
     production: Optional[int] = Field(default=None)
     production_unit_id: Optional[int] = Field(default=None, foreign_key="unit.id")
     btu_ton: Optional[int] = Field(default=None)
-    production_energy_content: Optional[int] = Field(default=None, sa_type=BigInteger)
+    production_energy_content: Optional[int] = Field(default=None, sa_type=sa.BigInteger)
     energy_content_unit_id: Optional[int] = Field(default=None, foreign_key="unit.id")
     product_density_dtpersqmi: Optional[Decimal] = Field(default=None)
     land_source: Optional[str] = Field(default=None)

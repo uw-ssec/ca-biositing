@@ -17,6 +17,10 @@ from ca_biositing.webservice.exceptions import (
     ResourceNotFoundException,
 )
 from ca_biositing.webservice.services._canonical_views import get_analysis_data_view
+from ca_biositing.webservice.services._usda_lookup_common import (
+    normalize_crop_name,
+    normalized_sql_text,
+)
 
 
 class AnalysisService:
@@ -36,7 +40,8 @@ class AnalysisService:
         Raises:
             ResourceNotFoundException: If resource not found
         """
-        stmt = select(Resource).where(Resource.name == resource_name)
+        normalized = normalize_crop_name(resource_name)
+        stmt = select(Resource).where(normalized_sql_text(Resource.name) == normalized)
         resource = session.execute(stmt).scalar_one_or_none()
 
         if not resource:
@@ -84,7 +89,7 @@ class AnalysisService:
         )
 
         if parameter_name:
-            stmt = stmt.where(analysis_view.c.parameter == parameter_name)
+            stmt = stmt.where(normalized_sql_text(analysis_view.c.parameter) == normalize_crop_name(parameter_name))
 
         # Order by observation ID for deterministic results
         stmt = stmt.order_by(analysis_view.c.id)
@@ -198,3 +203,43 @@ class AnalysisService:
             "geoid": geoid,
             "data": data_items,
         }
+
+    @staticmethod
+    def list_resources(session: Session) -> list[str]:
+        """Return distinct non-NULL resource names from the analysis view."""
+        view = get_analysis_data_view(session)
+        stmt = (
+            select(view.c.resource)
+            .where(view.c.resource.is_not(None))
+            .distinct()
+            .order_by(view.c.resource)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_geoids(session: Session) -> list[str]:
+        """Return distinct non-NULL geoids from the analysis view.
+
+        Returns [] currently (known analysis_data_view bug where geoids are NULL).
+        Populates automatically once the view bug is resolved.
+        """
+        view = get_analysis_data_view(session)
+        stmt = (
+            select(view.c.geoid)
+            .where(view.c.geoid.is_not(None))
+            .distinct()
+            .order_by(view.c.geoid)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_parameters(session: Session) -> list[str]:
+        """Return distinct non-NULL parameter names from the analysis view."""
+        view = get_analysis_data_view(session)
+        stmt = (
+            select(view.c.parameter)
+            .where(view.c.parameter.is_not(None))
+            .distinct()
+            .order_by(view.c.parameter)
+        )
+        return [r for (r,) in session.execute(stmt).all()]

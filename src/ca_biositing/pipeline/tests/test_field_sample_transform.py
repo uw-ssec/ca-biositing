@@ -2,10 +2,11 @@ import pandas as pd
 import pytest
 from unittest.mock import MagicMock, patch
 from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import transform_field_sample
-from sqlalchemy import Column, String, Integer
 
 @patch("ca_biositing.pipeline.etl.transform.field_sampling.field_sample.normalize_dataframes")
-def test_transform_field_sample(mock_normalize):
+@patch("sqlmodel.Session")
+@patch("ca_biositing.pipeline.utils.engine.engine")
+def test_transform_field_sample(mock_engine, mock_session, mock_normalize):
     # 1. Setup Mock Data
     metadata_raw = pd.DataFrame({
         "Field_Sample_Name": ["Pos-Alf033", "Pos-Alf033", "Not-Core"],
@@ -19,7 +20,8 @@ def test_transform_field_sample(mock_normalize):
         "Sample_Source": ["Source A", "Source B", "Source C"],
         "Prepared_Sample": ["Sample A", "Sample B", "Sample C"],
         "Storage_Mode": ["Method A", "Method B", "Method C"],
-        "Sample_Unit": ["core", "Core", "not_core"]
+        "Sample_Unit": ["core", "Core", "not_core"],
+        "County": ["San Joaquin", "San Joaquin", "San Joaquin"]
     })
 
     provider_raw = pd.DataFrame({
@@ -36,27 +38,41 @@ def test_transform_field_sample(mock_normalize):
     }
 
     # 2. Mock normalize_dataframes to return a DF with expected ID columns
-    def side_effect(df, normalize_columns):
+    def side_effect_normalize(df, normalize_columns):
         df_norm = df.copy()
         df_norm["resource_id"] = 1
         df_norm["provider_codename_id"] = 10
         df_norm["primary_collector_id"] = 100
-        df_norm["dataset_id"] = 500
-        return df_norm
+        df_norm["dataset_id"] = 1
+        return [df_norm]
 
-    mock_normalize.side_effect = side_effect
+    mock_normalize.side_effect = side_effect_normalize
 
-    # 3. Run Transform
+    # 3. Mock Database Session
+    mock_session_obj = MagicMock()
+    mock_session.return_value.__enter__.return_value = mock_session_obj
+
+    # Mock Place lookup results
+    mock_place = MagicMock()
+    mock_place.geoid = "06077"
+    mock_place.county_name = "San Joaquin"
+
+    mock_exec = MagicMock()
+    mock_session_obj.exec.return_value = mock_exec
+    # The code calls .all() first for places, then .first() in a loop for LocationAddress
+    mock_exec.all.return_value = [mock_place]
+    mock_exec.first.return_value = MagicMock(id=1000)
+
+    # 4. Run Transform
     result_df = transform_field_sample.fn(data_sources, etl_run_id=123, lineage_group_id=456)
 
-    # 4. Assertions
+    # 5. Assertions
     assert result_df is not None
     assert not result_df.empty
-    # We had 3 records in mock data, 2 with same name "Pos-Alf033"
-    # deduplication should leave us with 2 unique names: "Pos-Alf033" and "Not-Core"
+    # Deduplication based on field_sample_name
     assert len(result_df) == 2
 
-    # Check columns (using the rename_map names)
+    # Check columns
     assert "name" in result_df.columns
     assert "resource_id" in result_df.columns
     assert "provider_id" in result_df.columns
@@ -72,9 +88,14 @@ def test_transform_field_sample(mock_normalize):
     assert row["resource_id"] == 1
     assert row["provider_id"] == 10
     assert row["collector_id"] == 100
-    assert row["dataset_id"] == 500
+    assert row["dataset_id"] == 1
     assert row["etl_run_id"] == 123
     assert row["lineage_group_id"] == 456
+
+def test_transform_field_sample_empty():
+    data_sources = {"samplemetadata": pd.DataFrame(), "provider_info": pd.DataFrame()}
+    result = transform_field_sample.fn(data_sources)
+    assert result.empty
 
 if __name__ == "__main__":
     pytest.main([__file__])

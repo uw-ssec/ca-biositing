@@ -66,6 +66,11 @@ def pulumi_program():
         secret_resources.postgres_password_secret.name,
     )
 
+    pulumi.export(
+        "admin_password_secret_name",
+        secret_resources.admin_password_sm.name,
+    )
+
     # IAM
     for sa_name, sa in iam.service_accounts.items():
         pulumi.export(f"sa_{sa_name}_email", sa.email)
@@ -74,6 +79,7 @@ def pulumi_program():
     pulumi.export("webservice_url", cr.webservice.uri)
     pulumi.export("prefect_server_url", cr.prefect_server.uri)
     pulumi.export("migration_job_name", cr.migration_job.name)
+    pulumi.export("seed_admin_job_name", cr.seed_admin_job.name)
 
 
 def get_stack() -> auto.Stack:

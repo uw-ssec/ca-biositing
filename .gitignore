@@ -40,6 +40,7 @@ data/landiq/*.prj
 data/landiq/*.cpg
 data/landiq/*.xml
 *.csv
+*.pdf
 !src/ca_biositing/pipeline/ca_biositing/pipeline/utils/commodity_mappings.csv
 !src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq/*.csv
 !resources/assets/*.csv
@@ -68,5 +69,15 @@ draft_additions.py
 # Database Backups
 backups/
 
+# PR Plans
+docs/pr/
 # MkDocs build output
 site/
+
+# PR notes
+docs/pr/
+pr_notes/
+scripts/check_pretreatment_duplicates.py
+
+# hatch-vcs generated version files
+_version.py

@@ -20,8 +20,15 @@ from ca_biositing.webservice.exceptions import (
     ParameterNotFoundException,
     ResourceNotFoundException,
 )
-from ca_biositing.webservice.services._canonical_views import get_usda_census_view
-from ca_biositing.webservice.services._usda_lookup_common import get_commodity_by_name
+from ca_biositing.webservice.services._canonical_views import (
+    get_usda_census_view,
+    get_usda_resource_commodity_view,
+)
+from ca_biositing.webservice.services._usda_lookup_common import (
+    get_commodity_by_name,
+    normalize_crop_name,
+    normalized_sql_text,
+)
 
 
 class UsdaCensusService:
@@ -58,8 +65,9 @@ class UsdaCensusService:
             ResourceNotFoundException: If resource not found or no mapping exists
         """
 
-        # First find the resource
-        stmt = select(Resource).where(Resource.name == resource_name)
+        # First find the resource (case-insensitive)
+        normalized = normalize_crop_name(resource_name)
+        stmt = select(Resource).where(normalized_sql_text(Resource.name) == normalized)
         resource = session.execute(stmt).scalar_one_or_none()
 
         if not resource:
@@ -139,7 +147,7 @@ class UsdaCensusService:
         )
 
         if parameter_name:
-            stmt = stmt.where(census_view.c.parameter == parameter_name)
+            stmt = stmt.where(normalized_sql_text(census_view.c.parameter) == normalize_crop_name(parameter_name))
 
         # Order by observation ID for deterministic results
         stmt = stmt.order_by(census_view.c.id)
@@ -274,11 +282,10 @@ class UsdaCensusService:
             geoid: Geographic identifier
 
         Returns:
-            Dictionary with list of all parameters
+            Dictionary with list of all parameters (may be empty)
 
         Raises:
             CropNotFoundException: If crop not found
-            ParameterNotFoundException: If no data found for crop/geoid
         """
         # Validate crop exists
         commodity = UsdaCensusService._get_commodity_by_name(session, usda_crop)
@@ -287,12 +294,6 @@ class UsdaCensusService:
         observations = UsdaCensusService._get_observations_for_census_record(
             session, commodity.id, geoid
         )
-
-        if not observations:
-            raise ParameterNotFoundException(
-                "any parameter",
-                f"crop {usda_crop} in geoid {geoid}"
-            )
 
         return {
             "usda_crop": usda_crop,
@@ -315,11 +316,10 @@ class UsdaCensusService:
             geoid: Geographic identifier
 
         Returns:
-            Dictionary with list of all parameters
+            Dictionary with list of all parameters (may be empty)
 
         Raises:
             ResourceNotFoundException: If resource not found
-            ParameterNotFoundException: If no data found for resource/geoid
         """
         # Convert resource to commodity
         commodity = UsdaCensusService._get_commodity_by_resource(session, resource)
@@ -329,15 +329,63 @@ class UsdaCensusService:
             session, commodity.id, geoid
         )
 
-        if not observations:
-            raise ParameterNotFoundException(
-                "any parameter",
-                f"resource {resource} in geoid {geoid}"
-            )
-
         return {
             "usda_crop": None,
             "resource": resource,
             "geoid": geoid,
             "data": observations,
         }
+
+    @staticmethod
+    def list_crops(session: Session) -> list[str]:
+        """Return distinct non-NULL USDA crop names from the census view."""
+        view = get_usda_census_view(session)
+        stmt = (
+            select(view.c.usda_crop)
+            .where(view.c.usda_crop.is_not(None))
+            .distinct()
+            .order_by(view.c.usda_crop)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_geoids(session: Session) -> list[str]:
+        """Return distinct non-NULL geoids from the census view."""
+        view = get_usda_census_view(session)
+        stmt = (
+            select(view.c.geoid)
+            .where(view.c.geoid.is_not(None))
+            .distinct()
+            .order_by(view.c.geoid)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_parameters(session: Session) -> list[str]:
+        """Return distinct non-NULL parameter names from the census view."""
+        view = get_usda_census_view(session)
+        stmt = (
+            select(view.c.parameter)
+            .where(view.c.parameter.is_not(None))
+            .distinct()
+            .order_by(view.c.parameter)
+        )
+        return [r for (r,) in session.execute(stmt).all()]
+
+    @staticmethod
+    def list_resources(session: Session) -> list[str]:
+        """Return distinct resource names whose commodities appear in the census view."""
+        census_view = get_usda_census_view(session)
+        resource_commodity_view = get_usda_resource_commodity_view(session)
+        commodity_ids_subq = (
+            select(census_view.c.commodity_id)
+            .where(census_view.c.commodity_id.is_not(None))
+            .distinct()
+        )
+        stmt = (
+            select(resource_commodity_view.c.resource)
+            .where(resource_commodity_view.c.commodity_id.in_(commodity_ids_subq))
+            .distinct()
+            .order_by(resource_commodity_view.c.resource)
+        )
+        return [r for (r,) in session.execute(stmt).all()]

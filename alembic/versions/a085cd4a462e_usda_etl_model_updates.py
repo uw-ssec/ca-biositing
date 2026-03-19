@@ -34,11 +34,13 @@ def upgrade() -> None:
     op.execute("""
         INSERT INTO place (geoid, state_name, state_fips, county_name, county_fips, agg_level_desc)
         VALUES
-          ('06000', 'CALIFORNIA', '06', NULL, '000', 'STATE'),
-          ('06077', 'CALIFORNIA', '06', 'SAN JOAQUIN', '077', 'COUNTY'),
-          ('06099', 'CALIFORNIA', '06', 'STANISLAUS', '099', 'COUNTY'),
-          ('06047', 'CALIFORNIA', '06', 'MERCED', '047', 'COUNTY')
-        ON CONFLICT (geoid) DO NOTHING
+          ('06000', 'california', '06', NULL, '000', 'STATE'),
+          ('06077', 'california', '06', 'san joaquin', '077', 'COUNTY'),
+          ('06099', 'california', '06', 'stanislaus', '099', 'COUNTY'),
+          ('06047', 'california', '06', 'merced', '047', 'COUNTY')
+        ON CONFLICT (geoid) DO UPDATE SET
+          state_name = EXCLUDED.state_name,
+          county_name = EXCLUDED.county_name
     """)
 
 

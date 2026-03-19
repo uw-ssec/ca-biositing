@@ -25,6 +25,7 @@ from .models import (
     UsdaCensusRecord,
     UsdaSurveyRecord,
     UsdaCommodity,
+    ResourceUsdaCommodityMap,
     BillionTon2023Record,
     # General analysis models
     Observation,
@@ -36,6 +37,12 @@ from .models import (
     UltimateRecord,
     CompositionalRecord,
     IcpRecord,
+    XrfRecord,
+    CalorimetryRecord,
+    XrdRecord,
+    # Aim2 record models
+    FermentationRecord,
+    PretreatmentRecord,
     # Sample models
     PreparedSample,
     FieldSample,
@@ -87,15 +94,17 @@ AnalysisDimensionUnit = aliased(Unit, name="analysis_du")
 ANALYSIS_DATA_VIEW = (
     select(
         Observation.id,
+        Observation.record_id,
+        Observation.record_type,
         Resource.id.label("resource_id"),
-        Resource.name.label("resource"),
+        func.lower(Resource.name).label("resource"),
         LocationAddress.geography_id.label("geoid"),
-        Parameter.name.label("parameter"),
+        func.lower(Parameter.name).label("parameter"),
         Observation.value,
-        Unit.name.label("unit"),
-        DimensionType.name.label("dimension"),
+        func.lower(Unit.name).label("unit"),
+        func.lower(DimensionType.name).label("dimension"),
         Observation.dimension_value,
-        AnalysisDimensionUnit.name.label("dimension_unit"),
+        func.lower(AnalysisDimensionUnit.name).label("dimension_unit"),
     )
     .join(Parameter, Observation.parameter_id == Parameter.id)
     .join(Unit, Observation.unit_id == Unit.id)
@@ -103,23 +112,53 @@ ANALYSIS_DATA_VIEW = (
     .outerjoin(AnalysisDimensionUnit, Observation.dimension_unit_id == AnalysisDimensionUnit.id)
     .outerjoin(
         ProximateRecord,
-        (Observation.record_id == ProximateRecord.record_id)
-        & (Observation.record_type == "proximate analysis"),
+        (func.lower(Observation.record_id) == func.lower(ProximateRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["proximate analysis", "proximate_analysis"])),
     )
     .outerjoin(
         UltimateRecord,
-        (Observation.record_id == UltimateRecord.record_id)
-        & (Observation.record_type == "ultimate analysis"),
+        (func.lower(Observation.record_id) == func.lower(UltimateRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["ultimate analysis", "ultimate_analysis"])),
     )
     .outerjoin(
         CompositionalRecord,
-        (Observation.record_id == CompositionalRecord.record_id)
-        & (Observation.record_type == "compositional analysis"),
+        (func.lower(Observation.record_id) == func.lower(CompositionalRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["compositional analysis", "compositional_analysis"])),
     )
     .outerjoin(
         IcpRecord,
-        (Observation.record_id == IcpRecord.record_id)
-        & (Observation.record_type == "icp analysis"),
+        (func.lower(Observation.record_id) == func.lower(IcpRecord.record_id))
+        & (
+            (func.lower(Observation.record_type) == "icp analysis")
+            | (func.lower(Observation.record_type) == "icp_analysis")
+            | (func.lower(Observation.record_type) == "icp-oes")
+            | (func.lower(Observation.record_type) == "icp-ms")
+        ),
+    )
+    .outerjoin(
+        XrfRecord,
+        (func.lower(Observation.record_id) == func.lower(XrfRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["xrf analysis", "xrf_analysis"])),
+    )
+    .outerjoin(
+        CalorimetryRecord,
+        (func.lower(Observation.record_id) == func.lower(CalorimetryRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["calorimetry analysis", "calorimetry_analysis"])),
+    )
+    .outerjoin(
+        XrdRecord,
+        (func.lower(Observation.record_id) == func.lower(XrdRecord.record_id))
+        & (func.lower(Observation.record_type).in_(["xrd analysis", "xrd_analysis"])),
+    )
+    .outerjoin(
+        FermentationRecord,
+        (func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))
+        & (func.lower(Observation.record_type) == "fermentation"),
+    )
+    .outerjoin(
+        PretreatmentRecord,
+        (func.lower(Observation.record_id) == func.lower(PretreatmentRecord.record_id))
+        & (func.lower(Observation.record_type) == "pretreatment"),
     )
     .outerjoin(
         PreparedSample,
@@ -129,11 +168,36 @@ ANALYSIS_DATA_VIEW = (
             UltimateRecord.prepared_sample_id,
             CompositionalRecord.prepared_sample_id,
             IcpRecord.prepared_sample_id,
+            XrfRecord.prepared_sample_id,
+            CalorimetryRecord.prepared_sample_id,
+            XrdRecord.prepared_sample_id,
+            FermentationRecord.prepared_sample_id,
+            PretreatmentRecord.prepared_sample_id,
         ),
     )
     .outerjoin(FieldSample, FieldSample.id == PreparedSample.field_sample_id)
+    .outerjoin(
+        Resource,
+        Resource.id
+        == func.coalesce(
+            ProximateRecord.resource_id,
+            UltimateRecord.resource_id,
+            CompositionalRecord.resource_id,
+            IcpRecord.resource_id,
+            XrfRecord.resource_id,
+            CalorimetryRecord.resource_id,
+            XrdRecord.resource_id,
+            FermentationRecord.resource_id,
+            PretreatmentRecord.resource_id,
+            FieldSample.resource_id,
+        ),
+    )
     .outerjoin(LocationAddress, LocationAddress.id == FieldSample.sampling_location_id)
-    .outerjoin(Resource, Resource.id == FieldSample.resource_id)
+    .where(
+        func.lower(Observation.record_type).notin_(
+            ["usda_census_record", "usda_survey_record"]
+        )
+    )
 )
 
 # --- 4. usda_census_view ---
@@ -148,12 +212,12 @@ USDA_CENSUS_VIEW_V1 = (
         Observation.id,
         UsdaCommodity.name.label("usda_crop"),
         Place.geoid,
-        Parameter.name.label("parameter"),
+        func.lower(Parameter.name).label("parameter"),
         Observation.value,
-        Unit.name.label("unit"),
-        DimensionType.name.label("dimension"),
+        func.lower(Unit.name).label("unit"),
+        func.lower(DimensionType.name).label("dimension"),
         Observation.dimension_value,
-        DimensionUnit.name.label("dimension_unit"),
+        func.lower(DimensionUnit.name).label("dimension_unit"),
     )
     .join(
         UsdaCensusRecord,
@@ -173,12 +237,12 @@ USDA_CENSUS_VIEW = (
         Observation.id,
         func.lower(UsdaCommodity.api_name).label("usda_crop"),
         Place.geoid,
-        Parameter.name.label("parameter"),
+        func.lower(Parameter.name).label("parameter"),
         Observation.value,
-        Unit.name.label("unit"),
-        DimensionType.name.label("dimension"),
+        func.lower(Unit.name).label("unit"),
+        func.lower(DimensionType.name).label("dimension"),
         Observation.dimension_value,
-        DimensionUnit.name.label("dimension_unit"),
+        func.lower(DimensionUnit.name).label("dimension_unit"),
         UsdaCommodity.id.label("commodity_id"),
         UsdaCensusRecord.id.label("source_record_id"),
         UsdaCensusRecord.year.label("record_year"),
@@ -203,12 +267,12 @@ USDA_SURVEY_VIEW_V1 = (
         Observation.id,
         UsdaCommodity.name.label("usda_crop"),
         Place.geoid,
-        Parameter.name.label("parameter"),
+        func.lower(Parameter.name).label("parameter"),
         Observation.value,
-        Unit.name.label("unit"),
-        DimensionType.name.label("dimension"),
+        func.lower(Unit.name).label("unit"),
+        func.lower(DimensionType.name).label("dimension"),
         Observation.dimension_value,
-        DimensionUnit.name.label("dimension_unit"),
+        func.lower(DimensionUnit.name).label("dimension_unit"),
     )
     .join(
         UsdaSurveyRecord,
@@ -229,12 +293,12 @@ USDA_SURVEY_VIEW = (
         Observation.id,
         func.lower(UsdaCommodity.api_name).label("usda_crop"),
         Place.geoid,
-        Parameter.name.label("parameter"),
+        func.lower(Parameter.name).label("parameter"),
         Observation.value,
-        Unit.name.label("unit"),
-        DimensionType.name.label("dimension"),
+        func.lower(Unit.name).label("unit"),
+        func.lower(DimensionType.name).label("dimension"),
         Observation.dimension_value,
-        DimensionUnit.name.label("dimension_unit"),
+        func.lower(DimensionUnit.name).label("dimension_unit"),
         UsdaCommodity.id.label("commodity_id"),
         UsdaSurveyRecord.id.label("source_record_id"),
         UsdaSurveyRecord.year.label("record_year"),
@@ -256,15 +320,31 @@ USDA_SURVEY_VIEW = (
     .outerjoin(DimensionUnit, Observation.dimension_unit_id == DimensionUnit.id)
 )
 
-# --- 6. billion_ton_tileset_view ---
+# --- 6. usda_resource_commodity_view ---
+# Lightweight view: maps each resource name to its USDA commodity ID.
+# Used by discovery endpoints to list queryable resources without service-layer joins.
+# A commodity may map to multiple resources; this view preserves all mappings.
+USDA_RESOURCE_COMMODITY_VIEW = (
+    select(
+        Resource.name.label("resource"),
+        ResourceUsdaCommodityMap.usda_commodity_id.label("commodity_id"),
+    )
+    .join(ResourceUsdaCommodityMap, ResourceUsdaCommodityMap.resource_id == Resource.id)
+    .where(
+        ResourceUsdaCommodityMap.usda_commodity_id.is_not(None),
+        Resource.name.is_not(None),
+    )
+)
+
+# --- 7. billion_ton_tileset_view ---
 BILLION_TON_TILESET_VIEW = (
     select(
         BillionTon2023Record.id,
         Resource.name.label("resource"),
-        Place.county_name.label("county"),
+        func.lower(Place.county_name).label("county"),
         literal("production").label("parameter"),
         cast(BillionTon2023Record.production, Float).label("value"),
-        Unit.name.label("unit"),
+        func.lower(Unit.name).label("unit"),
         BillionTon2023Record.etl_run_id.label("tileset_id"),
     )
     .join(Resource, BillionTon2023Record.resource_id == Resource.id)
@@ -322,5 +402,6 @@ def refresh_all_views(engine):
     with engine.connect() as conn:
         for view_name, _ in VIEW_DEFINITIONS:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.{view_name}"))
+        conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.usda_resource_commodity_view"))
         conn.execute(text(f"REFRESH MATERIALIZED VIEW {VIEW_SCHEMA}.analysis_average_view"))
         conn.commit()

@@ -28,7 +28,7 @@ def test_prepared_sample_transform():
             df_norm["sample_name_id"] = [10, 20]
             df_norm["preparation_method_id"] = [100, 200]
             df_norm["analyst_email_id"] = [1000, 2000]
-            return df_norm
+            return [df_norm]
 
         mock_normalize.side_effect = side_effect
 
