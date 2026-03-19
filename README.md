@@ -45,7 +45,7 @@ ca-biositing/
 
 ```bash
 # Clone the repository
-git clone https://github.com/uw-ssec/ca-biositing.git
+git clone https://github.com/sustainability-software-lab/ca-biositing.git
 cd ca-biositing
 
 # Install dependencies with Pixi
@@ -347,7 +347,7 @@ Most documentation should live in the relevant directories within the `docs`
 folder.
 
 When adding new pages to the documentation, make sure you update the
-[`mkdocs.yml` file](https://github.com/uw-ssec/ca-biositing/blob/main/mkdocs.yml)
+[`mkdocs.yml` file](https://github.com/sustainability-software-lab/ca-biositing/blob/main/mkdocs.yml)
 so they can be rendered on the website.
 
 If you need to add documentation referencing a file that lives elsewhere in the

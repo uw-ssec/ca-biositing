@@ -204,7 +204,7 @@ def get_resources(session: Session = Depends(get_session)):
 - **Version**: 0.1.0
 - **Python**: >= 3.12
 - **License**: BSD License
-- **Repository**: <https://github.com/uw-ssec/ca-biositing>
+- **Repository**: <https://github.com/sustainability-software-lab/ca-biositing>
 
 ## Contributing
 
