@@ -1,4 +1,4 @@
-FROM ghcr.io/prefix-dev/pixi:0.56.0 AS build
+FROM ghcr.io/prefix-dev/pixi:0.63.2 AS build
 
 # copy source code, pixi.toml and pixi.lock to the container
 COPY . /app
@@ -6,6 +6,9 @@ WORKDIR /app
 
 # Remove any existing pixi environment (if any)
 RUN rm -rf /app/.pixi
+
+# Install git (required by hatch-vcs/setuptools-scm for version detection)
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 
 # Install the webservice pixi environment
 RUN pixi install -e webservice
