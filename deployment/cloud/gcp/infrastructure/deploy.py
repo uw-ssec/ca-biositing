@@ -19,6 +19,7 @@ from cloud_sql import create_cloud_sql
 from iam import create_service_accounts
 from secret_manager import create_secrets
 
+from artifact_registry import create_artifact_registry
 from cloud_run import create_cloud_run_resources
 from wif import create_wif
 
@@ -27,6 +28,11 @@ def pulumi_program():
     """Inline Pulumi program defining all GCP infrastructure."""
     # 1. Enable required GCP APIs — downstream resources depend on these.
     api_services = enable_apis()
+
+    # 1.5. Artifact Registry: remote repo proxying GHCR for Cloud Run
+    create_artifact_registry(
+        depends_on=[api_services["artifactregistry"]]
+    )
 
     # 2. Cloud SQL: instance, databases, users
     sql = create_cloud_sql(depends_on=[api_services["sqladmin"]])
@@ -41,7 +47,7 @@ def pulumi_program():
         depends_on=[api_services["iam"], api_services["cloudresourcemanager"]]
     )
 
-    # 5. Cloud Run: Services and Jobs (images pulled from GHCR)
+    # 5. Cloud Run: Services and Jobs (images pulled via AR remote repo)
     cr = create_cloud_run_resources(
         sql, secret_resources, iam, depends_on=[api_services["run"]]
     )

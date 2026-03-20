@@ -5,9 +5,9 @@ set -euo pipefail
 # IMAGE_TAG defaults to "latest" if not set in the environment.
 
 gcloud run services update biocirv-prefect-worker \
-  --image="ghcr.io/sustainability-software-lab/ca-biositing/pipeline:${IMAGE_TAG:-latest}" \
+  --image="us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/pipeline:${IMAGE_TAG:-latest}" \
   --region=us-west1
 
 gcloud run services update biocirv-webservice \
-  --image="ghcr.io/sustainability-software-lab/ca-biositing/webservice:${IMAGE_TAG:-latest}" \
+  --image="us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/webservice:${IMAGE_TAG:-latest}" \
   --region=us-west1
