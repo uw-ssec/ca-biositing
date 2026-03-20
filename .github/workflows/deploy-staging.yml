@@ -8,7 +8,9 @@ on:
   workflow_dispatch: # Allow manual triggers
 
 concurrency:
-  group: deploy-staging-${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+  group:
+    deploy-staging-${{ github.event_name == 'pull_request' && github.head_ref ||
+    'main' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
