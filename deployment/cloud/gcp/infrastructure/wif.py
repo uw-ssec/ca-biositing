@@ -73,6 +73,7 @@ def create_wif(
     # IAM roles for the deployer SA
     deployer_roles = [
         "roles/cloudbuild.builds.editor",
+        "roles/iam.serviceAccountUser",  # actAs Cloud Build default SA
         "roles/run.developer",
         "roles/run.admin",
         "roles/viewer",
@@ -97,6 +98,17 @@ def create_wif(
     gcp.storage.BucketIAMMember(
         "gh-deploy-pulumi-state",
         bucket="biocirv-470318-pulumi-state",
+        role="roles/storage.objectAdmin",
+        member=deployer_sa.email.apply(
+            lambda email: f"serviceAccount:{email}"
+        ),
+    )
+
+    # Storage objectAdmin on the Cloud Build staging bucket
+    # (Cloud Build uploads source tarballs here before building)
+    gcp.storage.BucketIAMMember(
+        "gh-deploy-cloudbuild-staging",
+        bucket="biocirv-470318_cloudbuild",
         role="roles/storage.objectAdmin",
         member=deployer_sa.email.apply(
             lambda email: f"serviceAccount:{email}"
