@@ -15,6 +15,7 @@ class WIFResources:
     provider: gcp.iam.WorkloadIdentityPoolProvider
     deployer_sa: gcp.serviceaccount.Account
     provider_name: pulumi.Output
+    deployer_iam_members: dict[str, gcp.projects.IAMMember] = None
 
 
 def create_wif(
@@ -84,9 +85,10 @@ def create_wif(
         "roles/artifactregistry.admin",  # create/manage AR remote repos
     ]
 
+    deployer_iam_members = {}
     for role in deployer_roles:
         role_short = role.split("/")[-1]
-        gcp.projects.IAMMember(
+        deployer_iam_members[role_short] = gcp.projects.IAMMember(
             f"gh-deploy-{role_short}",
             project=GCP_PROJECT,
             role=role,
@@ -137,4 +139,5 @@ def create_wif(
         provider=provider,
         deployer_sa=deployer_sa,
         provider_name=provider_name,
+        deployer_iam_members=deployer_iam_members,
     )
