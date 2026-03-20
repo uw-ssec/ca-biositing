@@ -8,7 +8,6 @@ steps:
       - -f
       - resources/docker/webservice.dockerfile
       - .
-    waitFor: ["-"]
 
   - id: build-pipeline
     name: gcr.io/cloud-builders/docker
@@ -19,7 +18,6 @@ steps:
       - -f
       - resources/docker/pipeline.dockerfile
       - .
-    waitFor: ["-"]
 
 images:
   - gcr.io/$PROJECT_ID/webservice:latest
