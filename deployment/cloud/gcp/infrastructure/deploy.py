@@ -29,9 +29,17 @@ def pulumi_program():
     # 1. Enable required GCP APIs — downstream resources depend on these.
     api_services = enable_apis()
 
-    # 1.5. Artifact Registry: remote repo proxying GHCR for Cloud Run
-    create_artifact_registry(
-        depends_on=[api_services["artifactregistry"]]
+    # 1.5. Workload Identity Federation for GitHub Actions CI/CD
+    # (must be created before AR so the deployer SA has artifactregistry.admin)
+    wif = create_wif(depends_on=[api_services["iam"]])
+
+    # 1.6. Artifact Registry: remote repo proxying GHCR for Cloud Run
+    # Depends on the deployer SA's AR admin grant (CI runs as this SA)
+    ghcr_proxy = create_artifact_registry(
+        depends_on=[
+            api_services["artifactregistry"],
+            wif.deployer_iam_members["artifactregistry.admin"],
+        ]
     )
 
     # 2. Cloud SQL: instance, databases, users
@@ -49,11 +57,9 @@ def pulumi_program():
 
     # 5. Cloud Run: Services and Jobs (images pulled via AR remote repo)
     cr = create_cloud_run_resources(
-        sql, secret_resources, iam, depends_on=[api_services["run"]]
+        sql, secret_resources, iam,
+        depends_on=[api_services["run"], ghcr_proxy],
     )
-
-    # 6. Workload Identity Federation for GitHub Actions CI/CD
-    wif = create_wif(depends_on=[api_services["iam"]])
 
     # --- All exports centralized here ---
     # Cloud SQL
