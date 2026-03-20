@@ -133,8 +133,12 @@ def main():
     elif command == "up":
         # Refresh first to clear any pending operations from interrupted deploys
         print("Running refresh to reconcile state...")
-        stack.refresh(on_output=print)
-        print("Refresh complete. Starting update...\n")
+        try:
+            stack.refresh(on_output=print)
+            print("Refresh complete. Starting update...\n")
+        except auto.errors.CommandError as e:
+            print(f"\nRefresh failed (non-fatal): {e}")
+            print("Continuing with update...\n")
         result = stack.up(on_output=print)
         if result.summary:
             print(

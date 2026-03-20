@@ -97,22 +97,24 @@ def create_wif(
             ),
         )
 
-    # Storage objectAdmin on the Pulumi state bucket
+    # Storage admin on the Pulumi state bucket
+    # (needs storage.admin, not just objectAdmin, so Pulumi can read
+    # bucket IAM policies during `refresh`)
     gcp.storage.BucketIAMMember(
         "gh-deploy-pulumi-state",
         bucket="biocirv-470318-pulumi-state",
-        role="roles/storage.objectAdmin",
+        role="roles/storage.admin",
         member=deployer_sa.email.apply(
             lambda email: f"serviceAccount:{email}"
         ),
     )
 
-    # Storage objectAdmin on the Cloud Build staging bucket
+    # Storage admin on the Cloud Build staging bucket
     # (Cloud Build uploads source tarballs here before building)
     gcp.storage.BucketIAMMember(
         "gh-deploy-cloudbuild-staging",
         bucket="biocirv-470318_cloudbuild",
-        role="roles/storage.objectAdmin",
+        role="roles/storage.admin",
         member=deployer_sa.email.apply(
             lambda email: f"serviceAccount:{email}"
         ),
