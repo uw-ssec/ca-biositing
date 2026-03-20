@@ -397,32 +397,38 @@ description = "Refresh Pulumi state from live GCP resources."
 # They read IMAGE_TAG from the environment (default: "latest").
 
 [feature.cloud.tasks.cloud-build-images-ci]
-cmd = "gcloud builds submit --config=deployment/cloud/gcp/cloudbuild-ci.yaml --substitutions=_IMAGE_TAG=${IMAGE_TAG:-latest} --project=biocirv-470318 ."
+cmd = "bash scripts/cloud-build-images-ci.sh"
+env = { IMAGE_TAG = "latest" }
 description = "Build and push Docker images to GCR with IMAGE_TAG (default: latest). Usage: IMAGE_TAG=abc1234 pixi run cloud-build-images-ci"
 
 [feature.cloud.tasks.cloud-deploy-direct]
-cmd = "PULUMI_CONFIG_PASSPHRASE='' python deployment/cloud/gcp/infrastructure/deploy.py up"
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py up"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
 description = "Deploy infrastructure via Pulumi (direct, no Docker). Reads IMAGE_TAG from env. For Linux/CI use."
 
 [feature.cloud.tasks.cloud-plan-direct]
-cmd = "PULUMI_CONFIG_PASSPHRASE='' python deployment/cloud/gcp/infrastructure/deploy.py preview"
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py preview"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
 description = "Preview infrastructure changes via Pulumi (direct, no Docker). For Linux/CI use."
 
 [feature.cloud.tasks.cloud-refresh-direct]
-cmd = "PULUMI_CONFIG_PASSPHRASE='' python deployment/cloud/gcp/infrastructure/deploy.py refresh"
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py refresh"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
 description = "Refresh Pulumi state from live GCP resources (direct, no Docker). For Linux/CI use."
 
 [feature.cloud.tasks.cloud-outputs-direct]
-cmd = "PULUMI_CONFIG_PASSPHRASE='' python deployment/cloud/gcp/infrastructure/deploy.py outputs"
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py outputs"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
 description = "Show Pulumi stack outputs (direct, no Docker). For Linux/CI use."
 
 [feature.cloud.tasks.cloud-migrate-ci]
-cmd = "gcloud run jobs update biocirv-alembic-migrate --image=gcr.io/biocirv-470318/pipeline:${IMAGE_TAG:-latest} --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
+cmd = "bash scripts/cloud-migrate-ci.sh"
+env = { IMAGE_TAG = "latest" }
 description = "Update migration job image with IMAGE_TAG and execute. Usage: IMAGE_TAG=abc1234 pixi run cloud-migrate-ci"
 
 [feature.cloud.tasks.cloud-update-services]
-cmd = """gcloud run services update biocirv-prefect-worker --image=gcr.io/biocirv-470318/pipeline:${IMAGE_TAG:-latest} --region=us-west1 && \
-gcloud run services update biocirv-webservice --image=gcr.io/biocirv-470318/webservice:${IMAGE_TAG:-latest} --region=us-west1"""
+cmd = "bash scripts/cloud-update-services.sh"
+env = { IMAGE_TAG = "latest" }
 description = "Force new Cloud Run revisions with IMAGE_TAG. Usage: IMAGE_TAG=abc1234 pixi run cloud-update-services"
 
 [feature.gis.pypi-dependencies]
