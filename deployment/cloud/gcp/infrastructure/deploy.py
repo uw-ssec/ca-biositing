@@ -41,7 +41,7 @@ def pulumi_program():
         depends_on=[api_services["iam"], api_services["cloudresourcemanager"]]
     )
 
-    # 5. Cloud Run: Services and Jobs (images built separately via cloud-build-images)
+    # 5. Cloud Run: Services and Jobs (images pulled from GHCR)
     cr = create_cloud_run_resources(
         sql, secret_resources, iam, depends_on=[api_services["run"]]
     )

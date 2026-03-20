@@ -359,14 +359,9 @@ description = "Create the Pulumi state bucket in GCS (one-time setup)."
 cmd = "docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/"
 description = "Build the Pulumi Docker image for infrastructure deployment."
 
-[feature.cloud.tasks.cloud-build-images]
-cmd = "gcloud builds submit --config=deployment/cloud/gcp/cloudbuild.yaml --project=biocirv-470318 ."
-description = "Build and push Docker images to GCR via Google Cloud Build."
-
 [feature.cloud.tasks.cloud-migrate]
-cmd = "gcloud run jobs update biocirv-alembic-migrate --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
-depends-on = ["cloud-build-images"]
-description = "Build pipeline image, refresh the migration job digest, and apply Alembic migrations."
+cmd = "gcloud run jobs update biocirv-alembic-migrate --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
+description = "Refresh the migration job image digest and apply Alembic migrations."
 
 [feature.cloud.tasks.cloud-seed-admin]
 cmd = "gcloud run jobs execute biocirv-seed-admin --region=us-west1 --wait"
@@ -395,11 +390,6 @@ description = "Refresh Pulumi state from live GCP resources."
 # --- CI / Linux-native tasks (no Docker wrapper) ---
 # These tasks run directly on Linux (GitHub Actions or Linux workstations).
 # They read IMAGE_TAG from the environment (default: "latest").
-
-[feature.cloud.tasks.cloud-build-images-ci]
-cmd = "bash scripts/cloud-build-images-ci.sh"
-env = { IMAGE_TAG = "latest" }
-description = "Build and push Docker images to GCR with IMAGE_TAG (default: latest). Usage: IMAGE_TAG=abc1234 pixi run cloud-build-images-ci"
 
 [feature.cloud.tasks.cloud-deploy-direct]
 cmd = "python deployment/cloud/gcp/infrastructure/deploy.py up"

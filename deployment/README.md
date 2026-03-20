@@ -206,37 +206,20 @@ pixi run -e deployment cloud-plan
 pixi run -e deployment cloud-deploy
 ```
 
-### Build & Push Container Images
-
-Build container images (`webservice`, `pipeline`) via Cloud Build:
-
-```bash
-pixi run -e deployment cloud-build-images
-```
-
-Verify images exist:
-
-```bash
-gcloud container images list --repository=gcr.io/$(gcloud config get project)
-```
-
 ### Run Database Migrations
 
-Build the pipeline image, refresh the Cloud Run job's image digest, and apply
-Alembic migrations in one step:
+Refresh the Cloud Run job's image digest and apply Alembic migrations:
 
 ```bash
 pixi run cloud-migrate
 ```
 
-This runs three steps in order:
+This runs two steps in order:
 
-1. `cloud-build-images` — builds and pushes the pipeline image to GCR via Cloud
-   Build.
-2. `gcloud run jobs update ... --image=...` — re-pins the Cloud Run job to the
-   newly pushed image digest (required because Pulumi pins the digest at deploy
-   time and does not detect `:latest` tag updates).
-3. `gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait` —
+1. `gcloud run jobs update ... --image=...` — re-pins the Cloud Run job to the
+   latest GHCR image (required because Pulumi pins the digest at deploy time
+   and does not detect `:latest` tag updates).
+2. `gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait` —
    runs the migration job and waits for it to complete.
 
 Verify the execution completed:
@@ -433,7 +416,6 @@ GitHub secrets. The WIF pool is scoped to the
 
 | Purpose         | Local (macOS, Docker) | CI / Linux (direct)     |
 | --------------- | --------------------- | ----------------------- |
-| Build images    | `cloud-build-images`  | `cloud-build-images-ci` |
 | Deploy infra    | `cloud-deploy`        | `cloud-deploy-direct`   |
 | Preview infra   | `cloud-plan`          | `cloud-plan-direct`     |
 | Refresh state   | `cloud-refresh`       | `cloud-refresh-direct`  |
@@ -491,16 +473,7 @@ execution.
 - Access to the BioCirV GCP project (`biocirv-470318`)
 - `credentials.json` service account file for Google Sheets/Drive access
 
-### Step 1: Build and Push Container Images
-
-```bash
-pixi run cloud-build-images
-```
-
-This builds and pushes the `pipeline` and `webservice` images to GCR via Cloud
-Build.
-
-### Step 2: Deploy / Update Infrastructure
+### Step 1: Deploy / Update Infrastructure
 
 ```bash
 pixi run cloud-deploy
@@ -516,7 +489,7 @@ the migration job. New resources after recent changes include:
 - Volume: `gsheets-credentials` (Secret Manager volume mount at
   `/app/gsheets-credentials`)
 
-### Step 3: Upload Secrets (post-deploy, manual)
+### Step 2: Upload Secrets (post-deploy, manual)
 
 These secrets must be populated manually after `cloud-deploy` creates the secret
 shells:
@@ -541,7 +514,7 @@ gcloud secrets versions list biocirv-staging-gsheets-credentials --project=bioci
 gcloud secrets versions list biocirv-staging-usda-nass-api-key --project=biocirv-470318
 ```
 
-### Step 4: Run Database Migrations
+### Step 3: Run Database Migrations
 
 ```bash
 pixi run cloud-migrate
@@ -558,25 +531,25 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 
 Expected: `SUCCEEDED` status.
 
-### Step 5: Force New Cloud Run Revision for Worker
+### Step 4: Force New Cloud Run Revision for Worker
 
 After uploading secrets, force a new revision to pick up the latest image and
 mounted secret:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=gcr.io/biocirv-470318/pipeline:latest \
+  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest \
   --region=us-west1
 ```
 
-### Step 6: Set PREFECT_API_URL
+### Step 5: Set PREFECT_API_URL
 
 ```bash
 export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server \
   --region=us-west1 --format="value(status.url)")/api
 ```
 
-### Step 7: Register Prefect Deployment
+### Step 6: Register Prefect Deployment
 
 ```bash
 cd resources/prefect
@@ -595,7 +568,7 @@ Verify the deployment is registered:
 prefect deployment ls
 ```
 
-### Step 8: Trigger a Flow Run
+### Step 7: Trigger a Flow Run
 
 ```bash
 prefect deployment run "Master ETL Flow/master-etl-deployment"
@@ -611,7 +584,7 @@ gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=1
 gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
 ```
 
-### Step 9: Verify Data in Cloud SQL
+### Step 8: Verify Data in Cloud SQL
 
 Connect via Cloud SQL Auth Proxy (see "Connecting to the Database" section),
 then:
@@ -688,7 +661,7 @@ Then force a new Cloud Run revision:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1
+  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
 ```
 
 #### Google Sheets / Drive authentication fails
@@ -721,5 +694,5 @@ Force a new revision:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=gcr.io/biocirv-470318/pipeline:latest --region=us-west1
+  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
 ```
