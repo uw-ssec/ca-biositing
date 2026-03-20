@@ -103,6 +103,17 @@ def create_wif(
         ),
     )
 
+    # Storage objectAdmin on the Cloud Build staging bucket
+    # (Cloud Build uploads source tarballs here before building)
+    gcp.storage.BucketIAMMember(
+        "gh-deploy-cloudbuild-staging",
+        bucket="biocirv-470318_cloudbuild",
+        role="roles/storage.objectAdmin",
+        member=deployer_sa.email.apply(
+            lambda email: f"serviceAccount:{email}"
+        ),
+    )
+
     # Allow WIF pool to impersonate the deployer SA
     gcp.serviceaccount.IAMBinding(
         "gh-deploy-wif-binding",
