@@ -25,6 +25,9 @@ def create_artifact_registry(depends_on=None):
                 ),
             ),
         ),
-        opts=pulumi.ResourceOptions(depends_on=depends_on) if depends_on else None,
+        opts=pulumi.ResourceOptions(
+            depends_on=depends_on or [],
+            delete_before_replace=True,
+        ),
     )
     return repo

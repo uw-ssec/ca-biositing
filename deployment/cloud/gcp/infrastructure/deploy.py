@@ -131,6 +131,10 @@ def main():
         print(f"\nPreview summary: {json.dumps(result.change_summary, indent=2)}")
 
     elif command == "up":
+        # Refresh first to clear any pending operations from interrupted deploys
+        print("Running refresh to reconcile state...")
+        stack.refresh(on_output=print)
+        print("Refresh complete. Starting update...\n")
         result = stack.up(on_output=print)
         if result.summary:
             print(
