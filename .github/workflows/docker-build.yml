@@ -1,6 +1,5 @@
-# CI workflow: builds images and pushes to GHCR for validation.
-# For Cloud Run deployment images, use `pixi run cloud-build-images` which
-# pushes to GCR via Google Cloud Build (see deployment/cloud/gcp/cloudbuild.yaml).
+# Builds Docker images and pushes to GHCR. Cloud Run pulls directly from GHCR.
+# The deploy-staging workflow triggers via workflow_run after this completes.
 name: Build and Push Docker Images
 
 on:

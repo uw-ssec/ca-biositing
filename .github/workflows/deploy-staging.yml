@@ -1,7 +1,9 @@
 name: Deploy Staging
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types: [completed]
     branches: [main]
   pull_request:
     branches: [main]
@@ -50,45 +52,29 @@ jobs:
       - name: Preview infrastructure changes
         run: pixi run -e deployment cloud-plan-direct
 
-  # --- Deploy (runs on push to main / workflow_dispatch) ---
-  build-images:
-    name: Build and Push Images
-    if: github.event_name != 'pull_request'
+  # --- Deploy (runs after docker-build completes on main / workflow_dispatch) ---
+  image-tag:
+    name: Compute Image Tag
+    if: >-
+      (github.event_name == 'workflow_dispatch') || (github.event_name ==
+      'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # Required for WIF
     outputs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
       - name: Set short SHA
         id: vars
-        run: echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOYER_SA }}
-
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
-        with:
-          pixi-version: v0.63.2
-          environments: deployment
-
-      - name: Build and push images to GCR
-        env:
-          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
-        run: pixi run -e deployment cloud-build-images-ci
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            SHA="${GITHUB_SHA}"
+          fi
+          echo "sha_short=${SHA::7}" >> "$GITHUB_OUTPUT"
 
   deploy-infrastructure:
     name: Deploy Infrastructure (Pulumi)
-    needs: build-images
+    needs: image-tag
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -112,12 +98,12 @@ jobs:
 
       - name: Deploy infrastructure
         env:
-          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
         run: pixi run -e deployment cloud-deploy-direct
 
   run-migrations:
     name: Run Database Migrations
-    needs: [build-images, deploy-infrastructure]
+    needs: [image-tag, deploy-infrastructure]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -139,12 +125,12 @@ jobs:
 
       - name: Run Alembic migrations
         env:
-          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
         run: pixi run -e deployment cloud-migrate-ci
 
   update-services:
     name: Force Cloud Run Revision Updates
-    needs: [build-images, run-migrations]
+    needs: [image-tag, run-migrations]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -166,5 +152,5 @@ jobs:
 
       - name: Force new Cloud Run revisions
         env:
-          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
         run: pixi run -e deployment cloud-update-services
