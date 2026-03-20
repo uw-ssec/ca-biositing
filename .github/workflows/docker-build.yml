@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "deployment/**"
       - "resources/docker/**"
       - "src/**"
       - "pixi.toml"
@@ -15,6 +16,7 @@ on:
     types: [published]
   pull_request:
     paths:
+      - "deployment/**"
       - "resources/docker/**"
       - "src/**"
       - "pixi.toml"
