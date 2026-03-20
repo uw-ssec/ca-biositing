@@ -73,6 +73,7 @@ def create_wif(
     # IAM roles for the deployer SA
     deployer_roles = [
         "roles/cloudbuild.builds.editor",
+        "roles/iam.serviceAccountUser",  # actAs Cloud Build default SA
         "roles/run.developer",
         "roles/run.admin",
         "roles/viewer",
