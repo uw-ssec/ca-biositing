@@ -28,13 +28,14 @@ READONLY_USERS = ["biocirv_readonly"]
 
 # Container images — override with env vars to use digest/commit-based tags
 # instead of :latest (which Pulumi cannot detect changes for).
-GHCR_BASE = "ghcr.io/sustainability-software-lab/ca-biositing"
+# Images are pulled via an Artifact Registry remote repo that proxies GHCR.
+AR_GHCR_BASE = f"us-west1-docker.pkg.dev/{GCP_PROJECT}/ghcr-proxy/sustainability-software-lab/ca-biositing"
 IMAGE_TAG = os.environ.get("IMAGE_TAG", "latest")
 WEBSERVICE_IMAGE = os.environ.get(
-    "WEBSERVICE_IMAGE", f"{GHCR_BASE}/webservice:{IMAGE_TAG}"
+    "WEBSERVICE_IMAGE", f"{AR_GHCR_BASE}/webservice:{IMAGE_TAG}"
 )
 PIPELINE_IMAGE = os.environ.get(
-    "PIPELINE_IMAGE", f"{GHCR_BASE}/pipeline:{IMAGE_TAG}"
+    "PIPELINE_IMAGE", f"{AR_GHCR_BASE}/pipeline:{IMAGE_TAG}"
 )
 PREFECT_SERVER_IMAGE = os.environ.get(
     "PREFECT_SERVER_IMAGE", "prefecthq/prefect:3-python3.12"

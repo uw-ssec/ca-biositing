@@ -360,7 +360,7 @@ cmd = "docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/"
 description = "Build the Pulumi Docker image for infrastructure deployment."
 
 [feature.cloud.tasks.cloud-migrate]
-cmd = "gcloud run jobs update biocirv-alembic-migrate --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
+cmd = "gcloud run jobs update biocirv-alembic-migrate --image=us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1 && gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait"
 description = "Refresh the migration job image digest and apply Alembic migrations."
 
 [feature.cloud.tasks.cloud-seed-admin]

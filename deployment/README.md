@@ -538,7 +538,7 @@ mounted secret:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest \
+  --image=us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/pipeline:latest \
   --region=us-west1
 ```
 
@@ -661,7 +661,7 @@ Then force a new Cloud Run revision:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
+  --image=us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
 ```
 
 #### Google Sheets / Drive authentication fails
@@ -694,5 +694,5 @@ Force a new revision:
 
 ```bash
 gcloud run services update biocirv-prefect-worker \
-  --image=ghcr.io/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
+  --image=us-west1-docker.pkg.dev/biocirv-470318/ghcr-proxy/sustainability-software-lab/ca-biositing/pipeline:latest --region=us-west1
 ```
