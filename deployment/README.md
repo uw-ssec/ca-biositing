@@ -415,38 +415,38 @@ The `deploy-staging.yml` workflow runs these steps sequentially:
 
 1. **Build images** — submits a Cloud Build that tags images with both `:latest`
    and the short commit SHA (e.g., `:abc1234`)
-2. **Deploy infrastructure** — runs Pulumi to update Cloud Run services,
-   Cloud SQL, and other GCP resources with the SHA-tagged images
-3. **Run migrations** — updates the migration Cloud Run job to the new image
-   and executes `alembic upgrade head`
+2. **Deploy infrastructure** — runs Pulumi to update Cloud Run services, Cloud
+   SQL, and other GCP resources with the SHA-tagged images
+3. **Run migrations** — updates the migration Cloud Run job to the new image and
+   executes `alembic upgrade head`
 4. **Update services** — forces new Cloud Run revisions for the worker and
    webservice to pick up the latest images
 
 ### Authentication
 
 The workflow uses **Workload Identity Federation (WIF)** — keyless
-authentication from GitHub Actions to GCP. No service account keys are stored
-in GitHub secrets. The WIF pool is scoped to the
+authentication from GitHub Actions to GCP. No service account keys are stored in
+GitHub secrets. The WIF pool is scoped to the
 `sustainability-software-lab/ca-biositing` repository only.
 
 ### CI vs Local Tasks
 
-| Purpose          | Local (macOS, Docker)  | CI / Linux (direct)      |
-| ---------------- | ---------------------- | ------------------------ |
-| Build images     | `cloud-build-images`   | `cloud-build-images-ci`  |
-| Deploy infra     | `cloud-deploy`         | `cloud-deploy-direct`    |
-| Preview infra    | `cloud-plan`           | `cloud-plan-direct`      |
-| Refresh state    | `cloud-refresh`        | `cloud-refresh-direct`   |
-| Show outputs     | `cloud-outputs`        | `cloud-outputs-direct`   |
-| Run migrations   | `cloud-migrate`        | `cloud-migrate-ci`       |
-| Update services  | (manual gcloud)        | `cloud-update-services`  |
+| Purpose         | Local (macOS, Docker) | CI / Linux (direct)     |
+| --------------- | --------------------- | ----------------------- |
+| Build images    | `cloud-build-images`  | `cloud-build-images-ci` |
+| Deploy infra    | `cloud-deploy`        | `cloud-deploy-direct`   |
+| Preview infra   | `cloud-plan`          | `cloud-plan-direct`     |
+| Refresh state   | `cloud-refresh`       | `cloud-refresh-direct`  |
+| Show outputs    | `cloud-outputs`       | `cloud-outputs-direct`  |
+| Run migrations  | `cloud-migrate`       | `cloud-migrate-ci`      |
+| Update services | (manual gcloud)       | `cloud-update-services` |
 
 All CI tasks read `IMAGE_TAG` from the environment (defaults to `latest`).
 
 ### Manual Trigger
 
-You can manually trigger the workflow from the GitHub Actions UI:
-**Actions → Deploy Staging → Run workflow**.
+You can manually trigger the workflow from the GitHub Actions UI: **Actions →
+Deploy Staging → Run workflow**.
 
 ### Monitoring
 
