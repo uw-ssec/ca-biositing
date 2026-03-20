@@ -30,7 +30,7 @@ def pulumi_program():
     api_services = enable_apis()
 
     # 1.5. Artifact Registry: remote repo proxying GHCR for Cloud Run
-    create_artifact_registry(
+    ghcr_proxy = create_artifact_registry(
         depends_on=[api_services["artifactregistry"]]
     )
 
@@ -49,7 +49,8 @@ def pulumi_program():
 
     # 5. Cloud Run: Services and Jobs (images pulled via AR remote repo)
     cr = create_cloud_run_resources(
-        sql, secret_resources, iam, depends_on=[api_services["run"]]
+        sql, secret_resources, iam,
+        depends_on=[api_services["run"], ghcr_proxy],
     )
 
     # 6. Workload Identity Federation for GitHub Actions CI/CD

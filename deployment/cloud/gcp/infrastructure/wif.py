@@ -81,6 +81,7 @@ def create_wif(
         "roles/iam.serviceAccountAdmin",
         "roles/secretmanager.admin",
         "roles/resourcemanager.projectIamAdmin",
+        "roles/artifactregistry.admin",  # create/manage AR remote repos
     ]
 
     for role in deployer_roles:
