@@ -1,0 +1,127 @@
+"""Workload Identity Federation for GitHub Actions deployment."""
+
+from dataclasses import dataclass
+from typing import Sequence
+
+import pulumi
+import pulumi_gcp as gcp
+
+from config import GCP_PROJECT, GITHUB_REPO
+
+
+@dataclass
+class WIFResources:
+    pool: gcp.iam.WorkloadIdentityPool
+    provider: gcp.iam.WorkloadIdentityPoolProvider
+    deployer_sa: gcp.serviceaccount.Account
+    provider_name: pulumi.Output
+
+
+def create_wif(
+    depends_on: Sequence[pulumi.Resource] | None = None,
+) -> WIFResources:
+    """Create Workload Identity Federation resources for GitHub Actions.
+
+    This sets up keyless authentication so GitHub Actions can deploy
+    to GCP without long-lived service account keys.
+    """
+    opts = pulumi.ResourceOptions(depends_on=depends_on or [])
+
+    # Look up the project number dynamically
+    project = gcp.organizations.get_project(project_id=GCP_PROJECT)
+    project_number = project.number
+
+    # --- WIF Pool & Provider ---
+    pool = gcp.iam.WorkloadIdentityPool(
+        "github-actions-pool",
+        workload_identity_pool_id="github-actions",
+        display_name="GitHub Actions",
+        description="WIF pool for GitHub Actions CI/CD",
+        opts=opts,
+    )
+
+    provider = gcp.iam.WorkloadIdentityPoolProvider(
+        "github-oidc-provider",
+        workload_identity_pool_id=pool.workload_identity_pool_id,
+        workload_identity_pool_provider_id="github-oidc",
+        display_name="GitHub OIDC",
+        description="GitHub Actions OIDC provider",
+        attribute_mapping={
+            "google.subject": "assertion.sub",
+            "attribute.repository": "assertion.repository",
+        },
+        attribute_condition=f'assertion.repository == "{GITHUB_REPO}"',
+        oidc=gcp.iam.WorkloadIdentityPoolProviderOidcArgs(
+            issuer_uri="https://token.actions.githubusercontent.com",
+        ),
+        opts=pulumi.ResourceOptions(depends_on=[pool]),
+    )
+
+    # Full provider resource name for google-github-actions/auth
+    provider_name = pulumi.Output.all(
+        pool.name, provider.workload_identity_pool_provider_id
+    ).apply(lambda args: f"{args[0]}/providers/{args[1]}")
+
+    # --- Deployer Service Account ---
+    deployer_sa = gcp.serviceaccount.Account(
+        "gh-deploy-sa",
+        account_id="biocirv-staging-gh-deploy",
+        display_name="GitHub Actions Deployer (Staging)",
+        opts=opts,
+    )
+
+    # IAM roles for the deployer SA
+    deployer_roles = [
+        "roles/cloudbuild.builds.editor",
+        "roles/run.developer",
+        "roles/run.admin",
+        "roles/viewer",
+        "roles/cloudsql.admin",
+        "roles/iam.serviceAccountAdmin",
+        "roles/secretmanager.admin",
+        "roles/resourcemanager.projectIamAdmin",
+    ]
+
+    for role in deployer_roles:
+        role_short = role.split("/")[-1]
+        gcp.projects.IAMMember(
+            f"gh-deploy-{role_short}",
+            project=GCP_PROJECT,
+            role=role,
+            member=deployer_sa.email.apply(
+                lambda email: f"serviceAccount:{email}"
+            ),
+        )
+
+    # Storage objectAdmin on the Pulumi state bucket
+    gcp.storage.BucketIAMMember(
+        "gh-deploy-pulumi-state",
+        bucket="biocirv-470318-pulumi-state",
+        role="roles/storage.objectAdmin",
+        member=deployer_sa.email.apply(
+            lambda email: f"serviceAccount:{email}"
+        ),
+    )
+
+    # Allow WIF pool to impersonate the deployer SA
+    gcp.serviceaccount.IAMBinding(
+        "gh-deploy-wif-binding",
+        service_account_id=deployer_sa.name,
+        role="roles/iam.workloadIdentityUser",
+        members=[
+            pulumi.Output.concat(
+                "principalSet://iam.googleapis.com/projects/",
+                project_number,
+                "/locations/global/workloadIdentityPools/",
+                pool.workload_identity_pool_id,
+                f"/attribute.repository/{GITHUB_REPO}",
+            )
+        ],
+    )
+
+    return WIFResources(
+        pool=pool,
+        provider=provider,
+        deployer_sa=deployer_sa,
+        provider_name=provider_name,
+    )

@@ -1,0 +1,136 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual triggers
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false # Don't cancel in-progress deploys
+
+env:
+  GCP_PROJECT: biocirv-470318
+  GCP_REGION: us-west1
+  # These values come from Pulumi outputs after deploying WIF resources.
+  # Run `pixi run -e deployment cloud-outputs` to verify.
+  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions/providers/github-oidc"
+  DEPLOYER_SA: "biocirv-staging-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
+
+jobs:
+  build-images:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for WIF
+    outputs:
+      image_tag: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set short SHA
+        id: vars
+        run: echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Build and push images to GCR
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
+        run: pixi run -e deployment cloud-build-images-ci
+
+  deploy-infrastructure:
+    name: Deploy Infrastructure (Pulumi)
+    needs: build-images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Deploy infrastructure
+        env:
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+        run: pixi run -e deployment cloud-deploy-direct
+
+  run-migrations:
+    name: Run Database Migrations
+    needs: [build-images, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Run Alembic migrations
+        env:
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+        run: pixi run -e deployment cloud-migrate-ci
+
+  update-services:
+    name: Force Cloud Run Revision Updates
+    needs: [build-images, run-migrations]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Force new Cloud Run revisions
+        env:
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+        run: pixi run -e deployment cloud-update-services
