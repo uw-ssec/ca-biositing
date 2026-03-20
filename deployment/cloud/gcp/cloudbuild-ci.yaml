@@ -1,0 +1,38 @@
+substitutions:
+  _IMAGE_TAG: "latest"
+
+steps:
+  - id: build-webservice
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/webservice:${_IMAGE_TAG}
+      - -t
+      - gcr.io/$PROJECT_ID/webservice:latest
+      - -f
+      - resources/docker/webservice.dockerfile
+      - .
+    waitFor: ["-"]
+
+  - id: build-pipeline
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/pipeline:${_IMAGE_TAG}
+      - -t
+      - gcr.io/$PROJECT_ID/pipeline:latest
+      - -f
+      - resources/docker/pipeline.dockerfile
+      - .
+    waitFor: ["-"]
+
+images:
+  - gcr.io/$PROJECT_ID/webservice:${_IMAGE_TAG}
+  - gcr.io/$PROJECT_ID/webservice:latest
+  - gcr.io/$PROJECT_ID/pipeline:${_IMAGE_TAG}
+  - gcr.io/$PROJECT_ID/pipeline:latest
+
+options:
+  machineType: E2_HIGHCPU_8

@@ -404,7 +404,79 @@ SELECT extname FROM pg_extension WHERE extname IN ('pg_trgm', 'unaccent', 'btree
 
 ---
 
+## CI/CD (GitHub Actions)
+
+Staging deployment is automated via a GitHub Actions workflow that triggers on
+every push to `main`.
+
+### What Happens on Merge to Main
+
+The `deploy-staging.yml` workflow runs these steps sequentially:
+
+1. **Build images** — submits a Cloud Build that tags images with both `:latest`
+   and the short commit SHA (e.g., `:abc1234`)
+2. **Deploy infrastructure** — runs Pulumi to update Cloud Run services, Cloud
+   SQL, and other GCP resources with the SHA-tagged images
+3. **Run migrations** — updates the migration Cloud Run job to the new image and
+   executes `alembic upgrade head`
+4. **Update services** — forces new Cloud Run revisions for the worker and
+   webservice to pick up the latest images
+
+### Authentication
+
+The workflow uses **Workload Identity Federation (WIF)** — keyless
+authentication from GitHub Actions to GCP. No service account keys are stored in
+GitHub secrets. The WIF pool is scoped to the
+`sustainability-software-lab/ca-biositing` repository only.
+
+### CI vs Local Tasks
+
+| Purpose         | Local (macOS, Docker) | CI / Linux (direct)     |
+| --------------- | --------------------- | ----------------------- |
+| Build images    | `cloud-build-images`  | `cloud-build-images-ci` |
+| Deploy infra    | `cloud-deploy`        | `cloud-deploy-direct`   |
+| Preview infra   | `cloud-plan`          | `cloud-plan-direct`     |
+| Refresh state   | `cloud-refresh`       | `cloud-refresh-direct`  |
+| Show outputs    | `cloud-outputs`       | `cloud-outputs-direct`  |
+| Run migrations  | `cloud-migrate`       | `cloud-migrate-ci`      |
+| Update services | (manual gcloud)       | `cloud-update-services` |
+
+All CI tasks read `IMAGE_TAG` from the environment (defaults to `latest`).
+
+### Manual Trigger
+
+You can manually trigger the workflow from the GitHub Actions UI: **Actions →
+Deploy Staging → Run workflow**.
+
+### Monitoring
+
+View workflow runs at:
+`https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml`
+
+### What Is NOT Managed by CI
+
+- Frontend deployment (has its own Cloud Build triggers)
+- Prefect deployment registration (one-time manual step per flow)
+- Manual secrets: GSheets credentials and USDA API key (see Secret Management
+  section)
+
+### Debugging Failed Deployments
+
+1. Check the workflow run logs in GitHub Actions
+2. For Cloud Build failures: check
+   [Cloud Build History](https://console.cloud.google.com/cloud-build/builds?project=biocirv-470318)
+3. For Pulumi state issues: run `pixi run -e deployment cloud-refresh` locally
+   to clear pending operations, then re-trigger the workflow
+4. Manual deployment via existing `pixi run cloud-*` tasks (Docker-wrapped)
+   remains available as a fallback
+
+---
+
 ## Full Staging Deployment Runbook
+
+> **Note:** Staging deployment is now automated via CI/CD (see above). The
+> manual runbook below is still useful for initial setup, debugging, and
+> one-time operations.
 
 Follow these steps in order for a complete staging deployment — from building
 images through database migration, Prefect deployment registration, and ETL

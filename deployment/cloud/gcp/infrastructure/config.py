@@ -13,6 +13,9 @@ BACKEND_URL = "gs://biocirv-470318-pulumi-state"
 GCP_PROJECT = "biocirv-470318"
 GCP_REGION = "us-west1"
 
+# GitHub repository (org/repo) for Workload Identity Federation
+GITHUB_REPO = "sustainability-software-lab/ca-biositing"
+
 # Cloud SQL
 DB_INSTANCE_NAME = "biocirv-staging"
 DB_NAME = "biocirv-staging"

@@ -20,6 +20,7 @@ from iam import create_service_accounts
 from secret_manager import create_secrets
 
 from cloud_run import create_cloud_run_resources
+from wif import create_wif
 
 
 def pulumi_program():
@@ -44,6 +45,9 @@ def pulumi_program():
     cr = create_cloud_run_resources(
         sql, secret_resources, iam, depends_on=[api_services["run"]]
     )
+
+    # 6. Workload Identity Federation for GitHub Actions CI/CD
+    wif = create_wif(depends_on=[api_services["iam"]])
 
     # --- All exports centralized here ---
     # Cloud SQL
@@ -74,6 +78,10 @@ def pulumi_program():
     # IAM
     for sa_name, sa in iam.service_accounts.items():
         pulumi.export(f"sa_{sa_name}_email", sa.email)
+
+    # Workload Identity Federation
+    pulumi.export("wif_provider_name", wif.provider_name)
+    pulumi.export("deployer_sa_email", wif.deployer_sa.email)
 
     # Cloud Run
     pulumi.export("webservice_url", cr.webservice.uri)
