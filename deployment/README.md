@@ -217,8 +217,8 @@ pixi run cloud-migrate
 This runs two steps in order:
 
 1. `gcloud run jobs update ... --image=...` — re-pins the Cloud Run job to the
-   latest GHCR image (required because Pulumi pins the digest at deploy time
-   and does not detect `:latest` tag updates).
+   latest GHCR image (required because Pulumi pins the digest at deploy time and
+   does not detect `:latest` tag updates).
 2. `gcloud run jobs execute biocirv-alembic-migrate --region=us-west1 --wait` —
    runs the migration job and waits for it to complete.
 
