@@ -1,5 +1,5 @@
 site_name: CA-BioSiting
-repo_url: https://github.com/uw-ssec/ca-biositing
+repo_url: https://github.com/sustainability-software-lab/ca-biositing
 
 theme:
   name: material
@@ -51,11 +51,11 @@ nav:
   - Notebook Setup: notebook_setup.md
   - Pipeline:
       - Overview: pipeline/README.md
+      - GCP Setup: pipeline/GCP_SETUP.md
       - ETL Workflow: pipeline/ETL_WORKFLOW.md
       - Alembic Workflow: pipeline/ALEMBIC_WORKFLOW.md
       - Docker Workflow: pipeline/DOCKER_WORKFLOW.md
       - Prefect Workflow: pipeline/PREFECT_WORKFLOW.md
-      - GCP Setup: pipeline/GCP_SETUP.md
       - USDA ETL Guide: pipeline/USDA/USDA_ETL_GUIDE.md
   - Datamodels:
       - Overview: datamodels/README.md
@@ -71,4 +71,3 @@ nav:
   - Deployment: deployment/README.md
   - Contributing: CONTRIBUTING.md
   - Code of Conduct: CODE_OF_CONDUCT.md
-  - ERD View: ERD_VIEW.md

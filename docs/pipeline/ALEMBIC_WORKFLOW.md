@@ -12,9 +12,11 @@ systematic and version-controlled way.
   allows you to modify your database schema (e.g., add a new table or column)
   and keep a versioned history of those changes.
 - **Why use it?** It prevents you from having to manually write SQL
-  `ALTER TABLE` statements. It automatically compares your SQLModel classes to
-  the current state of the database and generates the necessary migration
-  scripts.
+  `ALTER TABLE` statements which are not tracked in version control. Alembic
+  generates SQL code from the Python SQLModel schema to prevent manual errors.
+  It also automatically compares your SQLModel classes to the current state of
+  the database and generates the necessary migration scripts. This reduces
+  database drift.
 
 ---
 

@@ -39,8 +39,8 @@ Your contributions make this project better—thank you for your support! 🚀
 1. Set up your development environment with `pixi install`.
 2. Install pre-commit hooks with `pixi run pre-commit-install`.
 3. Create a feature branch.
-4. Make your changes and ensure tests and pre-commit checks pass. . Submit a
-   pull request.
+4. Make your changes and ensure tests and pre-commit checks pass. Submit a pull
+   request.
 
 ### Configuring Pre-commit
 

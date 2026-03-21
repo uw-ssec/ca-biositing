@@ -17,8 +17,9 @@ and loads it into the PostgreSQL database.
   - `load`: Functions to insert the transformed data into the database using
     SQLAlchemy.
 
-- **Hierarchical Pipelines:** Individual pipelines are nested within
-  subdirectories reflecting the data they handle (e.g., `products`, `biomass`).
+- **Hierarchical Pipelines:** Transform and load logic are organized into
+  subdirectories reflecting the data they handle (e.g., `products`, `usda`,
+  `analysis`).
 
 ---
 
@@ -32,19 +33,25 @@ The ETL system runs in a containerized Prefect environment.
 pixi run start-services
 ```
 
-**Step 2: Deploy Flows**
+**Step 2: Apply Datamodel**
+
+```bash
+pixi run migrate
+```
+
+**Step 3: Deploy Flows**
 
 ```bash
 pixi run deploy
 ```
 
-**Step 3: Run the Master Pipeline**
+**Step 4: Run the Master Pipeline**
 
 ```bash
 pixi run run-etl
 ```
 
-**Step 4: Monitor** Access the Prefect UI at
+**Step 5: Monitor** Access the Prefect UI at
 [http://localhost:4200](http://localhost:4200).
 
 ---
@@ -52,21 +59,23 @@ pixi run run-etl
 ### How to Add a New ETL Flow
 
 **Step 1: Create the Task Files** Create the three Python files for your
-extract, transform, and load logic in the appropriate subdirectories under
-`src/ca_biositing/pipeline/ca_biositing/pipeline/etl/`. Decorate each function
-with `@task`.
+extract, transform, and load logic under
+`src/ca_biositing/pipeline/ca_biositing/pipeline/etl/`. Extract tasks go
+directly in `extract/`; transform and load tasks go in appropriately named
+subdirectories (e.g., `transform/products/`, `load/products/`). Decorate each
+function with `@task`.
 
 **Step 2: Create the Pipeline Flow** Create a new file in
 `src/ca_biositing/pipeline/ca_biositing/pipeline/flows/` to define the flow.
 
 ```python
 from prefect import flow
-from ca_biositing.pipeline.etl.extract.samples.new_type import extract
-from ca_biositing.pipeline.etl.transform.samples.new_type import transform
-from ca_biositing.pipeline.etl.load.samples.new_type import load
+from ca_biositing.pipeline.etl.extract.my_source import extract
+from ca_biositing.pipeline.etl.transform.products.my_product import transform
+from ca_biositing.pipeline.etl.load.products.my_product import load
 
 @flow
-def new_type_flow():
+def my_product_flow():
     raw_data = extract()
     transformed_data = transform(raw_data)
     load(transformed_data)

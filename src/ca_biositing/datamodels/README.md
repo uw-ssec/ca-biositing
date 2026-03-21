@@ -9,11 +9,12 @@ etc.).
 
 The `ca_biositing.datamodels` package provides:
 
-- **Hand-Written SQLModel Classes**: 91 models organized across 15 domain
+- **Hand-Written SQLModel Classes**: Models organized across domain
   subdirectories, combining SQLAlchemy ORM and Pydantic validation in a single
   class hierarchy.
-- **Materialized Views**: 7 analytical views defined as SQLAlchemy Core
-  `select()` expressions, managed via Alembic migrations.
+- **Materialized Views**: Analytical views defined as SQLAlchemy Core `select()`
+  expressions (plus one SQL-based aggregate view), managed via Alembic
+  migrations.
 - **Database Configuration**: SQLModel-based engine and session management with
   Docker-aware URL adjustment.
 - **Model Configuration**: Shared configuration for model behavior using
@@ -79,12 +80,13 @@ src/ca_biositing/datamodels/
 │       ├── __init__.py              # Package initialization and version
 │       ├── config.py                # Model configuration (Pydantic Settings)
 │       ├── database.py              # SQLModel engine and session management
-│       ├── views.py                 # Materialized view definitions (7 views)
+│       ├── views.py                 # Materialized view definitions
 │       ├── models/                  # Hand-written SQLModel classes
-│       │   ├── __init__.py          # Central re-export of all 91 models
+│       │   ├── __init__.py          # Central re-export of models
 │       │   ├── base.py              # Base classes (BaseEntity, LookupBase, etc.)
 │       │   ├── aim1_records/        # Aim 1 analytical records
 │       │   ├── aim2_records/        # Aim 2 processing records
+│       │   ├── auth/                # API users and authentication models
 │       │   ├── core/                # ETL lineage and run tracking
 │       │   ├── data_sources_metadata/ # Data source and dataset metadata
 │       │   ├── experiment_equipment/  # Experiments and equipment
@@ -93,7 +95,6 @@ src/ca_biositing/datamodels/
 │       │   ├── general_analysis/    # Observations and analysis types
 │       │   ├── infrastructure/      # Infrastructure facility records
 │       │   ├── methods_parameters_units/ # Methods, parameters, units
-│       │   ├── misc/                # Additional infrastructure models
 │       │   ├── people/              # Contacts and providers
 │       │   ├── places/              # Location and address models
 │       │   ├── resource_information/ # Resources, availability, strains
@@ -102,8 +103,6 @@ src/ca_biositing/datamodels/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py                  # Pytest fixtures and configuration
-│   ├── test_biomass.py              # Tests for biomass models
-│   ├── test_geographic_locations.py # Tests for location models
 │   ├── test_package.py              # Tests for package metadata
 │   └── README.md                    # Test documentation
 ├── LICENSE                          # BSD License
@@ -208,7 +207,7 @@ pixi run pytest src/ca_biositing/datamodels -v
 ### Run specific test files
 
 ```bash
-pixi run pytest src/ca_biositing/datamodels/tests/test_biomass.py -v
+pixi run pytest src/ca_biositing/datamodels/tests/test_package.py -v
 ```
 
 ### Run with coverage
@@ -221,18 +220,17 @@ See `tests/README.md` for detailed information about the test suite.
 
 ## Model Categories
 
-The models are organized into 15 domain subdirectories under `models/`:
+The models are organized into domain subdirectories under `models/`:
 
 ### Core and Infrastructure
 
 - **`base.py`**: Base classes shared across all models (`BaseEntity`,
   `LookupBase`, `Aim1RecordBase`, `Aim2RecordBase`).
+- **`auth/`**: API authentication models (`ApiUser`).
 - **`core/`**: ETL run tracking and lineage (`EtlRun`, `EntityLineage`,
   `LineageGroup`).
 - **`infrastructure/`**: Infrastructure facility records (biodiesel plants,
   landfills, ethanol biorefineries, etc.).
-- **`misc/`**: Additional infrastructure models (MSW digesters, SAF plants,
-  wastewater treatment).
 - **`places/`**: Location and address models (`Place`, `LocationAddress`,
   `LocationResolution`).
 - **`people/`**: Contact and provider information (`Contact`, `Provider`).
@@ -312,7 +310,7 @@ pixi run pre-commit run --files src/ca_biositing/datamodels/**/*
 - **Version**: 0.1.0
 - **Python**: >= 3.12
 - **License**: BSD License
-- **Repository**: <https://github.com/uw-ssec/ca-biositing>
+- **Repository**: <https://github.com/sustainability-software-lab/ca-biositing>
 
 ## Contributing
 
