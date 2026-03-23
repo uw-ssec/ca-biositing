@@ -18,6 +18,7 @@ from apis import enable_apis
 from cloud_sql import create_cloud_sql
 from iam import create_service_accounts
 from secret_manager import create_secrets
+from storage import create_storage_resources
 
 from artifact_registry import create_artifact_registry
 from cloud_run import create_cloud_run_resources
@@ -54,6 +55,9 @@ def pulumi_program():
     iam = create_service_accounts(
         depends_on=[api_services["iam"], api_services["cloudresourcemanager"]]
     )
+
+    # 4.5. Storage: GCS buckets
+    storage = create_storage_resources(depends_on=[api_services["storage"]])
 
     # 5. Cloud Run: Services and Jobs (images pulled via AR remote repo)
     cr = create_cloud_run_resources(
@@ -100,6 +104,9 @@ def pulumi_program():
     pulumi.export("prefect_server_url", cr.prefect_server.uri)
     pulumi.export("migration_job_name", cr.migration_job.name)
     pulumi.export("seed_admin_job_name", cr.seed_admin_job.name)
+
+    # Storage
+    pulumi.export("image_bucket_name", storage.bucket.name)
 
 
 def get_stack() -> auto.Stack:

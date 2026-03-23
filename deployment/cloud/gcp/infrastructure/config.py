@@ -23,6 +23,9 @@ PREFECT_DB_NAME = "prefect"
 PREFECT_WORK_POOL_NAME = "biocirv-staging-pool"
 DB_USER = "biocirv_user"
 
+# Storage
+IMAGE_BUCKET_NAME = "biocirv-staging-bucket"
+
 # Read-only users
 READONLY_USERS = ["biocirv_readonly"]
 
