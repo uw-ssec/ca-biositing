@@ -202,10 +202,10 @@ DEPLOY_ENV=production pixi run -e deployment cloud-plan-direct
 
 ### CI/CD Pipelines
 
-| Environment | Trigger                           | Workflow                  |
-| ----------- | --------------------------------- | ------------------------- |
-| Staging     | Push to `main` (via docker-build) | `deploy-staging.yml`      |
-| Production  | GitHub Release published          | `deploy-production.yml`   |
+| Environment | Trigger                           | Workflow                |
+| ----------- | --------------------------------- | ----------------------- |
+| Staging     | Push to `main` (via docker-build) | `deploy-staging.yml`    |
+| Production  | GitHub Release published          | `deploy-production.yml` |
 
 Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 
@@ -220,8 +220,10 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
    gcloud secrets versions add biocirv-<env>-gsheets-credentials --data-file=credentials.json
    echo -n "KEY" | gcloud secrets versions add biocirv-<env>-usda-nass-api-key --data-file=-
    ```
-5. Run migrations: `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
-6. Seed admin: `pixi run -e deployment gcloud run jobs execute biocirv-<env>-seed-admin --region=us-west1 --wait`
+5. Run migrations:
+   `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
+6. Seed admin:
+   `pixi run -e deployment gcloud run jobs execute biocirv-<env>-seed-admin --region=us-west1 --wait`
 
 ---
 
