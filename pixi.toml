@@ -347,7 +347,7 @@ postgresql = "*"
 [feature.cloud.pypi-dependencies]
 prefect = ">=3,<4"
 pulumi = ">=3,<4"
-pulumi-gcp = ">=8,<9"
+pulumi-gcp = ">=9,<10"
 pulumi-random = ">=4,<5"
 
 # Pulumi tasks (run via Docker to avoid macOS gRPC/fork crash)
