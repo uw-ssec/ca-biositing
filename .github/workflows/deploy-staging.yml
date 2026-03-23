@@ -76,6 +76,7 @@ jobs:
     name: Deploy Infrastructure (Pulumi)
     needs: image-tag
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -105,6 +106,7 @@ jobs:
     name: Run Database Migrations
     needs: [image-tag, deploy-infrastructure]
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -132,6 +134,7 @@ jobs:
     name: Force Cloud Run Revision Updates
     needs: [image-tag, run-migrations]
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
