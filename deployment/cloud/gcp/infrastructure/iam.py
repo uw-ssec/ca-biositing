@@ -24,6 +24,7 @@ SA_DEFINITIONS = [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
             "roles/artifactregistry.reader",
+            "roles/storage.objectAdmin",
         ],
     ),
     (
@@ -43,6 +44,7 @@ SA_DEFINITIONS = [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
             "roles/artifactregistry.reader",
+            "roles/storage.objectAdmin",
         ],
     ),
     (
