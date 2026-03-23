@@ -26,7 +26,7 @@ def create_cloud_sql(
 ) -> CloudSQLResources:
     """Create Cloud SQL instance with databases."""
     instance = gcp.sql.DatabaseInstance(
-        "staging-db-instance",
+        "db-instance",
         name=DB_INSTANCE_NAME,
         database_version="POSTGRES_17",
         region=GCP_REGION,
@@ -57,13 +57,17 @@ def create_cloud_sql(
                 query_insights_enabled=True,
             ),
         ),
-        opts=pulumi.ResourceOptions(depends_on=depends_on or []),
+        opts=pulumi.ResourceOptions(
+            depends_on=depends_on or [],
+            aliases=[pulumi.Alias(name="staging-db-instance")],
+        ),
     )
 
     database = gcp.sql.Database(
-        "staging-db",
+        "app-db",
         name=DB_NAME,
         instance=instance.name,
+        opts=pulumi.ResourceOptions(aliases=[pulumi.Alias(name="staging-db")]),
     )
 
     prefect_database = gcp.sql.Database(

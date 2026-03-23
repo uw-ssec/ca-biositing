@@ -6,7 +6,7 @@ from pulumi import automation as auto
 
 # Project and stack settings
 PROJECT_NAME = "ca-biositing-infrastructure"
-STACK_NAME = "staging"
+STACK_NAME = os.environ.get("DEPLOY_ENV", "staging")
 BACKEND_URL = "gs://biocirv-470318-pulumi-state"
 
 # GCP settings
@@ -17,17 +17,45 @@ GCP_REGION = "us-west1"
 GITHUB_REPO = "sustainability-software-lab/ca-biositing"
 
 # Cloud SQL
-DB_INSTANCE_NAME = "biocirv-staging"
-DB_NAME = "biocirv-staging"
+DB_INSTANCE_NAME = f"biocirv-{STACK_NAME}"
+DB_NAME = f"biocirv-{STACK_NAME}"
 PREFECT_DB_NAME = "prefect"
-PREFECT_WORK_POOL_NAME = "biocirv-staging-pool"
+PREFECT_WORK_POOL_NAME = f"biocirv-{STACK_NAME}-pool"
 DB_USER = "biocirv_user"
 
 # Storage
-IMAGE_BUCKET_NAME = "biocirv-staging-bucket"
+IMAGE_BUCKET_NAME = f"biocirv-{STACK_NAME}-bucket"
 
 # Read-only users
 READONLY_USERS = ["biocirv_readonly"]
+
+# Cloud Run service/job names
+CR_WEBSERVICE_NAME = f"biocirv-{STACK_NAME}-webservice"
+CR_MIGRATION_JOB_NAME = f"biocirv-{STACK_NAME}-migrate"
+CR_SEED_ADMIN_JOB_NAME = f"biocirv-{STACK_NAME}-seed-admin"
+CR_PREFECT_SERVER_NAME = f"biocirv-{STACK_NAME}-prefect-server"
+CR_PREFECT_WORKER_NAME = f"biocirv-{STACK_NAME}-prefect-worker"
+
+# Secret Manager secret IDs
+SECRET_DB_PASSWORD = f"biocirv-{STACK_NAME}-db-password"
+SECRET_GSHEETS = f"biocirv-{STACK_NAME}-gsheets-credentials"
+SECRET_USDA_API_KEY = f"biocirv-{STACK_NAME}-usda-nass-api-key"
+SECRET_PREFECT_AUTH = f"biocirv-{STACK_NAME}-prefect-auth"
+SECRET_POSTGRES_PASSWORD = f"biocirv-{STACK_NAME}-postgres-password"
+SECRET_JWT_KEY = f"biocirv-{STACK_NAME}-jwt-secret-key"
+SECRET_ADMIN_PASSWORD = f"biocirv-{STACK_NAME}-admin-password"
+SECRET_RO_PREFIX = f"biocirv-{STACK_NAME}-ro"
+
+# Service account IDs
+SA_WEBSERVICE = f"biocirv-{STACK_NAME}-cr-websvc"
+SA_PREFECT_SERVER = f"biocirv-{STACK_NAME}-cr-prefect"
+SA_PREFECT_WORKER = f"biocirv-{STACK_NAME}-cr-worker"
+SA_MIGRATE = f"biocirv-{STACK_NAME}-cr-migrate"
+SA_DEPLOYER = f"biocirv-{STACK_NAME}-gh-deploy"
+
+# Workload Identity Federation IDs
+WIF_POOL_ID = f"github-actions-{STACK_NAME}"
+WIF_PROVIDER_ID = f"github-oidc-{STACK_NAME}"
 
 # Container images — override with env vars to use digest/commit-based tags
 # instead of :latest (which Pulumi cannot detect changes for).

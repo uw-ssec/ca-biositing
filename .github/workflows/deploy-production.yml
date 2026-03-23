@@ -1,84 +1,49 @@
-name: Deploy Staging
+name: Deploy Production
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types: [completed]
-    branches: [main]
-  pull_request:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch: # Allow manual triggers
 
 concurrency:
-  group:
-    deploy-staging-${{ github.event_name == 'pull_request' && github.head_ref ||
-    'main' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: deploy-production
+  cancel-in-progress: false
 
 env:
   GCP_PROJECT: biocirv-470318
   GCP_REGION: us-west1
-  DEPLOY_ENV: staging
-  # These values come from Pulumi outputs after deploying WIF resources.
-  # Run `DEPLOY_ENV=staging pixi run -e deployment cloud-outputs` to verify.
-  # NOTE: Update WIF_PROVIDER after staging migration renames the WIF pool.
-  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions-staging/providers/github-oidc-staging"
-  DEPLOYER_SA: "biocirv-staging-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
+  DEPLOY_ENV: production
+  # These values come from Pulumi outputs after bootstrapping the production stack.
+  # Run `DEPLOY_ENV=production pixi run -e deployment cloud-outputs` to verify.
+  # NOTE: Update after first production deploy (Phase 4 bootstrap).
+  WIF_PROVIDER: "<placeholder - update after production bootstrap>"
+  DEPLOYER_SA: "biocirv-production-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
 
 jobs:
-  # --- Preview (runs on PRs) ---
-  preview:
-    name: Pulumi Preview
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # Required for WIF
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOYER_SA }}
-
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
-        with:
-          pixi-version: v0.63.2
-          environments: deployment
-
-      - name: Preview infrastructure changes
-        run: pixi run -e deployment cloud-plan-direct
-
-  # --- Deploy (runs after docker-build completes on main / workflow_dispatch) ---
+  # --- Compute image tag from release ---
   image-tag:
     name: Compute Image Tag
-    if: >-
-      (github.event_name == 'workflow_dispatch') || (github.event_name ==
-      'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ steps.vars.outputs.sha_short }}
+      image_tag: ${{ steps.vars.outputs.image_tag }}
     steps:
-      - name: Set short SHA
+      - name: Derive image tag from release or SHA
         id: vars
         run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            SHA="${{ github.event.workflow_run.head_sha }}"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # Use the release tag (e.g., v1.2.3)
+            TAG="${{ github.event.release.tag_name }}"
           else
-            SHA="${GITHUB_SHA}"
+            # workflow_dispatch: use short SHA
+            TAG="${GITHUB_SHA::7}"
           fi
-          echo "sha_short=${SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
 
   deploy-infrastructure:
     name: Deploy Infrastructure (Pulumi)
     needs: image-tag
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     permissions:
       contents: read
       id-token: write
@@ -108,7 +73,7 @@ jobs:
     name: Run Database Migrations
     needs: [image-tag, deploy-infrastructure]
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     permissions:
       contents: read
       id-token: write
@@ -136,7 +101,7 @@ jobs:
     name: Force Cloud Run Revision Updates
     needs: [image-tag, run-migrations]
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     permissions:
       contents: read
       id-token: write

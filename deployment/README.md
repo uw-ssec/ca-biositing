@@ -173,6 +173,58 @@ If you run `pulumi up` before importing existing resources, Pulumi will try to
 create resources that already exist in GCP. Follow the import steps in the
 "First-Time Setup" section above.
 
+## Multi-Environment Deployment
+
+The infrastructure supports multiple environments (staging, production) within
+the same GCP project (`biocirv-470318`). The `DEPLOY_ENV` environment variable
+drives stack selection and resource naming.
+
+### How It Works
+
+- `config.py` reads `DEPLOY_ENV` (default: `staging`) and derives all GCP
+  resource names as `biocirv-{env}-{resource}`
+- Each environment has its own Pulumi stack, Cloud SQL instance, Cloud Run
+  services, secrets, service accounts, and WIF pool
+- Shell scripts and pixi tasks also use `DEPLOY_ENV` to target the correct
+  resources
+
+### Targeting an Environment
+
+```bash
+# Staging (default)
+pixi run -e deployment cloud-plan          # Docker-wrapped (macOS)
+pixi run -e deployment cloud-plan-direct   # Direct (Linux/CI)
+
+# Production
+DEPLOY_ENV=production pixi run -e deployment cloud-plan
+DEPLOY_ENV=production pixi run -e deployment cloud-plan-direct
+```
+
+### CI/CD Pipelines
+
+| Environment | Trigger                           | Workflow                  |
+| ----------- | --------------------------------- | ------------------------- |
+| Staging     | Push to `main` (via docker-build) | `deploy-staging.yml`      |
+| Production  | GitHub Release published          | `deploy-production.yml`   |
+
+Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
+
+### Bootstrapping a New Environment
+
+1. `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy-direct` — create all
+   resources
+2. Run `cloud-outputs-direct` to get WIF provider and deployer SA email
+3. Update the corresponding `deploy-<env>.yml` workflow with WIF values
+4. Upload manual secrets (GSheets credentials, USDA API key):
+   ```bash
+   gcloud secrets versions add biocirv-<env>-gsheets-credentials --data-file=credentials.json
+   echo -n "KEY" | gcloud secrets versions add biocirv-<env>-usda-nass-api-key --data-file=-
+   ```
+5. Run migrations: `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
+6. Seed admin: `pixi run -e deployment gcloud run jobs execute biocirv-<env>-seed-admin --region=us-west1 --wait`
+
+---
+
 ## Staging Environment
 
 ### Architecture Overview

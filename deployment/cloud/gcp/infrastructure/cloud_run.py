@@ -16,6 +16,11 @@ from config import (
     DB_NAME,
     PREFECT_DB_NAME,
     LANDIQ_SHAPEFILE_URL,
+    CR_WEBSERVICE_NAME,
+    CR_MIGRATION_JOB_NAME,
+    CR_SEED_ADMIN_JOB_NAME,
+    CR_PREFECT_SERVER_NAME,
+    CR_PREFECT_WORKER_NAME,
 )
 from cloud_sql import CloudSQLResources
 from secret_manager import SecretResources
@@ -43,8 +48,9 @@ def create_cloud_run_resources(
     # --- 5.2: FastAPI Webservice ---
     webservice = gcp.cloudrunv2.Service(
         "webservice",
-        name="biocirv-webservice",
+        name=CR_WEBSERVICE_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         ingress="INGRESS_TRAFFIC_ALL",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["webservice"].email,
@@ -151,8 +157,9 @@ def create_cloud_run_resources(
     # alembic/env.py falls back to Settings which constructs the URL from these.
     migration_job = gcp.cloudrunv2.Job(
         "migration-job",
-        name="biocirv-alembic-migrate",
+        name=CR_MIGRATION_JOB_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         template=gcp.cloudrunv2.JobTemplateArgs(
             template=gcp.cloudrunv2.JobTemplateTemplateArgs(
                 max_retries=1,
@@ -212,8 +219,9 @@ def create_cloud_run_resources(
     # --- 5.3b: Admin User Seed Job ---
     seed_admin_job = gcp.cloudrunv2.Job(
         "seed-admin-job",
-        name="biocirv-seed-admin",
+        name=CR_SEED_ADMIN_JOB_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         template=gcp.cloudrunv2.JobTemplateArgs(
             template=gcp.cloudrunv2.JobTemplateTemplateArgs(
                 max_retries=1,
@@ -297,8 +305,9 @@ def create_cloud_run_resources(
 
     prefect_server = gcp.cloudrunv2.Service(
         "prefect-server",
-        name="biocirv-prefect-server",
+        name=CR_PREFECT_SERVER_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         ingress="INGRESS_TRAFFIC_ALL",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-server"].email,
@@ -397,8 +406,9 @@ def create_cloud_run_resources(
 
     prefect_worker = gcp.cloudrunv2.Service(
         "prefect-worker",
-        name="biocirv-prefect-worker",
+        name=CR_PREFECT_WORKER_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         ingress="INGRESS_TRAFFIC_INTERNAL_ONLY",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-worker"].email,

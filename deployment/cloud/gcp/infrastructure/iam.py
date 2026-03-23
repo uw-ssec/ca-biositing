@@ -6,7 +6,7 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT
+from config import GCP_PROJECT, SA_WEBSERVICE, SA_PREFECT_SERVER, SA_PREFECT_WORKER, SA_MIGRATE
 
 
 @dataclass
@@ -18,7 +18,7 @@ class IAMResources:
 SA_DEFINITIONS = [
     (
         "webservice",
-        "biocirv-staging-cr-websvc",
+        SA_WEBSERVICE,
         "Webservice Cloud Run SA",
         [
             "roles/cloudsql.client",
@@ -29,7 +29,7 @@ SA_DEFINITIONS = [
     ),
     (
         "prefect-server",
-        "biocirv-staging-cr-prefect",
+        SA_PREFECT_SERVER,
         "Prefect Server Cloud Run SA",
         [
             "roles/cloudsql.client",
@@ -38,7 +38,7 @@ SA_DEFINITIONS = [
     ),
     (
         "prefect-worker",
-        "biocirv-staging-cr-worker",
+        SA_PREFECT_WORKER,
         "Prefect Worker Cloud Run SA",
         [
             "roles/cloudsql.client",
@@ -49,7 +49,7 @@ SA_DEFINITIONS = [
     ),
     (
         "migrate",
-        "biocirv-staging-cr-migrate",
+        SA_MIGRATE,
         "Migration Cloud Run SA",
         [
             "roles/cloudsql.client",
