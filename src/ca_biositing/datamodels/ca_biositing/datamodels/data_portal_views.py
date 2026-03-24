@@ -424,20 +424,27 @@ mv_biomass_pricing = select(
 # Bridging USDA Census data with BioCirV Resources and residue factors
 census_obs = select(
     Observation.record_id,
-    func.max(case((func.lower(Parameter.name) == "production", Observation.value))).label("primary_product_volume"),
-    # Broadening acre search to include various USDA area metrics
-    func.max(case((func.lower(Parameter.name).in_([
-        "area harvested",
-        "area in production",
-        "area bearing",
-        "area bearing & non-bearing",
-        "area planted"
-    ]), Observation.value))).label("production_acres"),
-    func.max(case((func.lower(Parameter.name) == "production", Unit.name))).label("volume_unit")
+    # Aggregate to record_id grain, picking production and acres
+    # For production, we want to capture whatever unit is available if tons isn't there
+    func.avg(case((func.lower(Parameter.name) == "production", Observation.value))).label("primary_product_volume"),
+    # Capture the unit name for the production value
+    func.max(case((func.lower(Parameter.name) == "production", Unit.name))).label("volume_unit"),
+    # Filter for 'acres' unit when getting production area
+    func.avg(case((and_(
+        func.lower(Parameter.name).in_(["area bearing", "area harvested", "area in production"]),
+        func.lower(Unit.name) == "acres"
+    ), Observation.value))).label("production_acres")
 ).join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .where(Observation.record_type == "usda_census_record")\
  .group_by(Observation.record_id).subquery()
+
+# Availability fallback logic: prefer county geoid, fallback to statewide '06000'
+ra_fallback = select(
+    ResourceAvailability.resource_id,
+    ResourceAvailability.geoid,
+    ResourceAvailability.residue_factor_dry_tons_acre
+).subquery()
 
 mv_usda_county_production = select(
     func.row_number().over().label("id"),
@@ -448,19 +455,22 @@ mv_usda_county_production = select(
     Place.county_name.label("county"),
     Place.state_name.label("state"),
     UsdaCensusRecord.year.label("dataset_year"),
-    census_obs.c.primary_product_volume,
-    census_obs.c.volume_unit,
-    census_obs.c.production_acres,
+    func.avg(census_obs.c.primary_product_volume).label("primary_product_volume"),
+    func.max(census_obs.c.volume_unit).label("volume_unit"),
+    func.avg(census_obs.c.production_acres).label("production_acres"),
     literal(None).label("known_biomass_volume"),
-    (census_obs.c.production_acres * ResourceAvailability.residue_factor_dry_tons_acre).label("calculated_estimate_volume"),
-    literal("dry tons").label("biomass_unit")
+    # Use COALESCE to fallback to state-level residue factor if county-level is missing
+    (func.avg(census_obs.c.production_acres) * func.coalesce(
+        func.max(case((ra_fallback.c.geoid == Place.geoid, ra_fallback.c.residue_factor_dry_tons_acre))),
+        func.max(case((ra_fallback.c.geoid == '06000', ra_fallback.c.residue_factor_dry_tons_acre)))
+    )).label("calculated_estimate_volume"),
+    literal("dry_tons_acre").label("biomass_unit")
 ).select_from(UsdaCensusRecord)\
  .join(ResourceUsdaCommodityMap, UsdaCensusRecord.commodity_code == ResourceUsdaCommodityMap.usda_commodity_id)\
  .join(Resource, ResourceUsdaCommodityMap.resource_id == Resource.id)\
- .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)\
+ .join(PrimaryAgProduct, Resource.primary_ag_product_id == PrimaryAgProduct.id)\
  .join(Place, UsdaCensusRecord.geoid == Place.geoid)\
  .join(census_obs, cast(UsdaCensusRecord.id, String) == census_obs.c.record_id)\
- .outerjoin(ResourceAvailability, and_(
-    Resource.id == ResourceAvailability.resource_id,
-    Place.geoid == ResourceAvailability.geoid
- ))
+ .outerjoin(ra_fallback, Resource.id == ra_fallback.c.resource_id)\
+ .where(UsdaCensusRecord.year == 2022)\
+ .group_by(Resource.id, Resource.name, PrimaryAgProduct.name, Place.geoid, Place.county_name, Place.state_name, UsdaCensusRecord.year)
