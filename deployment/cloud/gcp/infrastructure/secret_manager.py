@@ -8,7 +8,18 @@ import pulumi_gcp as gcp
 import pulumi_random as random
 
 from cloud_sql import CloudSQLResources
-from config import DB_USER, READONLY_USERS
+from config import (
+    DB_USER,
+    READONLY_USERS,
+    SECRET_DB_PASSWORD,
+    SECRET_GSHEETS,
+    SECRET_USDA_API_KEY,
+    SECRET_PREFECT_AUTH,
+    SECRET_POSTGRES_PASSWORD,
+    SECRET_JWT_KEY,
+    SECRET_ADMIN_PASSWORD,
+    SECRET_RO_PREFIX,
+)
 
 
 @dataclass
@@ -57,7 +68,7 @@ def create_secrets(
     # Store the DB password in Secret Manager
     db_password_secret = gcp.secretmanager.Secret(
         "db-password-secret",
-        secret_id="biocirv-staging-db-password",
+        secret_id=SECRET_DB_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -73,7 +84,7 @@ def create_secrets(
     # Google Sheets credentials secret (version added manually post-deploy)
     gsheets_secret = gcp.secretmanager.Secret(
         "gsheets-credentials-secret",
-        secret_id="biocirv-staging-gsheets-credentials",
+        secret_id=SECRET_GSHEETS,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -83,7 +94,7 @@ def create_secrets(
     # USDA NASS API key (version added manually post-deploy)
     usda_api_key_secret = gcp.secretmanager.Secret(
         "usda-api-key-secret",
-        secret_id="biocirv-staging-usda-nass-api-key",
+        secret_id=SECRET_USDA_API_KEY,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -99,7 +110,7 @@ def create_secrets(
 
     prefect_auth_secret = gcp.secretmanager.Secret(
         "prefect-auth-secret",
-        secret_id="biocirv-staging-prefect-auth",
+        secret_id=SECRET_PREFECT_AUTH,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -139,7 +150,7 @@ def create_secrets(
         # Store password in Secret Manager
         ro_secret = gcp.secretmanager.Secret(
             f"ro-password-secret-{username}",
-            secret_id=f"biocirv-staging-ro-{username}",
+            secret_id=f"{SECRET_RO_PREFIX}-{username}",
             replication=gcp.secretmanager.SecretReplicationArgs(
                 auto=gcp.secretmanager.SecretReplicationAutoArgs(),
             ),
@@ -172,7 +183,7 @@ def create_secrets(
     # Store the postgres password in Secret Manager
     postgres_password_secret = gcp.secretmanager.Secret(
         "postgres-password-secret",
-        secret_id="biocirv-staging-postgres-password",
+        secret_id=SECRET_POSTGRES_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -190,7 +201,7 @@ def create_secrets(
 
     jwt_secret_sm = gcp.secretmanager.Secret(
         "jwt-secret",
-        secret_id="biocirv-staging-jwt-secret-key",
+        secret_id=SECRET_JWT_KEY,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -210,7 +221,7 @@ def create_secrets(
 
     admin_password_sm = gcp.secretmanager.Secret(
         "admin-password-secret",
-        secret_id="biocirv-staging-admin-password",
+        secret_id=SECRET_ADMIN_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),

@@ -6,7 +6,7 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT, GITHUB_REPO
+from config import GCP_PROJECT, GITHUB_REPO, WIF_POOL_ID, WIF_PROVIDER_ID, SA_DEPLOYER, STACK_NAME
 
 
 @dataclass
@@ -35,18 +35,18 @@ def create_wif(
     # --- WIF Pool & Provider ---
     pool = gcp.iam.WorkloadIdentityPool(
         "github-actions-pool",
-        workload_identity_pool_id="github-actions",
-        display_name="GitHub Actions",
-        description="WIF pool for GitHub Actions CI/CD",
+        workload_identity_pool_id=WIF_POOL_ID,
+        display_name=f"GitHub Actions ({STACK_NAME.capitalize()})",
+        description=f"WIF pool for GitHub Actions CI/CD ({STACK_NAME})",
         opts=opts,
     )
 
     provider = gcp.iam.WorkloadIdentityPoolProvider(
         "github-oidc-provider",
         workload_identity_pool_id=pool.workload_identity_pool_id,
-        workload_identity_pool_provider_id="github-oidc",
-        display_name="GitHub OIDC",
-        description="GitHub Actions OIDC provider",
+        workload_identity_pool_provider_id=WIF_PROVIDER_ID,
+        display_name=f"GitHub OIDC ({STACK_NAME.capitalize()})",
+        description=f"GitHub Actions OIDC provider ({STACK_NAME})",
         attribute_mapping={
             "google.subject": "assertion.sub",
             "attribute.repository": "assertion.repository",
@@ -66,8 +66,8 @@ def create_wif(
     # --- Deployer Service Account ---
     deployer_sa = gcp.serviceaccount.Account(
         "gh-deploy-sa",
-        account_id="biocirv-staging-gh-deploy",
-        display_name="GitHub Actions Deployer (Staging)",
+        account_id=SA_DEPLOYER,
+        display_name=f"GitHub Actions Deployer ({STACK_NAME.capitalize()})",
         opts=opts,
     )
 
@@ -83,6 +83,7 @@ def create_wif(
         "roles/secretmanager.admin",
         "roles/resourcemanager.projectIamAdmin",
         "roles/artifactregistry.admin",  # create/manage AR remote repos
+        "roles/storage.admin",  # create/manage GCS buckets
     ]
 
     deployer_iam_members = {}
