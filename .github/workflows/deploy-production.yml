@@ -124,3 +124,27 @@ jobs:
         env:
           IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
         run: pixi run -e deployment cloud-update-services
+
+  validate-deployment:
+    name: Validate Deployment Health
+    needs: [image-tag, update-services]
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Validate services are healthy
+        run: bash scripts/validate-deployment.sh
+        timeout-minutes: 10

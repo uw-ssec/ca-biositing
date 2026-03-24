@@ -112,16 +112,27 @@ def create_cloud_run_resources(
                             mount_path="/cloudsql",
                         )
                     ],
+                    # Cloud Run v2 supports startup_probe and liveness_probe only.
+                    # Readiness probes are not available in the Cloud Run v2 API.
+                    # The startup probe uses HTTP GET /health to gate traffic until
+                    # the database is reachable (replaces the original TCP check).
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
-                        tcp_socket=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeTcpSocketArgs(
+                        http_get=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeHttpGetArgs(
+                            path="/health",
                             port=8080,
                         ),
+                        timeout_seconds=10,
+                        period_seconds=10,
+                        failure_threshold=30,
                     ),
                     liveness_probe=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeArgs(
                         http_get=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeHttpGetArgs(
                             path="/",
                             port=8080,
                         ),
+                        timeout_seconds=10,
+                        period_seconds=30,
+                        failure_threshold=3,
                     ),
                 )
             ],

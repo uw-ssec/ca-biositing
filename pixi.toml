@@ -421,6 +421,10 @@ cmd = "bash scripts/cloud-update-services.sh"
 env = { IMAGE_TAG = "latest" }
 description = "Force new Cloud Run revisions with IMAGE_TAG. Usage: DEPLOY_ENV=production IMAGE_TAG=abc1234 pixi run cloud-update-services"
 
+[feature.cloud.tasks.cloud-validate]
+cmd = "bash scripts/validate-deployment.sh"
+description = "Validate deployment health. Set DEPLOY_ENV for target environment."
+
 [feature.gis.pypi-dependencies]
 geopandas = "*"
 matplotlib = "*"

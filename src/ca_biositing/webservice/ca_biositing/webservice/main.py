@@ -11,6 +11,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+
+from ca_biositing.datamodels.database import get_engine
 
 from ca_biositing.webservice.config import config
 from ca_biositing.webservice.v1 import router as v1_router
@@ -112,6 +115,24 @@ def read_hello() -> dict[str, str]:
         Dictionary with hello message
     """
     return {"message": "Hello, world"}
+
+
+@app.get("/health", tags=["health"])
+def health_check() -> JSONResponse:
+    """Health check verifying database connectivity.
+
+    Used by Cloud Run readiness probe to gate traffic routing.
+    """
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return JSONResponse(content={"status": "healthy", "database": "connected"})
+    except Exception as e:
+        return JSONResponse(
+            content={"status": "unhealthy", "database": str(e)},
+            status_code=503,
+        )
 
 
 # Mount v1 router
