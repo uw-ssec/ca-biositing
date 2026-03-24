@@ -83,6 +83,7 @@ def create_wif(
         "roles/secretmanager.admin",
         "roles/resourcemanager.projectIamAdmin",
         "roles/artifactregistry.admin",  # create/manage AR remote repos
+        "roles/storage.admin",  # create/manage GCS buckets
     ]
 
     deployer_iam_members = {}
