@@ -12,6 +12,6 @@ RUN curl -fsSL https://get.pulumi.com | sh
 ENV PATH="/home/pulumi/.pulumi/bin:${PATH}"
 
 # Install Python dependencies
-RUN pip install --no-cache-dir pulumi "pulumi-gcp>=9,<9.16" pulumi-random
+RUN pip install --no-cache-dir pulumi pulumi-gcp pulumi-random
 
 WORKDIR /app

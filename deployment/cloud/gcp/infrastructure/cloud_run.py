@@ -46,6 +46,10 @@ def create_cloud_run_resources(
     run_opts = pulumi.ResourceOptions(depends_on=depends_on or [])
 
     # --- 5.2: FastAPI Webservice ---
+    # Secrets are mounted as volumes (not value_source env vars) because the
+    # GCP Cloud Run v2 API rejects the Terraform provider's serialization of
+    # env vars with value_source (sends both value="" and valueSource, violating
+    # the protobuf oneof).  A shell wrapper reads secret files into env vars.
     webservice = gcp.cloudrunv2.Service(
         "webservice",
         name=CR_WEBSERVICE_NAME,
@@ -61,6 +65,14 @@ def create_cloud_run_resources(
             containers=[
                 gcp.cloudrunv2.ServiceTemplateContainerArgs(
                     image=WEBSERVICE_IMAGE,
+                    # Override default CMD to inject secret env vars from mounted files
+                    args=[
+                        "sh", "-c",
+                        "export DB_PASS=$(cat /secrets/db-password/value) "
+                        "&& export API_JWT_SECRET_KEY=$(cat /secrets/jwt-secret/value) "
+                        "&& exec uvicorn ca_biositing.webservice.main:app "
+                        "--host 0.0.0.0 --port 8080",
+                    ],
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=8080,
                     ),
@@ -80,26 +92,8 @@ def create_cloud_run_resources(
                             value=DB_NAME,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="DB_PASS",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.db_password_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="API_JWT_SECRET_KEY",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.jwt_secret_sm.secret_id,
-                                    version="latest",
-                                )
-                            ),
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="API_JWT_COOKIE_SECURE",
@@ -110,7 +104,15 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
                             name="cloudsql",
                             mount_path="/cloudsql",
-                        )
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="db-password",
+                            mount_path="/secrets/db-password",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="jwt-secret",
+                            mount_path="/secrets/jwt-secret",
+                        ),
                     ],
                     # Cloud Run v2 supports startup_probe and liveness_probe only.
                     # Readiness probes are not available in the Cloud Run v2 API.
@@ -142,7 +144,25 @@ def create_cloud_run_resources(
                     cloud_sql_instance=gcp.cloudrunv2.ServiceTemplateVolumeCloudSqlInstanceArgs(
                         instances=[sql.instance.connection_name],
                     ),
-                )
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="db-password",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.db_password_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="jwt-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.jwt_secret_sm.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
             ],
         ),
         traffics=[
@@ -163,9 +183,6 @@ def create_cloud_run_resources(
     )
 
     # --- 5.3: Alembic Migration Job ---
-    # Pass individual env vars instead of a composed DATABASE_URL so the
-    # password comes from Secret Manager (not visible in Cloud Run config).
-    # alembic/env.py falls back to Settings which constructs the URL from these.
     migration_job = gcp.cloudrunv2.Job(
         "migration-job",
         name=CR_MIGRATION_JOB_NAME,
@@ -179,7 +196,11 @@ def create_cloud_run_resources(
                 containers=[
                     gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
                         image=PIPELINE_IMAGE,
-                        args=["alembic", "upgrade", "head"],
+                        args=[
+                            "sh", "-c",
+                            "export DB_PASS=$(cat /secrets/db-password/value) "
+                            "&& exec alembic upgrade head",
+                        ],
                         resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
                             limits={"cpu": "1", "memory": "512Mi"},
                         ),
@@ -193,15 +214,6 @@ def create_cloud_run_resources(
                                 value=DB_NAME,
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="DB_PASS",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.db_password_secret.secret_id,
-                                        version="latest",
-                                    )
-                                ),
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="INSTANCE_CONNECTION_NAME",
                                 value=sql.instance.connection_name,
                             ),
@@ -210,7 +222,11 @@ def create_cloud_run_resources(
                             gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
                                 name="cloudsql",
                                 mount_path="/cloudsql",
-                            )
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="db-password",
+                                mount_path="/secrets/db-password",
+                            ),
                         ],
                     )
                 ],
@@ -220,7 +236,16 @@ def create_cloud_run_resources(
                         cloud_sql_instance=gcp.cloudrunv2.JobTemplateTemplateVolumeCloudSqlInstanceArgs(
                             instances=[sql.instance.connection_name],
                         ),
-                    )
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="db-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.db_password_secret.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
                 ],
             )
         ),
@@ -242,10 +267,10 @@ def create_cloud_run_resources(
                     gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
                         image=WEBSERVICE_IMAGE,
                         args=[
-                            "python",
-                            "scripts/create_admin.py",
-                            "--username",
-                            "admin",
+                            "sh", "-c",
+                            "export DB_PASS=$(cat /secrets/db-password/value) "
+                            "&& export ADMIN_PASSWORD=$(cat /secrets/admin-password/value) "
+                            "&& exec python scripts/create_admin.py --username admin",
                         ],
                         resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
                             limits={"cpu": "1", "memory": "512Mi"},
@@ -260,33 +285,23 @@ def create_cloud_run_resources(
                                 value=DB_NAME,
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="DB_PASS",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.db_password_secret.secret_id,
-                                        version="latest",
-                                    )
-                                ),
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="INSTANCE_CONNECTION_NAME",
                                 value=sql.instance.connection_name,
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="ADMIN_PASSWORD",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.admin_password_sm.secret_id,
-                                        version="latest",
-                                    )
-                                ),
                             ),
                         ],
                         volume_mounts=[
                             gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
                                 name="cloudsql",
                                 mount_path="/cloudsql",
-                            )
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="db-password",
+                                mount_path="/secrets/db-password",
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="admin-password",
+                                mount_path="/secrets/admin-password",
+                            ),
                         ],
                     )
                 ],
@@ -296,7 +311,25 @@ def create_cloud_run_resources(
                         cloud_sql_instance=gcp.cloudrunv2.JobTemplateTemplateVolumeCloudSqlInstanceArgs(
                             instances=[sql.instance.connection_name],
                         ),
-                    )
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="db-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.db_password_secret.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="admin-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.admin_password_sm.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
                 ],
             )
         ),
@@ -432,16 +465,12 @@ def create_cloud_run_resources(
                     image=PIPELINE_IMAGE,
                     # No commands= — use Dockerfile ENTRYPOINT (/bin/bash /shell-hook.sh)
                     args=[
-                        "prefect",
-                        "worker",
-                        "start",
-                        "--pool",
-                        PREFECT_WORK_POOL_NAME,
-                        "--type",
-                        "process",
-                        "--limit",
-                        "3",
-                        "--with-healthcheck",
+                        "sh", "-c",
+                        "export DB_PASS=$(cat /secrets/db-password/value) "
+                        "&& export USDA_NASS_API_KEY=$(cat /secrets/usda-api-key/value) "
+                        f"&& exec prefect worker start "
+                        f"--pool {PREFECT_WORK_POOL_NAME} "
+                        f"--type process --limit 3 --with-healthcheck",
                     ],
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=8080,
@@ -467,27 +496,8 @@ def create_cloud_run_resources(
                             value=DB_NAME,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="DB_PASS",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.db_password_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
-                        ),
-                        # USDA NASS API key — value populated manually in Secret Manager post-deploy
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="USDA_NASS_API_KEY",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.usda_api_key_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
                         ),
                         # Path to GSheets service account credentials file (mounted via Secret Manager volume)
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
@@ -514,6 +524,14 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
                             name="gsheets-credentials",
                             mount_path="/app/gsheets-credentials",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="db-password",
+                            mount_path="/secrets/db-password",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="usda-api-key",
+                            mount_path="/secrets/usda-api-key",
                         ),
                     ],
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
@@ -544,6 +562,24 @@ def create_cloud_run_resources(
                                 path="credentials.json",
                             )
                         ],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="db-password",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.db_password_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="usda-api-key",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.usda_api_key_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
                     ),
                 ),
             ],
