@@ -38,8 +38,8 @@ check_worker_ready() {
     # Check Cloud Run service conditions instead.
     local ready
     ready=$(gcloud run services describe "biocirv-${DEPLOY_ENV}-prefect-worker" \
-        --region="${GCP_REGION}" \
-        --format="value(status.conditions.filter(type=Ready).status)" 2>/dev/null) || return 1
+        --region="${GCP_REGION}" --format=json 2>/dev/null \
+        | jq -r '.status.conditions[] | select(.type=="Ready") | .status') || return 1
     [ "$ready" = "True" ]
 }
 
