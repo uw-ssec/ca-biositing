@@ -5,6 +5,8 @@ This module provides the main FastAPI application with REST API endpoints.
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +14,15 @@ from fastapi.responses import JSONResponse
 
 from ca_biositing.webservice.config import config
 from ca_biositing.webservice.v1 import router as v1_router
+
+logger = logging.getLogger(__name__)
+
+# Warn if the JWT secret key is the insecure default
+if config.jwt_secret_key == "changeme-only-for-local-dev-do-not-use-in-prod!!":
+    logger.warning(
+        "API_JWT_SECRET_KEY is set to the insecure default. "
+        "Set a strong random secret in production via GCP Secret Manager."
+    )
 
 # Create FastAPI application with metadata
 app = FastAPI(

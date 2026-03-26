@@ -12,6 +12,8 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ca_biositing.datamodels.database import get_session
+from ca_biositing.datamodels.models import ApiUser
+from ca_biositing.webservice.dependencies import get_current_user
 from sqlmodel import SQLModel
 from ca_biositing.datamodels.models import (
     CompositionalRecord,
@@ -111,7 +113,18 @@ def client_fixture(session):
     def override_get_session():
         yield session
 
+    # Bypass JWT auth for feedstocks route tests — auth is tested separately
+    def override_get_current_user():
+        return ApiUser(
+            id=1,
+            username="testuser",
+            hashed_password="",
+            is_admin=True,
+            disabled=False,
+        )
+
     app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_current_user] = override_get_current_user
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()

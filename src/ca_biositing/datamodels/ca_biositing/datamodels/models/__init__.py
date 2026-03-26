@@ -1,6 +1,9 @@
 # Re-export all models for convenient imports
 from .base import BaseEntity, LookupBase, Aim1RecordBase, Aim2RecordBase
 
+# Auth
+from .auth import ApiUser
+
 # Aim1 Records
 from .aim1_records import CalorimetryRecord, CompositionalRecord, FtnirRecord, IcpRecord, ProximateRecord, RgbRecord, UltimateRecord, XrdRecord, XrfRecord
 

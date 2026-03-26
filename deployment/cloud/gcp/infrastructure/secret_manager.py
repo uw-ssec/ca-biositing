@@ -26,6 +26,8 @@ class SecretResources:
     postgres_password: random.RandomPassword = None
     postgres_user: gcp.sql.User = None
     postgres_password_secret: gcp.secretmanager.Secret = None
+    jwt_secret: random.RandomPassword = None
+    jwt_secret_sm: gcp.secretmanager.Secret = None
 
 
 def create_secrets(
@@ -181,6 +183,24 @@ def create_secrets(
         secret_data=postgres_password.result,
     )
 
+    # JWT signing secret for webservice authentication
+    jwt_secret = random.RandomPassword("jwt-secret-key", length=64, special=False)
+
+    jwt_secret_sm = gcp.secretmanager.Secret(
+        "jwt-secret",
+        secret_id="biocirv-staging-jwt-secret-key",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "jwt-secret-version",
+        secret=jwt_secret_sm.id,
+        secret_data=jwt_secret.result,
+    )
+
     return SecretResources(
         db_password=db_password,
         db_user=db_user,
@@ -195,4 +215,6 @@ def create_secrets(
         postgres_password=postgres_password,
         postgres_user=postgres_user,
         postgres_password_secret=postgres_password_secret,
+        jwt_secret=jwt_secret,
+        jwt_secret_sm=jwt_secret_sm,
     )
