@@ -425,6 +425,10 @@ description = "Force new Cloud Run revisions with IMAGE_TAG. Usage: DEPLOY_ENV=p
 cmd = "bash scripts/validate-deployment.sh"
 description = "Validate deployment health. Set DEPLOY_ENV for target environment."
 
+[feature.cloud.tasks.cloud-trigger-etl]
+cmd = "bash scripts/cloud-trigger-etl.sh"
+description = "Trigger the Master ETL flow via Prefect API (fire-and-forget). For CI use."
+
 [feature.gis.pypi-dependencies]
 geopandas = "*"
 matplotlib = "*"
