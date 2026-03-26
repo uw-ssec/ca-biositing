@@ -10,8 +10,10 @@ def thermochem_etl_flow(*args, **kwargs):
     from ca_biositing.pipeline.etl.extract import thermochem_data
     from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
     from ca_biositing.pipeline.etl.transform.analysis.gasification_record import transform_gasification_record
+    from ca_biositing.pipeline.etl.transform.analysis.experiment import transform_experiment
     from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
     from ca_biositing.pipeline.etl.load.analysis.gasification_record import load_gasification_record
+    from ca_biositing.pipeline.etl.load.analysis.experiment import load_experiment
     from ca_biositing.pipeline.utils.lineage import create_etl_run_record, create_lineage_group
 
     logger = get_run_logger()
@@ -31,6 +33,20 @@ def thermochem_etl_flow(*args, **kwargs):
     thermo_data_raw = thermochem_data.thermo_data()
 
     if thermo_data_raw is not None and not thermo_data_raw.empty:
+        # --- PART 0: Experiments ---
+        # First load experiments so they can be referenced by ID during normalization of records
+        if thermo_exp_raw is not None and not thermo_exp_raw.empty:
+            logger.info("Transforming and Loading Experiments...")
+            exp_df = transform_experiment(
+                raw_dfs=[thermo_exp_raw],
+                etl_run_id=etl_run_id,
+                lineage_group_id=lineage_group
+            )
+            if not exp_df.empty:
+                load_experiment(exp_df)
+            else:
+                logger.warning("No experiments produced during transformation.")
+
         # --- PART 1: Observations ---
         logger.info("Transforming and Loading Observations...")
         # Prepare copy for observation transform with analysis_type and record_id

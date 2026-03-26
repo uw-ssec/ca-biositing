@@ -121,6 +121,8 @@ def transform_gasification_record(
             target_name = 'analyst_id' if col == 'analyst_email' else \
                           'dataset_id' if col == 'dataset' else \
                           'raw_data_id' if col == 'raw_data_url' else \
+                          'experiment_id' if col == 'experiment_id' else \
+                          'method_id' if col == 'method_id' else \
                           norm_col
             rename_map[norm_col] = target_name
 

@@ -58,13 +58,18 @@ def test_transform_gasification_record(mock_normalize, mock_logger):
     assert "note" in result.columns
     assert "etl_run_id" in result.columns
     assert "lineage_group_id" in result.columns
+    assert "experiment_id" in result.columns
+    assert "method_id" in result.columns
+    assert "resource_id" in result.columns
+    assert "prepared_sample_id" in result.columns
+    assert "analyst_id" in result.columns
+    assert "dataset_id" in result.columns
 
     # Check values for REC001 (standard_clean lowercases strings)
     rec001 = result[result["record_id"] == "rec001"].iloc[0]
     assert rec001["technical_replicate_no"] == 1
     assert rec001["note"] == "note 1"
-    # Filter for columns that exist
-    if "etl_run_id" in result.columns:
-        assert rec001["etl_run_id"] == 123
-    if "lineage_group_id" in result.columns:
-        assert rec001["lineage_group_id"] == 456
+    assert rec001["etl_run_id"] == 123
+    assert rec001["lineage_group_id"] == 456
+    assert rec001["experiment_id"] == 1
+    assert rec001["method_id"] == 1
