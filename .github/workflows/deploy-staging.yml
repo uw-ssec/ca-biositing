@@ -187,9 +187,10 @@ jobs:
   # --- Trigger ETL (fire-and-forget, runs after services are validated) ---
   trigger-etl:
     name: Trigger ETL Pipeline
-    needs: [validate-deployment]
+    needs: [image-tag, validate-deployment]
     runs-on: ubuntu-latest
     environment: staging
+    timeout-minutes: 5
     permissions:
       contents: read
       id-token: write

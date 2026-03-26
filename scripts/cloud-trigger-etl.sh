@@ -14,9 +14,10 @@ set -euo pipefail
 #       PREFECT_API_KEY or PREFECT_API_AUTH_STRING).
 
 GCP_REGION="${GCP_REGION:-us-west1}"
+DEPLOY_ENV="${DEPLOY_ENV:-staging}"
 
 # Discover the Prefect server URL from the Cloud Run service
-PREFECT_SERVER_URL=$(gcloud run services describe biocirv-prefect-server \
+PREFECT_SERVER_URL=$(gcloud run services describe "biocirv-${DEPLOY_ENV}-prefect-server" \
   --region="${GCP_REGION}" \
   --format='value(status.url)')
 
