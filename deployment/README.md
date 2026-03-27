@@ -455,8 +455,8 @@ Use the Prefect UI through the browser for monitoring and triggering flow runs.
 
 ### Trigger ETL Flows
 
-Trigger flow runs through the Prefect UI (via the auth-proxy URL) or monitor
-via the worker's Cloud Run logs:
+Trigger flow runs through the Prefect UI (via the auth-proxy URL) or monitor via
+the worker's Cloud Run logs:
 
 ```bash
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=50
@@ -552,9 +552,12 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 
 The auth-proxy cannot reach the Prefect server. Check:
 
-1. Prefect server is running: `gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="yaml(status.conditions)"`
-2. Auth-proxy has VPC egress: `gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="yaml(spec.template.metadata.annotations)" | grep vpc`
-3. Private Google Access is enabled on the subnet: `gcloud compute networks subnets describe default --region=us-west1 --format="value(privateIpGoogleAccess)"`
+1. Prefect server is running:
+   `gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="yaml(status.conditions)"`
+2. Auth-proxy has VPC egress:
+   `gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="yaml(spec.template.metadata.annotations)" | grep vpc`
+3. Private Google Access is enabled on the subnet:
+   `gcloud compute networks subnets describe default --region=us-west1 --format="value(privateIpGoogleAccess)"`
 
 #### Prefect worker not connecting
 
