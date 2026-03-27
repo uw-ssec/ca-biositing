@@ -35,6 +35,8 @@ CR_MIGRATION_JOB_NAME = f"biocirv-{STACK_NAME}-migrate"
 CR_SEED_ADMIN_JOB_NAME = f"biocirv-{STACK_NAME}-seed-admin"
 CR_PREFECT_SERVER_NAME = f"biocirv-{STACK_NAME}-prefect-server"
 CR_PREFECT_WORKER_NAME = f"biocirv-{STACK_NAME}-prefect-worker"
+CR_OAUTH2_PROXY_NAME = f"biocirv-{STACK_NAME}-auth-proxy"
+OAUTH2_PROXY_EMAIL_DOMAIN = "lbl.gov"
 
 # Secret Manager secret IDs
 SECRET_DB_PASSWORD = f"biocirv-{STACK_NAME}-db-password"
@@ -45,6 +47,9 @@ SECRET_POSTGRES_PASSWORD = f"biocirv-{STACK_NAME}-postgres-password"
 SECRET_JWT_KEY = f"biocirv-{STACK_NAME}-jwt-secret-key"
 SECRET_ADMIN_PASSWORD = f"biocirv-{STACK_NAME}-admin-password"
 SECRET_RO_PREFIX = f"biocirv-{STACK_NAME}-ro"
+SECRET_OAUTH2_CLIENT_ID = f"biocirv-{STACK_NAME}-oauth2-client-id"
+SECRET_OAUTH2_CLIENT_SECRET = f"biocirv-{STACK_NAME}-oauth2-client-secret"
+SECRET_OAUTH2_COOKIE_SECRET = f"biocirv-{STACK_NAME}-oauth2-cookie-secret"
 
 # Service account IDs
 SA_WEBSERVICE = f"biocirv-{STACK_NAME}-cr-websvc"
@@ -52,6 +57,7 @@ SA_PREFECT_SERVER = f"biocirv-{STACK_NAME}-cr-prefect"
 SA_PREFECT_WORKER = f"biocirv-{STACK_NAME}-cr-worker"
 SA_MIGRATE = f"biocirv-{STACK_NAME}-cr-migrate"
 SA_DEPLOYER = f"biocirv-{STACK_NAME}-gh-deploy"
+SA_OAUTH2_PROXY = f"biocirv-{STACK_NAME}-cr-oauth2"
 
 # Workload Identity Federation IDs
 WIF_POOL_ID = f"github-actions-{STACK_NAME}"
@@ -61,6 +67,8 @@ WIF_PROVIDER_ID = f"github-oidc-{STACK_NAME}"
 # instead of :latest (which Pulumi cannot detect changes for).
 # Images are pulled via an Artifact Registry remote repo that proxies GHCR.
 AR_GHCR_BASE = f"us-west1-docker.pkg.dev/{GCP_PROJECT}/ghcr-proxy/sustainability-software-lab/ca-biositing"
+AR_QUAYIO_BASE = f"us-west1-docker.pkg.dev/{GCP_PROJECT}/quayio-proxy"
+OAUTH2_PROXY_IMAGE = f"{AR_QUAYIO_BASE}/oauth2-proxy/oauth2-proxy:v7.7.1"
 IMAGE_TAG = os.environ.get("IMAGE_TAG", "latest")
 WEBSERVICE_IMAGE = os.environ.get(
     "WEBSERVICE_IMAGE", f"{AR_GHCR_BASE}/webservice:{IMAGE_TAG}"
