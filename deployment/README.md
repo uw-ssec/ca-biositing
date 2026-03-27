@@ -222,8 +222,75 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
    ```
 5. Run migrations:
    `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
-6. Seed admin:
-   `pixi run -e deployment gcloud run jobs execute biocirv-<env>-seed-admin --region=us-west1 --wait`
+6. Seed admin user (manual, idempotent):
+   `DEPLOY_ENV=<env> pixi run -e deployment cloud-seed-admin`
+
+---
+
+## Local Development: OAuth2-Proxy for Prefect UI
+
+The local Docker Compose environment includes an oauth2-proxy service that puts
+Google OAuth authentication in front of the Prefect UI. This mirrors the cloud
+architecture and lets developers test auth routing locally.
+
+### How It Works
+
+- `http://localhost:4180` — Prefect UI through oauth2-proxy (requires Google
+  login)
+- `http://localhost:4200` — Prefect UI direct access (no auth, for debugging and
+  host-side pixi tasks)
+- The Prefect worker connects directly to `http://prefect-server:4200/api` via
+  Docker DNS, bypassing the proxy
+
+### Prerequisites: Create a Google OAuth Client
+
+1. Go to
+   [GCP Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
+2. Click **Create Credentials → OAuth 2.0 Client ID**
+3. Application type: **Web application**
+4. Add authorized redirect URI: `http://localhost:4180/oauth2/callback`
+5. Copy the **Client ID** and **Client Secret**
+
+### Configure Local Env
+
+Add the following to `resources/docker/.env` (the file is gitignored — do not
+commit it):
+
+```bash
+# Generate a 32-byte base64 cookie secret:
+python -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'
+
+# Then set these values in resources/docker/.env:
+OAUTH2_PROXY_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+OAUTH2_PROXY_CLIENT_SECRET=your-google-client-secret
+OAUTH2_PROXY_COOKIE_SECRET=<output from the command above>
+```
+
+### Start Services
+
+```bash
+pixi run start-services
+```
+
+This brings up all five services: `db`, `setup-db`, `prefect-server`,
+`prefect-worker`, and `oauth2-proxy`.
+
+### Access the Prefect UI
+
+- **Via proxy (with auth):** `http://localhost:4180` — redirects to Google OAuth
+  login
+- **Direct (no auth):** `http://localhost:4200` — backward compatible, for
+  debugging
+
+### Notes
+
+- `OAUTH2_PROXY_EMAIL_DOMAINS=*` allows any Google account. Change to your
+  domain (e.g. `lbl.gov`) to restrict access.
+- If `OAUTH2_PROXY_*` variables are missing from `.env`, the oauth2-proxy
+  container will fail to start. The other services (db, prefect-server, worker)
+  are unaffected since they do not depend on oauth2-proxy.
+- The health check endpoint (`/api/health`) is accessible without authentication
+  for monitoring.
 
 ---
 
@@ -585,7 +652,33 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 
 Expected: `SUCCEEDED` status.
 
-### Step 4: Force New Cloud Run Revision for Worker
+### Step 4: Seed Admin User (manual, one-time per environment)
+
+After migrations have run, seed the initial admin user by executing the Cloud
+Run seed-admin job:
+
+```bash
+# Staging
+pixi run -e deployment cloud-seed-admin
+
+# Production
+DEPLOY_ENV=production pixi run -e deployment cloud-seed-admin
+```
+
+Or directly via gcloud:
+
+```bash
+gcloud run jobs execute biocirv-staging-seed-admin --region=us-west1 --wait
+```
+
+This is **idempotent** — if the admin user already exists, the script exits
+successfully without changes. The admin password is read from Secret Manager
+(`biocirv-<env>-admin-password`).
+
+> **Note:** Admin seeding is intentionally a manual process for both staging and
+> production. It is not part of the CI/CD pipeline.
+
+### Step 5: Force New Cloud Run Revision for Worker
 
 After uploading secrets, force a new revision to pick up the latest image and
 mounted secret:
@@ -596,14 +689,14 @@ gcloud run services update biocirv-prefect-worker \
   --region=us-west1
 ```
 
-### Step 5: Set PREFECT_API_URL
+### Step 6: Set PREFECT_API_URL
 
 ```bash
 export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server \
   --region=us-west1 --format="value(status.url)")/api
 ```
 
-### Step 6: Register Prefect Deployment
+### Step 7: Register Prefect Deployment
 
 ```bash
 cd resources/prefect
@@ -622,7 +715,7 @@ Verify the deployment is registered:
 prefect deployment ls
 ```
 
-### Step 7: Trigger a Flow Run
+### Step 8: Trigger a Flow Run
 
 ```bash
 prefect deployment run "Master ETL Flow/master-etl-deployment"
@@ -638,7 +731,7 @@ gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=1
 gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
 ```
 
-### Step 8: Verify Data in Cloud SQL
+### Step 9: Verify Data in Cloud SQL
 
 Connect via Cloud SQL Auth Proxy (see "Connecting to the Database" section),
 then:
