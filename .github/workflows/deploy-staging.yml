@@ -183,3 +183,31 @@ jobs:
       - name: Validate services are healthy
         run: bash scripts/validate-deployment.sh
         timeout-minutes: 10
+
+  # --- Trigger ETL (fire-and-forget, runs after services are validated) ---
+  trigger-etl:
+    name: Trigger ETL Pipeline
+    needs: [image-tag, validate-deployment]
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Trigger ETL flow run
+        run: pixi run -e deployment cloud-trigger-etl
