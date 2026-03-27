@@ -248,9 +248,10 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 
 ## Local Development: OAuth2-Proxy for Prefect UI
 
-The local Docker Compose environment includes a `prefect-auth` service (oauth2-proxy)
-that puts Google OAuth authentication in front of the Prefect UI. This mirrors the
-cloud architecture and lets developers test auth routing locally.
+The local Docker Compose environment includes a `prefect-auth` service
+(oauth2-proxy) that puts Google OAuth authentication in front of the Prefect UI.
+This mirrors the cloud architecture and lets developers test auth routing
+locally.
 
 ### How It Works
 
@@ -431,8 +432,8 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 ### Prefect Server Access
 
 The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` and is fronted by an
-**prefect-auth** (oauth2-proxy) service that requires Google OAuth authentication.
-Only `@lbl.gov` Google accounts can access the Prefect UI.
+**prefect-auth** (oauth2-proxy) service that requires Google OAuth
+authentication. Only `@lbl.gov` Google accounts can access the Prefect UI.
 
 **Access the Prefect UI (browser):**
 
@@ -455,8 +456,8 @@ Use the Prefect UI through the browser for monitoring and triggering flow runs.
 
 ### Trigger ETL Flows
 
-Trigger flow runs through the Prefect UI (via the prefect-auth URL) or monitor via
-the worker's Cloud Run logs:
+Trigger flow runs through the Prefect UI (via the prefect-auth URL) or monitor
+via the worker's Cloud Run logs:
 
 ```bash
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=50
