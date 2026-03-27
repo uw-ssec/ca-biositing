@@ -622,6 +622,7 @@ def create_cloud_run_resources(
             "--http-address=0.0.0.0:4180",
             "--upstream-timeout=120s",
             f"--upstream={uri}",
+            "--skip-provider-button=true",
         ]
     )
 
