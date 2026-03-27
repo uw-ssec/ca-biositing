@@ -35,7 +35,7 @@ CR_MIGRATION_JOB_NAME = f"biocirv-{STACK_NAME}-migrate"
 CR_SEED_ADMIN_JOB_NAME = f"biocirv-{STACK_NAME}-seed-admin"
 CR_PREFECT_SERVER_NAME = f"biocirv-{STACK_NAME}-prefect-server"
 CR_PREFECT_WORKER_NAME = f"biocirv-{STACK_NAME}-prefect-worker"
-CR_OAUTH2_PROXY_NAME = f"biocirv-{STACK_NAME}-auth-proxy"
+CR_OAUTH2_PROXY_NAME = f"biocirv-{STACK_NAME}-prefect-auth"
 OAUTH2_PROXY_EMAIL_DOMAIN = "lbl.gov"
 
 # Secret Manager secret IDs
@@ -57,7 +57,7 @@ SA_PREFECT_SERVER = f"biocirv-{STACK_NAME}-cr-prefect"
 SA_PREFECT_WORKER = f"biocirv-{STACK_NAME}-cr-worker"
 SA_MIGRATE = f"biocirv-{STACK_NAME}-cr-migrate"
 SA_DEPLOYER = f"biocirv-{STACK_NAME}-gh-deploy"
-SA_OAUTH2_PROXY = f"biocirv-{STACK_NAME}-cr-oauth2"
+SA_OAUTH2_PROXY = f"biocirv-{STACK_NAME}-cr-pfct-auth"
 
 # Workload Identity Federation IDs
 WIF_POOL_ID = f"github-actions-{STACK_NAME}"

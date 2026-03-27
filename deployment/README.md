@@ -237,7 +237,7 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
    ```
 6. Redeploy to pick up OAuth2 secrets:
    `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy`
-7. Update Google OAuth client redirect URI to the auth-proxy's
+7. Update Google OAuth client redirect URI to the prefect-auth's
    `/oauth2/callback` URL (from `cloud-outputs-direct`)
 8. Run migrations:
    `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
@@ -248,14 +248,15 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 
 ## Local Development: OAuth2-Proxy for Prefect UI
 
-The local Docker Compose environment includes an oauth2-proxy service that puts
-Google OAuth authentication in front of the Prefect UI. This mirrors the cloud
-architecture and lets developers test auth routing locally.
+The local Docker Compose environment includes a `prefect-auth` service
+(oauth2-proxy) that puts Google OAuth authentication in front of the Prefect UI.
+This mirrors the cloud architecture and lets developers test auth routing
+locally.
 
 ### How It Works
 
-- `http://localhost:4180` — Prefect UI through oauth2-proxy (requires Google
-  login)
+- `http://localhost:4180` — Prefect UI through prefect-auth proxy (redirects
+  directly to Google OAuth)
 - `http://localhost:4200` — Prefect UI direct access (no auth, for debugging and
   host-side pixi tasks)
 - The Prefect worker connects directly to `http://prefect-server:4200/api` via
@@ -292,12 +293,12 @@ pixi run start-services
 ```
 
 This brings up all five services: `db`, `setup-db`, `prefect-server`,
-`prefect-worker`, and `oauth2-proxy`.
+`prefect-worker`, and `prefect-auth`.
 
 ### Access the Prefect UI
 
-- **Via proxy (with auth):** `http://localhost:4180` — redirects to Google OAuth
-  login
+- **Via proxy (with auth):** `http://localhost:4180` — redirects directly to
+  Google OAuth (skip-provider-button enabled)
 - **Direct (no auth):** `http://localhost:4200` — backward compatible, for
   debugging
 
@@ -305,9 +306,9 @@ This brings up all five services: `db`, `setup-db`, `prefect-server`,
 
 - `OAUTH2_PROXY_EMAIL_DOMAINS=*` allows any Google account. Change to your
   domain (e.g. `lbl.gov`) to restrict access.
-- If `OAUTH2_PROXY_*` variables are missing from `.env`, the oauth2-proxy
+- If `OAUTH2_PROXY_*` variables are missing from `.env`, the prefect-auth
   container will fail to start. The other services (db, prefect-server, worker)
-  are unaffected since they do not depend on oauth2-proxy.
+  are unaffected since they do not depend on prefect-auth.
 - The health check endpoint (`/api/health`) is accessible without authentication
   for monitoring.
 
@@ -322,7 +323,7 @@ The staging environment runs on GCP with the following components:
 | Component                         | Service                                                                      |
 | --------------------------------- | ---------------------------------------------------------------------------- |
 | **Webservice** (FastAPI)          | Cloud Run Service (public, JWT auth)                                         |
-| **Auth Proxy** (oauth2-proxy)     | Cloud Run Service (public, Google OAuth for Prefect UI, VPC egress)          |
+| **Prefect Auth** (oauth2-proxy)   | Cloud Run Service (public, Google OAuth for Prefect UI, VPC egress)          |
 | **Prefect Server** (UI + API)     | Cloud Run Service (internal-only ingress, minScale=1)                        |
 | **Prefect Worker** (process type) | Cloud Run Service (internal, VPC egress, polls server, runs subprocesses)    |
 | **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                             |
@@ -339,7 +340,7 @@ The staging environment runs on GCP with the following components:
               │            │                  │
               ▼            ▼                  ▼
      ┌────────────┐ ┌────────────┐    ┌──────────────┐
-     │ Webservice │ │ Auth Proxy │    │Prefect Server│
+     │ Webservice │ │Prefect Auth│    │Prefect Server│
      │  :8080     │ │  :4180     │    │  :4200       │
      │  public    │ │  public    │    │ internal-only│
      │  JWT auth  │ │ Google OAuth│    │ minScale=1   │
@@ -371,7 +372,7 @@ The staging environment runs on GCP with the following components:
 
 - The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` so it cannot be
   accessed directly from the internet. Direct requests return HTTP 404.
-- The auth-proxy (oauth2-proxy) and Prefect worker both use **Direct VPC
+- The prefect-auth (oauth2-proxy) and Prefect worker both use **Direct VPC
   egress** (`egress=ALL_TRAFFIC`), routing all outbound traffic through the
   default VPC. This satisfies the Prefect server's internal ingress requirement
   without needing identity token injection or IAM service-to-service auth.
@@ -381,8 +382,8 @@ The staging environment runs on GCP with the following components:
 - **Cloud NAT** on the default VPC provides internet egress for non-Google
   external endpoints (USDA API, LandIQ data downloads).
 - The Prefect server runs with `minScale=1` to avoid cold-start timeouts when
-  proxied through the auth-proxy.
-- Once a user authenticates through Google OAuth, the auth-proxy forwards
+  proxied through the prefect-auth.
+- Once a user authenticates through Google OAuth, the prefect-auth forwards
   requests to the Prefect server with `X-Auth-Request-Email` and
   `X-Auth-Request-User` headers, allowing the backend to identify the user
   without managing authentication itself.
@@ -431,21 +432,21 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 ### Prefect Server Access
 
 The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` and is fronted by an
-**auth-proxy** (oauth2-proxy) service that requires Google OAuth authentication.
-Only `@lbl.gov` Google accounts can access the Prefect UI.
+**prefect-auth** (oauth2-proxy) service that requires Google OAuth
+authentication. Only `@lbl.gov` Google accounts can access the Prefect UI.
 
 **Access the Prefect UI (browser):**
 
 ```bash
-# Get the auth-proxy URL (this is the public entry point)
-gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="value(status.url)"
+# Get the prefect-auth URL (this is the public entry point)
+gcloud run services describe biocirv-staging-prefect-auth --region=us-west1 --format="value(status.url)"
 ```
 
 Open the returned URL in a browser. You will be redirected to Google OAuth
 login. After authenticating with an `@lbl.gov` account, the Prefect UI loads.
 
 > **Note:** The Prefect server's direct `.run.app` URL is **not accessible**
-> from the internet (returns HTTP 404). Always use the auth-proxy URL for
+> from the internet (returns HTTP 404). Always use the prefect-auth URL for
 > browser access.
 
 **Prefect CLI access:**
@@ -455,8 +456,8 @@ Use the Prefect UI through the browser for monitoring and triggering flow runs.
 
 ### Trigger ETL Flows
 
-Trigger flow runs through the Prefect UI (via the auth-proxy URL) or monitor via
-the worker's Cloud Run logs:
+Trigger flow runs through the Prefect UI (via the prefect-auth URL) or monitor
+via the worker's Cloud Run logs:
 
 ```bash
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=50
@@ -535,12 +536,12 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 
 #### Auth proxy returns 403 or 500 on login
 
-1. Verify the Google OAuth redirect URI matches the auth-proxy URL:
-   `https://biocirv-staging-auth-proxy-xy45yfiqaq-uw.a.run.app/oauth2/callback`
+1. Verify the Google OAuth redirect URI matches the prefect-auth URL:
+   `https://biocirv-staging-prefect-auth-xy45yfiqaq-uw.a.run.app/oauth2/callback`
 2. Check for stale cookies — clear cookies for
-   `biocirv-staging-auth-proxy-xy45yfiqaq-uw.a.run.app` or use incognito
-3. Check auth-proxy logs:
-   `gcloud run services logs read biocirv-staging-auth-proxy --region=us-west1 --limit=20`
+   `biocirv-staging-prefect-auth-xy45yfiqaq-uw.a.run.app` or use incognito
+3. Check prefect-auth logs:
+   `gcloud run services logs read biocirv-staging-prefect-auth --region=us-west1 --limit=20`
 4. Verify OAuth secrets have no trailing newline:
    ```bash
    pixi run -e deployment gcloud secrets versions access latest \
@@ -550,12 +551,12 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 
 #### Auth proxy returns 502 (upstream timeout)
 
-The auth-proxy cannot reach the Prefect server. Check:
+The prefect-auth cannot reach the Prefect server. Check:
 
 1. Prefect server is running:
    `gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="yaml(status.conditions)"`
 2. Auth-proxy has VPC egress:
-   `gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="yaml(spec.template.metadata.annotations)" | grep vpc`
+   `gcloud run services describe biocirv-staging-prefect-auth --region=us-west1 --format="yaml(spec.template.metadata.annotations)" | grep vpc`
 3. Private Google Access is enabled on the subnet:
    `gcloud compute networks subnets describe default --region=us-west1 --format="value(privateIpGoogleAccess)"`
 
@@ -578,7 +579,7 @@ gcloud run services describe biocirv-staging-prefect-worker --region=us-west1 \
 #### Flow runs stuck in "Pending"
 
 1. Verify the work pool (`biocirv-staging-pool`, type `process`) is online in
-   the Prefect UI (via auth-proxy URL)
+   the Prefect UI (via prefect-auth URL)
 2. Check the worker logs for errors:
    `gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20`
 3. Verify the worker container has `DATABASE_URL` and `PREFECT_API_URL` set
@@ -708,7 +709,7 @@ pixi run cloud-deploy
 
 This creates or updates all GCP resources: Cloud SQL instance, Secret Manager
 secrets, Cloud Run services (webservice, prefect-server, prefect-worker,
-oauth2-proxy), Artifact Registry remote repos, Cloud Router/NAT, and Cloud Run
+prefect-auth), Artifact Registry remote repos, Cloud Router/NAT, and Cloud Run
 jobs (migration, seed-admin).
 
 ### Step 2: Upload Secrets (post-deploy, manual)
@@ -813,11 +814,11 @@ gcloud run services update biocirv-prefect-worker \
 
 ### Step 6: Access Prefect UI and Trigger Flows
 
-The Prefect server is internal-only and accessed through the auth-proxy:
+The Prefect server is internal-only and accessed through the prefect-auth:
 
 ```bash
-# Get the auth-proxy URL
-gcloud run services describe biocirv-staging-auth-proxy \
+# Get the prefect-auth URL
+gcloud run services describe biocirv-staging-prefect-auth \
   --region=us-west1 --format="value(status.url)"
 ```
 

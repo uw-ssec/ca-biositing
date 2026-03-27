@@ -92,9 +92,9 @@ services:
     networks:
       - prefect-network
 
-  oauth2-proxy:
+  prefect-auth:
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
-    container_name: BioCirV_ETL_oauth2_proxy
+    container_name: BioCirV_ETL_prefect_auth
     ports:
       - "4180:4180"
     depends_on:
@@ -113,6 +113,7 @@ services:
       - OAUTH2_PROXY_COOKIE_SECURE=false
       - OAUTH2_PROXY_COOKIE_REFRESH=1h
       - OAUTH2_PROXY_SKIP_AUTH_ROUTES=GET=^/api/health$$
+      - OAUTH2_PROXY_SKIP_PROVIDER_BUTTON=true
     healthcheck:
       test:
         [
