@@ -849,22 +849,22 @@ All environment variables injected into the Prefect worker Cloud Run service:
 
 ### Automatically managed by Pulumi
 
-| Secret                                  | Description                                       |
-| --------------------------------------- | ------------------------------------------------- |
-| `biocirv-staging-db-password`           | Cloud SQL primary user password (auto-generated)  |
-| `biocirv-staging-postgres-password`     | Postgres superuser password (auto-generated)      |
-| `biocirv-staging-ro-biocirv_readonly`   | Read-only user password (auto-generated)          |
-| `biocirv-staging-prefect-auth`          | Prefect HTTP Basic Auth password (auto-generated) |
-| `biocirv-staging-oauth2-cookie-secret`  | OAuth2 proxy cookie encryption key (auto-generated) |
+| Secret                                 | Description                                         |
+| -------------------------------------- | --------------------------------------------------- |
+| `biocirv-staging-db-password`          | Cloud SQL primary user password (auto-generated)    |
+| `biocirv-staging-postgres-password`    | Postgres superuser password (auto-generated)        |
+| `biocirv-staging-ro-biocirv_readonly`  | Read-only user password (auto-generated)            |
+| `biocirv-staging-prefect-auth`         | Prefect HTTP Basic Auth password (auto-generated)   |
+| `biocirv-staging-oauth2-cookie-secret` | OAuth2 proxy cookie encryption key (auto-generated) |
 
 ### Manually uploaded post-deploy
 
-| Secret                                  | How to upload                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `biocirv-staging-gsheets-credentials`   | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json`   |
-| `biocirv-staging-usda-nass-api-key`     | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-`   |
-| `biocirv-staging-oauth2-client-id`      | `printf 'CLIENT_ID' \| gcloud secrets versions add biocirv-staging-oauth2-client-id --data-file=-`     |
-| `biocirv-staging-oauth2-client-secret`  | `printf 'CLIENT_SECRET' \| gcloud secrets versions add biocirv-staging-oauth2-client-secret --data-file=-` |
+| Secret                                 | How to upload                                                                                              |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `biocirv-staging-gsheets-credentials`  | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json`             |
+| `biocirv-staging-usda-nass-api-key`    | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-`             |
+| `biocirv-staging-oauth2-client-id`     | `printf 'CLIENT_ID' \| gcloud secrets versions add biocirv-staging-oauth2-client-id --data-file=-`         |
+| `biocirv-staging-oauth2-client-secret` | `printf 'CLIENT_SECRET' \| gcloud secrets versions add biocirv-staging-oauth2-client-secret --data-file=-` |
 
 > **Important:** Use `printf` (not `echo`) to avoid a trailing newline in the
 > secret value. A trailing newline causes Google OAuth to reject the client ID.
