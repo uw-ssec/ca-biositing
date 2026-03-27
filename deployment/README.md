@@ -8,10 +8,18 @@ Platform (GCP) using Pulumi (Python).
 
 ```text
 deployment
-├── cloud/gcp/infrastructure/    # Pulumi project files
-│   ├── Pulumi.yaml              # Pulumi project configuration
-│   ├── Pulumi.staging.yaml      # Staging stack configuration
-│   ├── __main__.py              # Infrastructure definitions (Python)
+├── cloud/gcp/infrastructure/    # Pulumi infrastructure-as-code (Python)
+│   ├── apis.py                  # GCP API enablement
+│   ├── artifact_registry.py     # GHCR and Quay.io remote repos
+│   ├── cloud_run.py             # Cloud Run services and jobs
+│   ├── cloud_sql.py             # Cloud SQL instance and databases
+│   ├── config.py                # Constants and stack configuration
+│   ├── deploy.py                # Pulumi Automation API entry point
+│   ├── iam.py                   # Service accounts and IAM bindings
+│   ├── networking.py            # Cloud Router and Cloud NAT
+│   ├── secret_manager.py        # Secret Manager secrets
+│   ├── storage.py               # GCS buckets
+│   └── wif.py                   # Workload Identity Federation
 ```
 
 ## Quick Start
@@ -213,20 +221,27 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 
 1. `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy-direct` — create all
    resources
-2. Run `cloud-outputs-direct` to get WIF provider and deployer SA email
-3. Update the corresponding `deploy-<env>.yml` workflow with WIF values
-4. Upload manual secrets (GSheets credentials, USDA API key, OAuth2 creds):
+2. Enable Private Google Access on the default subnet (required for VPC egress
+   to reach Cloud Run internal services):
+   ```bash
+   gcloud compute networks subnets update default --region=us-west1 --enable-private-ip-google-access
+   ```
+3. Run `cloud-outputs-direct` to get WIF provider and deployer SA email
+4. Update the corresponding `deploy-<env>.yml` workflow with WIF values
+5. Upload manual secrets (GSheets credentials, USDA API key, OAuth2 creds):
    ```bash
    gcloud secrets versions add biocirv-<env>-gsheets-credentials --data-file=credentials.json
    echo -n "KEY" | gcloud secrets versions add biocirv-<env>-usda-nass-api-key --data-file=-
    printf 'CLIENT_ID' | gcloud secrets versions add biocirv-<env>-oauth2-client-id --data-file=-
    printf 'CLIENT_SECRET' | gcloud secrets versions add biocirv-<env>-oauth2-client-secret --data-file=-
    ```
-5. Redeploy to pick up OAuth2 secrets:
+6. Redeploy to pick up OAuth2 secrets:
    `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy`
-6. Run migrations:
+7. Update Google OAuth client redirect URI to the auth-proxy's
+   `/oauth2/callback` URL (from `cloud-outputs-direct`)
+8. Run migrations:
    `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
-7. Seed admin user (manual, idempotent):
+9. Seed admin user (manual, idempotent):
    `DEPLOY_ENV=<env> pixi run -e deployment cloud-seed-admin`
 
 ---
@@ -304,56 +319,73 @@ This brings up all five services: `db`, `setup-db`, `prefect-server`,
 
 The staging environment runs on GCP with the following components:
 
-| Component                         | Service                                                                |
-| --------------------------------- | ---------------------------------------------------------------------- |
-| **Webservice** (FastAPI)          | Cloud Run Service (public, JWT auth)                                   |
-| **OAuth2 Proxy**                  | Cloud Run Service (public, Google OAuth for Prefect UI)                |
-| **Prefect Server** (UI + API)     | Cloud Run Service (internal-only ingress, minScale=1)                  |
-| **Prefect Worker** (process type) | Cloud Run Service (internal, polls server, runs flows as subprocesses) |
-| **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                       |
-| **Secrets**                       | Secret Manager (DB password, GSheets creds, OAuth2 creds, etc.)        |
-| **Artifact Registry**             | Remote repos proxying GHCR and Quay.io for container images            |
-| **Cloud NAT**                     | Enables VPC egress for oauth2-proxy to reach Google OAuth APIs         |
+| Component                         | Service                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| **Webservice** (FastAPI)          | Cloud Run Service (public, JWT auth)                                         |
+| **Auth Proxy** (oauth2-proxy)     | Cloud Run Service (public, Google OAuth for Prefect UI, VPC egress)          |
+| **Prefect Server** (UI + API)     | Cloud Run Service (internal-only ingress, minScale=1)                        |
+| **Prefect Worker** (process type) | Cloud Run Service (internal, VPC egress, polls server, runs subprocesses)    |
+| **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                             |
+| **Secrets**                       | Secret Manager (DB password, GSheets creds, OAuth2 creds, etc.)              |
+| **Artifact Registry**             | Remote repos proxying GHCR and Quay.io for container images                  |
+| **Cloud Router + NAT**            | Internet egress for VPC-routed traffic (OAuth APIs, external data downloads) |
 
 ```text
-                    ┌─────────────────────┐
-                    │     Internet         │
-                    └──────┬──────────────┘
+                    ┌──────────────────────┐
+                    │      Internet        │
+                    └──────┬───────────────┘
                            │
-              ┌────────────┼────────────────┐
-              │            │                │
-              ▼            ▼                ▼
-     ┌────────────┐ ┌─────────────┐  ┌──────────────┐
-     │ Webservice │ │oauth2-proxy │  │Prefect Server│
-     │  :8080     │ │  :4180      │  │  (blocked)   │
-     │ public     │ │ public      │  │ internal-only│
-     └────────────┘ │ VPC egress  │  └──────────────┘
-                    │ ALL_TRAFFIC  │       ▲
-                    └──────┬──────┘       │
-                      VPC  │  Cloud NAT   │
-                    ┌──────┴──────┐       │
-                    │  internal   │───────┘
-                    │  traffic    │
-                    └─────────────┘
-                           │
-                    ┌──────┴───────┐
-                    │Prefect Worker│
-                    │  (polls      │
-                    │   server)    │
-                    └──────────────┘
+              ┌────────────┼──────────────────┐
+              │            │                  │
+              ▼            ▼                  ▼
+     ┌────────────┐ ┌────────────┐    ┌──────────────┐
+     │ Webservice │ │ Auth Proxy │    │Prefect Server│
+     │  :8080     │ │  :4180     │    │  :4200       │
+     │  public    │ │  public    │    │ internal-only│
+     │  JWT auth  │ │ Google OAuth│    │ minScale=1   │
+     └────────────┘ └─────┬──────┘    └──────▲───────┘
+                          │                  │
+                   Direct VPC Egress         │ VPC internal traffic
+                   (egress=ALL_TRAFFIC)      │
+                          │                  │
+                    ┌─────┴──────────────────┘
+                    │     Default VPC
+                    │  (Private Google Access enabled)
+                    ├─────────────────────────────┐
+                    │                             │
+              ┌─────┴──────┐              ┌──────┴───────┐
+              │ Cloud NAT  │              │Prefect Worker│
+              │ (internet  │              │ VPC egress   │
+              │  egress)   │              │ polls server │
+              └────────────┘              └──────────────┘
+                    │
+              ┌─────┴──────────────────────────────┐
+              │  External endpoints:               │
+              │  - Google OAuth (googleapis.com)   │
+              │  - USDA API (quickstats.nass.usda) │
+              │  - LandIQ (data.cnra.ca.gov)       │
+              └────────────────────────────────────┘
 ```
 
 **Key design decisions:**
 
 - The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` so it cannot be
-  accessed directly from the internet.
-- The oauth2-proxy service uses Direct VPC egress (`egress=ALL_TRAFFIC`) so its
-  requests to the Prefect server are routed through the VPC and treated as
-  internal traffic.
-- Cloud NAT on the default VPC provides internet access for VPC-routed traffic,
-  allowing oauth2-proxy to reach Google's OAuth token endpoint.
+  accessed directly from the internet. Direct requests return HTTP 404.
+- The auth-proxy (oauth2-proxy) and Prefect worker both use **Direct VPC
+  egress** (`egress=ALL_TRAFFIC`), routing all outbound traffic through the
+  default VPC. This satisfies the Prefect server's internal ingress requirement
+  without needing identity token injection or IAM service-to-service auth.
+- **Private Google Access** is enabled on the default subnet, allowing
+  VPC-routed traffic to reach Google APIs (Cloud Run `.run.app` URLs, OAuth
+  token endpoints) through Google's internal network.
+- **Cloud NAT** on the default VPC provides internet egress for non-Google
+  external endpoints (USDA API, LandIQ data downloads).
 - The Prefect server runs with `minScale=1` to avoid cold-start timeouts when
-  proxied through oauth2-proxy.
+  proxied through the auth-proxy.
+- Once a user authenticates through Google OAuth, the auth-proxy forwards
+  requests to the Prefect server with `X-Auth-Request-Email` and
+  `X-Auth-Request-User` headers, allowing the backend to identify the user
+  without managing authentication itself.
 
 Infrastructure is managed by Pulumi (Python Automation API) with state stored in
 GCS.
@@ -399,47 +431,32 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 ### Prefect Server Access
 
 The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` and is fronted by an
-**oauth2-proxy** service that requires Google OAuth authentication. Only
-`@lbl.gov` Google accounts can access the Prefect UI.
+**auth-proxy** (oauth2-proxy) service that requires Google OAuth authentication.
+Only `@lbl.gov` Google accounts can access the Prefect UI.
 
 **Access the Prefect UI (browser):**
 
 ```bash
-# Get the oauth2-proxy URL (this is the public entry point)
-gcloud run services describe biocirv-staging-oauth2-proxy --region=us-west1 --format="value(status.url)"
+# Get the auth-proxy URL (this is the public entry point)
+gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="value(status.url)"
 ```
 
 Open the returned URL in a browser. You will be redirected to Google OAuth
 login. After authenticating with an `@lbl.gov` account, the Prefect UI loads.
 
 > **Note:** The Prefect server's direct `.run.app` URL is **not accessible**
-> from the internet. Always use the oauth2-proxy URL for browser access.
+> from the internet (returns HTTP 404). Always use the auth-proxy URL for
+> browser access.
 
-**Configure Prefect CLI for staging:**
+**Prefect CLI access:**
 
-The Prefect CLI connects directly to the Prefect server (not through
-oauth2-proxy). Since CLI traffic does not originate from Cloud Run, it cannot
-reach the internal-only server. For CLI access, use the Cloud SQL Auth Proxy
-approach or access the Prefect UI through the browser.
-
-```bash
-# This URL is for reference only — it is not reachable from outside GCP
-export PREFECT_API_URL=$(gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="value(status.url)")/api
-```
+The Prefect CLI cannot reach the internal-only Prefect server from outside GCP.
+Use the Prefect UI through the browser for monitoring and triggering flow runs.
 
 ### Trigger ETL Flows
 
-With the Prefect CLI configured (see above):
-
-```bash
-# List deployments
-prefect deployment ls
-
-# Trigger a flow run
-prefect deployment run "Master ETL Flow/master-etl-deployment"
-```
-
-Monitor in the Prefect UI or via the worker's Cloud Run logs:
+Trigger flow runs through the Prefect UI (via the auth-proxy URL) or monitor
+via the worker's Cloud Run logs:
 
 ```bash
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=50
@@ -516,6 +533,29 @@ gcloud secrets versions access latest --secret=biocirv-staging-ro-biocirv_readon
 
 ### Staging Troubleshooting
 
+#### Auth proxy returns 403 or 500 on login
+
+1. Verify the Google OAuth redirect URI matches the auth-proxy URL:
+   `https://biocirv-staging-auth-proxy-xy45yfiqaq-uw.a.run.app/oauth2/callback`
+2. Check for stale cookies — clear cookies for
+   `biocirv-staging-auth-proxy-xy45yfiqaq-uw.a.run.app` or use incognito
+3. Check auth-proxy logs:
+   `gcloud run services logs read biocirv-staging-auth-proxy --region=us-west1 --limit=20`
+4. Verify OAuth secrets have no trailing newline:
+   ```bash
+   pixi run -e deployment gcloud secrets versions access latest \
+     --secret=biocirv-staging-oauth2-client-id | xxd | tail -3
+   ```
+   If the last byte is `0a` (newline), re-upload with `printf` instead of `echo`
+
+#### Auth proxy returns 502 (upstream timeout)
+
+The auth-proxy cannot reach the Prefect server. Check:
+
+1. Prefect server is running: `gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="yaml(status.conditions)"`
+2. Auth-proxy has VPC egress: `gcloud run services describe biocirv-staging-auth-proxy --region=us-west1 --format="yaml(spec.template.metadata.annotations)" | grep vpc`
+3. Private Google Access is enabled on the subnet: `gcloud compute networks subnets describe default --region=us-west1 --format="value(privateIpGoogleAccess)"`
+
 #### Prefect worker not connecting
 
 Check worker logs:
@@ -524,12 +564,18 @@ Check worker logs:
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20
 ```
 
-Verify the worker can reach the Prefect server — look for connection errors.
+The worker needs VPC egress to reach the internal-only Prefect server. Verify
+VPC egress is configured:
+
+```bash
+gcloud run services describe biocirv-staging-prefect-worker --region=us-west1 \
+  --format="yaml(spec.template.metadata.annotations)" | grep vpc
+```
 
 #### Flow runs stuck in "Pending"
 
 1. Verify the work pool (`biocirv-staging-pool`, type `process`) is online in
-   the Prefect UI
+   the Prefect UI (via auth-proxy URL)
 2. Check the worker logs for errors:
    `gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=20`
 3. Verify the worker container has `DATABASE_URL` and `PREFECT_API_URL` set
@@ -537,7 +583,7 @@ Verify the worker can reach the Prefect server — look for connection errors.
 #### Credential rotation
 
 1. Update the secret version in Secret Manager
-2. Redeploy both Prefect services to pick up the new secret:
+2. Redeploy to pick up the new secret:
    ```bash
    pixi run -e deployment cloud-deploy
    ```
@@ -762,46 +808,23 @@ gcloud run services update biocirv-prefect-worker \
   --region=us-west1
 ```
 
-### Step 6: Set PREFECT_API_URL
+### Step 6: Access Prefect UI and Trigger Flows
+
+The Prefect server is internal-only and accessed through the auth-proxy:
 
 ```bash
-export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server \
-  --region=us-west1 --format="value(status.url)")/api
+# Get the auth-proxy URL
+gcloud run services describe biocirv-staging-auth-proxy \
+  --region=us-west1 --format="value(status.url)"
 ```
 
-### Step 7: Register Prefect Deployment
+Open the URL in a browser, authenticate with your `@lbl.gov` Google account,
+then use the Prefect UI to register deployments and trigger flow runs.
+
+Monitor flow runs via the worker's Cloud Run logs:
 
 ```bash
-cd resources/prefect
-python deploy.py master-etl-deployment --env-file ../docker/.env
-```
-
-Or with the Prefect CLI directly:
-
-```bash
-prefect --no-prompt deploy --name master-etl-deployment
-```
-
-Verify the deployment is registered:
-
-```bash
-prefect deployment ls
-```
-
-### Step 8: Trigger a Flow Run
-
-```bash
-prefect deployment run "Master ETL Flow/master-etl-deployment"
-```
-
-Monitor the run:
-
-```bash
-# Worker logs (flow execution output)
 gcloud run services logs read biocirv-prefect-worker --region=us-west1 --limit=100
-
-# Or watch the Prefect UI
-gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
 ```
 
 ### Step 9: Verify Data in Cloud SQL
