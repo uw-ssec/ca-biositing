@@ -215,14 +215,18 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
    resources
 2. Run `cloud-outputs-direct` to get WIF provider and deployer SA email
 3. Update the corresponding `deploy-<env>.yml` workflow with WIF values
-4. Upload manual secrets (GSheets credentials, USDA API key):
+4. Upload manual secrets (GSheets credentials, USDA API key, OAuth2 creds):
    ```bash
    gcloud secrets versions add biocirv-<env>-gsheets-credentials --data-file=credentials.json
    echo -n "KEY" | gcloud secrets versions add biocirv-<env>-usda-nass-api-key --data-file=-
+   printf 'CLIENT_ID' | gcloud secrets versions add biocirv-<env>-oauth2-client-id --data-file=-
+   printf 'CLIENT_SECRET' | gcloud secrets versions add biocirv-<env>-oauth2-client-secret --data-file=-
    ```
-5. Run migrations:
+5. Redeploy to pick up OAuth2 secrets:
+   `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy`
+6. Run migrations:
    `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
-6. Seed admin user (manual, idempotent):
+7. Seed admin user (manual, idempotent):
    `DEPLOY_ENV=<env> pixi run -e deployment cloud-seed-admin`
 
 ---
@@ -302,11 +306,54 @@ The staging environment runs on GCP with the following components:
 
 | Component                         | Service                                                                |
 | --------------------------------- | ---------------------------------------------------------------------- |
-| **Webservice** (FastAPI)          | Cloud Run Service                                                      |
-| **Prefect Server** (UI + API)     | Cloud Run Service                                                      |
+| **Webservice** (FastAPI)          | Cloud Run Service (public, JWT auth)                                   |
+| **OAuth2 Proxy**                  | Cloud Run Service (public, Google OAuth for Prefect UI)                |
+| **Prefect Server** (UI + API)     | Cloud Run Service (internal-only ingress, minScale=1)                  |
 | **Prefect Worker** (process type) | Cloud Run Service (internal, polls server, runs flows as subprocesses) |
 | **Database**                      | Cloud SQL (PostgreSQL + PostGIS)                                       |
-| **Secrets**                       | Secret Manager (DB password, GSheets creds, Prefect auth)              |
+| **Secrets**                       | Secret Manager (DB password, GSheets creds, OAuth2 creds, etc.)        |
+| **Artifact Registry**             | Remote repos proxying GHCR and Quay.io for container images            |
+| **Cloud NAT**                     | Enables VPC egress for oauth2-proxy to reach Google OAuth APIs         |
+
+```text
+                    ┌─────────────────────┐
+                    │     Internet         │
+                    └──────┬──────────────┘
+                           │
+              ┌────────────┼────────────────┐
+              │            │                │
+              ▼            ▼                ▼
+     ┌────────────┐ ┌─────────────┐  ┌──────────────┐
+     │ Webservice │ │oauth2-proxy │  │Prefect Server│
+     │  :8080     │ │  :4180      │  │  (blocked)   │
+     │ public     │ │ public      │  │ internal-only│
+     └────────────┘ │ VPC egress  │  └──────────────┘
+                    │ ALL_TRAFFIC  │       ▲
+                    └──────┬──────┘       │
+                      VPC  │  Cloud NAT   │
+                    ┌──────┴──────┐       │
+                    │  internal   │───────┘
+                    │  traffic    │
+                    └─────────────┘
+                           │
+                    ┌──────┴───────┐
+                    │Prefect Worker│
+                    │  (polls      │
+                    │   server)    │
+                    └──────────────┘
+```
+
+**Key design decisions:**
+
+- The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` so it cannot be
+  accessed directly from the internet.
+- The oauth2-proxy service uses Direct VPC egress (`egress=ALL_TRAFFIC`) so its
+  requests to the Prefect server are routed through the VPC and treated as
+  internal traffic.
+- Cloud NAT on the default VPC provides internet access for VPC-routed traffic,
+  allowing oauth2-proxy to reach Google's OAuth token endpoint.
+- The Prefect server runs with `minScale=1` to avoid cold-start timeouts when
+  proxied through oauth2-proxy.
 
 Infrastructure is managed by Pulumi (Python Automation API) with state stored in
 GCS.
@@ -351,23 +398,33 @@ gcloud run jobs executions list --job=biocirv-alembic-migrate --region=us-west1 
 
 ### Prefect Server Access
 
-The Prefect server is currently deployed **without** HTTP Basic Auth for
-staging. This is because Prefect's WebSocket events client (required by process
-workers) does not send auth headers, causing the worker to crash at startup.
+The Prefect server uses `INGRESS_TRAFFIC_INTERNAL_ONLY` and is fronted by an
+**oauth2-proxy** service that requires Google OAuth authentication. Only
+`@lbl.gov` Google accounts can access the Prefect UI.
 
-**Access the Prefect UI:**
+**Access the Prefect UI (browser):**
 
 ```bash
-# Get the Prefect server URL
-gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)"
+# Get the oauth2-proxy URL (this is the public entry point)
+gcloud run services describe biocirv-staging-oauth2-proxy --region=us-west1 --format="value(status.url)"
 ```
 
-Open the returned URL in a browser.
+Open the returned URL in a browser. You will be redirected to Google OAuth
+login. After authenticating with an `@lbl.gov` account, the Prefect UI loads.
+
+> **Note:** The Prefect server's direct `.run.app` URL is **not accessible**
+> from the internet. Always use the oauth2-proxy URL for browser access.
 
 **Configure Prefect CLI for staging:**
 
+The Prefect CLI connects directly to the Prefect server (not through
+oauth2-proxy). Since CLI traffic does not originate from Cloud Run, it cannot
+reach the internal-only server. For CLI access, use the Cloud SQL Auth Proxy
+approach or access the Prefect UI through the browser.
+
 ```bash
-export PREFECT_API_URL=$(gcloud run services describe biocirv-prefect-server --region=us-west1 --format="value(status.url)")/api
+# This URL is for reference only — it is not reachable from outside GCP
+export PREFECT_API_URL=$(gcloud run services describe biocirv-staging-prefect-server --region=us-west1 --format="value(status.url)")/api
 ```
 
 ### Trigger ETL Flows
@@ -560,8 +617,8 @@ View workflow runs at:
 
 - Frontend deployment (has its own Cloud Build triggers)
 - Prefect deployment registration (one-time manual step per flow)
-- Manual secrets: GSheets credentials and USDA API key (see Secret Management
-  section)
+- Manual secrets: GSheets credentials, USDA API key, and OAuth2 client
+  credentials (see Secret Management section)
 
 ### Debugging Failed Deployments
 
@@ -601,14 +658,9 @@ pixi run cloud-deploy
 ```
 
 This creates or updates all GCP resources: Cloud SQL instance, Secret Manager
-secrets, Cloud Run services (webservice, prefect-server, prefect-worker), and
-the migration job. New resources after recent changes include:
-
-- Secret: `biocirv-staging-usda-nass-api-key`
-- Worker env vars: `USDA_NASS_API_KEY`, `CREDENTIALS_PATH`,
-  `GOOGLE_APPLICATION_CREDENTIALS`, `LANDIQ_SHAPEFILE_URL`
-- Volume: `gsheets-credentials` (Secret Manager volume mount at
-  `/app/gsheets-credentials`)
+secrets, Cloud Run services (webservice, prefect-server, prefect-worker,
+oauth2-proxy), Artifact Registry remote repos, Cloud Router/NAT, and Cloud Run
+jobs (migration, seed-admin).
 
 ### Step 2: Upload Secrets (post-deploy, manual)
 
@@ -626,6 +678,25 @@ echo -n "YOUR_USDA_NASS_API_KEY" | \
   gcloud secrets versions add biocirv-staging-usda-nass-api-key \
   --data-file=- \
   --project=biocirv-470318
+
+# 3. OAuth2 proxy client ID and secret (from GCP OAuth consent screen)
+#    Use printf to avoid trailing newline — Google OAuth rejects IDs with \n
+printf 'YOUR_GOOGLE_CLIENT_ID' | \
+  gcloud secrets versions add biocirv-staging-oauth2-client-id \
+  --data-file=- \
+  --project=biocirv-470318
+
+printf 'YOUR_GOOGLE_CLIENT_SECRET' | \
+  gcloud secrets versions add biocirv-staging-oauth2-client-secret \
+  --data-file=- \
+  --project=biocirv-470318
+```
+
+After populating the OAuth2 secrets, redeploy to pick up the new secret
+versions:
+
+```bash
+pixi run -e deployment cloud-deploy
 ```
 
 Verify the secret versions were created:
@@ -633,6 +704,8 @@ Verify the secret versions were created:
 ```bash
 gcloud secrets versions list biocirv-staging-gsheets-credentials --project=biocirv-470318
 gcloud secrets versions list biocirv-staging-usda-nass-api-key --project=biocirv-470318
+gcloud secrets versions list biocirv-staging-oauth2-client-id --project=biocirv-470318
+gcloud secrets versions list biocirv-staging-oauth2-client-secret --project=biocirv-470318
 ```
 
 ### Step 3: Run Database Migrations
@@ -776,19 +849,25 @@ All environment variables injected into the Prefect worker Cloud Run service:
 
 ### Automatically managed by Pulumi
 
-| Secret                                | Description                                       |
-| ------------------------------------- | ------------------------------------------------- |
-| `biocirv-staging-db-password`         | Cloud SQL primary user password (auto-generated)  |
-| `biocirv-staging-postgres-password`   | Postgres superuser password (auto-generated)      |
-| `biocirv-staging-ro-biocirv_readonly` | Read-only user password (auto-generated)          |
-| `biocirv-staging-prefect-auth`        | Prefect HTTP Basic Auth password (auto-generated) |
+| Secret                                  | Description                                       |
+| --------------------------------------- | ------------------------------------------------- |
+| `biocirv-staging-db-password`           | Cloud SQL primary user password (auto-generated)  |
+| `biocirv-staging-postgres-password`     | Postgres superuser password (auto-generated)      |
+| `biocirv-staging-ro-biocirv_readonly`   | Read-only user password (auto-generated)          |
+| `biocirv-staging-prefect-auth`          | Prefect HTTP Basic Auth password (auto-generated) |
+| `biocirv-staging-oauth2-cookie-secret`  | OAuth2 proxy cookie encryption key (auto-generated) |
 
 ### Manually uploaded post-deploy
 
-| Secret                                | How to upload                                                                                  |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `biocirv-staging-gsheets-credentials` | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json` |
-| `biocirv-staging-usda-nass-api-key`   | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-` |
+| Secret                                  | How to upload                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `biocirv-staging-gsheets-credentials`   | `gcloud secrets versions add biocirv-staging-gsheets-credentials --data-file=credentials.json`   |
+| `biocirv-staging-usda-nass-api-key`     | `echo -n "KEY" \| gcloud secrets versions add biocirv-staging-usda-nass-api-key --data-file=-`   |
+| `biocirv-staging-oauth2-client-id`      | `printf 'CLIENT_ID' \| gcloud secrets versions add biocirv-staging-oauth2-client-id --data-file=-`     |
+| `biocirv-staging-oauth2-client-secret`  | `printf 'CLIENT_SECRET' \| gcloud secrets versions add biocirv-staging-oauth2-client-secret --data-file=-` |
+
+> **Important:** Use `printf` (not `echo`) to avoid a trailing newline in the
+> secret value. A trailing newline causes Google OAuth to reject the client ID.
 
 ---
 
