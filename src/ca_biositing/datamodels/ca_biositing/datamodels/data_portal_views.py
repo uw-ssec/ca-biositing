@@ -115,7 +115,7 @@ resource_metrics = select(
     func.bool_or(resource_analysis_map.c.type == "pretreatment").label("has_pretreatment")
 ).select_from(resource_analysis_map)\
  .join(analysis_metrics, and_(
-    resource_analysis_map.c.record_id == analysis_metrics.c.record_id,
+    func.lower(resource_analysis_map.c.record_id) == func.lower(analysis_metrics.c.record_id),
     resource_analysis_map.c.type == analysis_metrics.c.record_type
  ), isouter=True)\
  .group_by(resource_analysis_map.c.resource_id).subquery()
@@ -356,7 +356,7 @@ mv_biomass_fermentation = select(
  .outerjoin(Strain, FermentationRecord.strain_id == Strain.id)\
  .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
  .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
- .join(Observation, Observation.record_id == FermentationRecord.record_id)\
+ .join(Observation, func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .group_by(FermentationRecord.resource_id, Resource.name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)
@@ -380,7 +380,7 @@ mv_biomass_gasification = select(
 ).select_from(GasificationRecord)\
  .join(Resource, GasificationRecord.resource_id == Resource.id)\
  .outerjoin(Method, GasificationRecord.method_id == Method.id)\
- .join(Observation, Observation.record_id == GasificationRecord.record_id)\
+ .join(Observation, func.lower(Observation.record_id) == func.lower(GasificationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .group_by(GasificationRecord.resource_id, Resource.name, Method.name, Parameter.name, Unit.name)
