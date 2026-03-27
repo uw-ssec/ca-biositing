@@ -229,17 +229,23 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 
 ## Local Development: OAuth2-Proxy for Prefect UI
 
-The local Docker Compose environment includes an oauth2-proxy service that puts Google OAuth authentication in front of the Prefect UI. This mirrors the cloud architecture and lets developers test auth routing locally.
+The local Docker Compose environment includes an oauth2-proxy service that puts
+Google OAuth authentication in front of the Prefect UI. This mirrors the cloud
+architecture and lets developers test auth routing locally.
 
 ### How It Works
 
-- `http://localhost:4180` — Prefect UI through oauth2-proxy (requires Google login)
-- `http://localhost:4200` — Prefect UI direct access (no auth, for debugging and host-side pixi tasks)
-- The Prefect worker connects directly to `http://prefect-server:4200/api` via Docker DNS, bypassing the proxy
+- `http://localhost:4180` — Prefect UI through oauth2-proxy (requires Google
+  login)
+- `http://localhost:4200` — Prefect UI direct access (no auth, for debugging and
+  host-side pixi tasks)
+- The Prefect worker connects directly to `http://prefect-server:4200/api` via
+  Docker DNS, bypassing the proxy
 
 ### Prerequisites: Create a Google OAuth Client
 
-1. Go to [GCP Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
+1. Go to
+   [GCP Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
 2. Click **Create Credentials → OAuth 2.0 Client ID**
 3. Application type: **Web application**
 4. Add authorized redirect URI: `http://localhost:4180/oauth2/callback`
@@ -247,7 +253,8 @@ The local Docker Compose environment includes an oauth2-proxy service that puts 
 
 ### Configure Local Env
 
-Add the following to `resources/docker/.env` (the file is gitignored — do not commit it):
+Add the following to `resources/docker/.env` (the file is gitignored — do not
+commit it):
 
 ```bash
 # Generate a 32-byte base64 cookie secret:
@@ -265,18 +272,25 @@ OAUTH2_PROXY_COOKIE_SECRET=<output from the command above>
 pixi run start-services
 ```
 
-This brings up all five services: `db`, `setup-db`, `prefect-server`, `prefect-worker`, and `oauth2-proxy`.
+This brings up all five services: `db`, `setup-db`, `prefect-server`,
+`prefect-worker`, and `oauth2-proxy`.
 
 ### Access the Prefect UI
 
-- **Via proxy (with auth):** `http://localhost:4180` — redirects to Google OAuth login
-- **Direct (no auth):** `http://localhost:4200` — backward compatible, for debugging
+- **Via proxy (with auth):** `http://localhost:4180` — redirects to Google OAuth
+  login
+- **Direct (no auth):** `http://localhost:4200` — backward compatible, for
+  debugging
 
 ### Notes
 
-- `OAUTH2_PROXY_EMAIL_DOMAINS=*` allows any Google account. Change to your domain (e.g. `lbl.gov`) to restrict access.
-- If `OAUTH2_PROXY_*` variables are missing from `.env`, the oauth2-proxy container will fail to start. The other services (db, prefect-server, worker) are unaffected since they do not depend on oauth2-proxy.
-- The health check endpoint (`/api/health`) is accessible without authentication for monitoring.
+- `OAUTH2_PROXY_EMAIL_DOMAINS=*` allows any Google account. Change to your
+  domain (e.g. `lbl.gov`) to restrict access.
+- If `OAUTH2_PROXY_*` variables are missing from `.env`, the oauth2-proxy
+  container will fail to start. The other services (db, prefect-server, worker)
+  are unaffected since they do not depend on oauth2-proxy.
+- The health check endpoint (`/api/health`) is accessible without authentication
+  for monitoring.
 
 ---
 
@@ -640,8 +654,8 @@ Expected: `SUCCEEDED` status.
 
 ### Step 4: Seed Admin User (manual, one-time per environment)
 
-After migrations have run, seed the initial admin user by executing the
-Cloud Run seed-admin job:
+After migrations have run, seed the initial admin user by executing the Cloud
+Run seed-admin job:
 
 ```bash
 # Staging

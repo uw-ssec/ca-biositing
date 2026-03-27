@@ -114,7 +114,15 @@ services:
       - OAUTH2_PROXY_COOKIE_REFRESH=1h
       - OAUTH2_PROXY_SKIP_AUTH_ROUTES=GET=^/api/health$$
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4180/ping"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4180/ping",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
