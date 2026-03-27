@@ -46,7 +46,7 @@ def upgrade() -> None:
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_search_id ON data_portal.mv_biomass_search (id)")
 
     create_mv("mv_biomass_composition", mv_biomass_composition)
-    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_composition_key ON data_portal.mv_biomass_composition (resource_id, analysis_type, parameter_name)")
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_composition_key ON data_portal.mv_biomass_composition (resource_id, analysis_type, parameter_name, unit)")
 
     create_mv("mv_biomass_county_production", mv_biomass_county_production)
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_county_production_id ON data_portal.mv_biomass_county_production (id)")
@@ -58,10 +58,10 @@ def upgrade() -> None:
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_sample_stats_resource_id ON data_portal.mv_biomass_sample_stats (resource_id)")
 
     create_mv("mv_biomass_fermentation", mv_biomass_fermentation)
-    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_fermentation_key ON data_portal.mv_biomass_fermentation (resource_id, strain_name, product_name)")
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_fermentation_key ON data_portal.mv_biomass_fermentation (resource_id, strain_name, pretreatment_method, enzyme_name, product_name, unit)")
 
     create_mv("mv_biomass_gasification", mv_biomass_gasification)
-    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_gasification_key ON data_portal.mv_biomass_gasification (resource_id, parameter_name, reactor_type)")
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_gasification_key ON data_portal.mv_biomass_gasification (resource_id, parameter_name, reactor_type, unit)")
 
     create_mv("mv_biomass_pricing", mv_biomass_pricing)
     op.execute("CREATE UNIQUE INDEX idx_mv_biomass_pricing_id ON data_portal.mv_biomass_pricing (id)")

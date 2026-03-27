@@ -243,7 +243,7 @@ comp_queries = [
 all_measurements = union_all(*comp_queries).subquery()
 
 mv_biomass_composition = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=(all_measurements.c.resource_id, all_measurements.c.analysis_type, all_measurements.c.parameter_name, all_measurements.c.unit)).label("id"),
     all_measurements.c.resource_id,
     Resource.name.label("resource_name"),
     all_measurements.c.analysis_type,
@@ -268,7 +268,7 @@ mv_biomass_composition = select(
 # 3. mv_biomass_county_production
 EU = aliased(Unit, name="eu")
 mv_biomass_county_production = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=(BillionTon2023Record.resource_id, Place.geoid, BillionTon2023Record.scenario_name, BillionTon2023Record.price_offered_usd)).label("id"),
     BillionTon2023Record.resource_id,
     Resource.name.label("resource_name"),
     ResourceClass.name.label("resource_class"),
@@ -338,7 +338,7 @@ PM = aliased(Method, name="pm")
 EM = aliased(Method, name="em")
 
 mv_biomass_fermentation = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=(FermentationRecord.resource_id, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)).label("id"),
     FermentationRecord.resource_id,
     Resource.name.label("resource_name"),
     Strain.name.label("strain_name"),
@@ -364,7 +364,7 @@ mv_biomass_fermentation = select(
 
 # 7. mv_biomass_gasification
 mv_biomass_gasification = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=(GasificationRecord.resource_id, Method.name, Parameter.name, Unit.name)).label("id"),
     GasificationRecord.resource_id,
     Resource.name.label("resource_name"),
     Method.name.label("reactor_type"),
@@ -400,7 +400,7 @@ pricing_obs = select(
  .group_by(Observation.record_id, Unit.name).subquery()
 
 mv_biomass_pricing = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=UsdaMarketRecord.id).label("id"),
     UsdaCommodity.name.label("commodity_name"),
     Place.geoid,
     Place.county_name.label("county"),
@@ -447,7 +447,7 @@ ra_fallback = select(
 ).subquery()
 
 mv_usda_county_production = select(
-    func.row_number().over().label("id"),
+    func.row_number().over(order_by=(Resource.id, Place.geoid, UsdaCensusRecord.year)).label("id"),
     Resource.id.label("resource_id"),
     Resource.name.label("resource_name"),
     PrimaryAgProduct.name.label("primary_ag_product"),
