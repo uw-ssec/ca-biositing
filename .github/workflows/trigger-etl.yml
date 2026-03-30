@@ -24,8 +24,8 @@ jobs:
   check-etl-changes:
     name: Check for ETL Changes
     if: >-
-      (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'workflow_dispatch') || (github.event_name ==
+      'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     outputs:
       has_etl_changes: ${{ steps.check.outputs.has_etl_changes }}
