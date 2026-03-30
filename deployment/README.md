@@ -84,10 +84,10 @@ changes.
 
 > **Version alignment:** The `PULUMI_GCP_VERSION` in the Dockerfile and the
 > `pulumi-gcp` pin in `pixi.toml` (`[feature.cloud.pypi-dependencies]`) must
-> stay in sync. The Dockerfile controls the version used by Docker-wrapped
-> tasks (`cloud-deploy`, `cloud-plan`, etc.) while `pixi.toml` controls the
-> version used by direct tasks (`cloud-deploy-direct`, `cloud-plan-direct`)
-> and CI. If they diverge, Pulumi state schema mismatches can occur.
+> stay in sync. The Dockerfile controls the version used by Docker-wrapped tasks
+> (`cloud-deploy`, `cloud-plan`, etc.) while `pixi.toml` controls the version
+> used by direct tasks (`cloud-deploy-direct`, `cloud-plan-direct`) and CI. If
+> they diverge, Pulumi state schema mismatches can occur.
 
 #### 1. Create the Pulumi state bucket (one-time)
 
