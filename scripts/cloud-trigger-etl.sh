@@ -29,6 +29,14 @@ fi
 export PREFECT_API_URL="${PREFECT_SERVER_URL}/api"
 echo "Prefect API URL: ${PREFECT_API_URL}"
 
+# Register (or update) the deployment with the Prefect server.
+# The prefect.yaml lives in resources/prefect/ alongside the flow entrypoint.
+# This is idempotent — re-running just updates the existing deployment.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+echo "Registering Prefect deployment..."
+prefect --no-prompt deploy --all --prefect-file "${REPO_ROOT}/resources/prefect/prefect.yaml"
+
 # Enqueue the Master ETL Flow run (fire-and-forget)
 echo "Triggering Master ETL Flow..."
 prefect deployment run 'Master ETL Flow/master-etl-deployment'
