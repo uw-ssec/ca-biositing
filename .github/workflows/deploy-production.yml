@@ -1,8 +1,10 @@
 name: Deploy Production
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types: [completed]
+    branches: [main, "v*"]
   push:
     branches: [main]
     paths:
@@ -53,25 +55,44 @@ jobs:
       - name: Preview infrastructure changes
         run: pixi run -e deployment cloud-plan-direct
 
-  # --- Compute image tag from release ---
+  # --- Compute image tag from docker-build completion or workflow_dispatch ---
   image-tag:
     name: Compute Image Tag
-    if: github.event_name != 'push'
+    if: >-
+      (github.event_name == 'workflow_dispatch') || (github.event_name ==
+      'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'release')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       image_tag: ${{ steps.vars.outputs.image_tag }}
     steps:
-      - name: Derive image tag from release or SHA
+      - name: Derive image tag
         id: vars
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            # Use the release tag (e.g., v1.2.3)
-            TAG="${{ github.event.release.tag_name }}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # The docker-build was triggered by a release — use short SHA
+            SHA="${{ github.event.workflow_run.head_sha }}"
+            echo "image_tag=${SHA::7}" >> "$GITHUB_OUTPUT"
+            echo "Resolved image tag from docker-build: ${SHA::7}"
           else
-            # workflow_dispatch: use short SHA
-            TAG="${GITHUB_SHA::7}"
+            # workflow_dispatch: query the last successful docker-build run
+            # on main to get the SHA of the most recently built image.
+            SHA=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/docker-build.yml/runs?branch=main&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha')
+            if [ -z "$SHA" ] || [ "$SHA" = "null" ]; then
+              echo "::error::No successful docker-build run found"
+              exit 1
+            fi
+            echo "image_tag=${SHA::7}" >> "$GITHUB_OUTPUT"
+            echo "Resolved image tag: ${SHA::7}"
           fi
-          echo "image_tag=${TAG}" >> "$GITHUB_OUTPUT"
 
   deploy-infrastructure:
     name: Deploy Infrastructure (Pulumi)
