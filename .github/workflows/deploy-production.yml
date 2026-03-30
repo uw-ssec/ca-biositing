@@ -16,8 +16,8 @@ env:
   # These values come from Pulumi outputs after bootstrapping the production stack.
   # Run `DEPLOY_ENV=production pixi run -e deployment cloud-outputs` to verify.
   # NOTE: Update after first production deploy (Phase 4 bootstrap).
-  WIF_PROVIDER: "<placeholder - update after production bootstrap>"
-  DEPLOYER_SA: "biocirv-production-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
+  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions-production/providers/github-oidc-production"
+  DEPLOYER_SA: "biocirv-prod-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
 
 jobs:
   # --- Compute image tag from release ---
@@ -67,6 +67,8 @@ jobs:
       - name: Deploy infrastructure
         env:
           IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
+          # When the production frontend URL is known, add:
+          # CORS_ORIGINS: '["https://PRODUCTION_FRONTEND_URL"]'
         run: pixi run -e deployment cloud-deploy-direct
 
   run-migrations:
