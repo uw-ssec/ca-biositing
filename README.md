@@ -9,13 +9,11 @@
 
 CA-BioSiting is the backend data platform for
 [Cal BioScape](https://calbioscape.org), a web-based tool supporting the
-development of a circular bioeconomy in California's Northern San Joaquin
-Valley (San Joaquin, Stanislaus, and Merced counties). The platform is developed
-at the
+development of a circular bioeconomy in California's Northern San Joaquin Valley
+(San Joaquin, Stanislaus, and Merced counties). The platform is developed at the
 [University of Washington Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/)
-as part of the
-[BioCircular Valley](https://calbioscape.org/about) initiative -- a
-multi-institutional collaboration involving Lawrence Berkeley National
+as part of the [BioCircular Valley](https://calbioscape.org/about) initiative --
+a multi-institutional collaboration involving Lawrence Berkeley National
 Laboratory, UC Berkeley, UC Merced, UC Agriculture and Natural Resources, USDA
 Albany Agricultural Research Station, the Almond Board of California, and BEAM
 Circular. The initiative is funded through Schmidt Sciences' Virtual Institute
@@ -43,9 +41,9 @@ agricultural feedstocks, spatial buffer and summary queries for radius-based
 resource aggregation, and temporal filtering across data sources.
 
 CA-BioSiting provides the data infrastructure to automate ingestion of these
-datasets, normalize them into a common relational schema with geospatial
-support (PostgreSQL + PostGIS), and expose them through a REST API for
-downstream analysis, visualization, and data export.
+datasets, normalize them into a common relational schema with geospatial support
+(PostgreSQL + PostGIS), and expose them through a REST API for downstream
+analysis, visualization, and data export.
 
 ## Key Features
 
@@ -56,13 +54,13 @@ downstream analysis, visualization, and data export.
   domain model groups covering field sampling, analytical records,
   fermentation/pretreatment experiments, and geographic information
 - **Materialized views** that pre-compute spatial joins across datasets (e.g.,
-  LandIQ records with crop mapping, USDA records with commodity lookups,
-  Billion Ton records with spatial tile aggregation)
+  LandIQ records with crop mapping, USDA records with commodity lookups, Billion
+  Ton records with spatial tile aggregation)
 - **REST API** (FastAPI) for programmatic access to all ingested and derived
   data with interactive OpenAPI documentation
 - **Cloud-native deployment** on Google Cloud Run with Cloud SQL (PostgreSQL),
-  infrastructure managed as code via Pulumi, and automated CI/CD through
-  GitHub Actions
+  infrastructure managed as code via Pulumi, and automated CI/CD through GitHub
+  Actions
 - **Reproducible environments** using [Pixi](https://pixi.sh) for local
   development and Docker for containerized production deployment
 
@@ -70,16 +68,16 @@ downstream analysis, visualization, and data export.
 
 The database schema covers the following research domains:
 
-| Domain | Description |
-| --- | --- |
-| Aim 1 Records | Proximate, ultimate, compositional, ICP, XRF, XRD, and calorimetry analyses |
-| Aim 2 Records | Fermentation and pretreatment experiment results |
-| Field Sampling | Sample collection metadata and location information |
-| Sample Preparation | Prepared sample tracking and provenance |
-| External Data | LandIQ crop mapping, USDA Census/Survey records, Billion Ton 2023 projections |
-| Resource Information | Biomass resource types and characteristics |
-| Places & Infrastructure | Geographic locations, addresses, and facility information |
-| People & Organizations | Contacts and institutional affiliations |
+| Domain                  | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Aim 1 Records           | Proximate, ultimate, compositional, ICP, XRF, XRD, and calorimetry analyses   |
+| Aim 2 Records           | Fermentation and pretreatment experiment results                              |
+| Field Sampling          | Sample collection metadata and location information                           |
+| Sample Preparation      | Prepared sample tracking and provenance                                       |
+| External Data           | LandIQ crop mapping, USDA Census/Survey records, Billion Ton 2023 projections |
+| Resource Information    | Biomass resource types and characteristics                                    |
+| Places & Infrastructure | Geographic locations, addresses, and facility information                     |
+| People & Organizations  | Contacts and institutional affiliations                                       |
 
 ## Architecture
 
@@ -99,39 +97,39 @@ materialized views provide pre-computed spatial joins for common query patterns.
 
 ## GitHub Actions
 
-| Workflow | Status |
-| --- | --- |
-| CI | [![CI](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml) |
-| CD | [![CD](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml) |
-| Migrations | [![Migrations](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml) |
-| Build and Push Docker Images | [![Build and Push Docker Images](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml) |
-| Deploy Staging | [![Deploy Staging](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml) |
-| Deploy Production | [![Deploy Production](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml) |
-| Trigger Staging ETL | [![Trigger Staging ETL](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml) |
+| Workflow                             | Status                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI                                   | [![CI](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml)                                               |
+| CD                                   | [![CD](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml)                                               |
+| Migrations                           | [![Migrations](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml)                       |
+| Build and Push Docker Images         | [![Build and Push Docker Images](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml) |
+| Deploy Staging                       | [![Deploy Staging](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml)           |
+| Deploy Production                    | [![Deploy Production](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml)  |
+| Trigger Staging ETL                  | [![Trigger Staging ETL](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml)            |
 | Deploy Resource Info to GitHub Pages | [![Deploy Resource Info to GitHub Pages](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/gh-pages.yml) |
 
 ## Docker Images
 
-| Image | Description |
-| --- | --- |
-| [`ghcr.io/sustainability-software-lab/ca-biositing/pipeline`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fpipeline) | ETL pipeline (Prefect flows and worker) |
-| [`ghcr.io/sustainability-software-lab/ca-biositing/webservice`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fwebservice) | FastAPI REST API |
+| Image                                                                                                                                                                 | Description                             |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [`ghcr.io/sustainability-software-lab/ca-biositing/pipeline`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fpipeline)     | ETL pipeline (Prefect flows and worker) |
+| [`ghcr.io/sustainability-software-lab/ca-biositing/webservice`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fwebservice) | FastAPI REST API                        |
 
 ## Technology Stack
 
-| Component | Technology |
-| --- | --- |
-| Language | Python 3 |
-| Database | PostgreSQL 15 + PostGIS |
-| ORM / Models | SQLModel (SQLAlchemy + Pydantic) |
-| Migrations | Alembic |
-| Workflow Orchestration | Prefect |
-| Web API | FastAPI |
-| Geospatial Analysis | QGIS, GeoAlchemy2, Shapely |
-| Package Management | Pixi (conda-forge + PyPI) |
-| Containerization | Docker, Docker Compose |
-| Cloud Deployment | Google Cloud Run, Pulumi |
-| CI/CD | GitHub Actions |
+| Component              | Technology                       |
+| ---------------------- | -------------------------------- |
+| Language               | Python 3                         |
+| Database               | PostgreSQL 15 + PostGIS          |
+| ORM / Models           | SQLModel (SQLAlchemy + Pydantic) |
+| Migrations             | Alembic                          |
+| Workflow Orchestration | Prefect                          |
+| Web API                | FastAPI                          |
+| Geospatial Analysis    | QGIS, GeoAlchemy2, Shapely       |
+| Package Management     | Pixi (conda-forge + PyPI)        |
+| Containerization       | Docker, Docker Compose           |
+| Cloud Deployment       | Google Cloud Run, Pulumi         |
+| CI/CD                  | GitHub Actions                   |
 
 ## Quick Start
 
@@ -196,5 +194,5 @@ See the development guides in the documentation for details on:
 
 ## License
 
-This project is licensed under the BSD 3-Clause License. See
-[LICENSE](LICENSE) for details.
+This project is licensed under the BSD 3-Clause License. See [LICENSE](LICENSE)
+for details.
