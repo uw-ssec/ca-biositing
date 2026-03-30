@@ -68,7 +68,7 @@ jobs:
     needs: check-etl-changes
     if: needs.check-etl-changes.outputs.has_etl_changes == 'true'
     runs-on: ubuntu-latest
-    environment: staging
+    environment: etl-staging
     timeout-minutes: 5
     permissions:
       contents: read
