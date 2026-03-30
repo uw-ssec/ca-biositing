@@ -1,6 +1,7 @@
 # Triggers the Master ETL flow after a successful staging deployment,
 # but only when ETL-related files were changed.
-name: Trigger ETL Pipeline
+# A separate workflow (trigger-etl-production.yml) handles production.
+name: Trigger Staging ETL
 
 on:
   workflow_run:
@@ -10,7 +11,7 @@ on:
   workflow_dispatch: # Allow manual triggers
 
 concurrency:
-  group: trigger-etl
+  group: trigger-etl-staging
   cancel-in-progress: true
 
 env:
@@ -63,7 +64,7 @@ jobs:
           fi
 
   trigger-etl:
-    name: Trigger ETL Pipeline
+    name: Trigger Staging ETL Pipeline
     needs: check-etl-changes
     if: needs.check-etl-changes.outputs.has_etl_changes == 'true'
     runs-on: ubuntu-latest
