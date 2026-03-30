@@ -68,7 +68,7 @@ WIF_PROVIDER_ID = f"github-oidc-{STACK_NAME}"
 # Images are pulled via an Artifact Registry remote repo that proxies GHCR.
 AR_GHCR_BASE = f"us-west1-docker.pkg.dev/{GCP_PROJECT}/ghcr-proxy/sustainability-software-lab/ca-biositing"
 AR_QUAYIO_BASE = f"us-west1-docker.pkg.dev/{GCP_PROJECT}/quayio-proxy"
-OAUTH2_PROXY_IMAGE = f"{AR_QUAYIO_BASE}/oauth2-proxy/oauth2-proxy:v7.7.1"
+OAUTH2_PROXY_IMAGE = f"{AR_QUAYIO_BASE}/oauth2-proxy/oauth2-proxy:v7.7.1-alpine"
 IMAGE_TAG = os.environ.get("IMAGE_TAG", "latest")
 WEBSERVICE_IMAGE = os.environ.get(
     "WEBSERVICE_IMAGE", f"{AR_GHCR_BASE}/webservice:{IMAGE_TAG}"
