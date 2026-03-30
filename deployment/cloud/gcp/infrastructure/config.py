@@ -51,17 +51,22 @@ SECRET_OAUTH2_CLIENT_ID = f"biocirv-{STACK_NAME}-oauth2-client-id"
 SECRET_OAUTH2_CLIENT_SECRET = f"biocirv-{STACK_NAME}-oauth2-client-secret"
 SECRET_OAUTH2_COOKIE_SECRET = f"biocirv-{STACK_NAME}-oauth2-cookie-secret"
 
-# Service account IDs
-SA_WEBSERVICE = f"biocirv-{STACK_NAME}-cr-websvc"
-SA_PREFECT_SERVER = f"biocirv-{STACK_NAME}-cr-prefect"
-SA_PREFECT_WORKER = f"biocirv-{STACK_NAME}-cr-worker"
-SA_MIGRATE = f"biocirv-{STACK_NAME}-cr-migrate"
-SA_DEPLOYER = f"biocirv-{STACK_NAME}-gh-deploy"
-SA_OAUTH2_PROXY = f"biocirv-{STACK_NAME}-cr-pfct-auth"
+# Service account IDs (GCP limit: 30 chars)
+# "production" is abbreviated to "prod" to stay within the limit.
+_sa_env = "prod" if STACK_NAME == "production" else STACK_NAME
+SA_WEBSERVICE = f"biocirv-{_sa_env}-cr-websvc"
+SA_PREFECT_SERVER = f"biocirv-{_sa_env}-cr-prefect"
+SA_PREFECT_WORKER = f"biocirv-{_sa_env}-cr-worker"
+SA_MIGRATE = f"biocirv-{_sa_env}-cr-migrate"
+SA_DEPLOYER = f"biocirv-{_sa_env}-gh-deploy"
+SA_OAUTH2_PROXY = f"biocirv-{_sa_env}-cr-pfct-auth"
 
 # Workload Identity Federation IDs
 WIF_POOL_ID = f"github-actions-{STACK_NAME}"
 WIF_PROVIDER_ID = f"github-oidc-{STACK_NAME}"
+
+# CORS origins for webservice (JSON array string for Cloud Run env var)
+CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "")
 
 # Container images — override with env vars to use digest/commit-based tags
 # instead of :latest (which Pulumi cannot detect changes for).

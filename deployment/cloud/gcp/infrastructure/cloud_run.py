@@ -17,6 +17,7 @@ from config import (
     DB_NAME,
     PREFECT_DB_NAME,
     LANDIQ_SHAPEFILE_URL,
+    CORS_ORIGINS,
     CR_WEBSERVICE_NAME,
     CR_MIGRATION_JOB_NAME,
     CR_SEED_ADMIN_JOB_NAME,
@@ -102,6 +103,14 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="API_JWT_COOKIE_SECURE",
                             value="true",
+                        ),
+                        *(
+                            [gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                                name="API_CORS_ORIGINS",
+                                value=CORS_ORIGINS,
+                            )]
+                            if CORS_ORIGINS
+                            else []
                         ),
                     ],
                     volume_mounts=[
