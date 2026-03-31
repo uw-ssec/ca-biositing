@@ -1,5 +1,9 @@
 # CA-Biositing Architecture Documentation
 
+## Overview
+
+The CA-Biositing system ingests agricultural and geospatial data from multiple external sources to support biomass siting analysis and related decision-making workflows. This architecture document describes how data flows through ETL pipelines, is validated and stored in relational and geospatial databases, and is orchestrated using workflow tooling. The diagram below provides a high-level view of the core services, data stores, and integrations that make up the platform.
+
 ## System Architecture Diagram
 
 ```mermaid
