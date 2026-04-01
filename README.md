@@ -1,364 +1,198 @@
 # ca-biositing
 
-A geospatial bioeconomy project for biositing analysis in California. This
-repository provides tools for ETL pipelines to process data from Google Sheets
-into PostgreSQL databases, geospatial analysis using QGIS, and a REST API for
-data access.
+<span><img src="https://img.shields.io/badge/SSEC-Project-purple?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAOCAQAAABedl5ZAAAACXBIWXMAAAHKAAABygHMtnUxAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAMNJREFUGBltwcEqwwEcAOAfc1F2sNsOTqSlNUopSv5jW1YzHHYY/6YtLa1Jy4mbl3Bz8QIeyKM4fMaUxr4vZnEpjWnmLMSYCysxTcddhF25+EvJia5hhCudULAePyRalvUteXIfBgYxJufRuaKuprKsbDjVUrUj40FNQ11PTzEmrCmrevPhRcVQai8m1PRVvOPZgX2JttWYsGhD3atbHWcyUqX4oqDtJkJiJHUYv+R1JbaNHJmP/+Q1HLu2GbNoSm3Ft0+Y1YMdPSTSwQAAAABJRU5ErkJggg==&style=plastic" /></span>
+![BSD License](https://badgen.net/badge/license/BSD-3-Clause/blue)
+[![Pixi Badge](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json)](https://pixi.sh)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![DOI](https://zenodo.org/badge/1036998116.svg)](https://zenodo.org/badge/latestdoi/1036998116)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/sustainability-software-lab/ca-biositing/main.svg)](https://results.pre-commit.ci/latest/github/sustainability-software-lab/ca-biositing/main)
 
-## Project Structure
+CA-BioSiting is the backend data platform for
+[Cal BioScape](https://calbioscape.org), a web-based tool supporting the
+development of a circular bioeconomy in California's Northern San Joaquin Valley
+(San Joaquin, Stanislaus, and Merced counties). The platform is developed at the
+[University of Washington Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/)
+as part of the [BioCircular Valley](https://calbioscape.org/about) initiative --
+a multi-institutional collaboration involving Lawrence Berkeley National
+Laboratory, UC Berkeley, UC Merced, UC Agriculture and Natural Resources, USDA
+Albany Agricultural Research Station, the Almond Board of California, and BEAM
+Circular. The initiative is funded through Schmidt Sciences' Virtual Institute
+on Feedstocks of the Future, with support from the Foundation for Food &
+Agriculture Research.
 
-This project uses a **PEP 420 namespace package** structure with three main
-components:
+Cal BioScape aims to transform the region's abundant but often underutilized
+agricultural waste streams -- crop residues, almond shells, fruit peels, orchard
+trimmings -- into valuable bioproducts, sustainable biofuels, and advanced
+materials. The platform serves feedstock suppliers, biomanufacturing companies,
+policymakers, and researchers by providing interactive mapping, comprehensive
+data integration, spatial analysis, and programmatic API access.
 
-- **`ca_biositing.datamodels`**: Hand-written SQLModel database models,
-  materialized views, and database configuration
-- **`ca_biositing.pipeline`**: ETL pipelines orchestrated with Prefect, deployed
-  via Docker
-- **`ca_biositing.webservice`**: FastAPI REST API for data access
+## Motivation
 
-### Directory Layout
+Identifying optimal locations for bioconversion facilities requires integrating
+heterogeneous datasets across multiple spatial and analytical domains. Biomass
+composition data (proximate, ultimate, compositional, ICP, XRF, XRD, and
+calorimetry analyses), field sampling records, parcel-level crop mapping
+(LandIQ), federal agricultural production statistics (USDA Census and Survey),
+and DOE Billion Ton Study projections all originate from different sources with
+varying schemas and spatial resolutions. Meaningful siting analysis depends on
+spatially joining these datasets to enable high-resolution visualization of
+agricultural feedstocks, spatial buffer and summary queries for radius-based
+resource aggregation, and temporal filtering across data sources.
 
-```text
-ca-biositing/
-├── src/ca_biositing/           # Namespace package root
-│   ├── datamodels/             # Database models (SQLModel) and Alembic migrations
-│   ├── pipeline/               # ETL pipelines (Prefect)
-│   └── webservice/             # REST API (FastAPI)
-├── resources/                  # Deployment resources
-│   ├── docker/                 # Docker Compose configuration
-│   └── prefect/                # Prefect deployment files
-├── tests/                      # Integration tests
-├── pixi.toml                   # Pixi dependencies and tasks
-│   └── pixi.lock               # Dependency lock file
-```
+CA-BioSiting provides the data infrastructure to automate ingestion of these
+datasets, normalize them into a common relational schema with geospatial support
+(PostgreSQL + PostGIS), and expose them through a REST API for downstream
+analysis, visualization, and data export.
+
+## Key Features
+
+- **Automated ETL pipelines** for ingesting biomass characterization data,
+  LandIQ crop mapping, USDA agricultural statistics, and DOE Billion Ton Study
+  records
+- **Spatially-enabled relational database** (PostgreSQL + PostGIS) with 15
+  domain model groups covering field sampling, analytical records,
+  fermentation/pretreatment experiments, and geographic information
+- **Materialized views** that pre-compute spatial joins across datasets (e.g.,
+  LandIQ records with crop mapping, USDA records with commodity lookups, Billion
+  Ton records with spatial tile aggregation)
+- **REST API** (FastAPI) for programmatic access to all ingested and derived
+  data with interactive OpenAPI documentation
+- **Cloud-native deployment** on Google Cloud Run with Cloud SQL (PostgreSQL),
+  infrastructure managed as code via Pulumi, and automated CI/CD through GitHub
+  Actions
+- **Reproducible environments** using [Pixi](https://pixi.sh) for local
+  development and Docker for containerized production deployment
+
+## Data Domains
+
+The database schema covers the following research domains:
+
+| Domain                  | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| Aim 1 Records           | Proximate, ultimate, compositional, ICP, XRF, XRD, and calorimetry analyses   |
+| Aim 2 Records           | Fermentation and pretreatment experiment results                              |
+| Field Sampling          | Sample collection metadata and location information                           |
+| Sample Preparation      | Prepared sample tracking and provenance                                       |
+| External Data           | LandIQ crop mapping, USDA Census/Survey records, Billion Ton 2023 projections |
+| Resource Information    | Biomass resource types and characteristics                                    |
+| Places & Infrastructure | Geographic locations, addresses, and facility information                     |
+| People & Organizations  | Contacts and institutional affiliations                                       |
+
+## Architecture
+
+CA-BioSiting is organized as a
+[PEP 420 namespace package](https://peps.python.org/pep-0420/) with three
+independently installable components:
+
+- **`ca_biositing.datamodels`** -- SQLModel database models, Alembic migrations,
+  and materialized view definitions
+- **`ca_biositing.pipeline`** -- Prefect-orchestrated ETL workflows for data
+  extraction, transformation, and loading
+- **`ca_biositing.webservice`** -- FastAPI REST API for data access
+
+The ETL pipeline extracts data from Google Sheets, transforms and validates
+records with pandas, and loads them into PostgreSQL via SQLAlchemy. Seven
+materialized views provide pre-computed spatial joins for common query patterns.
+
+## GitHub Actions
+
+| Workflow                             | Status                                                                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI                                   | [![CI](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/ci.yml)                                               |
+| CD                                   | [![CD](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/cd.yml)                                               |
+| Migrations                           | [![Migrations](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/migrations.yml)                       |
+| Build and Push Docker Images         | [![Build and Push Docker Images](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/docker-build.yml) |
+| Deploy Staging                       | [![Deploy Staging](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-staging.yml)           |
+| Deploy Production                    | [![Deploy Production](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/deploy-production.yml)  |
+| Trigger Staging ETL                  | [![Trigger Staging ETL](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/trigger-etl.yml)            |
+| Deploy Resource Info to GitHub Pages | [![Deploy Resource Info to GitHub Pages](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/sustainability-software-lab/ca-biositing/actions/workflows/gh-pages.yml) |
+
+## Docker Images
+
+| Image                                                                                                                                                                 | Description                             |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [`ghcr.io/sustainability-software-lab/ca-biositing/pipeline`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fpipeline)     | ETL pipeline (Prefect flows and worker) |
+| [`ghcr.io/sustainability-software-lab/ca-biositing/webservice`](https://github.com/sustainability-software-lab/ca-biositing/pkgs/container/ca-biositing%2Fwebservice) | FastAPI REST API                        |
+
+## Technology Stack
+
+| Component              | Technology                       |
+| ---------------------- | -------------------------------- |
+| Language               | Python 3                         |
+| Database               | PostgreSQL 15 + PostGIS          |
+| ORM / Models           | SQLModel (SQLAlchemy + Pydantic) |
+| Migrations             | Alembic                          |
+| Workflow Orchestration | Prefect                          |
+| Web API                | FastAPI                          |
+| Geospatial Analysis    | QGIS, GeoAlchemy2, Shapely       |
+| Package Management     | Pixi (conda-forge + PyPI)        |
+| Containerization       | Docker, Docker Compose           |
+| Cloud Deployment       | Google Cloud Run, Pulumi         |
+| CI/CD                  | GitHub Actions                   |
 
 ## Quick Start
 
 ### Prerequisites
 
-- **Pixi** (v0.55.0+):
-  [Installation Guide](https://pixi.sh/latest/#installation)
-- **Docker**: For running the ETL pipeline
-- **Google Cloud credentials**: For Google Sheets access (optional)
+- [Pixi](https://pixi.sh/latest/#installation) (v0.55.0+)
+- [Docker](https://docs.docker.com/get-docker/)
+- Google Cloud credentials (optional, for Google Sheets access)
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/sustainability-software-lab/ca-biositing.git
 cd ca-biositing
-
-# Install dependencies with Pixi
 pixi install
-
-# Install pre-commit hooks
 pixi run pre-commit-install
 ```
 
-### Running Components
-
-#### ETL Pipeline (Prefect + Docker)
-
-**Note**: Before starting the services for the first time, create the required
-environment file from the template:
+### Running the ETL Pipeline
 
 ```bash
+# Create environment file from template
 cp resources/docker/.env.example resources/docker/.env
-```
 
-**CRITICAL (PostgreSQL 15 Upgrade)**: If you are upgrading from a version prior
-to Feb 2026, you must wipe your local volumes to support the PostgreSQL 15
-image:
-
-```bash
-pixi run teardown-services-volumes
-```
-
-Then start and use the services:
-
-```bash
-# 1. Start all services (PostgreSQL, Prefect server, worker)
-# This will also automatically apply any pending database migrations.
+# Start all services (PostgreSQL, Prefect server, worker)
 pixi run start-services
 
-# 2. Deploy flows to Prefect
+# Deploy and run ETL flows
 pixi run deploy
-
-# 3. Run the ETL pipeline
 pixi run run-etl
 
-# Monitor via Prefect UI: http://localhost:4200
-
-# To apply new migrations after the initial setup
-pixi run migrate
-
-# Stop services
-pixi run teardown-services
+# Monitor via Prefect UI at http://localhost:4200
 ```
 
-See [`resources/README.md`](resources/README.md) for detailed pipeline
-documentation.
-
-#### Web Service (FastAPI)
+### Running the Web Service
 
 ```bash
-# Start the web service
 pixi run start-webservice
-
-# Access API docs: http://localhost:8000/docs
+# API docs at http://localhost:8000/docs
 ```
 
-#### QGIS (Geospatial Analysis)
+## Documentation
+
+Full documentation is available via
+[MkDocs Material](https://squidfunk.github.io/mkdocs-material/) and can be
+previewed locally:
 
 ```bash
-pixi run qgis
+pixi install -e docs
+pixi run -e docs docs-serve
+# Open http://127.0.0.1:8000
 ```
 
-**Note**: On macOS, you may see a Python faulthandler error - this is expected
-and can be ignored. See
-[QGIS Issue #52987](https://github.com/qgis/QGIS/issues/52987).
+## Contributing
 
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-pixi run test
-
-# Run tests with coverage
-pixi run test-cov
-```
-
-### Code Quality
-
-```bash
-# Run pre-commit checks on staged files
-pixi run pre-commit
-
-# Run pre-commit on all files (before PR)
-pixi run pre-commit-all
-```
-
-### Available Pixi Tasks
-
-View all available tasks:
-
-```bash
-pixi task list
-```
-
-Key tasks:
-
-- **Service Management**: `start-services`, `teardown-services`,
-  `service-status`
-- **ETL Operations**: `deploy`, `run-etl`
-- **Development**: `test`, `test-cov`, `pre-commit`, `pre-commit-all`
-- **Applications**: `start-webservice`, `qgis`
-- **Database**: `access-db`, `check-db-health`
-- **Schema Management**: `migrate`, `migrate-autogenerate`, `refresh-views`
-- **Validation (pgschema)**: `schema-plan`, `schema-analytics-plan`,
-  `schema-dump`, `schema-analytics-list`
-
-## Architecture
-
-### Namespace Packages
-
-This project uses **PEP 420 namespace packages** to organize code into
-independently installable components that share a common namespace:
-
-- Each component has its own `pyproject.toml` and can be installed separately
-- Shared models in `datamodels` are used by both `pipeline` and `webservice`
-- Clear separation of concerns while maintaining type consistency
-
-### ETL Pipeline
-
-The ETL pipeline uses:
-
-- **Prefect**: Workflow orchestration and monitoring
-- **Docker**: Containerized execution environment
-- **PostgreSQL**: Data persistence
-- **Google Sheets API**: Primary data source
-
-Pipeline architecture:
-
-1. **Extract**: Pull data from Google Sheets
-2. **Transform**: Clean and normalize data with pandas
-3. **Load**: Insert/update records in PostgreSQL via SQLAlchemy
-
-### Database Models
-
-Database models are **hand-written SQLModel classes** organized into 15 domain
-subdirectories under
-`src/ca_biositing/datamodels/ca_biositing/datamodels/models/`. All schema
-changes are managed through Alembic migrations.
-
-**Development workflow:**
-
-1.  Edit SQLModel classes in `models/`
-2.  Auto-generate a migration: `pixi run migrate-autogenerate -m "Description"`
-3.  Apply the migration: `pixi run migrate`
-
-SQLModel-based models provide:
-
-- Type-safe database operations (SQLAlchemy + Pydantic in one class)
-- Versioned schema migrations (via Alembic)
-- Shared models across ETL and API components
-- Built-in Pydantic validation
-
-Seven materialized views are defined in `views.py` and managed through Alembic
-migrations. Refresh them after loading data with `pixi run refresh-views`.
-
-## Project Components
-
-### 1. Data Models (`ca_biositing.datamodels`)
-
-Database models for:
-
-- Biomass data (field samples, measurements)
-- Geographic locations
-- Experiments and analysis
-- Metadata and samples
-- Organizations and contacts
-
-**Documentation**: [`datamodels/README.md`](datamodels/README.md)
-
-### 2. ETL Pipeline (`ca_biositing.pipeline`)
-
-Prefect-orchestrated workflows for:
-
-- Data extraction from Google Sheets
-- Data transformation and validation
-- Database loading and updates
-- Lookup table management
-
-**Documentation**: [`pipeline/README.md`](pipeline/README.md)
-
-**Guides**:
+See the development guides in the documentation for details on:
 
 - [Docker Workflow](pipeline/DOCKER_WORKFLOW.md)
 - [Prefect Workflow](pipeline/PREFECT_WORKFLOW.md)
 - [ETL Development](pipeline/ETL_WORKFLOW.md)
 - [Database Migrations](pipeline/ALEMBIC_WORKFLOW.md)
 
-### 3. Web Service (`ca_biositing.webservice`)
+## License
 
-FastAPI REST API providing:
-
-- Read access to database records
-- Interactive API documentation (Swagger/OpenAPI)
-- Type-safe endpoints using Pydantic
-
-**Documentation**: [`webservice/README.md`](webservice/README.md)
-
-### 4. Deployment Resources (`resources/`)
-
-Docker and Prefect configuration for:
-
-- Service orchestration (Docker Compose)
-- Prefect deployments
-- Database initialization
-
-**Documentation**: [`resources/README.md`](resources/README.md)
-
-## Adding Dependencies
-
-### For Local Development (Pixi)
-
-```bash
-# Add conda package to default environment
-pixi add <package-name>
-
-# Add PyPI package to default environment
-pixi add --pypi <package-name>
-
-# Add to specific feature (e.g., pipeline)
-pixi add --feature pipeline --pypi <package-name>
-```
-
-### For ETL Pipeline (Docker)
-
-The pipeline dependencies are managed by Pixi's `etl` environment feature in
-`pixi.toml`. When you add dependencies and rebuild Docker images, they are
-automatically included:
-
-```bash
-# Add dependency to pipeline feature
-pixi add --feature pipeline --pypi <package-name>
-
-# Rebuild Docker images
-pixi run rebuild-services
-
-# Restart services
-pixi run start-services
-```
-
-## Environment Management
-
-This project uses **Pixi environments** for different workflows:
-
-- **`default`**: General development, testing, pre-commit hooks
-- **`gis`**: QGIS and geospatial analysis tools
-- **`etl`**: ETL pipeline (used in Docker containers)
-- **`webservice`**: FastAPI web service
-- **`frontend`**: Node.js/npm for frontend development
-
-## Frontend Integration
-
-This repository now includes the **Cal Bioscape Frontend** as a Git submodule
-located in the `frontend/` directory.
-
-### Initializing the Submodule
-
-When you first clone this repository, you can initialize and pull only the
-`frontend` submodule with:
-
-```bash
-pixi run submodule-frontend-init
-```
-
-## 📘 Documentation
-
-This project uses
-[MkDocs Material](https://squidfunk.github.io/mkdocs-material/) for
-documentation.
-
-### Local Preview
-
-You can preview the documentation locally using [Pixi](https://pixi.sh/):
-
-```bash
-pixi install -e docs
-pixi run -e docs docs-serve
-```
-
-Then open your browser and go to:
-
-```
-http://127.0.0.1:8000
-```
-
-### Contributing Documentation
-
-Most documentation should live in the relevant directories within the `docs`
-folder.
-
-When adding new pages to the documentation, make sure you update the
-[`mkdocs.yml` file](https://github.com/sustainability-software-lab/ca-biositing/blob/main/mkdocs.yml)
-so they can be rendered on the website.
-
-If you need to add documentation referencing a file that lives elsewhere in the
-repository, you'll need to do the following (this is an example, run from the
-package root directory)
-
-```bash
-# symlink the file to its destination
-# Be sure to use relative paths here, otherwise it won't work!
-ln -s ../../deployment/README.md docs/deployment/README.md
-
-# stage your new file
-git add docs/deployment/README.md
-```
-
-Be sure to preview the documentation to make sure it's accurate before
-submitting a PR.
+This project is licensed under the BSD 3-Clause License. See [LICENSE](LICENSE)
+for details.
