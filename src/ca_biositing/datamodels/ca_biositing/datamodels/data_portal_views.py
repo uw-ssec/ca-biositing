@@ -22,6 +22,7 @@ from ca_biositing.datamodels.models.aim1_records.ftnir_record import FtnirRecord
 from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
 from ca_biositing.datamodels.models.aim2_records.strain import Strain
 from ca_biositing.datamodels.models.aim2_records.gasification_record import GasificationRecord
+from ca_biositing.datamodels.models.experiment_equipment.decon_vessel import DeconVessel
 from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 from ca_biositing.datamodels.models.external_data.usda_survey import UsdaMarketRecord, UsdaMarketReport
 from ca_biositing.datamodels.models.external_data.usda_census import UsdaCensusRecord, UsdaCommodity
@@ -71,6 +72,39 @@ resource_analysis_map = union_all(
     select(PretreatmentRecord.resource_id, PretreatmentRecord.record_id, literal("pretreatment").label("type"))
 ).subquery()
 
+carbon_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "carbon"
+    ),
+    analysis_metrics.c.value
+)))
+hydrogen_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "hydrogen"
+    ),
+    analysis_metrics.c.value
+)))
+nitrogen_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "nitrogen"
+    ),
+    analysis_metrics.c.value
+)))
+cn_ratio_expr = case(
+    (
+        and_(
+            carbon_avg_expr.is_not(None),
+            nitrogen_avg_expr.is_not(None),
+            nitrogen_avg_expr != 0
+        ),
+        carbon_avg_expr / nitrogen_avg_expr
+    ),
+    else_=None
+)
+
 resource_metrics = select(
     resource_analysis_map.c.resource_id,
     func.avg(case((analysis_metrics.c.parameter == "moisture", analysis_metrics.c.value))).label("moisture_percent"),
@@ -101,6 +135,9 @@ resource_metrics = select(
         ),
         else_=None
     ).label("sugar_content_percent"),
+    carbon_avg_expr.label("carbon_percent"),
+    hydrogen_avg_expr.label("hydrogen_percent"),
+    cn_ratio_expr.label("cn_ratio"),
     # Flags
     func.bool_or(resource_analysis_map.c.type == "proximate analysis").label("has_proximate"),
     func.bool_or(resource_analysis_map.c.type == "compositional analysis").label("has_compositional"),
@@ -176,6 +213,9 @@ mv_biomass_search = select(
     resource_metrics.c.sugar_content_percent,
     resource_metrics.c.ash_percent,
     resource_metrics.c.lignin_percent,
+    resource_metrics.c.carbon_percent,
+    resource_metrics.c.hydrogen_percent,
+    resource_metrics.c.cn_ratio,
     func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
     mv_biomass_availability.c.from_month.label("season_from_month"),
     mv_biomass_availability.c.to_month.label("season_to_month"),
@@ -364,10 +404,10 @@ mv_biomass_fermentation = select(
 
 # 7. mv_biomass_gasification
 mv_biomass_gasification = select(
-    func.row_number().over(order_by=(GasificationRecord.resource_id, Method.name, Parameter.name, Unit.name)).label("id"),
+    func.row_number().over(order_by=(GasificationRecord.resource_id, DeconVessel.name, Parameter.name, Unit.name)).label("id"),
     GasificationRecord.resource_id,
     Resource.name.label("resource_name"),
-    Method.name.label("reactor_type"),
+    DeconVessel.name.label("reactor_type"),
     Parameter.name.label("parameter_name"),
     func.avg(Observation.value).label("avg_value"),
     func.min(Observation.value).label("min_value"),
@@ -377,11 +417,17 @@ mv_biomass_gasification = select(
     Unit.name.label("unit")
 ).select_from(GasificationRecord)\
  .join(Resource, GasificationRecord.resource_id == Resource.id)\
- .outerjoin(Method, GasificationRecord.method_id == Method.id)\
+ .outerjoin(DeconVessel, GasificationRecord.reactor_type_id == DeconVessel.id)\
  .join(Observation, func.lower(Observation.record_id) == func.lower(GasificationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
- .group_by(GasificationRecord.resource_id, Resource.name, Method.name, Parameter.name, Unit.name)
+ .group_by(
+     GasificationRecord.resource_id,
+     Resource.name,
+     DeconVessel.name,
+     Parameter.name,
+     Unit.name
+ )
 
 
 # 8. mv_biomass_pricing

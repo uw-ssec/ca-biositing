@@ -408,11 +408,11 @@ def refresh_all_views(engine):
 
         # 2. Refresh data_portal schema views
         data_portal_views = [
+            "mv_biomass_availability",
             "mv_biomass_search",
             "mv_biomass_composition",
             "mv_biomass_county_production",
             "mv_usda_county_production",
-            "mv_biomass_availability",
             "mv_biomass_sample_stats",
             "mv_biomass_fermentation",
             "mv_biomass_gasification",

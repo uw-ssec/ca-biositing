@@ -1,7 +1,7 @@
 """squash_data_portal_additions
 
 Revision ID: 63c0fedd3446
-Revises: 96a541e99094
+Revises: 9c4731d7e6f5
 Create Date: 2026-03-26 16:36:15.776754
 
 """
@@ -24,7 +24,7 @@ from ca_biositing.datamodels.data_portal_views import (
 
 # revision identifiers, used by Alembic.
 revision: str = '63c0fedd3446'
-down_revision: Union[str, Sequence[str], None] = '96a541e99094'
+down_revision: Union[str, Sequence[str], None] = '9c4731d7e6f5'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
