@@ -46,6 +46,7 @@ data/landiq/*.xml
 !src/ca_biositing/pipeline/ca_biositing/pipeline/etl/transform/landiq/*.csv
 !resources/assets/*.csv
 *.pdf
+src/ca_biositing/webservice/ca_biositing/webservice/_version.py
 
 # Credentials
 credentials.json
@@ -73,6 +74,8 @@ backups/
 
 # PR Plans
 docs/pr/
+plans/
+
 # MkDocs build output
 site/
 
