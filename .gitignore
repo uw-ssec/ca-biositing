@@ -83,3 +83,6 @@ scripts/check_pretreatment_duplicates.py
 
 # hatch-vcs generated version files
 _version.py
+
+# analysis environment
+analysis

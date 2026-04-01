@@ -374,9 +374,7 @@ mv_biomass_gasification = select(
     func.max(Observation.value).label("max_value"),
     func.stddev(Observation.value).label("std_dev"),
     func.count().label("observation_count"),
-    Unit.name.label("unit"),
-    func.avg(GasificationRecord.bed_temperature).label("bed_temperature"),
-    func.avg(GasificationRecord.gas_flow_rate).label("gas_flow_rate")
+    Unit.name.label("unit")
 ).select_from(GasificationRecord)\
  .join(Resource, GasificationRecord.resource_id == Resource.id)\
  .outerjoin(Method, GasificationRecord.method_id == Method.id)\
