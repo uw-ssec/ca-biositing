@@ -40,28 +40,24 @@ def transform_observation(
             logger.warning(f"DataFrame at index {i} is None. Skipping.")
             continue
 
-        # Check for duplicate columns which cause 'AttributeError: DataFrame object has no attribute str' in cleaning
-        # Aggressive cleaning of duplicate/empty columns before processing
-        df = df.loc[:, ~df.columns.duplicated()].copy()
+        # Aggressive pre-cleaning of column names to avoid duplicates before janitor
+        df.columns = [str(c).strip() for c in df.columns]
         df = df.loc[:, df.columns.notnull()]
         df = df.loc[:, (df.columns != '')]
 
-        # Use shared cleaning functions
-        df = cleaning_mod.clean_names_df(df)
-        df = cleaning_mod.replace_empty_with_na(df)
+        # Use standard_clean for consistent behavior across pipelines
+        # This handles name cleaning (janitor), duplicate columns, empty->NA, and lowercasing data
+        df = cleaning_mod.standard_clean(df)
+        if df is None:
+            continue
 
         # Basic coercion for Observation fields
         if 'value' in df.columns:
             df = coercion_mod.coerce_columns(df, float_cols=['value'])
 
         # Add lineage tracking if available
-        # Ensure they are created unconditionally (set to None if not provided) to prevent mapping failures
         df['etl_run_id'] = etl_run_id
         df['lineage_group_id'] = lineage_group_id
-
-        # Re-apply duplicate-column guard after calling clean_names_df()
-        if df.columns.duplicated().any():
-            df = df.loc[:, ~df.columns.duplicated()].copy()
 
         coerced_data.append(df)
 
@@ -111,7 +107,15 @@ def transform_observation(
             if 'record_id' in obs_df.columns:
                 obs_df['record_id'] = obs_df['record_id'].astype(str).str.lower()
 
+            initial_count = len(obs_df)
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
+            final_count = len(obs_df)
+
+            if initial_count > 0 and final_count == 0:
+                logger.warning(f"Observation: All {initial_count} rows dropped due to missing record_id, parameter_id, or value.")
+                # Log some sample values to help debug
+                sample = normalized_df[['record_id', 'parameter_id', 'value']].head(3)
+                logger.info(f"Sample data before dropna:\n{sample}")
 
             # Remove duplicates based on (record_id, record_type, parameter_id, unit_id) to avoid ON CONFLICT errors
             # CodeRabbit Review: include unit_id in the subset

@@ -17,6 +17,7 @@ AVAILABLE_FLOWS = {
     "billion_ton": "ca_biositing.pipeline.flows.billion_ton_etl.billion_ton_etl_flow",
     #"field_sample": "ca_biositing.pipeline.flows.field_sample_etl.field_sample_etl_flow",
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
+    "thermochem": "ca_biositing.pipeline.flows.thermochem_etl.thermochem_etl_flow",
 }
 
 @flow(name="Master ETL Flow", log_prints=True)

@@ -20,8 +20,9 @@ from iam import create_service_accounts
 from secret_manager import create_secrets
 from storage import create_storage_resources
 
-from artifact_registry import create_artifact_registry
+from artifact_registry import create_artifact_registry, create_quayio_registry
 from cloud_run import create_cloud_run_resources
+from networking import create_cloud_nat
 from wif import create_wif
 
 
@@ -43,6 +44,13 @@ def pulumi_program():
         ]
     )
 
+    # 1.7. Artifact Registry: remote repo proxying Quay.io for oauth2-proxy image
+    quayio_proxy = create_quayio_registry(
+        depends_on=[
+            api_services["artifactregistry"],
+        ]
+    )
+
     # 2. Cloud SQL: instance, databases, users
     sql = create_cloud_sql(depends_on=[api_services["sqladmin"]])
 
@@ -59,10 +67,14 @@ def pulumi_program():
     # 4.5. Storage: GCS buckets
     storage = create_storage_resources(depends_on=[api_services["storage"]])
 
-    # 5. Cloud Run: Services and Jobs (images pulled via AR remote repo)
+    # 4.7. Cloud NAT: enables VPC egress for Cloud Run (oauth2-proxy needs
+    #       internet access for Google OAuth while routing via VPC for internal traffic)
+    cloud_nat = create_cloud_nat(depends_on=[api_services["compute"]])
+
+    # 5. Cloud Run: Services and Jobs (images pulled via AR remote repos)
     cr = create_cloud_run_resources(
         sql, secret_resources, iam,
-        depends_on=[api_services["run"], ghcr_proxy],
+        depends_on=[api_services["run"], ghcr_proxy, quayio_proxy, cloud_nat.nat],
     )
 
     # --- All exports centralized here ---
@@ -102,6 +114,7 @@ def pulumi_program():
     # Cloud Run
     pulumi.export("webservice_url", cr.webservice.uri)
     pulumi.export("prefect_server_url", cr.prefect_server.uri)
+    pulumi.export("oauth2_proxy_url", cr.oauth2_proxy.uri)
     pulumi.export("migration_job_name", cr.migration_job.name)
     pulumi.export("seed_admin_job_name", cr.seed_admin_job.name)
 

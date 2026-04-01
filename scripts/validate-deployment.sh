@@ -24,8 +24,10 @@ check_webservice_health() {
 }
 
 check_prefect_server() {
+    # Prefect server uses INGRESS_TRAFFIC_INTERNAL_ONLY, so we check via
+    # the prefect-auth proxy. /api/health is in skip-auth routes.
     local url
-    url=$(gcloud run services describe "biocirv-${DEPLOY_ENV}-prefect-server" \
+    url=$(gcloud run services describe "biocirv-${DEPLOY_ENV}-prefect-auth" \
         --region="${GCP_REGION}" --format="value(status.url)" 2>/dev/null) || return 1
     [ -n "$url" ] || return 1
     local status
