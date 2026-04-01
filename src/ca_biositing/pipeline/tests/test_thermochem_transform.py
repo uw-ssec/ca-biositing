@@ -20,7 +20,8 @@ def test_transform_gasification_record(mock_normalize, mock_logger):
         "Prepared_sample": ["RS-P1", "RS-P1", "RS-P1"],
         "Repl_no": ["1", "1", "1"],
         "raw_data_url": ["http://test.com", "http://test.com", "http://test.com"],
-        "Note": ["Note 1", "Note 1", "Note 2"]
+        "Note": ["Note 1", "Note 1", "Note 2"],
+        "Reactor_id": ["Fluidized Bed", "Fluidized Bed", "Entrained Flow"],
     })
 
     # Setup mock data for thermo_experiment
@@ -64,6 +65,7 @@ def test_transform_gasification_record(mock_normalize, mock_logger):
     assert "prepared_sample_id" in result.columns
     assert "analyst_id" in result.columns
     assert "dataset_id" in result.columns
+    assert "reactor_type_id" in result.columns
 
     # Check values for REC001 (standard_clean lowercases strings)
     rec001 = result[result["record_id"] == "rec001"].iloc[0]
@@ -73,3 +75,4 @@ def test_transform_gasification_record(mock_normalize, mock_logger):
     assert rec001["lineage_group_id"] == 456
     assert rec001["experiment_id"] == 1
     assert rec001["method_id"] == 1
+    assert rec001["reactor_type_id"] == 1

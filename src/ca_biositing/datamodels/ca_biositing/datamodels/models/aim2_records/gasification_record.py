@@ -9,4 +9,4 @@ class GasificationRecord(Aim2RecordBase, table=True):
     __tablename__ = "gasification_record"
 
     # Feedstock mass, bed temperature, and gas flow rate removed as they are now stored as observations.
-    pass
+    reactor_type_id: Optional[int] = Field(default=None, foreign_key="decon_vessel.id")

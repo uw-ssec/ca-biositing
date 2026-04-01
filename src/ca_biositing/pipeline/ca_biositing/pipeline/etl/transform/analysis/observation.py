@@ -103,6 +103,10 @@ def transform_observation(
         try:
             obs_df = normalized_df[required_cols].copy().rename(columns={'analysis_type': 'record_type'})
 
+            # Normalize record_id to lowercase to match parent record tables
+            if 'record_id' in obs_df.columns:
+                obs_df['record_id'] = obs_df['record_id'].astype(str).str.lower()
+
             initial_count = len(obs_df)
             obs_df = obs_df.dropna(subset=['record_id', 'parameter_id', 'value'])
             final_count = len(obs_df)

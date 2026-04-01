@@ -83,6 +83,11 @@ pixi run deploy --deployment-name master-etl-deployment
 pixi run run-etl
 ```
 
+When the master flow finishes running all registered ETL sub-flows, it will
+automatically execute a Prefect task that invokes the same logic as
+`pixi run refresh-views`, ensuring every materialized view (including those in
+the `data_portal` schema) is refreshed before the run is marked complete.
+
 ### Monitoring
 
 Access the Prefect UI at: [http://localhost:4200](http://localhost:4200)

@@ -24,6 +24,7 @@ def transform_gasification_record(
         Dataset,
         Experiment,
         FileObjectMetadata,
+        DeconVessel,
     )
     logger = get_run_logger()
     logger.info("Transforming raw data for GasificationRecord table")
@@ -89,6 +90,7 @@ def transform_gasification_record(
         'analyst_email': (Contact, 'email'),
         'dataset': (Dataset, 'name'),
         'raw_data_url': (FileObjectMetadata, 'uri'),
+        'reactor_id': (DeconVessel, 'name'),
     }
 
     normalized_dfs = normalize_dataframes([final_df], normalize_columns)
@@ -123,6 +125,7 @@ def transform_gasification_record(
                           'raw_data_id' if col == 'raw_data_url' else \
                           'experiment_id' if col == 'experiment_id' else \
                           'method_id' if col == 'method_id' else \
+                          'reactor_type_id' if col == 'reactor_id' else \
                           norm_col
             rename_map[norm_col] = target_name
 
