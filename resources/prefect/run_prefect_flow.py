@@ -1,6 +1,6 @@
 import sys
 import traceback
-from prefect import flow, get_run_logger
+from prefect import flow, get_run_logger, task
 from prefect.utilities.importtools import import_object
 
 # A dictionary mapping flow names to their import paths
@@ -19,6 +19,21 @@ AVAILABLE_FLOWS = {
     #"prepared_sample": "ca_biositing.pipeline.flows.prepared_sample_etl.prepared_sample_etl_flow",
     "thermochem": "ca_biositing.pipeline.flows.thermochem_etl.thermochem_etl_flow",
 }
+
+@task(name="Refresh materialized views", retries=3, retry_delay_seconds=30)
+def refresh_materialized_views_task():
+    """Refreshes all materialized views once ETL data loads are complete."""
+    from ca_biositing.datamodels.database import get_engine
+    from ca_biositing.datamodels.views import refresh_all_views
+
+    logger = get_run_logger()
+    logger.info("Refreshing materialized views (including data_portal schema)...")
+    engine = get_engine()
+    try:
+        refresh_all_views(engine)
+    finally:
+        engine.dispose()
+    logger.info("Materialized views refresh completed.")
 
 @flow(name="Master ETL Flow", log_prints=True)
 def master_flow():
@@ -48,6 +63,7 @@ def master_flow():
             result = flow_func()
         except Exception:
             logger.exception(f"Flow '{flow_name}' failed")
+    refresh_materialized_views_task()
     logger.info("Master ETL flow completed.")
 
 if __name__ == "__main__":
