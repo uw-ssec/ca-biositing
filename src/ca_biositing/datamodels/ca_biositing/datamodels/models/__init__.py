@@ -41,7 +41,7 @@ from .people import Contact, Provider
 from .places import LocationAddress, Place
 
 # Resource Information
-from .resource_information import PrimaryAgProduct, Resource, ResourceAvailability, ResourceClass, ResourceCounterfactual, ResourceMorphology, ResourceSubclass
+from .resource_information import MethodAssumption, PrimaryAgProduct, Resource, ResourceAvailability, ResourceClass, ResourceCounterfactual, ResourceEndUseRecord, ResourceMorphology, ResourcePriceRecord, ResourceProductionRecord, ResourceStorageRecord, ResourceSubclass, ResourceTransportRecord, TechnicalAssumption
 
 # Sample Preparation
 from .sample_preparation import PreparationMethod, PreparationMethodAbbreviation, PreparedSample
