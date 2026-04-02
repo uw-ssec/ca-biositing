@@ -5,7 +5,7 @@
 Implement the new DBML-backed schema changes and materialized views in a single
 contract-driven pass so BEAM Portal can query stable view outputs immediately.
 
-## End-of-Day Handoff (April 1, 2026)
+## End-of-Day Handoff (April 2, 2026)
 
 ### What Was Completed Today
 
@@ -21,6 +21,13 @@ contract-driven pass so BEAM Portal can query stable view outputs immediately.
 - Expanded frontend scope to four contract views:
   `mv_biomass_search`, `mv_biomass_county_production`,
   `mv_biomass_pricing`, `mv_biomass_end_uses`.
+- Applied the schema migration for the new resource/pricing/assumption tables.
+- Updated `data_portal_views.py` for the active frontend contract, including
+  observation-backed pricing/end-use pivots and the all-years USDA county
+  production view.
+- Applied the data-portal MV migration and verified the target views exist in
+  `data_portal`.
+- Ran focused datamodel tests and targeted pre-commit checks successfully.
 - Confirmed migration sequencing decision: separate schema migration first,
   separate view migration later after frontend specs are provided.
 
@@ -29,19 +36,19 @@ contract-driven pass so BEAM Portal can query stable view outputs immediately.
 - Step 1A: complete
 - Step 2: complete (models implemented)
 - Step 3: complete (precision/linkage review completed for current scope)
-- Step 4: next active step (schema migration generation + review + apply)
+- Step 4: complete (schema migration generated, reviewed, and applied)
+- Step 5: complete enough for current contract scope (spec intake resolved)
+- Step 6: complete (view definitions updated)
+- Step 7: complete (MV migration with UNIQUE indexes applied)
+- Step 8: in progress (final wrap-up, reviewer summary, and PR prep)
 
 ### Tomorrow Kickoff Plan
 
-1. Run schema migration generation (`migrate-autogenerate`) for table changes.
-2. Review generated Alembic script for:
-   - table names and columns,
-   - numeric type handling for `assumption_value`,
-   - absence of unintended FK constraints,
-   - any unintended diffs.
-3. Apply migration locally (`migrate`) and validate table creation.
-4. Run ETL-facing validation checks for new schema compatibility.
-5. Share draft MV contract with web app team by end of day (draft status).
+1. Review final MV contracts against the frontend checklist.
+2. If any new source data appears, rerun refresh/spot-check queries.
+3. Share the PR summary and reviewer checklist with colleagues.
+4. If needed, run `pixi run pre-commit-all` before merge.
+5. Close out remaining comments from review.
 
 ### Draft MV Deliverable to Web App Team (Tomorrow)
 
@@ -52,6 +59,15 @@ Provide a draft contract doc containing, for each of the 4 views:
 - Expected columns (draft)
 - Unique key/index strategy
 - Status label: **Draft — pending ETL and data cleaning validation**
+
+### Current Verification Notes
+
+- `mv_biomass_search` and `mv_biomass_county_production` are kept as active
+  contract views.
+- `mv_usda_county_production` remains in the codebase and database as the
+  historical/all-years county production view.
+- The new pricing and end-use views are structurally valid; local data currently
+  yields zero rows because their source record tables are empty in the test DB.
 
 ### Notes for Next Contributor
 

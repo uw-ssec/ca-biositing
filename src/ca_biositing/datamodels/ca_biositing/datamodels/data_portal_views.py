@@ -9,8 +9,14 @@ from ca_biositing.datamodels.models.general_analysis.observation import Observat
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
 from ca_biositing.datamodels.models.methods_parameters_units.unit import Unit
 from ca_biositing.datamodels.models.methods_parameters_units.method import Method
+from ca_biositing.datamodels.models.data_sources_metadata.data_source import DataSource
 from ca_biositing.datamodels.models.places.place import Place
 from ca_biositing.datamodels.models.resource_information.resource_availability import ResourceAvailability
+from ca_biositing.datamodels.models.resource_information.resource_storage_record import ResourceStorageRecord
+from ca_biositing.datamodels.models.resource_information.resource_transport_record import ResourceTransportRecord
+from ca_biositing.datamodels.models.resource_information.resource_production_record import ResourceProductionRecord
+from ca_biositing.datamodels.models.resource_information.resource_price_record import ResourcePriceRecord
+from ca_biositing.datamodels.models.resource_information.resource_end_use_record import ResourceEndUseRecord
 from ca_biositing.datamodels.models.aim1_records.compositional_record import CompositionalRecord
 from ca_biositing.datamodels.models.aim1_records.proximate_record import ProximateRecord
 from ca_biositing.datamodels.models.aim1_records.ultimate_record import UltimateRecord
@@ -196,6 +202,18 @@ agg_vol = select(
 ).join(Unit, BillionTon2023Record.production_unit_id == Unit.id)\
  .group_by(BillionTon2023Record.resource_id).subquery()
 
+storage_notes = select(
+    ResourceStorageRecord.resource_id,
+    func.string_agg(func.distinct(ResourceStorageRecord.storage_description), literal("; ")).label("storage_notes")
+).where(ResourceStorageRecord.resource_id.is_not(None))\
+ .group_by(ResourceStorageRecord.resource_id).subquery()
+
+transport_notes = select(
+    ResourceTransportRecord.resource_id,
+    func.string_agg(func.distinct(ResourceTransportRecord.transport_description), literal("; ")).label("transport_notes")
+).where(ResourceTransportRecord.resource_id.is_not(None))\
+ .group_by(ResourceTransportRecord.resource_id).subquery()
+
 mv_biomass_search = select(
     Resource.id,
     Resource.name,
@@ -213,13 +231,15 @@ mv_biomass_search = select(
     resource_metrics.c.sugar_content_percent,
     resource_metrics.c.ash_percent,
     resource_metrics.c.lignin_percent,
-    resource_metrics.c.carbon_percent,
-    resource_metrics.c.hydrogen_percent,
-    resource_metrics.c.cn_ratio,
+    cast(resource_metrics.c.carbon_percent, Float).label("carbon_percent"),
+    cast(resource_metrics.c.hydrogen_percent, Float).label("hydrogen_percent"),
+    cast(resource_metrics.c.cn_ratio, Float).label("cn_ratio"),
     func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
     mv_biomass_availability.c.from_month.label("season_from_month"),
     mv_biomass_availability.c.to_month.label("season_to_month"),
     mv_biomass_availability.c.year_round,
+    storage_notes.c.storage_notes.label("storage"),
+    transport_notes.c.transport_notes.label("transport"),
     # Boolean flags
     func.coalesce(resource_metrics.c.has_proximate, False).label("has_proximate"),
     func.coalesce(resource_metrics.c.has_compositional, False).label("has_compositional"),
@@ -232,8 +252,8 @@ mv_biomass_search = select(
     func.coalesce(resource_metrics.c.has_fermentation, False).label("has_fermentation"),
     func.coalesce(resource_metrics.c.has_gasification, False).label("has_gasification"),
     func.coalesce(resource_metrics.c.has_pretreatment, False).label("has_pretreatment"),
-    case((resource_metrics.c.moisture_percent != None, True), else_=False).label("has_moisture_data"),
-    case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar_data"),
+    case((resource_metrics.c.moisture_percent != None, True), else_=False).label("has_moisture"),
+    case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar"),
     case((ResourceMorphology.morphology_uri != None, True), else_=False).label("has_image"),
     case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
     Resource.created_at,
@@ -253,7 +273,10 @@ mv_biomass_search = select(
  .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
  .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
  .outerjoin(resource_tags, resource_tags.c.resource_id == Resource.id)\
- .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)
+ .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)\
+ .outerjoin(storage_notes, storage_notes.c.resource_id == Resource.id)\
+ .outerjoin(transport_notes, transport_notes.c.resource_id == Resource.id)\
+ .where(Resource.name != "Sargassum")
 
 
 # 2. mv_biomass_composition
@@ -307,29 +330,62 @@ mv_biomass_composition = select(
 
 # 3. mv_biomass_county_production
 EU = aliased(Unit, name="eu")
-mv_biomass_county_production = select(
-    func.row_number().over(order_by=(BillionTon2023Record.resource_id, Place.geoid, BillionTon2023Record.scenario_name, BillionTon2023Record.price_offered_usd)).label("id"),
+production_volume = select(
     BillionTon2023Record.resource_id,
+    BillionTon2023Record.geoid,
+    func.avg(BillionTon2023Record.production).label("production"),
+    func.max(Unit.name).label("production_unit"),
+    func.avg(BillionTon2023Record.production_energy_content).label("energy_content"),
+    func.max(EU.name).label("energy_unit"),
+    func.avg(BillionTon2023Record.product_density_dtpersqmi).label("density_dt_per_sqmi"),
+    func.avg(BillionTon2023Record.county_square_miles).label("county_square_miles"),
+).select_from(BillionTon2023Record)\
+ .outerjoin(Unit, BillionTon2023Record.production_unit_id == Unit.id)\
+ .outerjoin(EU, BillionTon2023Record.energy_content_unit_id == EU.id)\
+ .group_by(BillionTon2023Record.resource_id, BillionTon2023Record.geoid).subquery()
+
+mv_biomass_county_production = select(
+    ResourceProductionRecord.resource_id,
     Resource.name.label("resource_name"),
     ResourceClass.name.label("resource_class"),
     Place.geoid,
     Place.county_name.label("county"),
     Place.state_name.label("state"),
-    BillionTon2023Record.scenario_name.label("scenario"),
-    BillionTon2023Record.price_offered_usd,
-    BillionTon2023Record.production,
-    Unit.name.label("production_unit"),
-    BillionTon2023Record.production_energy_content.label("energy_content"),
-    EU.name.label("energy_unit"),
-    BillionTon2023Record.product_density_dtpersqmi.label("density_dt_per_sqmi"),
-    BillionTon2023Record.county_square_miles,
-    literal(2023).label("year")
-).select_from(BillionTon2023Record)\
- .join(Resource, BillionTon2023Record.resource_id == Resource.id)\
+    func.max(ResourceProductionRecord.report_date).label("report_date"),
+    production_volume.c.production.label("production"),
+    production_volume.c.production_unit.label("production_unit"),
+    production_volume.c.energy_content.label("production_energy_content"),
+    production_volume.c.energy_unit,
+    production_volume.c.energy_content.label("btu_ton"),
+    production_volume.c.density_dt_per_sqmi.label("product_density_dtpersqmi"),
+    production_volume.c.county_square_miles,
+    func.extract("year", func.max(ResourceProductionRecord.report_date)).label("year"),
+).select_from(ResourceProductionRecord)\
+ .join(Resource, ResourceProductionRecord.resource_id == Resource.id)\
  .outerjoin(ResourceClass, Resource.resource_class_id == ResourceClass.id)\
- .join(Place, BillionTon2023Record.geoid == Place.geoid)\
- .outerjoin(Unit, BillionTon2023Record.production_unit_id == Unit.id)\
- .outerjoin(EU, BillionTon2023Record.energy_content_unit_id == EU.id)
+ .join(Place, ResourceProductionRecord.geoid == Place.geoid)\
+ .outerjoin(
+    production_volume,
+    and_(
+        production_volume.c.resource_id == ResourceProductionRecord.resource_id,
+        production_volume.c.geoid == ResourceProductionRecord.geoid,
+    ),
+ )\
+ .where(ResourceProductionRecord.resource_id.is_not(None))\
+ .group_by(
+    ResourceProductionRecord.resource_id,
+    Resource.name,
+    ResourceClass.name,
+    Place.geoid,
+    Place.county_name,
+    Place.state_name,
+    production_volume.c.production,
+    production_volume.c.production_unit,
+    production_volume.c.energy_content,
+    production_volume.c.energy_unit,
+    production_volume.c.density_dt_per_sqmi,
+    production_volume.c.county_square_miles,
+ )
 
 
 
@@ -431,40 +487,143 @@ mv_biomass_gasification = select(
 
 
 # 8. mv_biomass_pricing
-# Aggregating market pricing from USDA survey data
+pricing_resource = func.coalesce(
+    func.lower(PrimaryAgProduct.name),
+    func.lower(Resource.name),
+    literal("unknown"),
+)
+
 pricing_obs = select(
     Observation.record_id,
-    func.avg(Observation.value).label("price_avg"),
-    func.min(Observation.value).label("price_min"),
-    func.max(Observation.value).label("price_max"),
-    Unit.name.label("price_unit")
-).join(Parameter, Observation.parameter_id == Parameter.id)\
+    func.avg(
+        case(
+            (
+                func.lower(Parameter.name).in_(["price", "price received"]),
+                Observation.value,
+            )
+        )
+    ).label("price"),
+    func.max(
+        case(
+            (
+                func.lower(Parameter.name).in_(["price", "price received"]),
+                Unit.name,
+            )
+        )
+    ).label("price_unit"),
+).select_from(Observation)\
+ .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
- .where(and_(Observation.record_type == "usda_market_record", func.lower(Parameter.name) == "price received"))\
- .group_by(Observation.record_id, Unit.name).subquery()
+ .where(func.lower(Observation.record_type) == "resource_price_record")\
+ .group_by(Observation.record_id).subquery()
 
 mv_biomass_pricing = select(
-    func.row_number().over(order_by=UsdaMarketRecord.id).label("id"),
-    UsdaCommodity.name.label("commodity_name"),
-    Place.geoid,
+    func.row_number().over(
+        order_by=(
+            pricing_resource,
+            Place.geoid,
+            ResourcePriceRecord.report_start_date,
+            ResourcePriceRecord.report_end_date,
+            func.coalesce(DataSource.name, literal("resource_price_record")),
+        )
+    ).label("id"),
+    pricing_resource.label("resource"),
     Place.county_name.label("county"),
-    Place.state_name.label("state"),
-    UsdaMarketRecord.report_date,
-    UsdaMarketRecord.market_type_category,
-    UsdaMarketRecord.sale_type,
-    pricing_obs.c.price_min,
-    pricing_obs.c.price_max,
-    pricing_obs.c.price_avg,
-    pricing_obs.c.price_unit
-).select_from(UsdaMarketRecord)\
- .join(UsdaMarketReport, UsdaMarketRecord.report_id == UsdaMarketReport.id)\
- .join(UsdaCommodity, UsdaMarketRecord.commodity_id == UsdaCommodity.id)\
- .outerjoin(LocationAddress, UsdaMarketReport.office_city_id == LocationAddress.id)\
- .outerjoin(Place, LocationAddress.geography_id == Place.geoid)\
- .join(pricing_obs, cast(UsdaMarketRecord.id, String) == pricing_obs.c.record_id)
+    Place.geoid,
+    func.coalesce(DataSource.name, literal("resource_price_record")).label("report_source"),
+    func.min(ResourcePriceRecord.report_start_date).label("report_start_date"),
+    func.max(ResourcePriceRecord.report_end_date).label("report_end_date"),
+    cast(func.avg(pricing_obs.c.price), Float).label("price"),
+    func.max(pricing_obs.c.price_unit).label("price_unit"),
+).select_from(ResourcePriceRecord)\
+ .outerjoin(Resource, ResourcePriceRecord.resource_id == Resource.id)\
+ .outerjoin(PrimaryAgProduct, ResourcePriceRecord.primary_ag_product_id == PrimaryAgProduct.id)\
+ .outerjoin(DataSource, ResourcePriceRecord.source_id == DataSource.id)\
+ .outerjoin(pricing_obs, cast(ResourcePriceRecord.id, String) == pricing_obs.c.record_id)\
+ .outerjoin(Place, ResourcePriceRecord.geoid == Place.geoid)\
+ .group_by(
+    pricing_resource,
+    Place.county_name,
+    Place.geoid,
+    func.coalesce(DataSource.name, literal("resource_price_record")),
+    ResourcePriceRecord.report_start_date,
+    ResourcePriceRecord.report_end_date,
+ )
 
 
-# 9. mv_usda_county_production
+# 9. mv_biomass_end_uses
+end_use_obs = select(
+    Observation.record_id,
+    func.avg(
+        case(
+            (
+                func.lower(Parameter.name).in_(
+                    [
+                        "percent of volume",
+                        "percent_of_volume",
+                        "percentage of volume",
+                        "volume percent",
+                    ]
+                ),
+                Observation.value,
+            )
+        )
+    ).label("percent_of_volume"),
+    func.max(
+        case(
+            (
+                func.lower(Parameter.name).in_(
+                    [
+                        "percent of volume",
+                        "percent_of_volume",
+                        "percentage of volume",
+                        "volume percent",
+                    ]
+                ),
+                Unit.name,
+            )
+        )
+    ).label("unit"),
+    func.max(
+        case(
+            (
+                func.lower(Parameter.name) == "trending",
+                cast(Observation.value, String),
+            )
+        )
+    ).label("trending"),
+).select_from(Observation)\
+ .join(Parameter, Observation.parameter_id == Parameter.id)\
+ .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .where(func.lower(Observation.record_type) == "resource_end_use_record")\
+ .group_by(Observation.record_id).subquery()
+
+mv_biomass_end_uses = select(
+    ResourceEndUseRecord.resource_id,
+    Resource.name.label("resource_name"),
+    Place.county_name.label("county"),
+    func.coalesce(Method.name, literal("unknown")).label("use_case"),
+    cast(end_use_obs.c.percent_of_volume, Float).label("percent_of_volume"),
+    end_use_obs.c.unit,
+    end_use_obs.c.trending,
+).select_from(ResourceEndUseRecord)\
+ .join(Resource, ResourceEndUseRecord.resource_id == Resource.id)\
+ .outerjoin(Place, ResourceEndUseRecord.geoid == Place.geoid)\
+ .outerjoin(Method, ResourceEndUseRecord.method_id == Method.id)\
+ .outerjoin(end_use_obs, cast(ResourceEndUseRecord.id, String) == end_use_obs.c.record_id)\
+ .where(ResourceEndUseRecord.resource_id.is_not(None))\
+ .group_by(
+    ResourceEndUseRecord.resource_id,
+    Resource.name,
+    Place.county_name,
+    func.coalesce(Method.name, literal("unknown")),
+    end_use_obs.c.percent_of_volume,
+    end_use_obs.c.unit,
+    end_use_obs.c.trending,
+ )
+
+
+# 10. mv_usda_county_production
 # Bridging USDA Census data with BioCirV Resources and residue factors
 census_obs = select(
     Observation.record_id,
@@ -516,5 +675,4 @@ mv_usda_county_production = select(
  .join(Place, UsdaCensusRecord.geoid == Place.geoid)\
  .join(census_obs, cast(UsdaCensusRecord.id, String) == census_obs.c.record_id)\
  .outerjoin(ra_fallback, Resource.id == ra_fallback.c.resource_id)\
- .where(UsdaCensusRecord.year == 2022)\
  .group_by(Resource.id, Resource.name, PrimaryAgProduct.name, Place.geoid, Place.county_name, Place.state_name, UsdaCensusRecord.year)

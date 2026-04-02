@@ -417,6 +417,7 @@ def refresh_all_views(engine):
             "mv_biomass_fermentation",
             "mv_biomass_gasification",
             "mv_biomass_pricing",
+            "mv_biomass_end_uses",
         ]
         for view_name in data_portal_views:
             conn.execute(text(f"REFRESH MATERIALIZED VIEW CONCURRENTLY data_portal.{view_name}"))
