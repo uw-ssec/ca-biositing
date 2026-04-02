@@ -191,10 +191,10 @@ guidelines (branching, PRs, commit style, pre-commit setup).
 Each namespace package also has its own contributing guide with
 component-specific details:
 
-- [`docs/datamodels/CONTRIBUTING.md`](docs/datamodels/CONTRIBUTING.md) --
-  Data models and database schema
-- [`docs/pipeline/CONTRIBUTING.md`](docs/pipeline/CONTRIBUTING.md) --
-  ETL pipeline and Prefect workflows
+- [`docs/datamodels/CONTRIBUTING.md`](docs/datamodels/CONTRIBUTING.md) -- Data
+  models and database schema
+- [`docs/pipeline/CONTRIBUTING.md`](docs/pipeline/CONTRIBUTING.md) -- ETL
+  pipeline and Prefect workflows
 - [`docs/webservice/CONTRIBUTING.md`](docs/webservice/CONTRIBUTING.md) --
   FastAPI web service
 
