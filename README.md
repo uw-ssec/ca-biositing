@@ -185,12 +185,18 @@ pixi run -e docs docs-serve
 
 ## Contributing
 
-See the development guides in the documentation for details on:
+See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) for general contribution
+guidelines (branching, PRs, commit style, pre-commit setup).
 
-- [Docker Workflow](pipeline/DOCKER_WORKFLOW.md)
-- [Prefect Workflow](pipeline/PREFECT_WORKFLOW.md)
-- [ETL Development](pipeline/ETL_WORKFLOW.md)
-- [Database Migrations](pipeline/ALEMBIC_WORKFLOW.md)
+Each namespace package also has its own contributing guide with
+component-specific details:
+
+- [`docs/datamodels/CONTRIBUTING.md`](docs/datamodels/CONTRIBUTING.md) -- Data
+  models and database schema
+- [`docs/pipeline/CONTRIBUTING.md`](docs/pipeline/CONTRIBUTING.md) -- ETL
+  pipeline and Prefect workflows
+- [`docs/webservice/CONTRIBUTING.md`](docs/webservice/CONTRIBUTING.md) --
+  FastAPI web service
 
 ## License
 
