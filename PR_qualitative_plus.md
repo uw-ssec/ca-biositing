@@ -35,6 +35,7 @@ This branch implements the qualitative-plus schema and materialized-view work fo
 - Current local data contains rows for mv_usda_county_production.
 - mv_biomass_search contains rows in the local test DB.
 - mv_biomass_pricing and mv_biomass_end_uses currently return zero rows in the local DB because their source record tables are empty there; this is expected and not a SQL error.
+- Validated after a service restart, but not after tearing down service volumes and rebuilding from scratch.
 
 ### Quick inspection queries
 - SELECT version_num FROM alembic_version;
