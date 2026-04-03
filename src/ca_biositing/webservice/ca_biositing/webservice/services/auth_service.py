@@ -164,6 +164,7 @@ def check_and_increment_rate_limit(session: Session, api_key: ApiKey) -> bool:
         locked_key.rate_window_count = 1
     else:
         if locked_key.rate_window_count >= locked_key.rate_limit_per_minute:
+            session.rollback()
             return False
         locked_key.rate_window_count += 1
 
