@@ -29,9 +29,15 @@ class ApiKey(SQLModel, table=True):
     key_hash: str = Field(nullable=False, unique=True)
     is_active: bool = Field(default=True, nullable=False)
     rate_limit_per_minute: int = Field(default=60, nullable=False)
-    rate_window_start: Optional[datetime] = Field(default=None)
+    rate_window_start: Optional[datetime] = Field(
+        default=None,
+        sa_column=sa.Column(sa.DateTime(timezone=True), nullable=True),
+    )
     rate_window_count: int = Field(default=0, nullable=False)
-    last_used_at: Optional[datetime] = Field(default=None)
+    last_used_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=sa.Column(sa.DateTime(timezone=True), nullable=True),
+    )
     created_at: Optional[datetime] = Field(
         default=None,
         sa_column_kwargs={"server_default": sa.text("CURRENT_TIMESTAMP")},
