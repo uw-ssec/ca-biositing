@@ -2,16 +2,17 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest  | :white_check_mark: |
-| < latest| :x:                |
+| Version  | Supported          |
+| -------- | ------------------ |
+| latest   | :white_check_mark: |
+| < latest | :x:                |
 
 Only the most recent release receives security updates.
 
 ## Reporting a Vulnerability
 
-**Please do not report security vulnerabilities through public GitHub issues, pull requests, or discussions.**
+**Please do not report security vulnerabilities through public GitHub issues,
+pull requests, or discussions.**
 
 Instead, please use one of the following channels:
 
