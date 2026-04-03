@@ -42,7 +42,7 @@ authors:
     orcid: "https://orcid.org/0000-0001-8480-9306"
   - given-names: Peter
     family-names: Smith
-    affiliation: Lawrence Berkeley National Laboratory
+    affiliation: University of California, Berkeley
     orcid: "https://orcid.org/0000-0002-9276-5099"
   - given-names: Tyler
     family-names: Huntington
@@ -50,6 +50,7 @@ authors:
     orcid: "https://orcid.org/0000-0002-3213-0382"
   - given-names: Avi
     family-names: Wong
+    affiliation: University of California, Berkeley
     orcid: "https://orcid.org/0009-0008-2025-6122"
 keywords:
   - bioeconomy
