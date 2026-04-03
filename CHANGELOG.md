@@ -8,5 +8,4 @@ scheme `YYYY.M.D`.
 
 ## [Unreleased]
 
-[Unreleased]:
-  https://github.com/sustainability-software-lab/ca-biositing/compare/HEAD...HEAD
+[Unreleased]: https://github.com/sustainability-software-lab/ca-biositing/commits/main
