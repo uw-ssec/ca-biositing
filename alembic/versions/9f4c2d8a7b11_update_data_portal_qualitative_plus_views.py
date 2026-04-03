@@ -12,10 +12,10 @@ import sqlalchemy as sa
 from alembic import op
 
 from ca_biositing.datamodels.data_portal_views import (
-    mv_biomass_county_production,
     mv_biomass_end_uses,
     mv_biomass_pricing,
     mv_biomass_search,
+    mv_usda_county_production,
 )
 
 # revision identifiers, used by Alembic.
@@ -40,14 +40,14 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.execute(f"CREATE SCHEMA IF NOT EXISTS {DATA_PORTAL_SCHEMA}")
 
-    # Existing views to replace with updated definitions
-    op.execute(
-        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_search CASCADE"
-    )
     op.execute(
         f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_county_production CASCADE"
     )
 
+    # Existing views to replace with updated definitions
+    op.execute(
+        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_search CASCADE"
+    )
     # Pricing may already exist from prior migrations; we recreate from contract definition
     op.execute(
         f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_pricing CASCADE"
@@ -57,27 +57,30 @@ def upgrade() -> None:
     op.execute(
         f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_end_uses CASCADE"
     )
+    op.execute(
+        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_usda_county_production CASCADE"
+    )
 
     _create_mv("mv_biomass_search", mv_biomass_search)
-    _create_mv("mv_biomass_county_production", mv_biomass_county_production)
     _create_mv("mv_biomass_pricing", mv_biomass_pricing)
     _create_mv("mv_biomass_end_uses", mv_biomass_end_uses)
+    _create_mv("mv_usda_county_production", mv_usda_county_production)
 
     op.execute(
         f"CREATE UNIQUE INDEX idx_mv_biomass_search_id "
         f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_search (id)"
     )
     op.execute(
-        f"CREATE UNIQUE INDEX idx_mv_biomass_county_production_key "
-        f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_county_production (resource_id, geoid)"
-    )
-    op.execute(
         f"CREATE UNIQUE INDEX idx_mv_biomass_pricing_key "
-        f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_pricing (resource, geoid, report_source, report_start_date, report_end_date)"
+        f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_pricing (commodity_name, county, geoid, report_date)"
     )
     op.execute(
         f"CREATE UNIQUE INDEX idx_mv_biomass_end_uses_key "
-        f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_end_uses (resource_id, county, use_case)"
+        f"ON {DATA_PORTAL_SCHEMA}.mv_biomass_end_uses (resource_id, use_case)"
+    )
+    op.execute(
+        f"CREATE UNIQUE INDEX idx_mv_usda_county_production_id "
+        f"ON {DATA_PORTAL_SCHEMA}.mv_usda_county_production (id)"
     )
 
 
@@ -90,8 +93,8 @@ def downgrade() -> None:
         f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_pricing CASCADE"
     )
     op.execute(
-        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_county_production CASCADE"
+        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_search CASCADE"
     )
     op.execute(
-        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_biomass_search CASCADE"
+        f"DROP MATERIALIZED VIEW IF EXISTS {DATA_PORTAL_SCHEMA}.mv_usda_county_production CASCADE"
     )
