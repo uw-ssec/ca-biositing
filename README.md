@@ -10,9 +10,9 @@
 CA-BioSiting is the backend data platform for
 [Cal BioScape](https://calbioscape.org), a web-based tool supporting the
 development of a circular bioeconomy in California's Northern San Joaquin Valley
-(San Joaquin, Stanislaus, and Merced counties). The platform is a part of
-the [BioCircular Valley](https://calbioscape.org/about) initiative,
-a multi-institutional collaboration involving Lawrence Berkeley National
+(San Joaquin, Stanislaus, and Merced counties). The platform is a part of the
+[BioCircular Valley](https://calbioscape.org/about) initiative, a
+multi-institutional collaboration involving Lawrence Berkeley National
 Laboratory, UC Berkeley, UC Merced, UC Agriculture and Natural Resources, USDA
 Albany Agricultural Research Station, the Almond Board of California, and BEAM
 Circular. The initiative is funded through Schmidt Sciences' Virtual Institute
@@ -199,9 +199,10 @@ component-specific details:
 
 ## Acknowledgement
 
-We'd like to acknowledge the software engineering efforts from the 
+We'd like to acknowledge the software engineering efforts from the
 [University of Washington Scientific Software Engineering Center (SSEC)](https://escience.washington.edu/software-engineering/ssec/),
-as part of the [Schmidt Sciences' Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/viss/).
+as part of the
+[Schmidt Sciences' Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/viss/).
 
 ## License
 
