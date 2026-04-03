@@ -8,14 +8,18 @@ from __future__ import annotations
 
 from typing import Annotated, Optional
 
-from fastapi import Depends, HTTPException, Query, Request, status
+from fastapi import Depends, Header, HTTPException, Query, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 
 from ca_biositing.datamodels.database import get_session
-from ca_biositing.datamodels.models import ApiUser
+from ca_biositing.datamodels.models import ApiKey, ApiUser
 from ca_biositing.webservice.config import config
-from ca_biositing.webservice.services.auth_service import decode_access_token
+from ca_biositing.webservice.services.auth_service import (
+    check_and_increment_rate_limit,
+    decode_access_token,
+    validate_api_key,
+)
 
 
 # Database session dependency
@@ -42,11 +46,17 @@ def get_current_user(
     token: Annotated[Optional[str], Depends(oauth2_scheme)],
     request: Request,
     session: SessionDep,
+    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
 ) -> ApiUser:
-    """Resolve the current authenticated user from Bearer token or HTTP-only cookie.
+    """Resolve the current authenticated user.
 
-    Checks the Authorization: Bearer header first; if absent, falls back to the
-    access_token cookie. Raises 401 if no valid token is found or the user is disabled.
+    Auth check order:
+    1. Authorization: Bearer <jwt> header
+    2. access_token HTTP-only cookie
+    3. X-API-Key header (per-client API key with rate limiting)
+
+    Raises 401 if no valid credential is found or the user is disabled.
+    Raises 429 if the API key's rate limit is exceeded.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -54,28 +64,43 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    # Prefer Bearer header; fall back to cookie
+    # --- Path 1 & 2: JWT (Bearer header or cookie) ---
     resolved_token: Optional[str] = token or request.cookies.get("access_token")
-    if not resolved_token:
-        raise credentials_exception
-
-    username = decode_access_token(
-        resolved_token,
-        config.jwt_secret_key,
-        config.jwt_algorithm,
-    )
-    if not username:
-        raise credentials_exception
-
-    user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
-    if user is None:
-        raise credentials_exception
-    if user.disabled:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is disabled",
+    if resolved_token:
+        username = decode_access_token(
+            resolved_token,
+            config.jwt_secret_key,
+            config.jwt_algorithm,
         )
-    return user
+        if not username:
+            raise credentials_exception
+        user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
+        if user is None:
+            raise credentials_exception
+        if user.disabled:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User account is disabled",
+            )
+        return user
+
+    # --- Path 3: X-API-Key header ---
+    if x_api_key:
+        api_key = validate_api_key(session, x_api_key)
+        if not api_key:
+            raise credentials_exception
+        user = session.exec(select(ApiUser).where(ApiUser.id == api_key.api_user_id)).first()
+        if user is None or user.disabled:
+            raise credentials_exception
+        if not check_and_increment_rate_limit(session, api_key):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded",
+                headers={"Retry-After": "60"},
+            )
+        return user
+
+    raise credentials_exception
 
 
 # Typed dependency aliases

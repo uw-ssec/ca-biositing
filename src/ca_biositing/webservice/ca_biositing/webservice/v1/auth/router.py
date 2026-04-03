@@ -8,16 +8,26 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
+from typing import List
 
-from ca_biositing.datamodels.models import ApiUser
+from ca_biositing.datamodels.models import ApiKey, ApiUser
 from ca_biositing.webservice.config import config
 from ca_biositing.webservice.dependencies import AdminUserDep, CurrentUserDep, SessionDep
 from ca_biositing.webservice.services.auth_service import (
     authenticate_user,
     create_access_token,
+    generate_api_key,
     get_password_hash,
 )
-from ca_biositing.webservice.v1.auth.schemas import Token, UserCreate, UserResponse
+from ca_biositing.webservice.v1.auth.schemas import (
+    ApiKeyCreate,
+    ApiKeyCreateResponse,
+    ApiKeyResponse,
+    ApiKeyUpdate,
+    Token,
+    UserCreate,
+    UserResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -142,3 +152,117 @@ def logout(response: Response) -> dict:
     """
     response.delete_cookie(key="access_token", path="/")
     return {"message": "Logged out"}
+
+
+# --- API Key management (admin-only) ---
+
+
+@router.post("/api-keys", response_model=ApiKeyCreateResponse, status_code=status.HTTP_201_CREATED)
+def create_api_key(
+    key_create: ApiKeyCreate,
+    session: SessionDep,
+    _admin: AdminUserDep,
+) -> ApiKeyCreateResponse:
+    """Create a new per-client API key. Requires admin privileges.
+
+    The raw key is returned exactly once in this response and is never stored.
+    Store it securely (e.g. GCP Secret Manager) immediately.
+    """
+    owner = session.exec(select(ApiUser).where(ApiUser.id == key_create.api_user_id)).first()
+    if owner is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"ApiUser {key_create.api_user_id} not found",
+        )
+
+    raw_key, prefix, hashed = generate_api_key()
+    new_key = ApiKey(
+        api_user_id=key_create.api_user_id,
+        name=key_create.name,
+        key_prefix=prefix,
+        key_hash=hashed,
+        rate_limit_per_minute=key_create.rate_limit_per_minute,
+    )
+    session.add(new_key)
+    session.commit()
+    session.refresh(new_key)
+
+    return ApiKeyCreateResponse(
+        id=new_key.id,
+        name=new_key.name,
+        key_prefix=new_key.key_prefix,
+        raw_key=raw_key,
+        rate_limit_per_minute=new_key.rate_limit_per_minute,
+        created_at=new_key.created_at,
+    )
+
+
+@router.get("/api-keys", response_model=List[ApiKeyResponse])
+def list_api_keys(
+    session: SessionDep,
+    _admin: AdminUserDep,
+) -> List[ApiKeyResponse]:
+    """List all API keys. Requires admin privileges.
+
+    Returns prefix and metadata only — never the hash or raw key.
+    """
+    keys = session.exec(select(ApiKey)).all()
+    return [
+        ApiKeyResponse(
+            id=k.id,
+            name=k.name,
+            key_prefix=k.key_prefix,
+            api_user_id=k.api_user_id,
+            is_active=k.is_active,
+            rate_limit_per_minute=k.rate_limit_per_minute,
+            last_used_at=k.last_used_at,
+            created_at=k.created_at,
+        )
+        for k in keys
+    ]
+
+
+@router.delete("/api-keys/{key_id}")
+def revoke_api_key(
+    key_id: int,
+    session: SessionDep,
+    _admin: AdminUserDep,
+) -> dict:
+    """Revoke an API key by setting is_active=False. Requires admin privileges."""
+    key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
+    if key is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
+    key.is_active = False
+    session.add(key)
+    session.commit()
+    return {"message": "API key revoked"}
+
+
+@router.patch("/api-keys/{key_id}", response_model=ApiKeyResponse)
+def update_api_key(
+    key_id: int,
+    update: ApiKeyUpdate,
+    session: SessionDep,
+    _admin: AdminUserDep,
+) -> ApiKeyResponse:
+    """Update a key's name or rate limit. Requires admin privileges."""
+    key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
+    if key is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
+    if update.name is not None:
+        key.name = update.name
+    if update.rate_limit_per_minute is not None:
+        key.rate_limit_per_minute = update.rate_limit_per_minute
+    session.add(key)
+    session.commit()
+    session.refresh(key)
+    return ApiKeyResponse(
+        id=key.id,
+        name=key.name,
+        key_prefix=key.key_prefix,
+        api_user_id=key.api_user_id,
+        is_active=key.is_active,
+        rate_limit_per_minute=key.rate_limit_per_minute,
+        last_used_at=key.last_used_at,
+        created_at=key.created_at,
+    )

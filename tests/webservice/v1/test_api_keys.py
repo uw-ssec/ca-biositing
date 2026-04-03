@@ -1,0 +1,374 @@
+"""Tests for per-client API key endpoints and X-API-Key authentication.
+
+Covers:
+- POST /v1/auth/api-keys — admin creates key, raw key returned once
+- GET /v1/auth/api-keys — list returns prefix only, not hash
+- DELETE /v1/auth/api-keys/{id} — revocation blocks further use
+- PATCH /v1/auth/api-keys/{id} — name/rate_limit update
+- Feedstock endpoint authenticated via X-API-Key header (200)
+- Invalid / revoked X-API-Key returns 401
+- Rate limit enforcement returns 429
+"""
+
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.pool import StaticPool
+from sqlmodel import Session, create_engine, select
+
+from ca_biositing.datamodels.database import get_session
+from ca_biositing.datamodels.models import ApiKey, ApiUser
+from ca_biositing.webservice.main import app
+from ca_biositing.webservice.services.auth_service import generate_api_key, get_password_hash
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(name="key_engine", scope="function")
+def key_engine_fixture():
+    """In-memory SQLite engine with ApiUser and ApiKey tables."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        echo=False,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    with engine.begin() as conn:
+        ApiUser.__table__.create(conn, checkfirst=True)
+        ApiKey.__table__.create(conn, checkfirst=True)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture(name="key_session", scope="function")
+def key_session_fixture(key_engine):
+    """A single SQLModel Session shared across all requests in a test.
+
+    Sharing one session ensures that writes committed in one request are
+    immediately visible to subsequent reads in the same test, working around
+    SQLite in-memory StaticPool transaction-isolation quirks.
+    """
+    session = Session(key_engine)
+    yield session
+    session.close()
+
+
+@pytest.fixture(name="key_client", scope="function")
+def key_client_fixture(key_session):
+    """TestClient that pins all requests to the same DB session.
+
+    Each request gets the same session, but any uncommitted state left open
+    after the handler returns (e.g., from list endpoints that SELECT without
+    committing) is rolled back before the next request. This ensures each
+    request starts with a clean transaction while preserving committed writes.
+    """
+    def override_get_session():
+        try:
+            yield key_session
+        finally:
+            # Roll back any open transaction left by the handler so the next
+            # request starts fresh.  If the handler committed, this is a no-op.
+            try:
+                key_session.rollback()
+            except Exception:
+                pass
+
+    app.dependency_overrides[get_session] = override_get_session
+    client = TestClient(app, raise_server_exceptions=False)
+    yield client
+    app.dependency_overrides.pop(get_session, None)
+
+
+@pytest.fixture(name="admin_user", scope="function")
+def admin_user_fixture(key_session) -> ApiUser:
+    user = ApiUser(
+        username="admin",
+        hashed_password=get_password_hash("adminpass"),
+        email="admin@test.com",
+        is_admin=True,
+        disabled=False,
+    )
+    key_session.add(user)
+    key_session.commit()
+    key_session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="regular_user", scope="function")
+def regular_user_fixture(key_session) -> ApiUser:
+    user = ApiUser(
+        username="user",
+        hashed_password=get_password_hash("userpass"),
+        email="user@test.com",
+        is_admin=False,
+        disabled=False,
+    )
+    key_session.add(user)
+    key_session.commit()
+    key_session.refresh(user)
+    return user
+
+
+@pytest.fixture(name="admin_token", scope="function")
+def admin_token_fixture(key_client, admin_user) -> str:
+    resp = key_client.post(
+        "/v1/auth/token",
+        data={"username": "admin", "password": "adminpass"},
+    )
+    assert resp.status_code == 200
+    return resp.json()["access_token"]
+
+
+@pytest.fixture(name="user_token", scope="function")
+def user_token_fixture(key_client, regular_user) -> str:
+    resp = key_client.post(
+        "/v1/auth/token",
+        data={"username": "user", "password": "userpass"},
+    )
+    assert resp.status_code == 200
+    return resp.json()["access_token"]
+
+
+# ---------------------------------------------------------------------------
+# Test classes
+# ---------------------------------------------------------------------------
+
+
+class TestCreateApiKey:
+    """POST /v1/auth/api-keys"""
+
+    def test_admin_creates_key_returns_raw_key_once(self, key_client, admin_token, admin_user):
+        resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={
+                "name": "test-key",
+                "api_user_id": admin_user.id,
+                "rate_limit_per_minute": 60,
+            },
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert "raw_key" in body
+        assert "key_prefix" in body
+        assert body["raw_key"].startswith(body["key_prefix"])
+        assert "id" in body
+
+    def test_non_admin_cannot_create_key(self, key_client, user_token, admin_user):
+        resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={
+                "name": "should-fail",
+                "api_user_id": admin_user.id,
+                "rate_limit_per_minute": 60,
+            },
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert resp.status_code == 403
+
+    def test_unknown_user_id_returns_404(self, key_client, admin_token):
+        resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "test", "api_user_id": 99999, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 404
+
+
+class TestListApiKeys:
+    """GET /v1/auth/api-keys"""
+
+    def test_list_returns_prefix_not_hash(self, key_client, admin_token, admin_user):
+        # Create a key first
+        key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "my-key", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 200
+        keys = resp.json()
+        assert len(keys) >= 1
+        for k in keys:
+            assert "key_prefix" in k
+            assert "key_hash" not in k
+            assert "raw_key" not in k
+
+    def test_non_admin_cannot_list(self, key_client, user_token):
+        resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert resp.status_code == 403
+
+
+class TestRevokeApiKey:
+    """DELETE /v1/auth/api-keys/{id}"""
+
+    def test_revoke_key_prevents_authentication(self, key_client, admin_token, admin_user):
+        # Create key
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "revoke-me", "api_user_id": admin_user.id, "rate_limit_per_minute": 0},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert create_resp.status_code == 201
+        key_id = create_resp.json()["id"]
+        raw_key = create_resp.json()["raw_key"]
+
+        # Revoke
+        del_resp = key_client.delete(
+            f"/v1/auth/api-keys/{key_id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert del_resp.status_code == 200
+
+        # Clear the login cookie so only X-API-Key is available for auth.
+        key_client.cookies.clear()
+
+        # Revoked key must now return 401 — use an auth endpoint (no feedstock
+        # tables needed) so the response is unambiguously from the auth check.
+        auth_resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"X-API-Key": raw_key},
+        )
+        assert auth_resp.status_code == 401
+
+    def test_revoke_nonexistent_key_returns_404(self, key_client, admin_token, admin_user):
+        resp = key_client.delete(
+            "/v1/auth/api-keys/99999",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 404
+
+
+class TestUpdateApiKey:
+    """PATCH /v1/auth/api-keys/{id}"""
+
+    def test_update_name_and_rate_limit(self, key_client, admin_token, admin_user):
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "original-name", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        key_id = create_resp.json()["id"]
+
+        patch_resp = key_client.patch(
+            f"/v1/auth/api-keys/{key_id}",
+            json={"name": "updated-name", "rate_limit_per_minute": 120},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert patch_resp.status_code == 200
+        body = patch_resp.json()
+        assert body["name"] == "updated-name"
+        assert body["rate_limit_per_minute"] == 120
+
+    def test_partial_update_leaves_other_fields_unchanged(self, key_client, admin_token, admin_user):
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "stable-name", "api_user_id": admin_user.id, "rate_limit_per_minute": 30},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        key_id = create_resp.json()["id"]
+
+        patch_resp = key_client.patch(
+            f"/v1/auth/api-keys/{key_id}",
+            json={"rate_limit_per_minute": 90},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert patch_resp.status_code == 200
+        body = patch_resp.json()
+        assert body["name"] == "stable-name"
+        assert body["rate_limit_per_minute"] == 90
+
+
+class TestApiKeyAuthentication:
+    """X-API-Key header authentication on protected endpoints."""
+
+    def test_valid_api_key_grants_access(self, key_client, admin_token, admin_user):
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "frontend", "api_user_id": admin_user.id, "rate_limit_per_minute": 0},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        raw_key = create_resp.json()["raw_key"]
+
+        # Clear login cookie so the request must authenticate via X-API-Key only.
+        key_client.cookies.clear()
+
+        # Use an auth endpoint so success/401 is clear (no feedstock tables in test DB).
+        resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"X-API-Key": raw_key},
+        )
+        assert resp.status_code == 200
+
+    def test_invalid_api_key_returns_401(self, key_client, admin_user):
+        resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"X-API-Key": "invalidkeyvalue12345"},
+        )
+        assert resp.status_code == 401
+
+    def test_no_credentials_returns_401(self, key_client, admin_user):
+        resp = key_client.get("/v1/auth/api-keys")
+        assert resp.status_code == 401
+
+
+class TestRateLimiting:
+    """Rate limiting via per-key sliding window."""
+
+    def test_exceeding_rate_limit_returns_429(self, key_client, admin_token, admin_user):
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "rate-limited", "api_user_id": admin_user.id, "rate_limit_per_minute": 3},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        raw_key = create_resp.json()["raw_key"]
+
+        # Clear login cookie so requests must authenticate via X-API-Key only.
+        key_client.cookies.clear()
+
+        # Use GET /v1/auth/api-keys — queries only the api_key table (present in
+        # test DB), so success vs 429 is unambiguous (no feedstock 500 noise).
+
+        # 3 allowed requests
+        for _ in range(3):
+            resp = key_client.get(
+                "/v1/auth/api-keys",
+                headers={"X-API-Key": raw_key},
+            )
+            assert resp.status_code != 429
+
+        # 4th request must be rate-limited
+        resp = key_client.get(
+            "/v1/auth/api-keys",
+            headers={"X-API-Key": raw_key},
+        )
+        assert resp.status_code == 429
+        assert "Retry-After" in resp.headers
+
+    def test_unlimited_key_never_rate_limited(self, key_client, admin_token, admin_user):
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "unlimited", "api_user_id": admin_user.id, "rate_limit_per_minute": 0},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        raw_key = create_resp.json()["raw_key"]
+
+        # Clear login cookie so requests must authenticate via X-API-Key only.
+        key_client.cookies.clear()
+
+        for _ in range(10):
+            resp = key_client.get(
+                "/v1/auth/api-keys",
+                headers={"X-API-Key": raw_key},
+            )
+            assert resp.status_code != 429
