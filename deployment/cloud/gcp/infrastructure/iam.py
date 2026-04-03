@@ -6,7 +6,7 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT, SA_WEBSERVICE, SA_PREFECT_SERVER, SA_PREFECT_WORKER, SA_MIGRATE, SA_OAUTH2_PROXY
+from config import GCP_PROJECT, SA_WEBSERVICE, SA_PREFECT_SERVER, SA_PREFECT_WORKER, SA_MIGRATE, SA_OAUTH2_PROXY, SA_FRONTEND
 
 
 @dataclass
@@ -23,8 +23,6 @@ SA_DEFINITIONS = [
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
-            "roles/storage.objectAdmin",
         ],
     ),
     (
@@ -43,7 +41,6 @@ SA_DEFINITIONS = [
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
             "roles/storage.objectAdmin",
         ],
     ),
@@ -54,13 +51,20 @@ SA_DEFINITIONS = [
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
         ],
     ),
     (
         "oauth2-proxy",
         SA_OAUTH2_PROXY,
         "OAuth2-Proxy Cloud Run SA",
+        [
+            "roles/secretmanager.secretAccessor",
+        ],
+    ),
+    (
+        "frontend",
+        SA_FRONTEND,
+        "Cal BioScape Frontend Cloud Run SA",
         [
             "roles/secretmanager.secretAccessor",
         ],
