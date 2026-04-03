@@ -141,18 +141,21 @@ def check_and_increment_rate_limit(session: Session, api_key: ApiKey) -> bool:
     Returns True if the request is allowed, False if the rate limit is exceeded.
     A rate_limit_per_minute of 0 means unlimited.
     """
-    if api_key.rate_limit_per_minute == 0:
-        # Still update last_used_at for unlimited keys
-        api_key.last_used_at = datetime.now(timezone.utc)
-        session.add(api_key)
-        session.commit()
-        return True
-
     now = datetime.now(timezone.utc)
     locked_key = session.exec(
-        select(ApiKey).where(ApiKey.id == api_key.id).with_for_update()
-    ).one()
+        select(ApiKey)
+        .where(ApiKey.id == api_key.id, ApiKey.is_active == True)
+        .with_for_update()
+    ).one_or_none()
+    if locked_key is None:
+        return False
 
+    if locked_key.rate_limit_per_minute == 0:
+        # Still update last_used_at for unlimited keys
+        locked_key.last_used_at = now
+        session.add(locked_key)
+        session.commit()
+        return True
     window_start = locked_key.rate_window_start
     # SQLite strips timezone info on round-trip; normalize to UTC if naive.
     if window_start is not None and window_start.tzinfo is None:
