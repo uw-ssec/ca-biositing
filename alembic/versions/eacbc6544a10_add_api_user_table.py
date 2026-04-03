@@ -1,7 +1,7 @@
 """Add api_user table
 
 Revision ID: eacbc6544a10
-Revises: 97a23076c0d9
+Revises: 60b08397200f
 Create Date: 2026-02-23 17:08:50.702155
 
 """
@@ -13,7 +13,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = 'eacbc6544a10'
-down_revision: Union[str, Sequence[str], None] = '97a23076c0d9'
+down_revision: Union[str, Sequence[str], None] = '60b08397200f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
