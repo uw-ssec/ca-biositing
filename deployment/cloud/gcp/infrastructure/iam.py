@@ -6,7 +6,15 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT, SA_WEBSERVICE, SA_PREFECT_SERVER, SA_PREFECT_WORKER, SA_MIGRATE, SA_OAUTH2_PROXY, SA_FRONTEND
+from config import (
+    GCP_PROJECT,
+    SA_WEBSERVICE,
+    SA_PREFECT_SERVER,
+    SA_PREFECT_WORKER,
+    SA_MIGRATE,
+    SA_OAUTH2_PROXY,
+    SA_FRONTEND,
+)
 
 
 @dataclass
