@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
-from typing import List
 
 from ca_biositing.datamodels.models import ApiKey, ApiUser
 from ca_biositing.webservice.config import config
@@ -28,6 +29,8 @@ from ca_biositing.webservice.v1.auth.schemas import (
     UserCreate,
     UserResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -154,7 +157,7 @@ def logout(response: Response) -> dict:
     return {"message": "Logged out"}
 
 
-# --- API Key management (admin-only) ---
+# --- API Key management (admin-only, JWT auth required) ---
 
 
 @router.post("/api-keys", response_model=ApiKeyCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -163,7 +166,7 @@ def create_api_key(
     session: SessionDep,
     _admin: AdminUserDep,
 ) -> ApiKeyCreateResponse:
-    """Create a new per-client API key. Requires admin privileges.
+    """Create a new per-client API key. Requires admin JWT authentication.
 
     The raw key is returned exactly once in this response and is never stored.
     Store it securely (e.g. GCP Secret Manager) immediately.
@@ -187,6 +190,13 @@ def create_api_key(
     session.commit()
     session.refresh(new_key)
 
+    logger.info(
+        "API key created: id=%s name=%r api_user_id=%s",
+        new_key.id,
+        new_key.name,
+        new_key.api_user_id,
+    )
+
     return ApiKeyCreateResponse(
         id=new_key.id,
         name=new_key.name,
@@ -201,12 +211,19 @@ def create_api_key(
 def list_api_keys(
     session: SessionDep,
     _admin: AdminUserDep,
+    api_user_id: Optional[int] = Query(default=None, description="Filter by owner user ID"),
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum keys to return"),
+    offset: int = Query(default=0, ge=0, description="Number of keys to skip"),
 ) -> List[ApiKeyResponse]:
-    """List all API keys. Requires admin privileges.
+    """List API keys. Requires admin JWT authentication.
 
     Returns prefix and metadata only — never the hash or raw key.
+    Supports optional filtering by api_user_id and pagination via limit/offset.
     """
-    keys = session.exec(select(ApiKey)).all()
+    stmt = select(ApiKey)
+    if api_user_id is not None:
+        stmt = stmt.where(ApiKey.api_user_id == api_user_id)
+    keys = session.exec(stmt.offset(offset).limit(limit)).all()
     return [
         ApiKeyResponse(
             id=k.id,
@@ -228,13 +245,14 @@ def revoke_api_key(
     session: SessionDep,
     _admin: AdminUserDep,
 ) -> dict:
-    """Revoke an API key by setting is_active=False. Requires admin privileges."""
+    """Revoke an API key by setting is_active=False. Requires admin JWT authentication."""
     key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
     if key is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
     key.is_active = False
     session.add(key)
     session.commit()
+    logger.info("API key revoked: id=%s name=%r", key.id, key.name)
     return {"message": "API key revoked"}
 
 
@@ -245,7 +263,7 @@ def update_api_key(
     session: SessionDep,
     _admin: AdminUserDep,
 ) -> ApiKeyResponse:
-    """Update a key's name or rate limit. Requires admin privileges."""
+    """Update a key's name or rate limit. Requires admin JWT authentication."""
     key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
     if key is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")

@@ -13,7 +13,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 
 from ca_biositing.datamodels.database import get_session
-from ca_biositing.datamodels.models import ApiKey, ApiUser
+from ca_biositing.datamodels.models import ApiUser
 from ca_biositing.webservice.config import config
 from ca_biositing.webservice.services.auth_service import (
     check_and_increment_rate_limit,
@@ -42,6 +42,56 @@ PaginationDep = Annotated[dict, Depends(pagination_params)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token", auto_error=False)
 
 
+def _resolve_jwt_user(token: Optional[str], request: Request, session: Session) -> Optional[ApiUser]:
+    """Shared helper: resolve a user from a JWT Bearer token or HTTP-only cookie.
+
+    Returns the ApiUser on success, or None if no valid JWT is present.
+    Raises 401 if a token is present but invalid/expired.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    resolved_token: Optional[str] = token or request.cookies.get("access_token")
+    if not resolved_token:
+        return None
+    username = decode_access_token(resolved_token, config.jwt_secret_key, config.jwt_algorithm)
+    if not username:
+        raise credentials_exception
+    user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
+    if user is None:
+        raise credentials_exception
+    if user.disabled:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account is disabled",
+        )
+    return user
+
+
+def get_jwt_user(
+    token: Annotated[Optional[str], Depends(oauth2_scheme)],
+    request: Request,
+    session: SessionDep,
+) -> ApiUser:
+    """JWT-only authentication (Bearer header or HTTP-only cookie).
+
+    Does NOT accept X-API-Key. Used for admin endpoints so that a leaked
+    API key can never access key-management operations.
+
+    Raises 401 if no valid JWT credential is present.
+    """
+    user = _resolve_jwt_user(token, request, session)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
 def get_current_user(
     token: Annotated[Optional[str], Depends(oauth2_scheme)],
     request: Request,
@@ -65,24 +115,9 @@ def get_current_user(
     )
 
     # --- Path 1 & 2: JWT (Bearer header or cookie) ---
-    resolved_token: Optional[str] = token or request.cookies.get("access_token")
-    if resolved_token:
-        username = decode_access_token(
-            resolved_token,
-            config.jwt_secret_key,
-            config.jwt_algorithm,
-        )
-        if not username:
-            raise credentials_exception
-        user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
-        if user is None:
-            raise credentials_exception
-        if user.disabled:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User account is disabled",
-            )
-        return user
+    jwt_user = _resolve_jwt_user(token, request, session)
+    if jwt_user is not None:
+        return jwt_user
 
     # --- Path 3: X-API-Key header ---
     if x_api_key:
@@ -105,10 +140,16 @@ def get_current_user(
 
 # Typed dependency aliases
 CurrentUserDep = Annotated[ApiUser, Depends(get_current_user)]
+JWTCurrentUserDep = Annotated[ApiUser, Depends(get_jwt_user)]
 
 
-def get_current_admin_user(current_user: CurrentUserDep) -> ApiUser:
-    """Require the current user to be an admin. Raises 403 otherwise."""
+def get_current_admin_user(current_user: JWTCurrentUserDep) -> ApiUser:
+    """Require the current user to be an admin, authenticated via JWT only.
+
+    API keys are intentionally excluded — a leaked key must not be able to
+    manage other keys even if the linked account has admin privileges.
+    Raises 403 if the user is not an admin.
+    """
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

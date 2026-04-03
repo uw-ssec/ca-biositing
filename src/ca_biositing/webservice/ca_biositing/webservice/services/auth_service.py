@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # Argon2 password hasher
 password_hash = PasswordHash.recommended()
 
-# Pre-computed dummy hash for constant-time comparison on missing users
+# Pre-computed dummy hash for constant-time comparison on missing users/keys
 DUMMY_HASH = password_hash.hash("dummy-password-for-timing-safety")
 
 
@@ -100,6 +100,7 @@ def decode_access_token(
 # --- API Key helpers ---
 
 _API_KEY_PREFIX_LEN = 8
+_API_KEY_MAX_LEN = 128
 
 
 def generate_api_key() -> tuple[str, str, str]:
@@ -121,33 +122,48 @@ def validate_api_key(session: Session, raw_key: str) -> Optional[ApiKey]:
     Uses key_prefix to narrow the candidate set (typically 1 row) before
     running the expensive Argon2 verification.
 
+    Performs a constant-time dummy Argon2 verify when no prefix candidates
+    exist to prevent prefix enumeration via timing side-channel (OWASP A07).
+
     Returns the ApiKey on success, or None if invalid or inactive.
     """
-    if len(raw_key) < _API_KEY_PREFIX_LEN:
+    if len(raw_key) < _API_KEY_PREFIX_LEN or len(raw_key) > _API_KEY_MAX_LEN:
         return None
     prefix = raw_key[:_API_KEY_PREFIX_LEN]
     candidates = session.exec(
-        select(ApiKey).where(ApiKey.key_prefix == prefix, ApiKey.is_active == True)
+        select(ApiKey).where(ApiKey.key_prefix == prefix, ApiKey.is_active.is_(True))
     ).all()
+    if not candidates:
+        # Constant-time dummy verify to prevent prefix enumeration via timing.
+        password_hash.verify(raw_key, DUMMY_HASH)
+        logger.warning("API key auth failed: no active key with prefix %s", prefix)
+        return None
     for key in candidates:
         if password_hash.verify(raw_key, key.key_hash):
             return key
+    logger.warning("API key auth failed: hash mismatch for prefix %s", prefix)
     return None
 
 
 def check_and_increment_rate_limit(session: Session, api_key: ApiKey) -> bool:
     """Check rate limit and increment counter atomically via SELECT FOR UPDATE.
 
+    Implements a fixed-window rate limiter: the counter resets each time the
+    60-second window expires. This means a burst of up to 2N requests in ~2s
+    is possible at a window boundary — acceptable for a research API.
+
     Returns True if the request is allowed, False if the rate limit is exceeded.
     A rate_limit_per_minute of 0 means unlimited.
     """
     now = datetime.now(timezone.utc)
+    # Re-read with a row lock, re-checking is_active in case of concurrent revocation.
     locked_key = session.exec(
         select(ApiKey)
-        .where(ApiKey.id == api_key.id, ApiKey.is_active == True)
+        .where(ApiKey.id == api_key.id, ApiKey.is_active.is_(True))
         .with_for_update()
-    ).one_or_none()
+    ).first()
     if locked_key is None:
+        # Key was revoked concurrently between validate_api_key and here.
         return False
 
     if locked_key.rate_limit_per_minute == 0:
@@ -168,6 +184,11 @@ def check_and_increment_rate_limit(session: Session, api_key: ApiKey) -> bool:
     else:
         if locked_key.rate_window_count >= locked_key.rate_limit_per_minute:
             session.rollback()
+            logger.warning(
+                "Rate limit exceeded for api_key id=%s (limit=%s/min)",
+                locked_key.id,
+                locked_key.rate_limit_per_minute,
+            )
             return False
         locked_key.rate_window_count += 1
 

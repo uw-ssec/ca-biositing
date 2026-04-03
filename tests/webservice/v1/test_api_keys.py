@@ -2,11 +2,12 @@
 
 Covers:
 - POST /v1/auth/api-keys — admin creates key, raw key returned once
-- GET /v1/auth/api-keys — list returns prefix only, not hash
+- GET /v1/auth/api-keys — list returns prefix only, not hash; supports pagination and filtering
 - DELETE /v1/auth/api-keys/{id} — revocation blocks further use
 - PATCH /v1/auth/api-keys/{id} — name/rate_limit update
-- Feedstock endpoint authenticated via X-API-Key header (200)
-- Invalid / revoked X-API-Key returns 401
+- X-API-Key grants access to non-admin endpoints (POST /v1/auth/refresh)
+- X-API-Key is blocked from admin endpoints (403)
+- Invalid / revoked X-API-Key returns 401 on non-admin endpoints
 - Rate limit enforcement returns 429
 """
 
@@ -15,12 +16,12 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, create_engine, select
+from sqlmodel import Session, create_engine
 
 from ca_biositing.datamodels.database import get_session
 from ca_biositing.datamodels.models import ApiKey, ApiUser
 from ca_biositing.webservice.main import app
-from ca_biositing.webservice.services.auth_service import generate_api_key, get_password_hash
+from ca_biositing.webservice.services.auth_service import get_password_hash
 
 
 # ---------------------------------------------------------------------------
@@ -208,6 +209,44 @@ class TestListApiKeys:
         )
         assert resp.status_code == 403
 
+    def test_pagination_and_user_filter(self, key_client, admin_token, admin_user, regular_user):
+        # Create 2 keys for admin_user, 1 for regular_user
+        for name in ("key-a", "key-b"):
+            key_client.post(
+                "/v1/auth/api-keys",
+                json={"name": name, "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
+                headers={"Authorization": f"Bearer {admin_token}"},
+            )
+        key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "key-c", "api_user_id": regular_user.id, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+
+        # Filter by admin_user — should see 2
+        resp = key_client.get(
+            f"/v1/auth/api-keys?api_user_id={admin_user.id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()) == 2
+
+        # Pagination: limit=1, offset=0 → first key only
+        resp = key_client.get(
+            "/v1/auth/api-keys?limit=1&offset=0",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()) == 1
+
+        # Pagination: limit=10, offset=10 → empty (only 3 keys total)
+        resp = key_client.get(
+            "/v1/auth/api-keys?limit=10&offset=10",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()) == 0
+
 
 class TestRevokeApiKey:
     """DELETE /v1/auth/api-keys/{id}"""
@@ -233,10 +272,11 @@ class TestRevokeApiKey:
         # Clear the login cookie so only X-API-Key is available for auth.
         key_client.cookies.clear()
 
-        # Revoked key must now return 401 — use an auth endpoint (no feedstock
-        # tables needed) so the response is unambiguously from the auth check.
-        auth_resp = key_client.get(
-            "/v1/auth/api-keys",
+        # Revoked key must now return 401 on a non-admin endpoint (POST /v1/auth/refresh
+        # uses CurrentUserDep, which includes X-API-Key path). 401 confirms auth failed,
+        # not 403 (which would mean auth succeeded but access denied).
+        auth_resp = key_client.post(
+            "/v1/auth/refresh",
             headers={"X-API-Key": raw_key},
         )
         assert auth_resp.status_code == 401
@@ -292,7 +332,8 @@ class TestUpdateApiKey:
 class TestApiKeyAuthentication:
     """X-API-Key header authentication on protected endpoints."""
 
-    def test_valid_api_key_grants_access(self, key_client, admin_token, admin_user):
+    def test_valid_api_key_grants_non_admin_access(self, key_client, admin_token, admin_user):
+        """Valid X-API-Key grants access to non-admin endpoints (CurrentUserDep)."""
         create_resp = key_client.post(
             "/v1/auth/api-keys",
             json={"name": "frontend", "api_user_id": admin_user.id, "rate_limit_per_minute": 0},
@@ -303,27 +344,47 @@ class TestApiKeyAuthentication:
         # Clear login cookie so the request must authenticate via X-API-Key only.
         key_client.cookies.clear()
 
-        # Use an auth endpoint so success/401 is clear (no feedstock tables in test DB).
-        resp = key_client.get(
-            "/v1/auth/api-keys",
+        # POST /v1/auth/refresh uses CurrentUserDep — accessible via X-API-Key.
+        resp = key_client.post(
+            "/v1/auth/refresh",
             headers={"X-API-Key": raw_key},
         )
         assert resp.status_code == 200
 
-    def test_invalid_api_key_returns_401(self, key_client, admin_user):
+    def test_valid_api_key_blocked_from_admin_endpoints(self, key_client, admin_token, admin_user):
+        """X-API-Key must not access admin endpoints even for admin-linked keys."""
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "admin-key", "api_user_id": admin_user.id, "rate_limit_per_minute": 0},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        raw_key = create_resp.json()["raw_key"]
+
+        # Clear login cookie so only X-API-Key is used for auth.
+        key_client.cookies.clear()
+
+        # GET /v1/auth/api-keys requires AdminUserDep (JWT-only) — must return 401.
         resp = key_client.get(
             "/v1/auth/api-keys",
+            headers={"X-API-Key": raw_key},
+        )
+        assert resp.status_code == 401
+
+    def test_invalid_api_key_returns_401(self, key_client, admin_user):
+        # POST /v1/auth/refresh (non-admin, CurrentUserDep) with a bogus key → 401.
+        resp = key_client.post(
+            "/v1/auth/refresh",
             headers={"X-API-Key": "invalidkeyvalue12345"},
         )
         assert resp.status_code == 401
 
     def test_no_credentials_returns_401(self, key_client, admin_user):
-        resp = key_client.get("/v1/auth/api-keys")
+        resp = key_client.post("/v1/auth/refresh")
         assert resp.status_code == 401
 
 
 class TestRateLimiting:
-    """Rate limiting via per-key sliding window."""
+    """Rate limiting via per-key fixed-window counter."""
 
     def test_exceeding_rate_limit_returns_429(self, key_client, admin_token, admin_user):
         create_resp = key_client.post(
@@ -336,20 +397,22 @@ class TestRateLimiting:
         # Clear login cookie so requests must authenticate via X-API-Key only.
         key_client.cookies.clear()
 
-        # Use GET /v1/auth/api-keys — queries only the api_key table (present in
-        # test DB), so success vs 429 is unambiguous (no feedstock 500 noise).
-
-        # 3 allowed requests
+        # POST /v1/auth/refresh is a non-admin endpoint — accessible via X-API-Key.
+        # 3 allowed requests must each succeed with 200.
+        # Clear cookies before each request: /refresh sets an access_token cookie that
+        # would take over auth on subsequent calls, bypassing the X-API-Key path.
         for _ in range(3):
-            resp = key_client.get(
-                "/v1/auth/api-keys",
+            key_client.cookies.clear()
+            resp = key_client.post(
+                "/v1/auth/refresh",
                 headers={"X-API-Key": raw_key},
             )
-            assert resp.status_code != 429
+            assert resp.status_code == 200
 
-        # 4th request must be rate-limited
-        resp = key_client.get(
-            "/v1/auth/api-keys",
+        # 4th request must be rate-limited.
+        key_client.cookies.clear()
+        resp = key_client.post(
+            "/v1/auth/refresh",
             headers={"X-API-Key": raw_key},
         )
         assert resp.status_code == 429
@@ -367,8 +430,9 @@ class TestRateLimiting:
         key_client.cookies.clear()
 
         for _ in range(10):
-            resp = key_client.get(
-                "/v1/auth/api-keys",
+            key_client.cookies.clear()
+            resp = key_client.post(
+                "/v1/auth/refresh",
                 headers={"X-API-Key": raw_key},
             )
-            assert resp.status_code != 429
+            assert resp.status_code == 200

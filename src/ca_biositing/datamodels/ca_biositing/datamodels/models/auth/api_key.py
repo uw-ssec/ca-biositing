@@ -16,8 +16,11 @@ class ApiKey(SQLModel, table=True):
     Argon2 hash is persisted. The key_prefix (first 8 chars of the raw key)
     is stored in plaintext to allow efficient lookup before hash verification.
 
-    Rate limiting uses a DB-based sliding window with SELECT FOR UPDATE to
-    handle multiple Cloud Run instances without requiring Redis.
+    Rate limiting uses a DB-based fixed-window counter with SELECT FOR UPDATE
+    to handle multiple Cloud Run instances without requiring Redis. The window
+    resets each time 60 seconds have elapsed since rate_window_start, meaning
+    a burst of up to 2N requests in ~2s is possible at a window boundary —
+    acceptable for a research API.
     """
 
     __tablename__ = "api_key"
@@ -29,6 +32,8 @@ class ApiKey(SQLModel, table=True):
     key_hash: str = Field(nullable=False, unique=True)
     is_active: bool = Field(default=True, nullable=False)
     rate_limit_per_minute: int = Field(default=60, nullable=False)
+    # Fixed-window rate limit state. Stored with explicit timezone=True so that
+    # SQLAlchemy maps these to TIMESTAMPTZ on Postgres, matching the migration.
     rate_window_start: Optional[datetime] = Field(
         default=None,
         sa_column=sa.Column(sa.DateTime(timezone=True), nullable=True),
