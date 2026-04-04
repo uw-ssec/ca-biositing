@@ -57,13 +57,13 @@ mv_usda_county_production = select(
     func.avg(census_obs.c.primary_product_volume).label("primary_product_volume"),
     func.max(census_obs.c.volume_unit).label("volume_unit"),
     func.avg(census_obs.c.production_acres).label("production_acres"),
-    select(None).correlate(False).label("known_biomass_volume"),
+    literal(None).label("known_biomass_volume"),
     # Use COALESCE to fallback to state-level residue factor if county-level is missing
     (func.avg(census_obs.c.production_acres) * func.coalesce(
         func.max(case((ra_fallback.c.geoid == Place.geoid, ra_fallback.c.residue_factor_dry_tons_acre))),
         func.max(case((ra_fallback.c.geoid == '06000', ra_fallback.c.residue_factor_dry_tons_acre)))
     )).label("calculated_estimate_volume"),
-    select("dry_tons_acre").correlate(False).label("biomass_unit")
+    literal("dry_tons_acre").label("biomass_unit")
 ).select_from(UsdaCensusRecord)\
  .join(ResourceUsdaCommodityMap, UsdaCensusRecord.commodity_code == ResourceUsdaCommodityMap.usda_commodity_id)\
  .join(Resource, ResourceUsdaCommodityMap.resource_id == Resource.id)\

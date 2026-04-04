@@ -48,50 +48,56 @@ resource_analysis_map = select(
     select(PretreatmentRecord.resource_id, PretreatmentRecord.record_id, literal("pretreatment").label("type"))
 ).subquery()
 
+# Direct expressions for carbon, hydrogen, nitrogen averages
+carbon_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "carbon"
+    ),
+    analysis_metrics.c.value
+)))
 
-def get_carbon_avg_expr(resource_analysis_map_subq, analysis_metrics_subq):
+hydrogen_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "hydrogen"
+    ),
+    analysis_metrics.c.value
+)))
+
+nitrogen_avg_expr = func.avg(case((
+    and_(
+        resource_analysis_map.c.type == "ultimate analysis",
+        func.lower(analysis_metrics.c.parameter) == "nitrogen"
+    ),
+    analysis_metrics.c.value
+)))
+
+cn_ratio_expr = case(
+    (
+        and_(
+            carbon_avg_expr.is_not(None),
+            nitrogen_avg_expr.is_not(None),
+            nitrogen_avg_expr != 0
+        ),
+        carbon_avg_expr / nitrogen_avg_expr
+    ),
+    else_=None
+)
+
+# Helper functions for expressions that need to be created dynamically
+def get_carbon_avg_expr():
     """Expression for average carbon percentage from ultimate analysis."""
-    return func.avg(case((
-        and_(
-            resource_analysis_map_subq.c.type == "ultimate analysis",
-            func.lower(analysis_metrics_subq.c.parameter) == "carbon"
-        ),
-        analysis_metrics_subq.c.value
-    )))
+    return carbon_avg_expr
 
-
-def get_hydrogen_avg_expr(resource_analysis_map_subq, analysis_metrics_subq):
+def get_hydrogen_avg_expr():
     """Expression for average hydrogen percentage from ultimate analysis."""
-    return func.avg(case((
-        and_(
-            resource_analysis_map_subq.c.type == "ultimate analysis",
-            func.lower(analysis_metrics_subq.c.parameter) == "hydrogen"
-        ),
-        analysis_metrics_subq.c.value
-    )))
+    return hydrogen_avg_expr
 
-
-def get_nitrogen_avg_expr(resource_analysis_map_subq, analysis_metrics_subq):
+def get_nitrogen_avg_expr():
     """Expression for average nitrogen percentage from ultimate analysis."""
-    return func.avg(case((
-        and_(
-            resource_analysis_map_subq.c.type == "ultimate analysis",
-            func.lower(analysis_metrics_subq.c.parameter) == "nitrogen"
-        ),
-        analysis_metrics_subq.c.value
-    )))
+    return nitrogen_avg_expr
 
-
-def get_cn_ratio_expr(carbon_avg_expr, nitrogen_avg_expr):
+def get_cn_ratio_expr():
     """Expression for carbon-to-nitrogen ratio."""
-    return case(
-        (
-            and_(
-                carbon_avg_expr.is_not(None),
-                nitrogen_avg_expr.is_not(None),
-                nitrogen_avg_expr != 0
-            ),
-            carbon_avg_expr / nitrogen_avg_expr
-        ),
-        else_=None
-    )
+    return cn_ratio_expr

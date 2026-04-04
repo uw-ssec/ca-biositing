@@ -28,7 +28,7 @@ from ca_biositing.datamodels.models.aim1_records.xrd_record import XrdRecord
 from ca_biositing.datamodels.models.aim1_records.ftnir_record import FtnirRecord
 from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
 from ca_biositing.datamodels.models.aim2_records.gasification_record import GasificationRecord
-from ca_biositing.datamodels.models.aim1_records.pretreatment_record import PretreatmentRecord
+from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 
 from .common import analysis_metrics, resource_analysis_map, get_carbon_avg_expr, get_hydrogen_avg_expr, get_nitrogen_avg_expr, get_cn_ratio_expr
 
