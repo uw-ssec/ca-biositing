@@ -328,6 +328,36 @@ class TestUpdateApiKey:
         assert body["name"] == "stable-name"
         assert body["rate_limit_per_minute"] == 90
 
+    def test_patch_is_active_returns_422(self, key_client, admin_token, admin_user):
+        """is_active is not a valid PATCH field — must return 422, not silently ignored."""
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "boundary-test", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        key_id = create_resp.json()["id"]
+        patch_resp = key_client.patch(
+            f"/v1/auth/api-keys/{key_id}",
+            json={"is_active": False},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert patch_resp.status_code == 422
+
+    def test_patch_unknown_field_returns_422(self, key_client, admin_token, admin_user):
+        """Any unrecognised field in the PATCH body must return 422."""
+        create_resp = key_client.post(
+            "/v1/auth/api-keys",
+            json={"name": "boundary-test-2", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        key_id = create_resp.json()["id"]
+        patch_resp = key_client.patch(
+            f"/v1/auth/api-keys/{key_id}",
+            json={"unknown_field": "value"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert patch_resp.status_code == 422
+
 
 class TestApiKeyAuthentication:
     """X-API-Key header authentication on protected endpoints."""

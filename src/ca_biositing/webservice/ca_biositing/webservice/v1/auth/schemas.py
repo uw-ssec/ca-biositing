@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Token(BaseModel):
@@ -82,7 +82,14 @@ class ApiKeyResponse(BaseModel):
 
 
 class ApiKeyUpdate(BaseModel):
-    """Payload for updating a key's label or rate limit."""
+    """Payload for updating a key's name or rate limit.
+
+    Only ``name`` and ``rate_limit_per_minute`` are mutable via PATCH.
+    To deactivate a key use DELETE (soft-deactivation); re-activation
+    requires issuing a new key.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     name: Optional[str] = Field(default=None, min_length=1, max_length=128)
     rate_limit_per_minute: Optional[int] = Field(default=None, ge=0)
