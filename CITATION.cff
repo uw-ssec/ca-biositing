@@ -7,10 +7,7 @@ type: software
 license: BSD-3-Clause
 repository-code: "https://github.com/sustainability-software-lab/ca-biositing"
 url: "https://calbioscape.org"
-# -------------------------------
-# Zenodo DOI will be added after the first release
-# doi: 10.xxxx/zenodo.xxxxxxx
-# -------------------------------
+doi: 10.5281/zenodo.19443582
 abstract: >-
   CA-BioSiting is the backend data platform for Cal BioScape,
   a web-based tool supporting the development of a circular
