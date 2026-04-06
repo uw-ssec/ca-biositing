@@ -204,6 +204,19 @@ We'd like to acknowledge the software engineering efforts from the
 as part of the
 [Schmidt Sciences' Virtual Institute for Scientific Software (VISS)](https://www.schmidtsciences.org/viss/).
 
+## Security
+
+To report a security vulnerability, please use
+[GitHub Security Advisories](https://github.com/sustainability-software-lab/ca-biositing/security/advisories/new).
+See [`SECURITY.md`](SECURITY.md) for the full security policy including
+supported versions, reporting guidelines, and disclosure process.
+
+## Changelog
+
+Notable changes for each release are documented in
+[`CHANGELOG.md`](CHANGELOG.md), following the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
 ## License
 
 This project is licensed under the BSD 3-Clause License. See [LICENSE](LICENSE)

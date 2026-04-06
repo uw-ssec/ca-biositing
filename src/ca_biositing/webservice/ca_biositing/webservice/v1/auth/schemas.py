@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -43,3 +44,45 @@ class UserResponse(BaseModel):
     full_name: Optional[str] = None
     is_admin: bool
     disabled: bool
+
+
+class ApiKeyCreate(BaseModel):
+    """Payload for creating a new per-client API key."""
+
+    name: str = Field(min_length=1, max_length=128)
+    api_user_id: int
+    rate_limit_per_minute: int = Field(default=60, ge=0)
+
+
+class ApiKeyCreateResponse(BaseModel):
+    """Response after creating a new API key.
+
+    raw_key is the only time the plaintext key is returned — it is not stored.
+    """
+
+    id: int
+    name: str
+    key_prefix: str
+    raw_key: str
+    rate_limit_per_minute: int
+    created_at: Optional[datetime] = None
+
+
+class ApiKeyResponse(BaseModel):
+    """Public representation of an API key (no hash, no raw key)."""
+
+    id: int
+    name: str
+    key_prefix: str
+    api_user_id: int
+    is_active: bool
+    rate_limit_per_minute: int
+    last_used_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+
+
+class ApiKeyUpdate(BaseModel):
+    """Payload for updating a key's label or rate limit."""
+
+    name: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    rate_limit_per_minute: Optional[int] = Field(default=None, ge=0)
