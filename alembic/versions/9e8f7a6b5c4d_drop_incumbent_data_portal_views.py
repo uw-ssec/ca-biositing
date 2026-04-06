@@ -3,7 +3,7 @@
 Drop the old monolithic data_portal_views before recreating with new modular approach.
 
 Revision ID: 9e8f7a6b5c4d
-Revises: 63c0fedd3446
+Revises: 60b08397200f
 Create Date: 2026-04-04 02:12:00.000000
 
 """
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '9e8f7a6b5c4d'
-down_revision: Union[str, Sequence[str], None] = '63c0fedd3446'
+down_revision: Union[str, Sequence[str], None] = '60b08397200f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

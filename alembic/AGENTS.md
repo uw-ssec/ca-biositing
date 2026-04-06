@@ -25,73 +25,72 @@ src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/
 
 ### Updating a Materialized View
 
-When you need to update a materialized view definition:
+**IMPORTANT: Use Raw SQL Snapshots (See Below)**
+
+When you need to update a materialized view:
 
 1. **Modify the view definition** in its module (e.g., `mv_biomass_search.py`)
-2. **Create a new migration** using the template pattern below
-3. **Run the migration** to deploy changes to the database
+2. **Extract the compiled SQL** from the SQLAlchemy expression
+3. **Embed raw SQL as a string** in the migration file (immutable snapshot)
+4. **Run the migration** to deploy changes to the database
 
-### Template: Update Materialized View Migration
+### Why Raw SQL Snapshots?
+
+SQLAlchemy-generated migrations work fine until you need to **teardown volumes
+and replay from scratch**. When that happens:
+
+- ❌ Importing SQLAlchemy models at replay time uses **current** definitions
+- ❌ If schema changed since migration was created, the view fails to build
+- ❌ Migration chain breaks, preventing database recreation
+
+**Solution: Embed raw SQL as immutable strings**
+
+- ✅ Migration is frozen at creation time
+- ✅ Replays always work, even with future schema changes
+- ✅ Industry standard (Liquibase, Flyway, all major Alembic projects)
+- ✅ Full audit trail of what SQL was run when
+
+### Template: Update Materialized View with Raw SQL (RECOMMENDED)
 
 ```python
 """update_mv_biomass_search
 
-Update the mv_biomass_search view with new logic.
+Update the mv_biomass_search view with new logic using raw SQL snapshot.
 
 Revision ID: YOUR_REVISION_ID
 Revises: PREVIOUS_REVISION_ID
-Create Date: 2026-04-04 02:14:00.000000
+Create Date: 2026-04-04
 
 """
-from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
-from ca_biositing.datamodels.data_portal_views import mv_biomass_search
+
 
 # revision identifiers, used by Alembic.
-revision: str = 'YOUR_REVISION_ID'
-down_revision: Union[str, Sequence[str], None] = 'PREVIOUS_REVISION_ID'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision = 'YOUR_REVISION_ID'
+down_revision = 'PREVIOUS_REVISION_ID'
+branch_labels = None
+depends_on = None
 
 
 def upgrade() -> None:
-    """
-    Update mv_biomass_search with new logic.
+    """Update mv_biomass_search with immutable SQL snapshot."""
 
-    This demonstrates the pattern for updating views:
-    1. DROP the old view (CASCADE handles dependent views)
-    2. COMPILE the new SQLAlchemy expression to SQL
-    3. CREATE the view with the new SQL
-    4. Recreate indexes
-    5. Grant permissions to biocirv_readonly
-
-    SQL Snapshot (immutable at migration time):
-    - The compiled SQL below is the authoritative definition for this view
-    - Changes to the SQLAlchemy expression in data_portal_views/mv_biomass_search.py
-      require a new migration to update the view
-    """
-    # Drop the old view and dependent views
+    # Drop the old view (CASCADE handles dependent views)
     op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
 
-    # Compile the updated SQLAlchemy expression to SQL
-    compiled = mv_biomass_search.compile(
-        dialect=sa.dialects.postgresql.dialect(),
-        compile_kwargs={"literal_binds": True}
-    )
-
-    # Create the view with the new SQL (immutable snapshot at migration time)
-    sql = f"""
-    CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS
-    {compiled}
-    """
-    op.execute(sql)
+    # Create the view with raw SQL snapshot
+    # This SQL was compiled from SQLAlchemy at migration-creation time
+    # and is frozen here for all future replays (immutable, not runtime-evaluated)
+    op.execute("""
+        CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS
+        SELECT ... (complete SQL from `scripts/extract_view_sql.py` output)
+    """)
 
     # Recreate the unique index for performance
     op.execute("""
-    CREATE UNIQUE INDEX idx_mv_biomass_search_id
-    ON data_portal.mv_biomass_search (id)
+        CREATE UNIQUE INDEX idx_mv_biomass_search_id
+        ON data_portal.mv_biomass_search (id)
     """)
 
     # Grant select to readonly user
@@ -99,27 +98,91 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Downgrade: drop the view and index."""
+    """Downgrade: drop the view."""
     op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
+```
+
+### Extracting Raw SQL for Migrations
+
+Use the extraction script to get compiled SQL:
+
+```bash
+# Extract all view SQL
+pixi run python scripts/extract_view_sql.py
+
+# Copy the SQL output and embed it in your migration file
+# See alembic/versions/9e8f7a6b5c4e_recreate_mv_biomass_search_with_raw_sql.py
+# for a complete example
+```
+
+### Template: Legacy Pattern (DON'T USE - for reference only)
+
+If you encounter old migrations that import SQLAlchemy models, be aware this
+pattern is fragile:
+
+```python
+"""update_mv_biomass_search (LEGACY - don't use for new migrations)
+
+This pattern should not be used for new migrations because it's not
+safe for teardown→rebuild scenarios.
+
+"""
+from alembic import op
+import sqlalchemy as sa
+from ca_biositing.datamodels.data_portal_views import mv_biomass_search
+
+def upgrade() -> None:
+    """Legacy: compiles SQLAlchemy at migration time (fragile)."""
+    # ❌ NOT RECOMMENDED: future schema changes break this migration
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
+
+    compiled = mv_biomass_search.compile(
+        dialect=sa.dialects.postgresql.dialect(),
+        compile_kwargs={"literal_binds": True}
+    )
+    op.execute(f"CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS {compiled}")
 ```
 
 ### Key Patterns
 
-**Compile SQLAlchemy to SQL:**
+**Pattern 1: Raw SQL Snapshot (RECOMMENDED)**
+
+Embed SQL as an immutable string in the migration:
 
 ```python
-compiled = mv_biomass_search.compile(
-    dialect=sa.dialects.postgresql.dialect(),
-    compile_kwargs={"literal_binds": True}
-)
-sql = str(compiled)
+def upgrade() -> None:
+    """Update view with raw SQL snapshot."""
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
+
+    op.execute("""
+        CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS
+        SELECT ... (raw SQL here - extracted via scripts/extract_view_sql.py)
+    """)
+
+    op.execute("""
+        CREATE UNIQUE INDEX idx_mv_biomass_search_id
+        ON data_portal.mv_biomass_search (id)
+    """)
+
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_search TO biocirv_readonly")
 ```
 
-**DROP → CREATE pattern:**
+**Pattern 2: Compile SQLAlchemy at Migration Time (LEGACY - don't use for new
+migrations)**
+
+This pattern is fragile for teardown→rebuild scenarios:
 
 ```python
-op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
-op.execute(f"CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS {compiled}")
+from ca_biositing.datamodels.data_portal_views import mv_biomass_search
+
+def upgrade() -> None:
+    """Legacy pattern - fragile, not recommended."""
+    compiled = mv_biomass_search.compile(
+        dialect=sa.dialects.postgresql.dialect(),
+        compile_kwargs={"literal_binds": True}
+    )
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
+    op.execute(f"CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS {compiled}")
 ```
 
 **Index creation (view-specific):**
