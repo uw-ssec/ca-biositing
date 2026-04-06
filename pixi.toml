@@ -30,6 +30,7 @@ python = "~=3.12"
 pre-commit = ">=4.2.0,<5"
 pytest = ">=8.4.2,<9"
 pytest-cov = ">=7.0.0,<8"
+pip-audit = ">=2.7.3,<3"
 pip = ">=25.2,<26"
 docker-compose = ">=2.39.2,<3"
 docker-cli = ">=28.3.1,<29"
@@ -49,6 +50,7 @@ pytz = "<2026"
 [tasks]
 pre-commit-all = "pre-commit run --all-files"
 pre-commit-install = "pre-commit install"
+pip-audit = { cmd = "pip-audit", description = "Scan installed Python packages for known vulnerabilities." }
 initial-migration = { cmd = [
     "docker-compose",
     "-f",
