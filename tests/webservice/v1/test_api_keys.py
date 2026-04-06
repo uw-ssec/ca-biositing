@@ -335,6 +335,7 @@ class TestUpdateApiKey:
             json={"name": "boundary-test", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
+        assert create_resp.status_code == 201
         key_id = create_resp.json()["id"]
         patch_resp = key_client.patch(
             f"/v1/auth/api-keys/{key_id}",
@@ -350,6 +351,7 @@ class TestUpdateApiKey:
             json={"name": "boundary-test-2", "api_user_id": admin_user.id, "rate_limit_per_minute": 60},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
+        assert create_resp.status_code == 201
         key_id = create_resp.json()["id"]
         patch_resp = key_client.patch(
             f"/v1/auth/api-keys/{key_id}",
