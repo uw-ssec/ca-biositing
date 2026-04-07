@@ -29,6 +29,7 @@ from ca_biositing.datamodels.models.aim2_records.pretreatment_record import Pret
 from ca_biositing.datamodels.models.sample_preparation.prepared_sample import PreparedSample
 from ca_biositing.datamodels.models.field_sampling.field_sample import FieldSample
 from ca_biositing.datamodels.models.places.location_address import LocationAddress
+from ca_biositing.datamodels.models.places.place import Place
 
 
 def get_composition_query(model, analysis_type):
@@ -71,6 +72,7 @@ mv_biomass_composition = select(
     all_measurements.c.analysis_type,
     all_measurements.c.parameter_name,
     all_measurements.c.geoid,
+    Place.county_name.label("county"),
     all_measurements.c.unit,
     func.avg(all_measurements.c.value).label("avg_value"),
     func.min(all_measurements.c.value).label("min_value"),
@@ -79,11 +81,13 @@ mv_biomass_composition = select(
     func.count().label("observation_count")
 ).select_from(all_measurements)\
  .join(Resource, all_measurements.c.resource_id == Resource.id)\
+ .outerjoin(Place, all_measurements.c.geoid == Place.geoid)\
  .group_by(
      all_measurements.c.resource_id,
      Resource.name,
      all_measurements.c.analysis_type,
      all_measurements.c.parameter_name,
      all_measurements.c.geoid,
+     Place.county_name,
      all_measurements.c.unit
  )

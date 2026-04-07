@@ -19,15 +19,21 @@ from ca_biositing.datamodels.models.methods_parameters_units.unit import Unit
 from ca_biositing.datamodels.models.methods_parameters_units.method import Method
 from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
 from ca_biositing.datamodels.models.aim2_records.strain import Strain
+from ca_biositing.datamodels.models.sample_preparation.prepared_sample import PreparedSample
+from ca_biositing.datamodels.models.field_sampling.field_sample import FieldSample
+from ca_biositing.datamodels.models.places.location_address import LocationAddress
+from ca_biositing.datamodels.models.places.place import Place
 
 
 PM = aliased(Method, name="pm")
 EM = aliased(Method, name="em")
 
 mv_biomass_fermentation = select(
-    func.row_number().over(order_by=(FermentationRecord.resource_id, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)).label("id"),
+    func.row_number().over(order_by=(FermentationRecord.resource_id, LocationAddress.geography_id, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)).label("id"),
     FermentationRecord.resource_id,
     Resource.name.label("resource_name"),
+    LocationAddress.geography_id.label("geoid"),
+    Place.county_name.label("county"),
     Strain.name.label("strain_name"),
     PM.name.label("pretreatment_method"),
     EM.name.label("enzyme_name"),
@@ -40,6 +46,10 @@ mv_biomass_fermentation = select(
     Unit.name.label("unit")
 ).select_from(FermentationRecord)\
  .join(Resource, FermentationRecord.resource_id == Resource.id)\
+ .outerjoin(PreparedSample, FermentationRecord.prepared_sample_id == PreparedSample.id)\
+ .outerjoin(FieldSample, PreparedSample.field_sample_id == FieldSample.id)\
+ .outerjoin(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)\
+ .outerjoin(Place, LocationAddress.geography_id == Place.geoid)\
  .outerjoin(Strain, FermentationRecord.strain_id == Strain.id)\
  .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
  .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
@@ -47,4 +57,4 @@ mv_biomass_fermentation = select(
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .where(FermentationRecord.qc_pass != "fail")\
- .group_by(FermentationRecord.resource_id, Resource.name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)
+ .group_by(FermentationRecord.resource_id, Resource.name, LocationAddress.geography_id, Place.county_name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)
