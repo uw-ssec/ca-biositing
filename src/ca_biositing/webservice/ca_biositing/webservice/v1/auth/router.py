@@ -245,7 +245,12 @@ def revoke_api_key(
     session: SessionDep,
     _admin: AdminUserDep,
 ) -> dict:
-    """Revoke an API key by setting is_active=False. Requires admin JWT authentication."""
+    """Soft-deactivate an API key (sets is_active=False). Requires admin JWT.
+
+    The key row is retained for audit purposes but rejected on all subsequent
+    authentication attempts. Deactivation is permanent via this API — to restore
+    access, issue a new key.
+    """
     key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
     if key is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
@@ -263,7 +268,11 @@ def update_api_key(
     session: SessionDep,
     _admin: AdminUserDep,
 ) -> ApiKeyResponse:
-    """Update a key's name or rate limit. Requires admin JWT authentication."""
+    """Update a key's name or rate limit. Requires admin JWT authentication.
+
+    Only ``name`` and ``rate_limit_per_minute`` are accepted; any other field
+    (e.g. ``is_active``) returns 422. To deactivate a key, use DELETE.
+    """
     key = session.exec(select(ApiKey).where(ApiKey.id == key_id)).first()
     if key is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
