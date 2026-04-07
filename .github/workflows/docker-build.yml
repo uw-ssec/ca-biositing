@@ -12,6 +12,7 @@ on:
       - "pixi.toml"
       - "pixi.lock"
       - ".github/workflows/docker-build.yml"
+      - "alembic/**"
   release:
     types: [published]
   pull_request:
@@ -22,6 +23,7 @@ on:
       - "pixi.toml"
       - "pixi.lock"
       - ".github/workflows/docker-build.yml"
+      - "alembic/**"
 
 permissions:
   contents: read

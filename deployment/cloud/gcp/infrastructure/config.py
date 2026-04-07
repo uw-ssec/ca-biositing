@@ -60,6 +60,7 @@ SA_PREFECT_WORKER = f"biocirv-{_sa_env}-cr-worker"
 SA_MIGRATE = f"biocirv-{_sa_env}-cr-migrate"
 SA_DEPLOYER = f"biocirv-{_sa_env}-gh-deploy"
 SA_OAUTH2_PROXY = f"biocirv-{_sa_env}-cr-pfct-auth"
+SA_FRONTEND = f"biocirv-{_sa_env}-cr-frontend"
 
 # Workload Identity Federation IDs
 WIF_POOL_ID = f"github-actions-{STACK_NAME}"
