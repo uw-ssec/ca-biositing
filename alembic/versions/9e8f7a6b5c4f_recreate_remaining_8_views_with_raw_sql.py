@@ -151,9 +151,16 @@ def upgrade() -> None:
         CREATE UNIQUE INDEX idx_mv_usda_county_production_id ON data_portal.mv_usda_county_production (id)
     """)
 
-    # Grant schema access to readonly role (applies to all views)
+    # Grant schema access and individual view permissions to readonly role
     op.execute("GRANT USAGE ON SCHEMA data_portal TO biocirv_readonly")
-    op.execute("GRANT SELECT ON ALL MATERIALIZED VIEWS IN SCHEMA data_portal TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_availability TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_composition TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_county_production TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_sample_stats TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_fermentation TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_gasification TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_biomass_pricing TO biocirv_readonly")
+    op.execute("GRANT SELECT ON data_portal.mv_usda_county_production TO biocirv_readonly")
 
 
 def downgrade() -> None:
