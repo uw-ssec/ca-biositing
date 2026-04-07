@@ -3,6 +3,8 @@ mv_biomass_fermentation.py
 
 Fermentation analysis data with aggregated observations by strain and method.
 
+QC: filtered to exclude "fail" - only includes observations from records that are not marked as failed
+
 Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_fermentation_id ON data_portal.mv_biomass_fermentation (id)
 """
@@ -44,4 +46,5 @@ mv_biomass_fermentation = select(
  .join(Observation, func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .where(FermentationRecord.qc_pass != "fail")\
  .group_by(FermentationRecord.resource_id, Resource.name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)

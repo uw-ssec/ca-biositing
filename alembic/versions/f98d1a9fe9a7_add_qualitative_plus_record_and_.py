@@ -1,7 +1,7 @@
 """Add qualitative-plus record and assumption tables from PR f989683
 
 Revision ID: f98d1a9fe9a7
-Revises: 9e8f7a6b5c4f
+Revises: 60b08397200f
 Create Date: 2026-04-06 22:01:07.218604
 
 """
@@ -13,7 +13,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = 'f98d1a9fe9a7'
-down_revision: Union[str, Sequence[str], None] = '9e8f7a6b5c4f'
+down_revision: Union[str, Sequence[str], None] = '60b08397200f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

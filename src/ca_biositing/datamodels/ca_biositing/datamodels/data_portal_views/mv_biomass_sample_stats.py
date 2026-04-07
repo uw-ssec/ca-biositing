@@ -3,6 +3,8 @@ mv_biomass_sample_stats.py
 
 Sample statistics aggregated across all analytical record types.
 
+QC: filtered to pass only - only counts records with qc_pass = "pass"
+
 Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_sample_stats_resource_id ON data_portal.mv_biomass_sample_stats (resource_id)
 """
@@ -26,12 +28,13 @@ from ca_biositing.datamodels.models.people.provider import Provider
 
 
 def get_sample_stats_query(model):
-    """Generate a select statement for a specific analysis record type."""
+    """Generate a select statement for a specific analysis record type.
+    QC: filtered to exclude "fail" - only include records that are not marked as failed"""
     return select(
         model.resource_id,
         model.prepared_sample_id,
         model.dataset_id
-    )
+    ).where(model.qc_pass != "fail")
 
 
 sample_queries = [

@@ -6,6 +6,8 @@ Compositional analysis data aggregated across different analysis types
 
 Grouped by resource_id, analysis_type, parameter_name, unit, and geoid from field sample.
 
+QC: filtered to pass only - only includes observations from records with qc_pass = "pass"
+
 Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_composition_id ON data_portal.mv_biomass_composition (id)
 """
@@ -30,7 +32,8 @@ from ca_biositing.datamodels.models.places.location_address import LocationAddre
 
 
 def get_composition_query(model, analysis_type):
-    """Generate a select statement for a specific analysis record type with geoid from field sample."""
+    """Generate a select statement for a specific analysis record type with geoid from field sample.
+    QC: filtered to exclude "fail" - only include records that are not marked as failed"""
     return select(
         model.resource_id,
         literal(analysis_type).label("analysis_type"),
@@ -43,7 +46,8 @@ def get_composition_query(model, analysis_type):
      .outerjoin(Unit, Observation.unit_id == Unit.id)\
      .outerjoin(PreparedSample, model.prepared_sample_id == PreparedSample.id)\
      .outerjoin(FieldSample, PreparedSample.field_sample_id == FieldSample.id)\
-     .outerjoin(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)
+     .outerjoin(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)\
+     .where(model.qc_pass != "fail")
 
 
 comp_queries = [

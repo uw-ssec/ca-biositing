@@ -5,6 +5,8 @@ Gasification analysis data with aggregated observations by reactor type, paramet
 
 Includes geoid from the associated field sample's sampling location.
 
+QC: filtered to exclude "fail" - only includes observations from records that are not marked as failed
+
 Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_gasification_id ON data_portal.mv_biomass_gasification (id)
 """
@@ -44,6 +46,7 @@ mv_biomass_gasification = select(
  .join(Observation, func.lower(Observation.record_id) == func.lower(GasificationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
+ .where(GasificationRecord.qc_pass != "fail")\
  .group_by(
      GasificationRecord.resource_id,
      Resource.name,
