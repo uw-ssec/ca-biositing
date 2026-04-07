@@ -14,6 +14,8 @@ from sqlalchemy.orm import aliased
 
 from ca_biositing.datamodels.models.resource_information.resource import Resource, ResourceClass, ResourceSubclass, ResourceMorphology
 from ca_biositing.datamodels.models.resource_information.primary_ag_product import PrimaryAgProduct
+from ca_biositing.datamodels.models.resource_information.resource_transport_record import ResourceTransportRecord
+from ca_biositing.datamodels.models.resource_information.resource_storage_record import ResourceStorageRecord
 from ca_biositing.datamodels.models.external_data.billion_ton import BillionTon2023Record
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
@@ -129,6 +131,18 @@ agg_vol = select(
 # Biomass availability aggregation
 from .mv_biomass_availability import mv_biomass_availability
 
+# Transport notes subquery (latest observation per resource)
+transport_notes_sq = select(
+    ResourceTransportRecord.resource_id,
+    func.max(ResourceTransportRecord.transport_description).label("transport_notes")
+).group_by(ResourceTransportRecord.resource_id).subquery()
+
+# Storage notes subquery (latest observation per resource)
+storage_notes_sq = select(
+    ResourceStorageRecord.resource_id,
+    func.max(ResourceStorageRecord.storage_description).label("storage_notes")
+).group_by(ResourceStorageRecord.resource_id).subquery()
+
 mv_biomass_search = select(
      Resource.id,
      Resource.name,
@@ -149,6 +163,8 @@ mv_biomass_search = select(
      resource_metrics.c.carbon_percent,
      resource_metrics.c.hydrogen_percent,
      resource_metrics.c.cn_ratio,
+     transport_notes_sq.c.transport_notes,
+     storage_notes_sq.c.storage_notes,
      func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
      mv_biomass_availability.c.from_month.label("season_from_month"),
      mv_biomass_availability.c.to_month.label("season_to_month"),
@@ -186,4 +202,7 @@ mv_biomass_search = select(
   .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
   .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
   .outerjoin(resource_tags, resource_tags.c.resource_id == Resource.id)\
-  .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)
+  .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)\
+  .outerjoin(transport_notes_sq, transport_notes_sq.c.resource_id == Resource.id)\
+  .outerjoin(storage_notes_sq, storage_notes_sq.c.resource_id == Resource.id)\
+  .where(func.lower(Resource.name) != 'sargassum')

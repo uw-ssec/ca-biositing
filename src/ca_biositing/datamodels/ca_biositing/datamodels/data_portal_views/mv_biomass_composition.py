@@ -4,6 +4,8 @@ mv_biomass_composition.py
 Compositional analysis data aggregated across different analysis types
 (compositional, proximate, ultimate, xrf, icp, calorimetry, xrd, ftnir, pretreatment).
 
+Grouped by resource_id, analysis_type, parameter_name, unit, and geoid from field sample.
+
 Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_composition_id ON data_portal.mv_biomass_composition (id)
 """
@@ -22,19 +24,26 @@ from ca_biositing.datamodels.models.aim1_records.calorimetry_record import Calor
 from ca_biositing.datamodels.models.aim1_records.xrd_record import XrdRecord
 from ca_biositing.datamodels.models.aim1_records.ftnir_record import FtnirRecord
 from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
+from ca_biositing.datamodels.models.sample_preparation.prepared_sample import PreparedSample
+from ca_biositing.datamodels.models.field_sampling.field_sample import FieldSample
+from ca_biositing.datamodels.models.places.location_address import LocationAddress
 
 
 def get_composition_query(model, analysis_type):
-    """Generate a select statement for a specific analysis record type."""
+    """Generate a select statement for a specific analysis record type with geoid from field sample."""
     return select(
         model.resource_id,
         literal(analysis_type).label("analysis_type"),
         Parameter.name.label("parameter_name"),
         Observation.value.label("value"),
-        Unit.name.label("unit")
+        Unit.name.label("unit"),
+        LocationAddress.geography_id.label("geoid")
     ).join(Observation, Observation.record_id == model.record_id)\
      .join(Parameter, Observation.parameter_id == Parameter.id)\
-     .outerjoin(Unit, Observation.unit_id == Unit.id)
+     .outerjoin(Unit, Observation.unit_id == Unit.id)\
+     .outerjoin(PreparedSample, model.prepared_sample_id == PreparedSample.id)\
+     .outerjoin(FieldSample, PreparedSample.field_sample_id == FieldSample.id)\
+     .outerjoin(LocationAddress, FieldSample.sampling_location_id == LocationAddress.id)
 
 
 comp_queries = [
@@ -52,11 +61,12 @@ comp_queries = [
 all_measurements = union_all(*comp_queries).subquery()
 
 mv_biomass_composition = select(
-    func.row_number().over(order_by=(all_measurements.c.resource_id, all_measurements.c.analysis_type, all_measurements.c.parameter_name, all_measurements.c.unit)).label("id"),
+    func.row_number().over(order_by=(all_measurements.c.resource_id, all_measurements.c.geoid, all_measurements.c.analysis_type, all_measurements.c.parameter_name, all_measurements.c.unit)).label("id"),
     all_measurements.c.resource_id,
     Resource.name.label("resource_name"),
     all_measurements.c.analysis_type,
     all_measurements.c.parameter_name,
+    all_measurements.c.geoid,
     all_measurements.c.unit,
     func.avg(all_measurements.c.value).label("avg_value"),
     func.min(all_measurements.c.value).label("min_value"),
@@ -70,5 +80,6 @@ mv_biomass_composition = select(
      Resource.name,
      all_measurements.c.analysis_type,
      all_measurements.c.parameter_name,
+     all_measurements.c.geoid,
      all_measurements.c.unit
  )

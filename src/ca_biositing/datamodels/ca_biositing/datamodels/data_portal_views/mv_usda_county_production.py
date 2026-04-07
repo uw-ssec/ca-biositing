@@ -71,5 +71,5 @@ mv_usda_county_production = select(
  .join(Place, UsdaCensusRecord.geoid == Place.geoid)\
  .join(census_obs, cast(UsdaCensusRecord.id, String) == census_obs.c.record_id)\
  .outerjoin(ra_fallback, Resource.id == ra_fallback.c.resource_id)\
- .where(UsdaCensusRecord.year == 2022)\
+ .where(UsdaCensusRecord.year >= 2017)\
  .group_by(Resource.id, Resource.name, PrimaryAgProduct.name, Place.geoid, Place.county_name, Place.state_name, UsdaCensusRecord.year)
