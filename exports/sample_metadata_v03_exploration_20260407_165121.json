@@ -41,11 +41,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 137,
-          "sample_values": [
-            "1296E642",
-            "7691DB2E",
-            "74810A87"
-          ]
+          "sample_values": ["1296E642", "7691DB2E", "74810A87"]
         },
         {
           "name": "Sample_name",
@@ -54,11 +50,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 103,
-          "sample_values": [
-            "Riv-TmPm03",
-            "Pin-TmPm02",
-            "Oak-TmPm01"
-          ]
+          "sample_values": ["Riv-TmPm03", "Pin-TmPm02", "Oak-TmPm01"]
         },
         {
           "name": "Resource",
@@ -67,11 +59,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 50,
-          "sample_values": [
-            "Tomato pomace",
-            "Tomato pomace",
-            "Tomato pomace"
-          ]
+          "sample_values": ["Tomato pomace", "Tomato pomace", "Tomato pomace"]
         },
         {
           "name": "ProviderCode",
@@ -80,11 +68,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 37,
-          "sample_values": [
-            "Riverstone",
-            "Pinecrest",
-            "Oakleaf"
-          ]
+          "sample_values": ["Riverstone", "Pinecrest", "Oakleaf"]
         },
         {
           "name": "FV_Date_Time",
@@ -179,11 +163,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 104,
-          "sample_values": [
-            "1296E642",
-            "7691DB2E",
-            "74810A87"
-          ]
+          "sample_values": ["1296E642", "7691DB2E", "74810A87"]
         },
         {
           "name": "Sample_name",
@@ -192,11 +172,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 103,
-          "sample_values": [
-            "Riv-TmPm03",
-            "Pin-TmPm02",
-            "Oak-TmPm01"
-          ]
+          "sample_values": ["Riv-TmPm03", "Pin-TmPm02", "Oak-TmPm01"]
         },
         {
           "name": "Resource",
@@ -205,11 +181,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 49,
-          "sample_values": [
-            "Tomato pomace",
-            "Tomato pomace",
-            "Tomato pomace"
-          ]
+          "sample_values": ["Tomato pomace", "Tomato pomace", "Tomato pomace"]
         },
         {
           "name": "ProviderCode",
@@ -218,11 +190,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 36,
-          "sample_values": [
-            "Riverstone",
-            "Pinecrest",
-            "Oakleaf"
-          ]
+          "sample_values": ["Riverstone", "Pinecrest", "Oakleaf"]
         },
         {
           "name": "FV_Date_Time",
@@ -244,11 +212,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 17,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sampling_Street",
@@ -257,11 +221,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 31,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sampling_City",
@@ -270,11 +230,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 15,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sampling_Zip",
@@ -283,11 +239,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 20,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sampling_LatLong",
@@ -296,11 +248,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 39,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sample_TS",
@@ -309,11 +257,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 58,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sample_Source",
@@ -322,11 +266,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 32,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Processing_Method",
@@ -335,11 +275,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 25,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Storage_Mode",
@@ -348,11 +284,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 15,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Storage_Dur_Value",
@@ -361,11 +293,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 10,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Storage_Dur_Units",
@@ -374,11 +302,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 8,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Particle_L_cm",
@@ -387,11 +311,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 24,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Particle_W_cm",
@@ -400,11 +320,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 19,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Particle_H_cm",
@@ -413,11 +329,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 19,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Sample_Notes",
@@ -426,11 +338,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 18,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         }
       ],
       "sample_rows": [
@@ -583,11 +491,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 104,
-          "sample_values": [
-            "EBD7B1F2",
-            "EBD7B1F2",
-            "D3CCC49D"
-          ]
+          "sample_values": ["EBD7B1F2", "EBD7B1F2", "D3CCC49D"]
         },
         {
           "name": "Sample_name",
@@ -596,11 +500,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 101,
-          "sample_values": [
-            "Pos-Alf033",
-            "Pos-Alf033",
-            "Pos-Alf035"
-          ]
+          "sample_values": ["Pos-Alf033", "Pos-Alf033", "Pos-Alf035"]
         },
         {
           "name": "Resource",
@@ -609,11 +509,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 50,
-          "sample_values": [
-            "Alfalfa",
-            "Alfalfa",
-            "Alfalfa"
-          ]
+          "sample_values": ["Alfalfa", "Alfalfa", "Alfalfa"]
         },
         {
           "name": "ProviderCode",
@@ -622,11 +518,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 37,
-          "sample_values": [
-            "possessive",
-            "possessive",
-            "possessive"
-          ]
+          "sample_values": ["possessive", "possessive", "possessive"]
         },
         {
           "name": "FV_Date_Time",
@@ -648,11 +540,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 9,
-          "sample_values": [
-            "Bucket (5 gal.)",
-            "Core",
-            "Bucket (5 gal.)"
-          ]
+          "sample_values": ["Bucket (5 gal.)", "Core", "Bucket (5 gal.)"]
         },
         {
           "name": "Qty",
@@ -661,11 +549,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 4,
-          "sample_values": [
-            "1",
-            "1",
-            "1"
-          ]
+          "sample_values": ["1", "1", "1"]
         },
         {
           "name": "Primary_Collector",
@@ -674,11 +558,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 11,
-          "sample_values": [
-            "Ziad Nasef",
-            "Xihui Kang",
-            "Ziad Nasef"
-          ]
+          "sample_values": ["Ziad Nasef", "Xihui Kang", "Ziad Nasef"]
         },
         {
           "name": "Collection_Team",
@@ -687,11 +567,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 7,
-          "sample_values": [
-            "UCM-Diaz",
-            "LBNL",
-            "UCM-Diaz"
-          ]
+          "sample_values": ["UCM-Diaz", "LBNL", "UCM-Diaz"]
         },
         {
           "name": "Destination_Lab",
@@ -700,11 +576,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 3,
-          "sample_values": [
-            "UCM-Diaz",
-            "LBNL",
-            "UCM-Diaz"
-          ]
+          "sample_values": ["UCM-Diaz", "LBNL", "UCM-Diaz"]
         },
         {
           "name": "FieldStorage_Location",
@@ -713,11 +585,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 5,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "FieldStorage_Conditions",
@@ -726,11 +594,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 4,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "FieldStorage_Duration",
@@ -739,11 +603,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 3,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "FieldStorage_Dur_Units",
@@ -752,11 +612,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 3,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         }
       ],
       "sample_rows": [
@@ -873,11 +729,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 58,
-          "sample_values": [
-            "EBD7B1F2",
-            "64AA3698",
-            "21C2B270"
-          ]
+          "sample_values": ["EBD7B1F2", "64AA3698", "21C2B270"]
         },
         {
           "name": "Sample_name",
@@ -886,11 +738,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 57,
-          "sample_values": [
-            "Pos-Alf033",
-            "",
-            "Pos-WSt034"
-          ]
+          "sample_values": ["Pos-Alf033", "", "Pos-WSt034"]
         },
         {
           "name": "Resource",
@@ -899,11 +747,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 33,
-          "sample_values": [
-            "Alfalfa",
-            "Wheat hay",
-            "Wheat straw"
-          ]
+          "sample_values": ["Alfalfa", "Wheat hay", "Wheat straw"]
         },
         {
           "name": "ProviderCode",
@@ -912,11 +756,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 21,
-          "sample_values": [
-            "possessive",
-            "possessive",
-            "possessive"
-          ]
+          "sample_values": ["possessive", "possessive", "possessive"]
         },
         {
           "name": "FV_Date_Time",
@@ -938,11 +778,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 16,
-          "sample_values": [
-            "possessive",
-            "possessive",
-            "possessive"
-          ]
+          "sample_values": ["possessive", "possessive", "possessive"]
         },
         {
           "name": "Prod_Location",
@@ -977,11 +813,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 5,
-          "sample_values": [
-            "Stockton",
-            "Stockton",
-            "Stockton"
-          ]
+          "sample_values": ["Stockton", "Stockton", "Stockton"]
         },
         {
           "name": "Prod_Zip",
@@ -990,11 +822,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 6,
-          "sample_values": [
-            "95206",
-            "95206",
-            "95206"
-          ]
+          "sample_values": ["95206", "95206", "95206"]
         },
         {
           "name": "Prod_LatLong",
@@ -1016,11 +844,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 20,
-          "sample_values": [
-            "6/1/2025",
-            "6/1/2025",
-            "6/1/2025"
-          ]
+          "sample_values": ["6/1/2025", "6/1/2025", "6/1/2025"]
         },
         {
           "name": "Prod_Method",
@@ -1029,11 +853,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 3,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Harvest_Method",
@@ -1042,11 +862,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 7,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Treatment",
@@ -1055,11 +871,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 4,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Last_Application_Month",
@@ -1068,11 +880,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 1,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Treatment_Amt",
@@ -1081,11 +889,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 1,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Treatment_Units",
@@ -1094,11 +898,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 1,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Treatment_Notes",
@@ -1107,11 +907,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 2,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Soil_Type",
@@ -1120,11 +916,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 4,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Crop_Variety",
@@ -1133,11 +925,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 24,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Crop_Cultivar",
@@ -1146,11 +934,7 @@
           "null_count": 0,
           "null_percentage": 0.0,
           "unique_count": 4,
-          "sample_values": [
-            "",
-            "",
-            ""
-          ]
+          "sample_values": ["", "", ""]
         },
         {
           "name": "Production_Notes",
@@ -1319,9 +1103,7 @@
         "Production_Notes": 0
       },
       "duplicate_counts": {},
-      "data_quality_issues": [
-        "Found 2 duplicate rows"
-      ]
+      "data_quality_issues": ["Found 2 duplicate rows"]
     }
   ]
 }

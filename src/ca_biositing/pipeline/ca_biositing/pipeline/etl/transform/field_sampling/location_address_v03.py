@@ -20,11 +20,11 @@ def transform_location_address_v03(
 ) -> Optional[pd.DataFrame]:
     """
     Extracts unique locations from multi-worksheet sample metadata.
-    
+
     Combines:
     - Collection locations from 02_Sample_Desc (sampling_location, sampling_street, sampling_city, sampling_zip)
     - Producer/facility locations from 04_Producers (prod_location, prod_street, prod_city, prod_zip)
-    
+
     Returns deduplicated LocationAddress records for both location types.
     """
     try:

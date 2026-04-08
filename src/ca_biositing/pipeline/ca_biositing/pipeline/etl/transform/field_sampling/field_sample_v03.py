@@ -34,7 +34,7 @@ def transform_field_sample_v03(
 ) -> Optional[pd.DataFrame]:
     """
     Transforms raw sample metadata from four worksheets into FieldSample table format.
-    
+
     Multi-way join on 'sample_name' column across all four worksheets.
     Left-join preserves all records from 01_Sample_IDs base dataset.
     """

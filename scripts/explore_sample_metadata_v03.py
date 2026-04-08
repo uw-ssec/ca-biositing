@@ -45,12 +45,12 @@ def get_credentials_path() -> str:
     env_creds = os.getenv("CREDENTIALS_PATH")
     if env_creds:
         return env_creds
-    
+
     # Try common locations
     for path in [CREDENTIALS_PATH, f"../{CREDENTIALS_PATH}", f"../../{CREDENTIALS_PATH}"]:
         if os.path.exists(path):
             return path
-    
+
     return CREDENTIALS_PATH
 
 
@@ -67,7 +67,7 @@ def analyze_dataframe(df: pd.DataFrame, worksheet_name: str) -> Dict[str, Any]:
             "columns": [],
             "sample_rows": [],
         }
-    
+
     analysis = {
         "worksheet": worksheet_name,
         "status": "OK",
@@ -79,7 +79,7 @@ def analyze_dataframe(df: pd.DataFrame, worksheet_name: str) -> Dict[str, Any]:
         "duplicate_counts": {},
         "data_quality_issues": [],
     }
-    
+
     # Column metadata
     for col in df.columns:
         col_info = {
@@ -93,7 +93,7 @@ def analyze_dataframe(df: pd.DataFrame, worksheet_name: str) -> Dict[str, Any]:
         }
         analysis["columns"].append(col_info)
         analysis["null_counts"][col] = int(df[col].isna().sum())
-    
+
     # Sample rows (first 5)
     sample_count = min(5, len(df))
     for idx in range(sample_count):
@@ -108,23 +108,23 @@ def analyze_dataframe(df: pd.DataFrame, worksheet_name: str) -> Dict[str, Any]:
             else:
                 row_dict[col] = str(val)
         analysis["sample_rows"].append(row_dict)
-    
+
     # Data quality issues
-    
+
     # Check for duplicate rows
     dup_count = df.duplicated().sum()
     if dup_count > 0:
         analysis["data_quality_issues"].append(
             f"Found {dup_count} duplicate rows"
         )
-    
+
     # Check for completely empty columns
     empty_cols = [col for col in df.columns if df[col].isna().sum() == len(df)]
     if empty_cols:
         analysis["data_quality_issues"].append(
             f"Found {len(empty_cols)} completely empty columns: {empty_cols}"
         )
-    
+
     # Check for high null percentage columns (>80%)
     high_null_cols = [
         col for col in df.columns
@@ -134,7 +134,7 @@ def analyze_dataframe(df: pd.DataFrame, worksheet_name: str) -> Dict[str, Any]:
         analysis["data_quality_issues"].append(
             f"Found {len(high_null_cols)} columns with >80% null values: {high_null_cols}"
         )
-    
+
     return analysis
 
 
@@ -147,35 +147,35 @@ def main():
     print(f"Credentials: {get_credentials_path()}")
     print(f"Output Directory: {EXPORTS_DIR}")
     print(f"{'='*80}\n")
-    
+
     # Ensure exports directory exists
     EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     # Get credentials path
     creds_path = get_credentials_path()
     if not os.path.exists(creds_path):
         print(f"ERROR: Credentials file not found at {creds_path}")
         print("Please ensure credentials.json is in the root directory or CREDENTIALS_PATH is set.")
         sys.exit(1)
-    
+
     # List available worksheets in the target sheet
     print("Fetching worksheet names from Google Sheet...")
     available_sheets = get_sheet_names(GSHEET_NAME, creds_path)
     if available_sheets is None:
         print(f"ERROR: Could not fetch sheet names. Check Google Sheet access.")
         sys.exit(1)
-    
+
     print(f"Available worksheets: {available_sheets}\n")
-    
+
     # Extract and analyze each worksheet
     all_analyses = []
     extraction_log = []
-    
+
     for worksheet_name in WORKSHEETS:
         print(f"\nExtracting: {worksheet_name}...")
         try:
             df = gsheet_to_df(GSHEET_NAME, worksheet_name, creds_path)
-            
+
             if df is None or df.empty:
                 extraction_log.append({
                     "worksheet": worksheet_name,
@@ -184,20 +184,20 @@ def main():
                 })
                 print(f"  ⚠️  {worksheet_name} is empty or extraction failed")
                 continue
-            
+
             print(f"  ✓ Extracted {len(df)} rows, {len(df.columns)} columns")
-            
+
             # Analyze the DataFrame
             analysis = analyze_dataframe(df, worksheet_name)
             all_analyses.append(analysis)
-            
+
             extraction_log.append({
                 "worksheet": worksheet_name,
                 "status": "SUCCESS",
                 "row_count": len(df),
                 "column_count": len(df.columns),
             })
-            
+
         except Exception as e:
             extraction_log.append({
                 "worksheet": worksheet_name,
@@ -205,14 +205,14 @@ def main():
                 "error": str(e)
             })
             print(f"  ✗ Error extracting {worksheet_name}: {e}")
-    
+
     # Generate text report
     text_report = generate_text_report(all_analyses, extraction_log)
     text_file = EXPORTS_DIR / f"sample_metadata_v03_exploration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
     with open(text_file, "w") as f:
         f.write(text_report)
     print(f"\n✓ Text report: {text_file}")
-    
+
     # Generate JSON report
     json_report = {
         "timestamp": datetime.now().isoformat(),
@@ -224,7 +224,7 @@ def main():
     with open(json_file, "w") as f:
         json.dump(json_report, f, indent=2, default=str)
     print(f"✓ JSON report: {json_file}")
-    
+
     # Print summary
     print(f"\n{'='*80}")
     print("EXPLORATION SUMMARY")
@@ -234,7 +234,7 @@ def main():
         print(f"{status_icon} {log_entry['worksheet']}: {log_entry['status']}")
         if "row_count" in log_entry:
             print(f"    Rows: {log_entry['row_count']}, Columns: {log_entry['column_count']}")
-    
+
     print(f"\nExploration complete. Review reports for detailed findings.")
     print(f"{'='*80}\n")
 
@@ -248,7 +248,7 @@ def generate_text_report(analyses: List[Dict[str, Any]], extraction_log: List[Di
     report.append(f"SampleMetadata_v03-BioCirV - Data Exploration Report")
     report.append(f"Generated: {datetime.now().isoformat()}")
     report.append(f"{'='*100}\n")
-    
+
     # Extraction summary
     report.append("EXTRACTION SUMMARY")
     report.append("-" * 100)
@@ -258,27 +258,27 @@ def generate_text_report(analyses: List[Dict[str, Any]], extraction_log: List[Di
         else:
             report.append(f"✗ {entry['worksheet']}: {entry.get('error', entry['status'])}")
     report.append("")
-    
+
     # Detailed analysis per worksheet
     for analysis in analyses:
         report.append(f"\n{'='*100}")
         report.append(f"WORKSHEET: {analysis['worksheet']}")
         report.append(f"{'='*100}")
-        
+
         if analysis["status"] == "EMPTY":
             report.append("(Empty worksheet - no data to analyze)")
             continue
-        
+
         report.append(f"\nBasic Statistics:")
         report.append(f"  Total Rows: {analysis['row_count']}")
         report.append(f"  Total Columns: {analysis['column_count']}")
-        
+
         # Column details
         report.append(f"\nColumns ({len(analysis['columns'])}):")
         report.append(f"{'-'*100}")
         report.append(f"{'Column Name':<30} {'Type':<15} {'Non-Null':<12} {'Unique':<10} {'Null %':<8} {'Sample Values':<30}")
         report.append(f"{'-'*100}")
-        
+
         for col_info in analysis["columns"]:
             col_name = col_info["name"][:29]
             dtype = col_info["dtype"][:14]
@@ -286,9 +286,9 @@ def generate_text_report(analyses: List[Dict[str, Any]], extraction_log: List[Di
             unique = col_info["unique_count"]
             null_pct = col_info["null_percentage"]
             samples = ", ".join(str(v)[:20] for v in col_info["sample_values"][:2]) if col_info["sample_values"] else "N/A"
-            
+
             report.append(f"{col_name:<30} {dtype:<15} {non_null:<12} {unique:<10} {null_pct:<8.1f} {samples:<30}")
-        
+
         # Data quality issues
         if analysis.get("data_quality_issues"):
             report.append(f"\nData Quality Issues:")
@@ -296,7 +296,7 @@ def generate_text_report(analyses: List[Dict[str, Any]], extraction_log: List[Di
                 report.append(f"  ⚠️  {issue}")
         else:
             report.append(f"\nData Quality: No major issues detected")
-        
+
         # Sample rows
         report.append(f"\nSample Rows (first {len(analysis['sample_rows'])}):")
         report.append(f"{'-'*100}")
@@ -304,11 +304,11 @@ def generate_text_report(analyses: List[Dict[str, Any]], extraction_log: List[Di
             report.append(f"\nRow {idx}:")
             for col, val in row.items():
                 report.append(f"  {col}: {val}")
-    
+
     report.append(f"\n{'='*100}")
     report.append("END OF REPORT")
     report.append(f"{'='*100}")
-    
+
     return "\n".join(report)
 
 

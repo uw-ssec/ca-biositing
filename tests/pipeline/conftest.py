@@ -52,7 +52,7 @@ def qty_field_storage_fixture():
         sample_names.append(f'S_{i:03d}')
     # Add some duplicates to simulate multiple records per sample
     sample_names.extend([f'S_{i:03d}' for i in range(42)])
-    
+
     return pd.DataFrame({
         'sample_name': sample_names,
         'qty': list(range(1, 143)),
@@ -96,13 +96,13 @@ def all_data_sources(sample_ids_fixture, sample_desc_fixture, qty_field_storage_
 def mock_prefect_logger(monkeypatch):
     """Mock Prefect logger for tasks."""
     mock_logger = MagicMock()
-    
+
     def mock_get_run_logger():
         return mock_logger
-    
+
     # Patch both possible import locations
     monkeypatch.setattr('prefect.get_run_logger', mock_get_run_logger)
-    
+
     return mock_logger
 
 
@@ -112,5 +112,5 @@ def mock_database_session(monkeypatch):
     mock_session = MagicMock()
     mock_session.exec.return_value.all.return_value = []
     mock_session.exec.return_value.first.return_value = None
-    
+
     return mock_session
