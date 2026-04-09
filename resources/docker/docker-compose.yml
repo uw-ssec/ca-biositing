@@ -47,10 +47,13 @@ services:
       - .env
     environment:
       - PREFECT_UI_API_URL=/api
+      - TZ=UTC
     ports:
       - "4200:4200"
     volumes:
       - prefectdata:/home/appuser/.prefect
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       db:
         condition: service_healthy
@@ -84,6 +87,7 @@ services:
         condition: service_healthy
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
+      - TZ=UTC
     command: prefect worker start --type process --pool biocirv_dev_work_pool
     # healthcheck:
     #   test: ["CMD-SHELL", "prefect work-pool inspect $WORK_POOL"]
