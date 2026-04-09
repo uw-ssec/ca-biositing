@@ -1,5 +1,6 @@
 from .calorimetry_record import CalorimetryRecord
 from .compositional_record import CompositionalRecord
+from .county_ag_report_record import CountyAgReportRecord
 from .ftnir_record import FtnirRecord
 from .icp_record import IcpRecord
 from .proximate_record import ProximateRecord
