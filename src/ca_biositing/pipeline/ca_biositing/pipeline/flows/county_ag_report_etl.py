@@ -8,17 +8,21 @@ def county_ag_report_flow():
 
     Processes in the following order:
     1. Extract from all 3 sheets
-    2. Transform to CountyAgReportRecord
-    3. Load CountyAgReportRecord
-    4. Transform to Observation (production/value)
-    5. Load Observation
+    2. Data Source ETL (if needed)
+    3. Dataset ETL (County specific)
+    4. Transform to CountyAgReportRecord
+    5. Load CountyAgReportRecord
+    6. Transform to Observation (production/value)
+    7. Load Observation
     """
     # Lazy imports to avoid module-level hangs
     from ca_biositing.pipeline.etl.extract import county_ag_report
     from ca_biositing.pipeline.etl.transform.analysis import data_source as ds_transform
+    from ca_biositing.pipeline.etl.transform.analysis import county_ag_datasets as dataset_transform
     from ca_biositing.pipeline.etl.transform.analysis import county_ag_report_record as record_transform
     from ca_biositing.pipeline.etl.transform.analysis import county_ag_report_observation as observation_transform
     from ca_biositing.pipeline.etl.load.analysis import data_source as ds_load
+    from ca_biositing.pipeline.etl.load.analysis import county_ag_datasets as dataset_load
     from ca_biositing.pipeline.etl.load.analysis import county_ag_report_record as record_load
     from ca_biositing.pipeline.etl.load.analysis import observation as observation_load
 
@@ -48,7 +52,17 @@ def county_ag_report_flow():
     logger.info("Loading data sources...")
     ds_load.load_data_sources.fn(transformed_ds_df)
 
-    # 3. Transform Records
+    # 3. Datasets ETL
+    logger.info("Transforming datasets...")
+    transformed_dataset_df = dataset_transform.transform_county_ag_datasets.fn(
+        data_sources={"pp_data_sources": raw_sources},
+        etl_run_id=etl_run_id,
+        lineage_group_id=lineage_group_id
+    )
+    logger.info("Loading datasets...")
+    dataset_load.load_county_ag_datasets.fn(transformed_dataset_df)
+
+    # 4. Transform Records
     logger.info("Transforming base records...")
     transformed_records_df = record_transform.transform_county_ag_report_records.fn(
         data_sources={
@@ -59,11 +73,11 @@ def county_ag_report_flow():
         lineage_group_id=lineage_group_id
     )
 
-    # 4. Load Records (MUST complete before observations due to FK)
+    # 5. Load Records (MUST complete before observations due to FK)
     logger.info("Loading base records...")
     record_load.load_county_ag_report_records.fn(transformed_records_df)
 
-    # 5. Transform Observations
+    # 6. Transform Observations
     logger.info("Transforming observations...")
     transformed_observations_df = observation_transform.transform_county_ag_report_observations.fn(
         data_sources={
@@ -73,7 +87,7 @@ def county_ag_report_flow():
         lineage_group_id=lineage_group_id
     )
 
-    # 6. Load Observations
+    # 7. Load Observations
     logger.info("Loading observations...")
     observation_load.load_observation.fn(transformed_observations_df)
 
