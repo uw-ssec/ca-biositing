@@ -29,7 +29,7 @@ def transform_resource_images(
         lineage_group_id: ID of the lineage group.
 
     Returns:
-        Transformed DataFrame with columns: resource_id, resource_name, image_url, 
+        Transformed DataFrame with columns: resource_id, resource_name, image_url,
         sort_order, etl_run_id, lineage_group_id, created_at, updated_at
     """
     try:
@@ -78,20 +78,20 @@ def transform_resource_images(
     # 4. Prepare output DataFrame
     # Expected output columns: resource_id, resource_name, image_url, sort_order, etl_run_id, lineage_group_id
     output_columns = ['resource_id', 'resource_name', 'image_url', 'sort_order']
-    
+
     # Filter for columns that exist
     available_cols = [col for col in output_columns if col in normalized_df.columns]
-    
+
     if 'resource_id' not in normalized_df.columns:
         logger.error("Column 'resource_id' not found after normalization. Aborting.")
         return pd.DataFrame()
 
     result_df = normalized_df[available_cols].copy()
-    
+
     # Add resource_name if not already present (use the original 'resource' name)
     if 'resource_name' not in result_df.columns and 'resource' in normalized_df.columns:
         result_df['resource_name'] = normalized_df['resource']
-    
+
     # Add lineage tracking metadata
     if etl_run_id:
         result_df['etl_run_id'] = etl_run_id

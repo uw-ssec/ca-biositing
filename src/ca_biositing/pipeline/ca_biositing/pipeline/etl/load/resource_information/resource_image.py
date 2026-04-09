@@ -78,16 +78,24 @@ def load_resource_images(df: pd.DataFrame):
                     # Use upsert pattern (ON CONFLICT DO UPDATE)
                     # Unique constraint is on (resource_id, image_url)
                     stmt = insert(ResourceImage.__table__).values(**clean_record)
-                    stmt = stmt.on_conflict_do_update(
-                        index_elements=['resource_id', 'image_url'],
-                        set_={
-                            'resource_name': stmt.excluded.resource_name,
-                            'sort_order': stmt.excluded.sort_order,
-                            'etl_run_id': stmt.excluded.etl_run_id,
-                            'lineage_group_id': stmt.excluded.lineage_group_id,
-                            'updated_at': stmt.excluded.updated_at,
-                        }
-                    )
+                    try:
+                        stmt = stmt.on_conflict_do_update(
+                            index_elements=['resource_id', 'image_url'],
+                            set_={
+                                'resource_name': stmt.excluded.resource_name,
+                                'sort_order': stmt.excluded.sort_order,
+                                'etl_run_id': stmt.excluded.etl_run_id,
+                                'lineage_group_id': stmt.excluded.lineage_group_id,
+                                'updated_at': stmt.excluded.updated_at,
+                            }
+                        )
+                    except Exception as constraint_error:
+                        logger.warning(
+                            f"Constraint error on record {i} - trying without ON CONFLICT: {constraint_error}. "
+                            f"This may indicate the unique constraint is defined differently."
+                        )
+                        # Fall back to simple insert if constraint doesn't match
+                        stmt = insert(ResourceImage.__table__).values(**clean_record)
                     session.execute(stmt)
                     success_count += 1
 

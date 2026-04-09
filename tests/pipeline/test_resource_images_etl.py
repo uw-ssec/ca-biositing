@@ -205,7 +205,7 @@ class TestResourceInformationFlow:
         # Check that resources are extracted before resource_images
         resource_extract_idx = source.find('resources.extract.fn()')
         resource_image_extract_idx = source.find('resource_images.extract.fn()')
-        
+
         assert resource_extract_idx != -1
         assert resource_image_extract_idx != -1
         assert resource_extract_idx < resource_image_extract_idx
@@ -213,7 +213,7 @@ class TestResourceInformationFlow:
         # Check that resources are loaded before resource_images
         resource_load_idx = source.find('resource_load.load_resource.fn(')
         resource_image_load_idx = source.find('resource_image_load.load_resource_images.fn(')
-        
+
         assert resource_load_idx != -1
         assert resource_image_load_idx != -1
         assert resource_load_idx < resource_image_load_idx
@@ -226,7 +226,7 @@ class TestResourceImagesIntegration:
     def test_end_to_end_pipeline_with_mock_data(self):
         """Test the complete pipeline with mock data (without actual DB)."""
         from ca_biositing.pipeline.etl.transform.resource_information import resource_image as transform_module
-        
+
         # Create mock raw data simulating Google Sheets extract
         raw_data = pd.DataFrame({
             'Resource': ['Wheat Straw', 'Rice Straw', 'Corn Stover'],
