@@ -20,7 +20,7 @@ from .data_sources_metadata import DataSource, DataSourceType, FileObjectMetadat
 from .experiment_equipment import DeconVessel, Equipment, Experiment, ExperimentAnalysis, ExperimentEquipment, ExperimentMethod, ExperimentPreparedSample
 
 # External Data
-from .external_data import BillionTon2023Record, LandiqRecord, LandiqResourceMapping, Polygon, ResourceUsdaCommodityMap, UsdaCensusRecord, UsdaCommodity, UsdaDomain, UsdaMarketRecord, UsdaMarketReport, UsdaStatisticCategory, UsdaSurveyProgram, UsdaSurveyRecord, UsdaTermMap
+from .external_data import BillionTon2023Record, CountyAgReportRecord, LandiqRecord, LandiqResourceMapping, Polygon, ResourceUsdaCommodityMap, UsdaCensusRecord, UsdaCommodity, UsdaDomain, UsdaMarketRecord, UsdaMarketReport, UsdaStatisticCategory, UsdaSurveyProgram, UsdaSurveyRecord, UsdaTermMap
 
 # Field Sampling
 from .field_sampling import AgTreatment, CollectionMethod, FieldSample, FieldSampleCondition, FieldStorageMethod, HarvestMethod, LocationSoilType, PhysicalCharacteristic, ProcessingMethod, SoilType
