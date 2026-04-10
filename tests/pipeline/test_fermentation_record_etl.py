@@ -9,6 +9,7 @@ Tests the fermentation_record transform with new method fields:
 import pytest
 import pandas as pd
 import pathlib
+import inspect
 
 
 class TestFermentationRecordTransform:
@@ -23,7 +24,6 @@ class TestFermentationRecordTransform:
     def test_decon_method_in_normalize_columns(self):
         """Verify that decon_method is in the normalize_columns dictionary."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
-        import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
         assert 'decon_method' in source
         assert "'decon_method': (Method, 'name')" in source
@@ -31,7 +31,6 @@ class TestFermentationRecordTransform:
     def test_eh_method_in_normalize_columns(self):
         """Verify that eh_method is in the normalize_columns dictionary."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
-        import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
         assert 'eh_method' in source
         assert "'eh_method': (Method, 'name')" in source
@@ -39,23 +38,20 @@ class TestFermentationRecordTransform:
     def test_decon_method_rename_mapping(self):
         """Verify that decon_method_id maps to pretreatment_method_id."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
-        import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
         # Check that the rename logic includes the mapping
-        assert "'pretreatment_method_id' if col == 'decon_method'" in source
+        assert "'decon_method': 'pretreatment_method_id'" in source
 
     def test_eh_method_rename_mapping(self):
         """Verify that eh_method_id maps to eh_method_id."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
-        import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
         # Check that the rename logic includes the mapping
-        assert "'eh_method_id' if col == 'eh_method'" in source
+        assert "'eh_method': 'eh_method_id'" in source
 
     def test_transform_normalize_columns_structure(self):
         """Test that normalize_columns dict is properly structured for method fields."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
-        import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
         # Verify the structure includes both Method normalizations
         assert "'decon_method': (Method, 'name')" in source
