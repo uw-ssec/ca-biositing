@@ -35,8 +35,30 @@ def transform_pretreatment_record(
 
     # 1. Cleaning & Coercion
     df = raw_df.copy()
-    df = cleaning_mod.clean_names_df(df)
-    df = cleaning_mod.replace_empty_with_na(df)
+    logger.info(f"PretreatmentRecord: raw_df columns: {df.columns.tolist()}")
+
+    cleaned_df = cleaning_mod.standard_clean(df)
+
+    if cleaned_df is None:
+        logger.error("cleaning_mod.standard_clean returned None for PretreatmentRecord")
+        return pd.DataFrame()
+
+    logger.info(f"PretreatmentRecord: after standard_clean columns: {cleaned_df.columns.tolist()}")
+
+    # Add lineage IDs
+    if etl_run_id is not None:
+        cleaned_df['etl_run_id'] = etl_run_id
+    if lineage_group_id is not None:
+        cleaned_df['lineage_group_id'] = lineage_group_id
+
+    coerced_df = coercion_mod.coerce_columns(
+        cleaned_df,
+        int_cols=['repl_number'],
+        datetime_cols=['created_at', 'updated_at']
+    )
+    logger.info(f"PretreatmentRecord: after coerce_columns columns: {coerced_df.columns.tolist()}")
+
+    df = coerced_df
 
     # 2. Normalization
     normalize_columns = {
@@ -48,10 +70,13 @@ def transform_pretreatment_record(
         'reaction_block_id': Equipment,
         'vessel_id': DeconVessel,
         'raw_data_url': (FileObjectMetadata, "uri"),
+        'resource': (Resource, 'name'),
+        'prepared_sample': (PreparedSample, 'name'),
     }
 
     normalized_dfs = normalize_dataframes(df, normalize_columns)
     normalized_df = normalized_dfs[0]
+    logger.info(f"PretreatmentRecord: after normalize_dataframes columns: {normalized_df.columns.tolist()}")
 
     # 3. Table Specific Mapping
     rename_map = {
@@ -63,7 +88,9 @@ def transform_pretreatment_record(
         'note': 'note',
         'etl_run_id': 'etl_run_id',
         'lineage_group_id': 'lineage_group_id',
-        'reaction_block_id': 'reaction_block_id'
+        'reaction_block_id': 'reaction_block_id',
+        'resource_id': 'resource_id',
+        'prepared_sample_id': 'prepared_sample_id'
     }
 
     # Handle normalized columns
@@ -77,14 +104,22 @@ def transform_pretreatment_record(
                           'eh_method_id' if col == 'eh_method_id' else \
                           'reaction_block_id' if col == 'reaction_block_id' else \
                           'vessel_id' if col == 'vessel_id' else \
-                          'raw_data_id' if col == 'raw_data_url' else norm_col
+                          'raw_data_id' if col == 'raw_data_url' else \
+                          'resource_id' if col == 'resource' else \
+                          'prepared_sample_id' if col == 'prepared_sample' else norm_col
             rename_map[norm_col] = target_name
 
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
+    logger.info(f"PretreatmentRecord: available_cols for mapping: {available_cols}")
+    logger.info(f"PretreatmentRecord: final_rename map: {final_rename}")
 
     try:
         record_df = normalized_df[available_cols].rename(columns=final_rename).copy()
+        logger.info(f"PretreatmentRecord: record_df columns after rename: {record_df.columns.tolist()}")
+
+        # Set dataset_id = 1 (biocirv) for all records
+        record_df['dataset_id'] = 1
 
         # Add replicate_no as well if technical_replicate_no exists
         if 'technical_replicate_no' in record_df.columns:

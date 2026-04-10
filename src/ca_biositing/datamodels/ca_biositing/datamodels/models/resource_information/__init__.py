@@ -5,6 +5,7 @@ from .resource import ResourceClass
 from .resource_counterfactual import ResourceCounterfactual
 from .resource import ResourceMorphology
 from .resource import ResourceSubclass
+from .resource_image import ResourceImage
 from .resource_price_record import ResourcePriceRecord
 from .resource_transport_record import ResourceTransportRecord
 from .resource_storage_record import ResourceStorageRecord

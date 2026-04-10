@@ -50,11 +50,15 @@ def transform_fermentation_record(
     df_copy = raw_df.copy()
     df_copy['dataset'] = 'bioconversion'
 
+    logger.info(f"Raw data columns before cleaning: {list(raw_df.columns)}")
+
     cleaned_df = cleaning_mod.standard_clean(df_copy)
 
     if cleaned_df is None:
         logger.error("cleaning_mod.standard_clean returned None for FermentationRecord")
         return pd.DataFrame()
+
+    logger.info(f"Cleaned data columns: {list(cleaned_df.columns)}")
 
     # Add lineage IDs
     if etl_run_id is not None:
@@ -70,10 +74,14 @@ def transform_fermentation_record(
 
     # 2. Normalization
     # Note: method_id in cleaned_df comes from Method_ID in raw data
+    # The decon_method and eh_method columns will be created if they exist in cleaned_df,
+    # otherwise they'll be skipped by normalize_dataframes and created as all-NA
     normalize_columns = {
         'resource': (Resource, 'name'),
         'prepared_sample': (PreparedSample, 'name'),
         'method_id': (Method, 'name'),
+        'decon_method': (Method, 'name'),
+        'eh_method': (Method, 'name'),
         'exp_id': (Experiment, 'name'),
         'analyst_email': (Contact, 'email'),
         'dataset': (Dataset, 'name'),
@@ -81,8 +89,17 @@ def transform_fermentation_record(
         'reactor_vessel': (DeconVessel, 'name'),
         'analysis_equipment': (Equipment, 'name')
     }
+    logger.info(f"Coerced data columns: {list(coerced_df.columns)}")
+    logger.info(f"Normalize columns dict keys: {list(normalize_columns.keys())}")
+    logger.info(f"Checking for decon_method: {'decon_method' in coerced_df.columns}")
+    logger.info(f"Checking for eh_method: {'eh_method' in coerced_df.columns}")
+
     normalized_dfs = normalize_dataframes(coerced_df, normalize_columns)
     normalized_df = normalized_dfs[0]
+
+    logger.info(f"Normalized data columns: {list(normalized_df.columns)}")
+    logger.info(f"Checking for decon_method_id: {'decon_method_id' in normalized_df.columns}")
+    logger.info(f"Checking for eh_method_id: {'eh_method_id' in normalized_df.columns}")
 
     # 3. Table Specific Mapping
     rename_map = {
@@ -95,21 +112,32 @@ def transform_fermentation_record(
         'lineage_group_id': 'lineage_group_id'
     }
 
-    # Handle normalized columns
-    for col in normalize_columns.keys():
+    # Handle normalized columns - map them to their target names in FermentationRecord
+    column_mapping = {
+        'resource': 'resource_id',
+        'prepared_sample': 'prepared_sample_id',
+        'method_id': 'method_id',  # Keep method_id unchanged
+        'decon_method': 'pretreatment_method_id',  # decon_method_id → pretreatment_method_id
+        'eh_method': 'eh_method_id',  # eh_method_id → eh_method_id (no change)
+        'exp_id': 'experiment_id',
+        'analyst_email': 'analyst_id',
+        'dataset': 'dataset_id',
+        'raw_data_url': 'raw_data_id',
+        'reactor_vessel': 'vessel_id',
+        'analysis_equipment': 'analyte_detection_equipment_id'
+    }
+
+    for col, target_name in column_mapping.items():
         norm_col = f"{col}_id"
         if norm_col in normalized_df.columns:
-            target_name = 'analyst_id' if col == 'analyst_email' else \
-                          'experiment_id' if col == 'exp_id' else \
-                          'vessel_id' if col == 'reactor_vessel' else \
-                          'analyte_detection_equipment_id' if col == 'analysis_equipment' else \
-                          'raw_data_id' if col == 'raw_data_url' else \
-                          'dataset_id' if col == 'dataset' else \
-                          'method_id' if col == 'method_id' else norm_col
             rename_map[norm_col] = target_name
+            logger.info(f"Mapping normalized column {norm_col} to {target_name}")
 
     available_cols = [c for c in rename_map.keys() if c in normalized_df.columns]
     final_rename = {k: v for k, v in rename_map.items() if k in available_cols}
+
+    logger.info(f"Available columns: {available_cols}")
+    logger.info(f"Final rename map: {final_rename}")
 
     try:
         record_df = normalized_df[available_cols].rename(columns=final_rename).copy()
