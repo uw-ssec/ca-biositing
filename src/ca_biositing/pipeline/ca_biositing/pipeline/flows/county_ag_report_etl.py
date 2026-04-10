@@ -30,41 +30,41 @@ def county_ag_report_flow():
     logger.info("Starting County Ag Report ETL flow...")
 
     # 0. Lineage Tracking Setup
-    etl_run_id = create_etl_run_record.fn(pipeline_name="County Ag Report ETL")
-    lineage_group_id = create_lineage_group.fn(
+    etl_run_id = create_etl_run_record(pipeline_name="County Ag Report ETL")
+    lineage_group_id = create_lineage_group(
         etl_run_id=etl_run_id,
         note="County Ag Report data for Merced, San Joaquin, and Stanislaus (2023-2024)"
     )
 
     # 1. Extract
     logger.info("Extracting data from Google Sheets...")
-    raw_meta = county_ag_report.primary_products.fn()
-    raw_metrics = county_ag_report.pp_production_value.fn()
-    raw_sources = county_ag_report.pp_data_sources.fn()
+    raw_meta = county_ag_report.primary_products()
+    raw_metrics = county_ag_report.pp_production_value()
+    raw_sources = county_ag_report.pp_data_sources()
 
     # 2. Data Sources ETL (PREREQUISITE)
     logger.info("Transforming data sources...")
-    transformed_ds_df = ds_transform.transform_data_sources.fn(
+    transformed_ds_df = ds_transform.transform_data_sources(
         data_sources={"pp_data_sources": raw_sources},
         etl_run_id=etl_run_id,
         lineage_group_id=lineage_group_id
     )
     logger.info("Loading data sources...")
-    ds_load.load_data_sources.fn(transformed_ds_df)
+    ds_load.load_data_sources(transformed_ds_df)
 
     # 3. Datasets ETL
     logger.info("Transforming datasets...")
-    transformed_dataset_df = dataset_transform.transform_county_ag_datasets.fn(
+    transformed_dataset_df = dataset_transform.transform_county_ag_datasets(
         data_sources={"pp_data_sources": raw_sources},
         etl_run_id=etl_run_id,
         lineage_group_id=lineage_group_id
     )
     logger.info("Loading datasets...")
-    dataset_load.load_county_ag_datasets.fn(transformed_dataset_df)
+    dataset_load.load_county_ag_datasets(transformed_dataset_df)
 
     # 4. Transform Records
     logger.info("Transforming base records...")
-    transformed_records_df = record_transform.transform_county_ag_report_records.fn(
+    transformed_records_df = record_transform.transform_county_ag_report_records(
         data_sources={
             "primary_products": raw_meta,
             "pp_production_value": raw_metrics
@@ -75,11 +75,11 @@ def county_ag_report_flow():
 
     # 5. Load Records (MUST complete before observations due to FK)
     logger.info("Loading base records...")
-    record_load.load_county_ag_report_records.fn(transformed_records_df)
+    record_load.load_county_ag_report_records(transformed_records_df)
 
     # 6. Transform Observations
     logger.info("Transforming observations...")
-    transformed_observations_df = observation_transform.transform_county_ag_report_observations.fn(
+    transformed_observations_df = observation_transform.transform_county_ag_report_observations(
         data_sources={
             "pp_production_value": raw_metrics
         },
@@ -89,7 +89,7 @@ def county_ag_report_flow():
 
     # 7. Load Observations
     logger.info("Loading observations...")
-    observation_load.load_observation.fn(transformed_observations_df)
+    observation_load.load_observation(transformed_observations_df)
 
     logger.info("County Ag Report ETL flow completed successfully.")
 
