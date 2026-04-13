@@ -151,7 +151,7 @@ pixi run pre-commit-install
 
 ### Running the ETL Pipeline
 
-```bash
+````bash
 # Create environment file from template
 cp resources/docker/.env.example resources/docker/.env
 
@@ -185,7 +185,7 @@ pixi run run-etl
 
 # Monitor via Prefect UI at http://localhost:4200
 >>>>>>> main
-```
+````
 
 ### Running the Web Service
 
