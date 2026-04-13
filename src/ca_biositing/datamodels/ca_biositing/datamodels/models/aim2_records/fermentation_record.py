@@ -8,7 +8,7 @@ from typing import Optional
 class FermentationRecord(Aim2RecordBase, table=True):
     __tablename__ = "fermentation_record"
 
-    strain_id: Optional[int] = Field(default=None)
+    strain_id: Optional[int] = Field(default=None, foreign_key="strain.id")
     pretreatment_method_id: Optional[int] = Field(default=None, foreign_key="method.id")
     eh_method_id: Optional[int] = Field(default=None, foreign_key="method.id")
     well_position: Optional[str] = Field(default=None)

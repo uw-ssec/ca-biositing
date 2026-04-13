@@ -19,6 +19,7 @@ def transform_fermentation_record(
         Resource,
         PreparedSample,
         Method,
+        Strain,
         Contact,
         Dataset,
         FileObjectMetadata,
@@ -41,10 +42,25 @@ def transform_fermentation_record(
     # Pre-clean names to catch normalization-induced duplicates
     raw_df = cleaning_mod.clean_names_df(raw_df)
 
+    # Rename bioconv_method or strain_name to strain if it exists to match normalization expectations
+    # We prioritize bioconv_method as it contains the actual strain names in this dataset
+    if 'bioconv_method' in raw_df.columns:
+        # If both exist, rename strain_name to something else to avoid confusion
+        if 'strain_name' in raw_df.columns:
+            raw_df = raw_df.rename(columns={'strain_name': 'original_strain_name'})
+        raw_df = raw_df.rename(columns={'bioconv_method': 'strain'})
+    elif 'strain_name' in raw_df.columns:
+        raw_df = raw_df.rename(columns={'strain_name': 'strain'})
+
     if raw_df.columns.duplicated().any():
         dupes = raw_df.columns[raw_df.columns.duplicated()].unique().tolist()
         logger.warning(f"FermentationRecord: Duplicate columns found and removed: {dupes}")
         raw_df = raw_df.loc[:, ~raw_df.columns.duplicated()]
+
+    logger.info(f"Columns after potential strain rename: {list(raw_df.columns)}")
+    if 'strain' in raw_df.columns:
+        logger.info(f"Strain column non-null count: {raw_df['strain'].notna().sum()}")
+        logger.info(f"Strain column unique values: {raw_df['strain'].unique().tolist()[:5]}")
 
     # 1. Cleaning & Coercion
     df_copy = raw_df.copy()
@@ -53,6 +69,10 @@ def transform_fermentation_record(
     logger.info(f"Raw data columns before cleaning: {list(raw_df.columns)}")
 
     cleaned_df = cleaning_mod.standard_clean(df_copy)
+
+    if cleaned_df is not None and 'strain' in cleaned_df.columns:
+        logger.info(f"Strain column in cleaned_df non-null count: {cleaned_df['strain'].notna().sum()}")
+        logger.info(f"Strain column in cleaned_df unique values: {cleaned_df['strain'].unique().tolist()[:5]}")
 
     if cleaned_df is None:
         logger.error("cleaning_mod.standard_clean returned None for FermentationRecord")
@@ -82,6 +102,7 @@ def transform_fermentation_record(
         'method_id': (Method, 'name'),
         'decon_method': (Method, 'name'),
         'eh_method': (Method, 'name'),
+        'strain': (Strain, 'name'),
         'exp_id': (Experiment, 'name'),
         'analyst_email': (Contact, 'email'),
         'dataset': (Dataset, 'name'),
@@ -119,6 +140,7 @@ def transform_fermentation_record(
         'method_id': 'method_id',  # Keep method_id unchanged
         'decon_method': 'pretreatment_method_id',  # decon_method_id → pretreatment_method_id
         'eh_method': 'eh_method_id',  # eh_method_id → eh_method_id (no change)
+        'strain': 'strain_id',
         'exp_id': 'experiment_id',
         'analyst_email': 'analyst_id',
         'dataset': 'dataset_id',

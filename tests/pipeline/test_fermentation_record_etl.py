@@ -49,6 +49,13 @@ class TestFermentationRecordTransform:
         # Check that the rename logic includes the mapping
         assert "'eh_method': 'eh_method_id'" in source
 
+    def test_strain_rename_mapping(self):
+        """Verify that strain_id maps to strain_id."""
+        from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
+        source = inspect.getsource(transform_fermentation_record.fn)
+        # Check that the rename logic includes the mapping
+        assert "'strain': 'strain_id'" in source
+
     def test_transform_normalize_columns_structure(self):
         """Test that normalize_columns dict is properly structured for method fields."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
@@ -71,12 +78,18 @@ class TestFermentationRecordModel:
         from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
         assert hasattr(FermentationRecord, 'eh_method_id')
 
+    def test_fermentation_record_has_strain_id(self):
+        """Verify FermentationRecord model has strain_id field."""
+        from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
+        assert hasattr(FermentationRecord, 'strain_id')
+
     def test_pretreatment_method_id_is_foreign_key(self):
         """Verify pretreatment_method_id is a foreign key to method table."""
         from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
         # Check the field definition exists
         field_info = FermentationRecord.model_fields.get('pretreatment_method_id')
         assert field_info is not None
+        assert getattr(field_info, "foreign_key", None) == "method.id"
 
     def test_eh_method_id_is_foreign_key(self):
         """Verify eh_method_id is a foreign key to method table."""
@@ -84,6 +97,15 @@ class TestFermentationRecordModel:
         # Check the field definition exists
         field_info = FermentationRecord.model_fields.get('eh_method_id')
         assert field_info is not None
+        assert getattr(field_info, "foreign_key", None) == "method.id"
+
+    def test_strain_id_is_foreign_key(self):
+        """Verify strain_id is a foreign key to strain table."""
+        from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
+        # Check the field definition exists
+        field_info = FermentationRecord.model_fields.get('strain_id')
+        assert field_info is not None
+        assert getattr(field_info, "foreign_key", None) == "strain.id"
 
 
 class TestMvBiomassFermentationView:
