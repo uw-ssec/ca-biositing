@@ -151,19 +151,41 @@ pixi run pre-commit-install
 
 ### Running the ETL Pipeline
 
-```bash
+````bash
 # Create environment file from template
 cp resources/docker/.env.example resources/docker/.env
 
+<<<<<<< docs-improvement
+```bash
+# 1. Start all services (PostgreSQL, Prefect server, worker)
+=======
 # Start all services (PostgreSQL, Prefect server, worker)
+>>>>>>> main
 pixi run start-services
 
 # Deploy and run ETL flows
 pixi run deploy
+<<<<<<< docs-improvement
+
+# 3. Apply any pending database migrations
+# Note: start-services automatically applies migrations at startup via the
+# setup-db container. Run this step manually when you pull new migration
+# files without restarting services.
+pixi run migrate
+
+# 4. Run the ETL pipeline
+pixi run run-etl
+
+# Monitor via Prefect UI: http://localhost:4200
+
+# Stop services
+pixi run teardown-services
+=======
 pixi run run-etl
 
 # Monitor via Prefect UI at http://localhost:4200
-```
+>>>>>>> main
+````
 
 ### Running the Web Service
 
