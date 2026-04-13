@@ -82,6 +82,13 @@ docker build -t ca-biositing-pulumi deployment/cloud/gcp/infrastructure/
 This only needs to be re-run if `deployment/cloud/gcp/infrastructure/Dockerfile`
 changes.
 
+> **Version alignment:** The `PULUMI_GCP_VERSION` in the Dockerfile and the
+> `pulumi-gcp` pin in `pixi.toml` (`[feature.cloud.pypi-dependencies]`) must
+> stay in sync. The Dockerfile controls the version used by Docker-wrapped tasks
+> (`cloud-deploy`, `cloud-plan`, etc.) while `pixi.toml` controls the version
+> used by direct tasks (`cloud-deploy-direct`, `cloud-plan-direct`) and CI. If
+> they diverge, Pulumi state schema mismatches can occur.
+
 #### 1. Create the Pulumi state bucket (one-time)
 
 This creates a GCS bucket to store Pulumi state files. Only needs to be run once
@@ -238,7 +245,12 @@ Both workflows set `DEPLOY_ENV` explicitly in their top-level `env:` block.
 6. Redeploy to pick up OAuth2 secrets:
    `DEPLOY_ENV=<env> pixi run -e deployment cloud-deploy`
 7. Update Google OAuth client redirect URI to the prefect-auth's
-   `/oauth2/callback` URL (from `cloud-outputs-direct`)
+   `/oauth2/callback` URL (from `cloud-outputs-direct`). Also update the **OAuth
+   consent screen branding** (APIs & Services → OAuth consent screen → Branding)
+   — the app name shown on the Google login page is set there, not in the OAuth
+   client itself. For example, set it to "CA Biositing Prefect Server" (without
+   an environment suffix) or a per-environment name if separate OAuth clients
+   are used.
 8. Run migrations:
    `DEPLOY_ENV=<env> IMAGE_TAG=<tag> pixi run -e deployment cloud-migrate-ci`
 9. Seed admin user (manual, idempotent):
@@ -270,6 +282,12 @@ locally.
 3. Application type: **Web application**
 4. Add authorized redirect URI: `http://localhost:4180/oauth2/callback`
 5. Copy the **Client ID** and **Client Secret**
+
+> **Note:** The app name shown on the Google login page (e.g. "CA Biositing
+> Prefect Server Staging") is configured in the **OAuth consent screen
+> branding** (APIs & Services → OAuth consent screen → Branding), not in the
+> individual OAuth client. If sharing one OAuth client across environments, keep
+> this in mind — all environments will show the same branding name.
 
 ### Configure Local Env
 

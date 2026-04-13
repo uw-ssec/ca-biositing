@@ -21,8 +21,8 @@ pull:
 deployments:
   - name: master-etl-deployment
     version: null
-    tags: ["etl", "master", "staging"]
-    concurrency_limit: 1
+    tags: ["etl", "master"]
+    concurrency_limit: 7
     description: A master flow to orchestrate all ETL pipelines.
     entrypoint: run_prefect_flow.py:master_flow
     parameters: {}

@@ -17,6 +17,7 @@ from config import (
     DB_NAME,
     PREFECT_DB_NAME,
     LANDIQ_SHAPEFILE_URL,
+    CORS_ORIGINS,
     CR_WEBSERVICE_NAME,
     CR_MIGRATION_JOB_NAME,
     CR_SEED_ADMIN_JOB_NAME,
@@ -102,6 +103,14 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="API_JWT_COOKIE_SECURE",
                             value="true",
+                        ),
+                        *(
+                            [gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                                name="API_CORS_ORIGINS",
+                                value=CORS_ORIGINS,
+                            )]
+                            if CORS_ORIGINS
+                            else []
                         ),
                     ],
                     volume_mounts=[
@@ -609,20 +618,28 @@ def create_cloud_run_resources(
     # --- 5.6: OAuth2-Proxy (fronts Prefect Server for browser auth) ---
     # Authenticates browser users via Google OAuth before forwarding to Prefect server.
     # The Prefect worker connects directly to the server (internal traffic), bypassing this proxy.
-    # The oauth2-proxy image is distroless (no shell), so we pass flags directly as args
-    # and inject secrets as env vars via value_source (no shell wrapper needed).
-    oauth2_proxy_args = prefect_server.uri.apply(
+    # Secrets are mounted as volumes (not value_source env vars) because the
+    # GCP Cloud Run v2 API rejects the Terraform provider's serialization of
+    # env vars with value_source (sends both value="" and valueSource, violating
+    # the protobuf oneof).  A shell wrapper reads secret files into env vars.
+    # Uses the Alpine image (not distroless) so we have a shell for the wrapper.
+    oauth2_proxy_command = prefect_server.uri.apply(
         lambda uri: [
-            "--provider=google",
-            f"--email-domain={OAUTH2_PROXY_EMAIL_DOMAIN}",
-            "--reverse-proxy=true",
-            "--cookie-secure=true",
-            "--cookie-refresh=1h",
-            "--skip-auth-route=GET=^/api/health$",
-            "--http-address=0.0.0.0:4180",
-            "--upstream-timeout=120s",
-            f"--upstream={uri}",
-            "--skip-provider-button=true",
+            "sh", "-c",
+            "export OAUTH2_PROXY_CLIENT_ID=$(cat /secrets/oauth2-client-id/value) "
+            "&& export OAUTH2_PROXY_CLIENT_SECRET=$(cat /secrets/oauth2-client-secret/value) "
+            "&& export OAUTH2_PROXY_COOKIE_SECRET=$(cat /secrets/oauth2-cookie-secret/value) "
+            "&& exec oauth2-proxy"
+            " --provider=google"
+            f" --email-domain={OAUTH2_PROXY_EMAIL_DOMAIN}"
+            " --reverse-proxy=true"
+            " --cookie-secure=true"
+            " --cookie-refresh=1h"
+            " --skip-auth-route=GET=^/api/health$"
+            " --http-address=0.0.0.0:4180"
+            " --upstream-timeout=120s"
+            f" --upstream={uri}"
+            " --skip-provider-button=true",
         ]
     )
 
@@ -650,7 +667,7 @@ def create_cloud_run_resources(
             containers=[
                 gcp.cloudrunv2.ServiceTemplateContainerArgs(
                     image=OAUTH2_PROXY_IMAGE,
-                    args=oauth2_proxy_args,
+                    commands=oauth2_proxy_command,
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=4180,
                     ),
@@ -667,32 +684,19 @@ def create_cloud_run_resources(
                             name="OAUTH2_PROXY_SET_XAUTHREQUEST",
                             value="true",
                         ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="OAUTH2_PROXY_CLIENT_ID",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.oauth2_client_id_secret.name,
-                                    version="latest",
-                                ),
-                            ),
+                    ],
+                    volume_mounts=[
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-client-id",
+                            mount_path="/secrets/oauth2-client-id",
                         ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="OAUTH2_PROXY_CLIENT_SECRET",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.oauth2_client_secret_secret.name,
-                                    version="latest",
-                                ),
-                            ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-client-secret",
+                            mount_path="/secrets/oauth2-client-secret",
                         ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="OAUTH2_PROXY_COOKIE_SECRET",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.oauth2_cookie_secret_sm.name,
-                                    version="latest",
-                                ),
-                            ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-cookie-secret",
+                            mount_path="/secrets/oauth2-cookie-secret",
                         ),
                     ],
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
@@ -710,6 +714,35 @@ def create_cloud_run_resources(
                         ),
                     ),
                 )
+            ],
+            volumes=[
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-client-id",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_client_id_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-client-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_client_secret_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-cookie-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_cookie_secret_sm.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
             ],
         ),
         traffics=[

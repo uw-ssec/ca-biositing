@@ -8,14 +8,18 @@ from __future__ import annotations
 
 from typing import Annotated, Optional
 
-from fastapi import Depends, HTTPException, Query, Request, status
+from fastapi import Depends, Header, HTTPException, Query, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 
 from ca_biositing.datamodels.database import get_session
 from ca_biositing.datamodels.models import ApiUser
 from ca_biositing.webservice.config import config
-from ca_biositing.webservice.services.auth_service import decode_access_token
+from ca_biositing.webservice.services.auth_service import (
+    check_and_increment_rate_limit,
+    decode_access_token,
+    validate_api_key,
+)
 
 
 # Database session dependency
@@ -38,35 +42,23 @@ PaginationDep = Annotated[dict, Depends(pagination_params)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token", auto_error=False)
 
 
-def get_current_user(
-    token: Annotated[Optional[str], Depends(oauth2_scheme)],
-    request: Request,
-    session: SessionDep,
-) -> ApiUser:
-    """Resolve the current authenticated user from Bearer token or HTTP-only cookie.
+def _resolve_jwt_user(token: Optional[str], request: Request, session: Session) -> Optional[ApiUser]:
+    """Shared helper: resolve a user from a JWT Bearer token or HTTP-only cookie.
 
-    Checks the Authorization: Bearer header first; if absent, falls back to the
-    access_token cookie. Raises 401 if no valid token is found or the user is disabled.
+    Returns the ApiUser on success, or None if no valid JWT is present.
+    Raises 401 if a token is present but invalid/expired.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
-    # Prefer Bearer header; fall back to cookie
     resolved_token: Optional[str] = token or request.cookies.get("access_token")
     if not resolved_token:
-        raise credentials_exception
-
-    username = decode_access_token(
-        resolved_token,
-        config.jwt_secret_key,
-        config.jwt_algorithm,
-    )
+        return None
+    username = decode_access_token(resolved_token, config.jwt_secret_key, config.jwt_algorithm)
     if not username:
         raise credentials_exception
-
     user = session.exec(select(ApiUser).where(ApiUser.username == username)).first()
     if user is None:
         raise credentials_exception
@@ -78,12 +70,86 @@ def get_current_user(
     return user
 
 
+def get_jwt_user(
+    token: Annotated[Optional[str], Depends(oauth2_scheme)],
+    request: Request,
+    session: SessionDep,
+) -> ApiUser:
+    """JWT-only authentication (Bearer header or HTTP-only cookie).
+
+    Does NOT accept X-API-Key. Used for admin endpoints so that a leaked
+    API key can never access key-management operations.
+
+    Raises 401 if no valid JWT credential is present.
+    """
+    user = _resolve_jwt_user(token, request, session)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
+def get_current_user(
+    token: Annotated[Optional[str], Depends(oauth2_scheme)],
+    request: Request,
+    session: SessionDep,
+    x_api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
+) -> ApiUser:
+    """Resolve the current authenticated user.
+
+    Auth check order:
+    1. Authorization: Bearer <jwt> header
+    2. access_token HTTP-only cookie
+    3. X-API-Key header (per-client API key with rate limiting)
+
+    Raises 401 if no valid credential is found or the user is disabled.
+    Raises 429 if the API key's rate limit is exceeded.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    # --- Path 1 & 2: JWT (Bearer header or cookie) ---
+    jwt_user = _resolve_jwt_user(token, request, session)
+    if jwt_user is not None:
+        return jwt_user
+
+    # --- Path 3: X-API-Key header ---
+    if x_api_key:
+        api_key = validate_api_key(session, x_api_key)
+        if not api_key:
+            raise credentials_exception
+        user = session.exec(select(ApiUser).where(ApiUser.id == api_key.api_user_id)).first()
+        if user is None or user.disabled:
+            raise credentials_exception
+        if not check_and_increment_rate_limit(session, api_key):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded",
+                headers={"Retry-After": "60"},
+            )
+        return user
+
+    raise credentials_exception
+
+
 # Typed dependency aliases
 CurrentUserDep = Annotated[ApiUser, Depends(get_current_user)]
+JWTCurrentUserDep = Annotated[ApiUser, Depends(get_jwt_user)]
 
 
-def get_current_admin_user(current_user: CurrentUserDep) -> ApiUser:
-    """Require the current user to be an admin. Raises 403 otherwise."""
+def get_current_admin_user(current_user: JWTCurrentUserDep) -> ApiUser:
+    """Require the current user to be an admin, authenticated via JWT only.
+
+    API keys are intentionally excluded — a leaked key must not be able to
+    manage other keys even if the linked account has admin privileges.
+    Raises 403 if the user is not an admin.
+    """
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

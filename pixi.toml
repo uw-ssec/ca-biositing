@@ -7,7 +7,7 @@ authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
 platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
-version = "0.1.0"
+version = "2026.4.6"
 
 [environments]
 default = ["datamodels", "pipeline", "webservice", "kernel", "gis"]
@@ -300,6 +300,10 @@ pydantic = ">=2.5,<3.0"
 pyjwt = ">=2.0,<3"
 pwdlib = { version = ">=0.2.0", extras = ["argon2"] }
 python-multipart = ">=0.0.9"
+
+[feature.webservice.tasks.generate-openapi]
+cmd = "python scripts/generate_openapi.py"
+description = "Generate static OpenAPI spec to docs/api/openapi.json."
 
 [feature.webservice.tasks.create-admin]
 cmd = "python scripts/create_admin.py"

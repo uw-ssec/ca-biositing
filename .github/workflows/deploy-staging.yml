@@ -61,18 +61,33 @@ jobs:
       (github.event_name == 'workflow_dispatch') || (github.event_name ==
       'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
       - name: Set short SHA
         id: vars
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             SHA="${{ github.event.workflow_run.head_sha }}"
           else
-            SHA="${GITHUB_SHA}"
+            # On workflow_dispatch the current HEAD may not have a built image.
+            # Query the last successful docker-build run on main to get the
+            # SHA of the most recently built image.
+            SHA=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/docker-build.yml/runs?branch=main&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha')
+            if [ -z "$SHA" ] || [ "$SHA" = "null" ]; then
+              echo "::error::No successful docker-build run found on main"
+              exit 1
+            fi
           fi
           echo "sha_short=${SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "Resolved image tag: ${SHA::7}"
 
   deploy-infrastructure:
     name: Deploy Infrastructure (Pulumi)
@@ -183,31 +198,3 @@ jobs:
       - name: Validate services are healthy
         run: bash scripts/validate-deployment.sh
         timeout-minutes: 10
-
-  # --- Trigger ETL (fire-and-forget, runs after services are validated) ---
-  trigger-etl:
-    name: Trigger ETL Pipeline
-    needs: [image-tag, validate-deployment]
-    runs-on: ubuntu-latest
-    environment: staging
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOYER_SA }}
-
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
-        with:
-          pixi-version: v0.63.2
-          environments: deployment
-
-      - name: Trigger ETL flow run
-        run: pixi run -e deployment cloud-trigger-etl
