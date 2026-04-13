@@ -8,7 +8,21 @@ import pulumi_gcp as gcp
 import pulumi_random as random
 
 from cloud_sql import CloudSQLResources
-from config import DB_USER, READONLY_USERS
+from config import (
+    DB_USER,
+    READONLY_USERS,
+    SECRET_DB_PASSWORD,
+    SECRET_GSHEETS,
+    SECRET_USDA_API_KEY,
+    SECRET_PREFECT_AUTH,
+    SECRET_POSTGRES_PASSWORD,
+    SECRET_JWT_KEY,
+    SECRET_ADMIN_PASSWORD,
+    SECRET_RO_PREFIX,
+    SECRET_OAUTH2_CLIENT_ID,
+    SECRET_OAUTH2_CLIENT_SECRET,
+    SECRET_OAUTH2_COOKIE_SECRET,
+)
 
 
 @dataclass
@@ -30,6 +44,10 @@ class SecretResources:
     jwt_secret_sm: gcp.secretmanager.Secret = None
     admin_password: random.RandomPassword = None
     admin_password_sm: gcp.secretmanager.Secret = None
+    oauth2_client_id_secret: gcp.secretmanager.Secret = None
+    oauth2_client_secret_secret: gcp.secretmanager.Secret = None
+    oauth2_cookie_secret: random.RandomPassword = None
+    oauth2_cookie_secret_sm: gcp.secretmanager.Secret = None
 
 
 def create_secrets(
@@ -57,7 +75,7 @@ def create_secrets(
     # Store the DB password in Secret Manager
     db_password_secret = gcp.secretmanager.Secret(
         "db-password-secret",
-        secret_id="biocirv-staging-db-password",
+        secret_id=SECRET_DB_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -73,7 +91,7 @@ def create_secrets(
     # Google Sheets credentials secret (version added manually post-deploy)
     gsheets_secret = gcp.secretmanager.Secret(
         "gsheets-credentials-secret",
-        secret_id="biocirv-staging-gsheets-credentials",
+        secret_id=SECRET_GSHEETS,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -83,7 +101,7 @@ def create_secrets(
     # USDA NASS API key (version added manually post-deploy)
     usda_api_key_secret = gcp.secretmanager.Secret(
         "usda-api-key-secret",
-        secret_id="biocirv-staging-usda-nass-api-key",
+        secret_id=SECRET_USDA_API_KEY,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -99,7 +117,7 @@ def create_secrets(
 
     prefect_auth_secret = gcp.secretmanager.Secret(
         "prefect-auth-secret",
-        secret_id="biocirv-staging-prefect-auth",
+        secret_id=SECRET_PREFECT_AUTH,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -139,7 +157,7 @@ def create_secrets(
         # Store password in Secret Manager
         ro_secret = gcp.secretmanager.Secret(
             f"ro-password-secret-{username}",
-            secret_id=f"biocirv-staging-ro-{username}",
+            secret_id=f"{SECRET_RO_PREFIX}-{username}",
             replication=gcp.secretmanager.SecretReplicationArgs(
                 auto=gcp.secretmanager.SecretReplicationAutoArgs(),
             ),
@@ -172,7 +190,7 @@ def create_secrets(
     # Store the postgres password in Secret Manager
     postgres_password_secret = gcp.secretmanager.Secret(
         "postgres-password-secret",
-        secret_id="biocirv-staging-postgres-password",
+        secret_id=SECRET_POSTGRES_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -190,7 +208,7 @@ def create_secrets(
 
     jwt_secret_sm = gcp.secretmanager.Secret(
         "jwt-secret",
-        secret_id="biocirv-staging-jwt-secret-key",
+        secret_id=SECRET_JWT_KEY,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -210,7 +228,7 @@ def create_secrets(
 
     admin_password_sm = gcp.secretmanager.Secret(
         "admin-password-secret",
-        secret_id="biocirv-staging-admin-password",
+        secret_id=SECRET_ADMIN_PASSWORD,
         replication=gcp.secretmanager.SecretReplicationArgs(
             auto=gcp.secretmanager.SecretReplicationAutoArgs(),
         ),
@@ -221,6 +239,48 @@ def create_secrets(
         "admin-password-version",
         secret=admin_password_sm.id,
         secret_data=admin_password.result,
+    )
+
+    # OAuth2-proxy: Google OAuth client ID (version added manually post-deploy)
+    oauth2_client_id_secret = gcp.secretmanager.Secret(
+        "oauth2-client-id-secret",
+        secret_id=SECRET_OAUTH2_CLIENT_ID,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    # OAuth2-proxy: Google OAuth client secret (version added manually post-deploy)
+    oauth2_client_secret_secret = gcp.secretmanager.Secret(
+        "oauth2-client-secret-secret",
+        secret_id=SECRET_OAUTH2_CLIENT_SECRET,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    # OAuth2-proxy: cookie encryption secret (auto-generated)
+    oauth2_cookie_secret = random.RandomPassword(
+        "oauth2-cookie-secret",
+        length=32,
+        special=False,
+    )
+
+    oauth2_cookie_secret_sm = gcp.secretmanager.Secret(
+        "oauth2-cookie-secret-sm",
+        secret_id=SECRET_OAUTH2_COOKIE_SECRET,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "oauth2-cookie-secret-version",
+        secret=oauth2_cookie_secret_sm.id,
+        secret_data=oauth2_cookie_secret.result,
     )
 
     return SecretResources(
@@ -241,4 +301,8 @@ def create_secrets(
         jwt_secret_sm=jwt_secret_sm,
         admin_password=admin_password,
         admin_password_sm=admin_password_sm,
+        oauth2_client_id_secret=oauth2_client_id_secret,
+        oauth2_client_secret_secret=oauth2_client_secret_secret,
+        oauth2_cookie_secret=oauth2_cookie_secret,
+        oauth2_cookie_secret_sm=oauth2_cookie_secret_sm,
     )

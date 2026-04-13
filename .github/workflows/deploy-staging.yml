@@ -18,9 +18,11 @@ concurrency:
 env:
   GCP_PROJECT: biocirv-470318
   GCP_REGION: us-west1
+  DEPLOY_ENV: staging
   # These values come from Pulumi outputs after deploying WIF resources.
-  # Run `pixi run -e deployment cloud-outputs` to verify.
-  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions/providers/github-oidc"
+  # Run `DEPLOY_ENV=staging pixi run -e deployment cloud-outputs` to verify.
+  # NOTE: Update WIF_PROVIDER after staging migration renames the WIF pool.
+  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions-staging/providers/github-oidc-staging"
   DEPLOYER_SA: "biocirv-staging-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
 
 jobs:
@@ -59,23 +61,39 @@ jobs:
       (github.event_name == 'workflow_dispatch') || (github.event_name ==
       'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       image_tag: ${{ steps.vars.outputs.sha_short }}
     steps:
       - name: Set short SHA
         id: vars
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             SHA="${{ github.event.workflow_run.head_sha }}"
           else
-            SHA="${GITHUB_SHA}"
+            # On workflow_dispatch the current HEAD may not have a built image.
+            # Query the last successful docker-build run on main to get the
+            # SHA of the most recently built image.
+            SHA=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/docker-build.yml/runs?branch=main&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha')
+            if [ -z "$SHA" ] || [ "$SHA" = "null" ]; then
+              echo "::error::No successful docker-build run found on main"
+              exit 1
+            fi
           fi
           echo "sha_short=${SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "Resolved image tag: ${SHA::7}"
 
   deploy-infrastructure:
     name: Deploy Infrastructure (Pulumi)
     needs: image-tag
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -105,6 +123,7 @@ jobs:
     name: Run Database Migrations
     needs: [image-tag, deploy-infrastructure]
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -132,6 +151,7 @@ jobs:
     name: Force Cloud Run Revision Updates
     needs: [image-tag, run-migrations]
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       id-token: write
@@ -154,3 +174,27 @@ jobs:
         env:
           IMAGE_TAG: ${{ needs.image-tag.outputs.image_tag }}
         run: pixi run -e deployment cloud-update-services
+
+  validate-deployment:
+    name: Validate Deployment Health
+    needs: [image-tag, update-services]
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Validate services are healthy
+        run: bash scripts/validate-deployment.sh
+        timeout-minutes: 10

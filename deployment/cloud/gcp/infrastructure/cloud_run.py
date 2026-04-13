@@ -11,11 +11,20 @@ from config import (
     WEBSERVICE_IMAGE,
     PIPELINE_IMAGE,
     PREFECT_SERVER_IMAGE,
+    OAUTH2_PROXY_IMAGE,
     PREFECT_WORK_POOL_NAME,
     DB_USER,
     DB_NAME,
     PREFECT_DB_NAME,
     LANDIQ_SHAPEFILE_URL,
+    CORS_ORIGINS,
+    CR_WEBSERVICE_NAME,
+    CR_MIGRATION_JOB_NAME,
+    CR_SEED_ADMIN_JOB_NAME,
+    CR_PREFECT_SERVER_NAME,
+    CR_PREFECT_WORKER_NAME,
+    CR_OAUTH2_PROXY_NAME,
+    OAUTH2_PROXY_EMAIL_DOMAIN,
 )
 from cloud_sql import CloudSQLResources
 from secret_manager import SecretResources
@@ -29,6 +38,7 @@ class CloudRunResources:
     seed_admin_job: gcp.cloudrunv2.Job
     prefect_server: gcp.cloudrunv2.Service
     prefect_worker: gcp.cloudrunv2.Service
+    oauth2_proxy: gcp.cloudrunv2.Service
 
 
 def create_cloud_run_resources(
@@ -41,10 +51,15 @@ def create_cloud_run_resources(
     run_opts = pulumi.ResourceOptions(depends_on=depends_on or [])
 
     # --- 5.2: FastAPI Webservice ---
+    # Secrets are mounted as volumes (not value_source env vars) because the
+    # GCP Cloud Run v2 API rejects the Terraform provider's serialization of
+    # env vars with value_source (sends both value="" and valueSource, violating
+    # the protobuf oneof).  A shell wrapper reads secret files into env vars.
     webservice = gcp.cloudrunv2.Service(
         "webservice",
-        name="biocirv-webservice",
+        name=CR_WEBSERVICE_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         ingress="INGRESS_TRAFFIC_ALL",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["webservice"].email,
@@ -55,6 +70,14 @@ def create_cloud_run_resources(
             containers=[
                 gcp.cloudrunv2.ServiceTemplateContainerArgs(
                     image=WEBSERVICE_IMAGE,
+                    # Override default CMD to inject secret env vars from mounted files
+                    args=[
+                        "sh", "-c",
+                        "export DB_PASS=$(cat /secrets/db-password/value) "
+                        "&& export API_JWT_SECRET_KEY=$(cat /secrets/jwt-secret/value) "
+                        "&& exec uvicorn ca_biositing.webservice.main:app "
+                        "--host 0.0.0.0 --port 8080",
+                    ],
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=8080,
                     ),
@@ -74,48 +97,57 @@ def create_cloud_run_resources(
                             value=DB_NAME,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="DB_PASS",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.db_password_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="API_JWT_SECRET_KEY",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.jwt_secret_sm.secret_id,
-                                    version="latest",
-                                )
-                            ),
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="API_JWT_COOKIE_SECURE",
                             value="true",
+                        ),
+                        *(
+                            [gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                                name="API_CORS_ORIGINS",
+                                value=CORS_ORIGINS,
+                            )]
+                            if CORS_ORIGINS
+                            else []
                         ),
                     ],
                     volume_mounts=[
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
                             name="cloudsql",
                             mount_path="/cloudsql",
-                        )
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="db-password",
+                            mount_path="/secrets/db-password",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="jwt-secret",
+                            mount_path="/secrets/jwt-secret",
+                        ),
                     ],
+                    # Cloud Run v2 supports startup_probe and liveness_probe only.
+                    # Readiness probes are not available in the Cloud Run v2 API.
+                    # The startup probe uses HTTP GET /health to gate traffic until
+                    # the database is reachable (replaces the original TCP check).
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
-                        tcp_socket=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeTcpSocketArgs(
+                        http_get=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeHttpGetArgs(
+                            path="/health",
                             port=8080,
                         ),
+                        timeout_seconds=10,
+                        period_seconds=10,
+                        failure_threshold=30,
                     ),
                     liveness_probe=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeArgs(
                         http_get=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeHttpGetArgs(
                             path="/",
                             port=8080,
                         ),
+                        timeout_seconds=10,
+                        period_seconds=30,
+                        failure_threshold=3,
                     ),
                 )
             ],
@@ -125,7 +157,25 @@ def create_cloud_run_resources(
                     cloud_sql_instance=gcp.cloudrunv2.ServiceTemplateVolumeCloudSqlInstanceArgs(
                         instances=[sql.instance.connection_name],
                     ),
-                )
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="db-password",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.db_password_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="jwt-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.jwt_secret_sm.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
             ],
         ),
         traffics=[
@@ -146,13 +196,11 @@ def create_cloud_run_resources(
     )
 
     # --- 5.3: Alembic Migration Job ---
-    # Pass individual env vars instead of a composed DATABASE_URL so the
-    # password comes from Secret Manager (not visible in Cloud Run config).
-    # alembic/env.py falls back to Settings which constructs the URL from these.
     migration_job = gcp.cloudrunv2.Job(
         "migration-job",
-        name="biocirv-alembic-migrate",
+        name=CR_MIGRATION_JOB_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         template=gcp.cloudrunv2.JobTemplateArgs(
             template=gcp.cloudrunv2.JobTemplateTemplateArgs(
                 max_retries=1,
@@ -161,7 +209,11 @@ def create_cloud_run_resources(
                 containers=[
                     gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
                         image=PIPELINE_IMAGE,
-                        args=["alembic", "upgrade", "head"],
+                        args=[
+                            "sh", "-c",
+                            "export DB_PASS=$(cat /secrets/db-password/value) "
+                            "&& exec alembic upgrade head",
+                        ],
                         resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
                             limits={"cpu": "1", "memory": "512Mi"},
                         ),
@@ -175,15 +227,6 @@ def create_cloud_run_resources(
                                 value=DB_NAME,
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="DB_PASS",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.db_password_secret.secret_id,
-                                        version="latest",
-                                    )
-                                ),
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="INSTANCE_CONNECTION_NAME",
                                 value=sql.instance.connection_name,
                             ),
@@ -192,7 +235,11 @@ def create_cloud_run_resources(
                             gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
                                 name="cloudsql",
                                 mount_path="/cloudsql",
-                            )
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="db-password",
+                                mount_path="/secrets/db-password",
+                            ),
                         ],
                     )
                 ],
@@ -202,7 +249,16 @@ def create_cloud_run_resources(
                         cloud_sql_instance=gcp.cloudrunv2.JobTemplateTemplateVolumeCloudSqlInstanceArgs(
                             instances=[sql.instance.connection_name],
                         ),
-                    )
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="db-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.db_password_secret.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
                 ],
             )
         ),
@@ -212,8 +268,9 @@ def create_cloud_run_resources(
     # --- 5.3b: Admin User Seed Job ---
     seed_admin_job = gcp.cloudrunv2.Job(
         "seed-admin-job",
-        name="biocirv-seed-admin",
+        name=CR_SEED_ADMIN_JOB_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         template=gcp.cloudrunv2.JobTemplateArgs(
             template=gcp.cloudrunv2.JobTemplateTemplateArgs(
                 max_retries=1,
@@ -223,10 +280,10 @@ def create_cloud_run_resources(
                     gcp.cloudrunv2.JobTemplateTemplateContainerArgs(
                         image=WEBSERVICE_IMAGE,
                         args=[
-                            "python",
-                            "scripts/create_admin.py",
-                            "--username",
-                            "admin",
+                            "sh", "-c",
+                            "export DB_PASS=$(cat /secrets/db-password/value) "
+                            "&& export ADMIN_PASSWORD=$(cat /secrets/admin-password/value) "
+                            "&& exec python scripts/create_admin.py --username admin",
                         ],
                         resources=gcp.cloudrunv2.JobTemplateTemplateContainerResourcesArgs(
                             limits={"cpu": "1", "memory": "512Mi"},
@@ -241,33 +298,23 @@ def create_cloud_run_resources(
                                 value=DB_NAME,
                             ),
                             gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="DB_PASS",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.db_password_secret.secret_id,
-                                        version="latest",
-                                    )
-                                ),
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
                                 name="INSTANCE_CONNECTION_NAME",
                                 value=sql.instance.connection_name,
-                            ),
-                            gcp.cloudrunv2.JobTemplateTemplateContainerEnvArgs(
-                                name="ADMIN_PASSWORD",
-                                value_source=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceArgs(
-                                    secret_key_ref=gcp.cloudrunv2.JobTemplateTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                        secret=secrets.admin_password_sm.secret_id,
-                                        version="latest",
-                                    )
-                                ),
                             ),
                         ],
                         volume_mounts=[
                             gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
                                 name="cloudsql",
                                 mount_path="/cloudsql",
-                            )
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="db-password",
+                                mount_path="/secrets/db-password",
+                            ),
+                            gcp.cloudrunv2.JobTemplateTemplateContainerVolumeMountArgs(
+                                name="admin-password",
+                                mount_path="/secrets/admin-password",
+                            ),
                         ],
                     )
                 ],
@@ -277,7 +324,25 @@ def create_cloud_run_resources(
                         cloud_sql_instance=gcp.cloudrunv2.JobTemplateTemplateVolumeCloudSqlInstanceArgs(
                             instances=[sql.instance.connection_name],
                         ),
-                    )
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="db-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.db_password_secret.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
+                    gcp.cloudrunv2.JobTemplateTemplateVolumeArgs(
+                        name="admin-password",
+                        secret=gcp.cloudrunv2.JobTemplateTemplateVolumeSecretArgs(
+                            secret=secrets.admin_password_sm.name,
+                            items=[gcp.cloudrunv2.JobTemplateTemplateVolumeSecretItemArgs(
+                                version="latest", path="value",
+                            )],
+                        ),
+                    ),
                 ],
             )
         ),
@@ -297,13 +362,14 @@ def create_cloud_run_resources(
 
     prefect_server = gcp.cloudrunv2.Service(
         "prefect-server",
-        name="biocirv-prefect-server",
+        name=CR_PREFECT_SERVER_NAME,
         location=GCP_REGION,
-        ingress="INGRESS_TRAFFIC_ALL",
+        deletion_protection=False,
+        ingress="INGRESS_TRAFFIC_INTERNAL_ONLY",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-server"].email,
             scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
-                min_instance_count=0,
+                min_instance_count=1,
                 max_instance_count=1,
             ),
             containers=[
@@ -397,8 +463,9 @@ def create_cloud_run_resources(
 
     prefect_worker = gcp.cloudrunv2.Service(
         "prefect-worker",
-        name="biocirv-prefect-worker",
+        name=CR_PREFECT_WORKER_NAME,
         location=GCP_REGION,
+        deletion_protection=False,
         ingress="INGRESS_TRAFFIC_INTERNAL_ONLY",
         template=gcp.cloudrunv2.ServiceTemplateArgs(
             service_account=iam.service_accounts["prefect-worker"].email,
@@ -406,21 +473,26 @@ def create_cloud_run_resources(
                 min_instance_count=1,  # Must stay at 1: worker polls for jobs
                 max_instance_count=1,
             ),
+            vpc_access=gcp.cloudrunv2.ServiceTemplateVpcAccessArgs(
+                egress="ALL_TRAFFIC",
+                network_interfaces=[
+                    gcp.cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArgs(
+                        network="default",
+                        subnetwork="default",
+                    )
+                ],
+            ),
             containers=[
                 gcp.cloudrunv2.ServiceTemplateContainerArgs(
                     image=PIPELINE_IMAGE,
                     # No commands= — use Dockerfile ENTRYPOINT (/bin/bash /shell-hook.sh)
                     args=[
-                        "prefect",
-                        "worker",
-                        "start",
-                        "--pool",
-                        PREFECT_WORK_POOL_NAME,
-                        "--type",
-                        "process",
-                        "--limit",
-                        "3",
-                        "--with-healthcheck",
+                        "sh", "-c",
+                        "export DB_PASS=$(cat /secrets/db-password/value) "
+                        "&& export USDA_NASS_API_KEY=$(cat /secrets/usda-api-key/value) "
+                        f"&& exec prefect worker start "
+                        f"--pool {PREFECT_WORK_POOL_NAME} "
+                        f"--type process --limit 3 --with-healthcheck",
                     ],
                     ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
                         container_port=8080,
@@ -446,27 +518,8 @@ def create_cloud_run_resources(
                             value=DB_NAME,
                         ),
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="DB_PASS",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.db_password_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
-                        ),
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
                             name="INSTANCE_CONNECTION_NAME",
                             value=sql.instance.connection_name,
-                        ),
-                        # USDA NASS API key — value populated manually in Secret Manager post-deploy
-                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
-                            name="USDA_NASS_API_KEY",
-                            value_source=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceArgs(
-                                secret_key_ref=gcp.cloudrunv2.ServiceTemplateContainerEnvValueSourceSecretKeyRefArgs(
-                                    secret=secrets.usda_api_key_secret.secret_id,
-                                    version="latest",
-                                )
-                            ),
                         ),
                         # Path to GSheets service account credentials file (mounted via Secret Manager volume)
                         gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
@@ -493,6 +546,14 @@ def create_cloud_run_resources(
                         gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
                             name="gsheets-credentials",
                             mount_path="/app/gsheets-credentials",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="db-password",
+                            mount_path="/secrets/db-password",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="usda-api-key",
+                            mount_path="/secrets/usda-api-key",
                         ),
                     ],
                     startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
@@ -525,6 +586,24 @@ def create_cloud_run_resources(
                         ],
                     ),
                 ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="db-password",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.db_password_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="usda-api-key",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.usda_api_key_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
             ],
         ),
         traffics=[
@@ -536,10 +615,158 @@ def create_cloud_run_resources(
         opts=run_opts,
     )
 
+    # --- 5.6: OAuth2-Proxy (fronts Prefect Server for browser auth) ---
+    # Authenticates browser users via Google OAuth before forwarding to Prefect server.
+    # The Prefect worker connects directly to the server (internal traffic), bypassing this proxy.
+    # Secrets are mounted as volumes (not value_source env vars) because the
+    # GCP Cloud Run v2 API rejects the Terraform provider's serialization of
+    # env vars with value_source (sends both value="" and valueSource, violating
+    # the protobuf oneof).  A shell wrapper reads secret files into env vars.
+    # Uses the Alpine image (not distroless) so we have a shell for the wrapper.
+    oauth2_proxy_command = prefect_server.uri.apply(
+        lambda uri: [
+            "sh", "-c",
+            "export OAUTH2_PROXY_CLIENT_ID=$(cat /secrets/oauth2-client-id/value) "
+            "&& export OAUTH2_PROXY_CLIENT_SECRET=$(cat /secrets/oauth2-client-secret/value) "
+            "&& export OAUTH2_PROXY_COOKIE_SECRET=$(cat /secrets/oauth2-cookie-secret/value) "
+            "&& exec oauth2-proxy"
+            " --provider=google"
+            f" --email-domain={OAUTH2_PROXY_EMAIL_DOMAIN}"
+            " --reverse-proxy=true"
+            " --cookie-secure=true"
+            " --cookie-refresh=1h"
+            " --skip-auth-route=GET=^/api/health$"
+            " --http-address=0.0.0.0:4180"
+            " --upstream-timeout=120s"
+            f" --upstream={uri}"
+            " --skip-provider-button=true",
+        ]
+    )
+
+    oauth2_proxy = gcp.cloudrunv2.Service(
+        "oauth2-proxy",
+        name=CR_OAUTH2_PROXY_NAME,
+        location=GCP_REGION,
+        deletion_protection=False,
+        ingress="INGRESS_TRAFFIC_ALL",
+        template=gcp.cloudrunv2.ServiceTemplateArgs(
+            service_account=iam.service_accounts["oauth2-proxy"].email,
+            scaling=gcp.cloudrunv2.ServiceTemplateScalingArgs(
+                min_instance_count=0,
+                max_instance_count=2,
+            ),
+            vpc_access=gcp.cloudrunv2.ServiceTemplateVpcAccessArgs(
+                egress="ALL_TRAFFIC",
+                network_interfaces=[
+                    gcp.cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArgs(
+                        network="default",
+                        subnetwork="default",
+                    )
+                ],
+            ),
+            containers=[
+                gcp.cloudrunv2.ServiceTemplateContainerArgs(
+                    image=OAUTH2_PROXY_IMAGE,
+                    commands=oauth2_proxy_command,
+                    ports=gcp.cloudrunv2.ServiceTemplateContainerPortsArgs(
+                        container_port=4180,
+                    ),
+                    resources=gcp.cloudrunv2.ServiceTemplateContainerResourcesArgs(
+                        limits={"cpu": "1", "memory": "512Mi"},
+                        startup_cpu_boost=True,
+                    ),
+                    envs=[
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="OAUTH2_PROXY_PASS_HOST_HEADER",
+                            value="false",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerEnvArgs(
+                            name="OAUTH2_PROXY_SET_XAUTHREQUEST",
+                            value="true",
+                        ),
+                    ],
+                    volume_mounts=[
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-client-id",
+                            mount_path="/secrets/oauth2-client-id",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-client-secret",
+                            mount_path="/secrets/oauth2-client-secret",
+                        ),
+                        gcp.cloudrunv2.ServiceTemplateContainerVolumeMountArgs(
+                            name="oauth2-cookie-secret",
+                            mount_path="/secrets/oauth2-cookie-secret",
+                        ),
+                    ],
+                    startup_probe=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeArgs(
+                        http_get=gcp.cloudrunv2.ServiceTemplateContainerStartupProbeHttpGetArgs(
+                            path="/ping",
+                            port=4180,
+                        ),
+                        period_seconds=10,
+                        failure_threshold=10,
+                    ),
+                    liveness_probe=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeArgs(
+                        http_get=gcp.cloudrunv2.ServiceTemplateContainerLivenessProbeHttpGetArgs(
+                            path="/ping",
+                            port=4180,
+                        ),
+                    ),
+                )
+            ],
+            volumes=[
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-client-id",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_client_id_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-client-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_client_secret_secret.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+                gcp.cloudrunv2.ServiceTemplateVolumeArgs(
+                    name="oauth2-cookie-secret",
+                    secret=gcp.cloudrunv2.ServiceTemplateVolumeSecretArgs(
+                        secret=secrets.oauth2_cookie_secret_sm.name,
+                        items=[gcp.cloudrunv2.ServiceTemplateVolumeSecretItemArgs(
+                            version="latest", path="value",
+                        )],
+                    ),
+                ),
+            ],
+        ),
+        traffics=[
+            gcp.cloudrunv2.ServiceTrafficArgs(
+                type="TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST",
+                percent=100,
+            )
+        ],
+        opts=run_opts,
+    )
+
+    gcp.cloudrunv2.ServiceIamMember(
+        "oauth2-proxy-public-access",
+        name=oauth2_proxy.name,
+        location=GCP_REGION,
+        role="roles/run.invoker",
+        member="allUsers",
+    )
+
     return CloudRunResources(
         webservice=webservice,
         migration_job=migration_job,
         seed_admin_job=seed_admin_job,
         prefect_server=prefect_server,
         prefect_worker=prefect_worker,
+        oauth2_proxy=oauth2_proxy,
     )

@@ -7,3 +7,5 @@ from .parameter import ParameterCategory
 from .parameter import ParameterCategoryParameter
 from .parameter import ParameterUnit
 from .unit import Unit
+from .technical_assumption import TechnicalAssumption
+from .method_assumption import MethodAssumption

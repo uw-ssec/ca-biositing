@@ -6,7 +6,15 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT
+from config import (
+    GCP_PROJECT,
+    SA_WEBSERVICE,
+    SA_PREFECT_SERVER,
+    SA_PREFECT_WORKER,
+    SA_MIGRATE,
+    SA_OAUTH2_PROXY,
+    SA_FRONTEND,
+)
 
 
 @dataclass
@@ -18,17 +26,16 @@ class IAMResources:
 SA_DEFINITIONS = [
     (
         "webservice",
-        "biocirv-staging-cr-websvc",
+        SA_WEBSERVICE,
         "Webservice Cloud Run SA",
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
         ],
     ),
     (
         "prefect-server",
-        "biocirv-staging-cr-prefect",
+        SA_PREFECT_SERVER,
         "Prefect Server Cloud Run SA",
         [
             "roles/cloudsql.client",
@@ -37,22 +44,37 @@ SA_DEFINITIONS = [
     ),
     (
         "prefect-worker",
-        "biocirv-staging-cr-worker",
+        SA_PREFECT_WORKER,
         "Prefect Worker Cloud Run SA",
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
+            "roles/storage.objectAdmin",
         ],
     ),
     (
         "migrate",
-        "biocirv-staging-cr-migrate",
+        SA_MIGRATE,
         "Migration Cloud Run SA",
         [
             "roles/cloudsql.client",
             "roles/secretmanager.secretAccessor",
-            "roles/artifactregistry.reader",
+        ],
+    ),
+    (
+        "oauth2-proxy",
+        SA_OAUTH2_PROXY,
+        "OAuth2-Proxy Cloud Run SA",
+        [
+            "roles/secretmanager.secretAccessor",
+        ],
+    ),
+    (
+        "frontend",
+        SA_FRONTEND,
+        "Cal BioScape Frontend Cloud Run SA",
+        [
+            "roles/secretmanager.secretAccessor",
         ],
     ),
 ]

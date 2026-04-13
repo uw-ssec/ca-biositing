@@ -6,7 +6,7 @@ from typing import Sequence
 import pulumi
 import pulumi_gcp as gcp
 
-from config import GCP_PROJECT, GITHUB_REPO
+from config import GCP_PROJECT, GITHUB_REPO, WIF_POOL_ID, WIF_PROVIDER_ID, SA_DEPLOYER, STACK_NAME
 
 
 @dataclass
@@ -15,6 +15,7 @@ class WIFResources:
     provider: gcp.iam.WorkloadIdentityPoolProvider
     deployer_sa: gcp.serviceaccount.Account
     provider_name: pulumi.Output
+    deployer_iam_members: dict[str, gcp.projects.IAMMember] = None
 
 
 def create_wif(
@@ -34,18 +35,18 @@ def create_wif(
     # --- WIF Pool & Provider ---
     pool = gcp.iam.WorkloadIdentityPool(
         "github-actions-pool",
-        workload_identity_pool_id="github-actions",
-        display_name="GitHub Actions",
-        description="WIF pool for GitHub Actions CI/CD",
+        workload_identity_pool_id=WIF_POOL_ID,
+        display_name=f"GitHub Actions ({STACK_NAME.capitalize()})",
+        description=f"WIF pool for GitHub Actions CI/CD ({STACK_NAME})",
         opts=opts,
     )
 
     provider = gcp.iam.WorkloadIdentityPoolProvider(
         "github-oidc-provider",
         workload_identity_pool_id=pool.workload_identity_pool_id,
-        workload_identity_pool_provider_id="github-oidc",
-        display_name="GitHub OIDC",
-        description="GitHub Actions OIDC provider",
+        workload_identity_pool_provider_id=WIF_PROVIDER_ID,
+        display_name=f"GitHub OIDC ({STACK_NAME.capitalize()})",
+        description=f"GitHub Actions OIDC provider ({STACK_NAME})",
         attribute_mapping={
             "google.subject": "assertion.sub",
             "attribute.repository": "assertion.repository",
@@ -65,8 +66,8 @@ def create_wif(
     # --- Deployer Service Account ---
     deployer_sa = gcp.serviceaccount.Account(
         "gh-deploy-sa",
-        account_id="biocirv-staging-gh-deploy",
-        display_name="GitHub Actions Deployer (Staging)",
+        account_id=SA_DEPLOYER,
+        display_name=f"GitHub Actions Deployer ({STACK_NAME.capitalize()})",
         opts=opts,
     )
 
@@ -74,18 +75,20 @@ def create_wif(
     deployer_roles = [
         "roles/cloudbuild.builds.editor",
         "roles/iam.serviceAccountUser",  # actAs Cloud Build default SA
-        "roles/run.developer",
         "roles/run.admin",
         "roles/viewer",
         "roles/cloudsql.admin",
         "roles/iam.serviceAccountAdmin",
         "roles/secretmanager.admin",
         "roles/resourcemanager.projectIamAdmin",
+        "roles/artifactregistry.admin",  # create/manage AR remote repos
+        "roles/storage.admin",  # create/manage GCS buckets
     ]
 
+    deployer_iam_members = {}
     for role in deployer_roles:
         role_short = role.split("/")[-1]
-        gcp.projects.IAMMember(
+        deployer_iam_members[role_short] = gcp.projects.IAMMember(
             f"gh-deploy-{role_short}",
             project=GCP_PROJECT,
             role=role,
@@ -94,22 +97,24 @@ def create_wif(
             ),
         )
 
-    # Storage objectAdmin on the Pulumi state bucket
+    # Storage admin on the Pulumi state bucket
+    # (needs storage.admin, not just objectAdmin, so Pulumi can read
+    # bucket IAM policies during `refresh`)
     gcp.storage.BucketIAMMember(
         "gh-deploy-pulumi-state",
         bucket="biocirv-470318-pulumi-state",
-        role="roles/storage.objectAdmin",
+        role="roles/storage.admin",
         member=deployer_sa.email.apply(
             lambda email: f"serviceAccount:{email}"
         ),
     )
 
-    # Storage objectAdmin on the Cloud Build staging bucket
+    # Storage admin on the Cloud Build staging bucket
     # (Cloud Build uploads source tarballs here before building)
     gcp.storage.BucketIAMMember(
         "gh-deploy-cloudbuild-staging",
         bucket="biocirv-470318_cloudbuild",
-        role="roles/storage.objectAdmin",
+        role="roles/storage.admin",
         member=deployer_sa.email.apply(
             lambda email: f"serviceAccount:{email}"
         ),
@@ -136,4 +141,5 @@ def create_wif(
         provider=provider,
         deployer_sa=deployer_sa,
         provider_name=provider_name,
+        deployer_iam_members=deployer_iam_members,
     )
