@@ -151,7 +151,7 @@ pixi run pre-commit-install
 
 ### Running the ETL Pipeline
 
-````bash
+```bash
 # Create environment file from template
 cp resources/docker/.env.example resources/docker/.env
 
@@ -174,7 +174,7 @@ pixi run run-etl
 
 # Stop services
 pixi run teardown-services
-````
+```
 
 ### Running the Web Service
 
