@@ -10,7 +10,7 @@ from ..base import BaseEntity
 
 class ResidueFactor(BaseEntity, table=True):
     """Residue factor data for biomass resources.
-    
+
     Stores factor values (min/mid/max ranges) and yield data for residue
     characterization. Uses composite unique constraint on (resource_id, factor_type)
     for UPSERT operations.
