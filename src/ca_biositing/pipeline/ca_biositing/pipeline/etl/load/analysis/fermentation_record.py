@@ -23,8 +23,25 @@ def load_fermentation_record(df: pd.DataFrame):
         table_columns = {c.name for c in FermentationRecord.__table__.columns}
         records = df.replace({np.nan: None}).to_dict(orient='records')
 
+        # Deduplicate records by record_id to avoid CardinalityViolation in bulk upsert
+        seen_ids = set()
         clean_records = []
+
+        # Log duplicates for debugging
+        all_ids = [r.get('record_id') for r in records if r.get('record_id') is not None]
+        id_counts = pd.Series(all_ids).value_counts()
+        duplicates = id_counts[id_counts > 1]
+        if not duplicates.empty:
+            logger.warning(f"Found duplicate record_ids in input data: {duplicates.to_dict()}")
+
         for record in records:
+            rid = record.get('record_id')
+            if rid is None or rid in seen_ids:
+                if rid in seen_ids:
+                    logger.debug(f"Skipping duplicate record_id: {rid}")
+                continue
+            seen_ids.add(rid)
+
             clean_record = {k: v for k, v in record.items() if k in table_columns}
             clean_record['updated_at'] = now
             if clean_record.get('created_at') is None:

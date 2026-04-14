@@ -20,11 +20,21 @@ def load_pretreatment_record(df: pd.DataFrame):
         logger.warning("No data provided to PretreatmentRecord load")
         return
 
+    logger.info(f"PretreatmentRecord load: received DataFrame with columns: {df.columns.tolist()}")
+    logger.info(f"PretreatmentRecord load: DataFrame shape: {df.shape}")
+
     try:
         from ca_biositing.datamodels.models import PretreatmentRecord
         now = datetime.now(timezone.utc)
         table_columns = {c.name for c in PretreatmentRecord.__table__.columns}
+
+        logger.info(f"PretreatmentRecord load: table columns are: {sorted(table_columns)}")
+
         records = df.replace({np.nan: None}).to_dict(orient='records')
+
+        logger.info(f"PretreatmentRecord load: processing {len(records)} records")
+        if records:
+            logger.info(f"PretreatmentRecord load: first record keys: {records[0].keys()}")
 
         clean_records = []
         for record in records:
@@ -35,6 +45,9 @@ def load_pretreatment_record(df: pd.DataFrame):
             clean_records.append(clean_record)
 
         if clean_records:
+            logger.info(f"PretreatmentRecord load: first clean record keys: {clean_records[0].keys()}")
+            logger.info(f"PretreatmentRecord load: sample record values: {clean_records[0]}")
+
             from ca_biositing.pipeline.utils.engine import engine
             with Session(engine) as session:
                 stmt = insert(PretreatmentRecord).values(clean_records)
