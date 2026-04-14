@@ -27,7 +27,7 @@ EXTRACT_SOURCES: List[str] = [
 
 
 @task
-def transform_field_sample_v03(
+def transform_field_sample(
     data_sources: Dict[str, pd.DataFrame],
     etl_run_id: str | None = None,
     lineage_group_id: str | None = None

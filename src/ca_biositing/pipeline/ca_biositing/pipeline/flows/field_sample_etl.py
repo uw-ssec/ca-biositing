@@ -4,8 +4,8 @@ from ca_biositing.pipeline.etl.extract.sample_desc import extract as extract_sam
 from ca_biositing.pipeline.etl.extract.qty_field_storage import extract as extract_qty_field_storage
 from ca_biositing.pipeline.etl.extract.producers import extract as extract_producers
 from ca_biositing.pipeline.etl.extract.provider_info import extract as extract_provider
-from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
-from ca_biositing.pipeline.etl.transform.field_sampling.field_sample_v03 import transform_field_sample_v03
+from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
+from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import transform_field_sample
 from ca_biositing.pipeline.etl.load.location_address import load_location_address
 from ca_biositing.pipeline.etl.load.field_sample import load_field_sample
 from ca_biositing.pipeline.utils.lineage import create_lineage_group, create_etl_run_record
@@ -59,7 +59,7 @@ def field_sample_etl_flow():
 
     # 3. Transform & Load LocationAddress (both collection-site and lab/facility)
     logger.info("Transforming LocationAddress data (multi-source extraction)...")
-    location_df = transform_location_address_v03(
+    location_df = transform_location_address(
         data_sources=data_sources,
         etl_run_id=etl_run_id,
         lineage_group_id=lineage_group_id
@@ -73,7 +73,7 @@ def field_sample_etl_flow():
 
     # 4. Transform FieldSample (multi-way left-join on sample_name)
     logger.info("Transforming FieldSample data (multi-way left-join with unit extraction)...")
-    transformed_df = transform_field_sample_v03(
+    transformed_df = transform_field_sample(
         data_sources=data_sources,
         etl_run_id=etl_run_id,
         lineage_group_id=lineage_group_id

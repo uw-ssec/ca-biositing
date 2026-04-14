@@ -13,7 +13,7 @@ from prefect import task, get_run_logger
 from ca_biositing.pipeline.utils.cleaning_functions import cleaning as cleaning_mod
 
 @task
-def transform_location_address_v03(
+def transform_location_address(
     data_sources: Dict[str, pd.DataFrame],
     etl_run_id: str | None = None,
     lineage_group_id: str | None = None
