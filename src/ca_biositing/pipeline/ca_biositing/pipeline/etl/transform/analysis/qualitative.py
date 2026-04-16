@@ -14,6 +14,11 @@ from ca_biositing.pipeline.utils.name_id_swap import normalize_dataframes
 
 EXTRACT_SOURCES = ["data_source", "parameters", "use_case_enum", "qualitative_data"]
 
+_RESOURCE_CANONICAL_MAP = {
+    "almond hull": "almond hulls",
+    "almond shell": "almond shells",
+}
+
 
 def _get_logger():
     try:
@@ -41,7 +46,11 @@ def _normalize_db_name(value: Any) -> str:
 
 
 def _normalize_parameter_name(value: Any) -> str:
-    return _normalize_db_name(value)
+    if value is None or pd.isna(value):
+        return ""
+    text = str(value).strip().lower()
+    text = re.sub(r"\s+", "_", text)
+    return text
 
 
 def _normalize_use_case_name(value: Any) -> str:
@@ -50,6 +59,32 @@ def _normalize_use_case_name(value: Any) -> str:
     text = str(value).strip().lower()
     text = re.sub(r"\s+", " ", text)
     return text
+
+
+def _canonicalize_resource_name(value: Any) -> Any:
+    if value is None or pd.isna(value):
+        return value
+    text = str(value).strip().lower()
+    text = re.sub(r"\s+", " ", text)
+    return _RESOURCE_CANONICAL_MAP.get(text, text)
+
+
+def _forward_fill_qualitative_columns(df: pd.DataFrame) -> pd.DataFrame:
+    filled = df.copy()
+    columns_to_fill = ["primary_ag_product", "resource", "storage_description", "transport_description"]
+    columns_to_fill = [col for col in columns_to_fill if col in filled.columns]
+    if not columns_to_fill:
+        return filled
+
+    block_anchor_columns = [col for col in ["primary_ag_product", "resource"] if col in filled.columns]
+    if block_anchor_columns:
+        block_starts = filled[block_anchor_columns].notna().any(axis=1).cumsum()
+        for col in columns_to_fill:
+            filled[col] = filled.groupby(block_starts, sort=False)[col].ffill()
+    else:
+        for col in columns_to_fill:
+            filled[col] = filled[col].ffill()
+    return filled
 
 
 def _parse_bool(value: Any) -> Optional[bool]:
@@ -63,11 +98,52 @@ def _parse_bool(value: Any) -> Optional[bool]:
     return None
 
 
+def _map_trend_to_numeric(value: Any) -> Optional[Decimal]:
+    if value is None or pd.isna(value):
+        return None
+    text = str(value).strip().lower()
+    if text in {"up", "increase", "increasing", "rising"}:
+        return Decimal("1")
+    if text in {"down", "decrease", "decreasing", "falling"}:
+        return Decimal("-1")
+    if text in {"steady", "stable", "flat", "no change"}:
+        return Decimal("0")
+    return None
+
+
 def _to_decimal(value: str) -> Optional[Decimal]:
     try:
         return Decimal(value)
     except (InvalidOperation, ValueError):
         return None
+
+
+def _parse_decimal_token(raw_token: str) -> Optional[Decimal]:
+    token = str(raw_token).strip()
+    if token == "":
+        return None
+
+    token = token.replace(",", "").replace("$", "").replace("%", "").strip()
+    if token == "":
+        return None
+
+    is_accounting_negative = token.startswith("(") and token.endswith(")")
+    if is_accounting_negative:
+        token = token[1:-1].strip()
+
+    if token == "":
+        return None
+
+    if not re.fullmatch(r"[+-]?\d+(?:\.\d+)?", token):
+        return None
+
+    parsed = _to_decimal(token)
+    if parsed is None:
+        return None
+
+    if is_accounting_negative and parsed > 0:
+        return -parsed
+    return parsed
 
 
 def parse_decimal_range(raw: Any) -> tuple[Optional[Decimal], Optional[Decimal]]:
@@ -84,29 +160,38 @@ def parse_decimal_range(raw: Any) -> tuple[Optional[Decimal], Optional[Decimal]]
     if compact_original == "($0-$40)" or cleaned.replace(" ", "").lower() == "(0-40)":
         return Decimal("-40"), Decimal("-10")
 
-    if cleaned.startswith("(") and cleaned.endswith(")"):
-        cleaned = f"-{cleaned[1:-1]}"
+    normalized = cleaned.replace("–", "-").replace("—", "-")
+    to_split = re.split(r"(?i)\bto\b", normalized)
+    if len(to_split) == 2:
+        low = _parse_decimal_token(to_split[0])
+        high = _parse_decimal_token(to_split[1])
+        if low is None or high is None:
+            return None, None
+        return (low, high) if low <= high else (high, low)
 
-    normalized = re.sub(r"\s*to\s*", "-", cleaned, flags=re.IGNORECASE)
-    normalized = normalized.replace("–", "-").replace("—", "-")
-    numbers = re.findall(r"-?\d+(?:\.\d+)?", normalized)
+    dash_split = re.match(r"^\s*(.+?)\s*-\s*(.+?)\s*$", normalized)
+    if dash_split:
+        low = _parse_decimal_token(dash_split.group(1))
+        high = _parse_decimal_token(dash_split.group(2))
+        if low is None or high is None:
+            return None, None
+        return (low, high) if low <= high else (high, low)
 
-    if not numbers:
+    single = _parse_decimal_token(normalized)
+    if single is None:
         return None, None
-    if len(numbers) == 1:
-        val = _to_decimal(numbers[0])
-        return val, val
-
-    low = _to_decimal(numbers[0])
-    high = _to_decimal(numbers[1])
-    if low is None or high is None:
-        return None, None
-    return (low, high) if low <= high else (high, low)
+    return single, single
 
 
 def _build_end_use_record_key(resource: Any, use_case: Any) -> str:
-    resource_key = str(resource).strip().lower() if resource is not None else ""
-    use_case_key = str(use_case).strip().lower() if use_case is not None else ""
+    resource_key = ""
+    if resource is not None and not pd.isna(resource):
+        resource_key = str(resource).strip().lower()
+
+    use_case_key = ""
+    if use_case is not None and not pd.isna(use_case):
+        use_case_key = str(use_case).strip().lower()
+
     return f"{resource_key}|{use_case_key}"
 
 
@@ -252,11 +337,16 @@ def transform_qualitative_use_case_enum(
     if cleaned is None:
         return pd.DataFrame()
 
-    use_case_name_col = _first_existing_column(cleaned, ["use_case_name", "name"])
-    if use_case_name_col and use_case_name_col != "name":
+    use_case_name_col = _first_existing_column(cleaned, ["use_case_name"])
+    if not use_case_name_col:
+        logger.warning("Expected 'use_case_name' column not found in use_case_enum sheet.")
+        return pd.DataFrame(columns=["name", "description", "use_case_dedupe_key", "etl_run_id", "lineage_group_id"])
+    if use_case_name_col != "name":
         cleaned = cleaned.rename(columns={use_case_name_col: "name"})
 
     cleaned["name"] = cleaned["name"].apply(_normalize_use_case_name)
+    cleaned = cleaned[cleaned["name"].astype(str).str.strip() != ""].copy()
+    cleaned = cleaned.drop_duplicates(subset=["name"], keep="first")
     cleaned["use_case_dedupe_key"] = cleaned["name"].astype(str).str.strip().str.lower()
     cleaned["etl_run_id"] = etl_run_id
     cleaned["lineage_group_id"] = lineage_group_id
@@ -360,9 +450,15 @@ def transform_qualitative_records(
             return {}
         original_col = _first_existing_column(
             cleaned_enum,
-            ["original set of unique use case names", "original_use_case_name", "original_use_case", "use_case"],
+            [
+                "original_set_of_unique_use_case_names",
+                "original set of unique use case names",
+                "original_use_case_name",
+                "original_use_case",
+                "use_case",
+            ],
         )
-        canonical_col = _first_existing_column(cleaned_enum, ["use_case_name", "name"])
+        canonical_col = _first_existing_column(cleaned_enum, ["use_case_name"])
         if canonical_col is None:
             return {}
         mapping: dict[str, str] = {}
@@ -402,10 +498,17 @@ def transform_qualitative_records(
         cleaned = cleaned.rename(columns={resource_col: "resource"})
     if use_case_col and use_case_col != "use_case":
         cleaned = cleaned.rename(columns={use_case_col: "use_case"})
+    cleaned = _forward_fill_qualitative_columns(cleaned)
+    if "resource" in cleaned.columns:
+        cleaned["resource"] = cleaned["resource"].apply(_canonicalize_resource_name)
 
     use_case_map = _build_use_case_map()
     if use_case_map and "use_case" in cleaned.columns:
         cleaned["use_case"] = cleaned["use_case"].apply(lambda value: use_case_map.get(_normalize_use_case_name(value), _normalize_use_case_name(value)))
+    cleaned["end_use_record_key"] = cleaned.apply(
+        lambda row: _build_end_use_record_key(row.get("resource"), row.get("use_case")),
+        axis=1,
+    )
     if storage_col and storage_col != "storage_description":
         cleaned = cleaned.rename(columns={storage_col: "storage_description"})
     if transport_col and transport_col != "transport_description":
@@ -417,10 +520,11 @@ def transform_qualitative_records(
     }
     normalized = normalize_dataframes(cleaned, normalize_columns)[0]
 
-    normalized["end_use_record_key"] = normalized.apply(
-        lambda row: _build_end_use_record_key(row.get("resource"), row.get("use_case")),
-        axis=1,
-    )
+    if "end_use_record_key" not in normalized.columns:
+        normalized["end_use_record_key"] = normalized.apply(
+            lambda row: _build_end_use_record_key(row.get("resource"), row.get("use_case")),
+            axis=1,
+        )
     normalized["etl_run_id"] = etl_run_id
     normalized["lineage_group_id"] = lineage_group_id
 
@@ -521,6 +625,9 @@ def transform_qualitative_observations(
         qualitative_df = qualitative_df.rename(columns={resource_col: "resource"})
     if use_case_col and use_case_col != "use_case":
         qualitative_df = qualitative_df.rename(columns={use_case_col: "use_case"})
+    qualitative_df = _forward_fill_qualitative_columns(qualitative_df)
+    if "resource" in qualitative_df.columns:
+        qualitative_df["resource"] = qualitative_df["resource"].apply(_canonicalize_resource_name)
 
     use_case_map = {}
     enum_df = data_sources.get("use_case_enum")
@@ -529,9 +636,15 @@ def transform_qualitative_observations(
         if cleaned_enum is not None and not cleaned_enum.empty:
             original_col = _first_existing_column(
                 cleaned_enum,
-                ["original set of unique use case names", "original_use_case_name", "original_use_case", "use_case"],
+                [
+                    "original_set_of_unique_use_case_names",
+                    "original set of unique use case names",
+                    "original_use_case_name",
+                    "original_use_case",
+                    "use_case",
+                ],
             )
-            canonical_col = _first_existing_column(cleaned_enum, ["use_case_name", "name"])
+            canonical_col = _first_existing_column(cleaned_enum, ["use_case_name"])
             if canonical_col is not None:
                 for _, row in cleaned_enum.iterrows():
                     canonical = _normalize_use_case_name(row.get(canonical_col))
@@ -582,6 +695,7 @@ def transform_qualitative_observations(
                     "end_use_record_key": record_key,
                     "record_type": "resource_end_use_record",
                     "record_id": pd.NA,
+                    "parameter_name": parameter_name,
                     "parameter": parameter_name,
                     "unit": unit_name,
                     "value": numeric_value,
@@ -591,14 +705,16 @@ def transform_qualitative_observations(
 
         if pd.notna(trend_value) and str(trend_value).strip() != "":
             unit_name = parameter_to_unit.get("resource_use_trend")
+            trend_numeric = _map_trend_to_numeric(trend_value)
             records.append(
                 {
                     "end_use_record_key": record_key,
                     "record_type": "resource_end_use_record",
                     "record_id": pd.NA,
+                    "parameter_name": "resource_use_trend",
                     "parameter": "resource_use_trend",
                     "unit": unit_name,
-                    "value": pd.NA,
+                    "value": trend_numeric,
                     "note": str(trend_value),
                 }
             )
@@ -622,6 +738,7 @@ def transform_qualitative_observations(
         "end_use_record_key",
         "record_type",
         "record_id",
+        "parameter_name",
         "parameter_id",
         "unit_id",
         "value",

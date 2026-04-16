@@ -32,6 +32,20 @@ class TestQualitativeTransform:
         assert str(low) == "-40"
         assert str(high) == "-10"
 
+    def test_parse_decimal_range_percent_positive_bounds(self):
+        from ca_biositing.pipeline.etl.transform.analysis.qualitative import parse_decimal_range
+
+        low, high = parse_decimal_range("50-70%")
+        assert str(low) == "50"
+        assert str(high) == "70"
+
+    def test_parse_decimal_range_percent_with_spaces(self):
+        from ca_biositing.pipeline.etl.transform.analysis.qualitative import parse_decimal_range
+
+        low, high = parse_decimal_range("50 - 70 %")
+        assert str(low) == "50"
+        assert str(high) == "70"
+
     def test_transform_parameters_maps_bool_and_dedupe(self):
         from ca_biositing.pipeline.etl.transform.analysis import qualitative
 
@@ -58,8 +72,8 @@ class TestQualitativeTransform:
         assert isinstance(result, pd.DataFrame)
         assert list(result["calculated"]) == [True, False]
         assert "parameter_dedupe_key" in result.columns
-        assert result.iloc[0]["name"] == "resource use perc low"
-        assert result.iloc[0]["parameter_dedupe_key"] == "resource use perc low"
+        assert result.iloc[0]["name"] == "resource_use_perc_low"
+        assert result.iloc[0]["parameter_dedupe_key"] == "resource_use_perc_low"
         assert result.iloc[0]["standard_unit_id"] == 1
 
     def test_transform_use_case_uses_canonical_name_column(self):
@@ -77,6 +91,21 @@ class TestQualitativeTransform:
 
         assert isinstance(result, pd.DataFrame)
         assert list(result["name"]) == ["animal feed"]
+
+    def test_transform_use_case_requires_use_case_name_column(self):
+        from ca_biositing.pipeline.etl.transform.analysis import qualitative
+
+        raw = pd.DataFrame(
+            {
+                "use_case": ["Feed"],
+                "description": ["Used as feed"],
+            }
+        )
+
+        result = qualitative.transform_qualitative_use_case_enum.fn({"use_case_enum": raw}, "run-1", 9)
+
+        assert isinstance(result, pd.DataFrame)
+        assert result.empty
 
     def test_transform_records_emits_use_case_id_and_keys(self):
         from ca_biositing.pipeline.etl.transform.analysis import qualitative
@@ -107,6 +136,104 @@ class TestQualitativeTransform:
         assert "use_case_id" in end_use_df.columns
         assert end_use_df.iloc[0]["use_case_id"] == 5
         assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|animal feed"
+
+    def test_transform_records_forward_fills_and_canonicalizes_resource(self):
+        from ca_biositing.pipeline.etl.transform.analysis import qualitative
+
+        raw = pd.DataFrame(
+            {
+                "primary_ag_product": ["Almond", pd.NA],
+                "resource": ["Almond Hull", pd.NA],
+                "use_case": ["animal feed", "bioenergy/cogeneration"],
+                "storage_description": ["covered pile", pd.NA],
+                "transport_description": ["truck", pd.NA],
+            }
+        )
+
+        def mock_normalize(df, _normalize_columns):
+            assert list(df["resource"]) == ["almond hulls", "almond hulls"]
+            out = df.copy()
+            out["resource_id"] = [11, 11]
+            out["use_case_id"] = [5, 6]
+            return [out]
+
+        with patch(
+            "ca_biositing.pipeline.etl.transform.analysis.qualitative.normalize_dataframes",
+            side_effect=mock_normalize,
+        ):
+            result = qualitative.transform_qualitative_records.fn({"qualitative_data": raw}, "run-1", 9)
+
+        end_use_df = result["resource_end_use_record"]
+        assert len(end_use_df) == 2
+        assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|animal feed"
+        assert end_use_df.iloc[1]["end_use_record_key"] == "almond hulls|bioenergy/cogeneration"
+
+    def test_transform_records_preserves_key_when_normalize_drops_name_columns(self):
+        from ca_biositing.pipeline.etl.transform.analysis import qualitative
+
+        raw = pd.DataFrame(
+            {
+                "resource": ["almond hulls"],
+                "use_case": ["animal feed"],
+                "storage_description": ["covered pile"],
+                "transport_description": ["truck"],
+            }
+        )
+
+        def mock_normalize(df, _normalize_columns):
+            out = df.copy()
+            out = out.drop(columns=["resource", "use_case"])
+            out["resource_id"] = [11]
+            out["use_case_id"] = [5]
+            return [out]
+
+        with patch(
+            "ca_biositing.pipeline.etl.transform.analysis.qualitative.normalize_dataframes",
+            side_effect=mock_normalize,
+        ):
+            result = qualitative.transform_qualitative_records.fn({"qualitative_data": raw}, "run-1", 9)
+
+        end_use_df = result["resource_end_use_record"]
+        assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|animal feed"
+
+    def test_transform_records_maps_original_use_case_to_canonical(self):
+        from ca_biositing.pipeline.etl.transform.analysis import qualitative
+
+        qualitative_raw = pd.DataFrame(
+            {
+                "resource": ["Almond Hull"],
+                "use_case": ["Bioenergy/cogeneration"],
+                "storage_description": ["covered pile"],
+                "transport_description": ["truck"],
+            }
+        )
+        enum_raw = pd.DataFrame(
+            {
+                "original_set_of_unique_use_case_names": ["Bioenergy/cogeneration"],
+                "use_case_name": ["Onsite Compined Heat and Power (CHP)"],
+                "description": ["Alias mapping"],
+            }
+        )
+
+        def mock_normalize(df, _normalize_columns):
+            assert list(df["use_case"]) == ["onsite compined heat and power (chp)"]
+            out = df.copy()
+            out["resource_id"] = [9]
+            out["use_case_id"] = [16]
+            return [out]
+
+        with patch(
+            "ca_biositing.pipeline.etl.transform.analysis.qualitative.normalize_dataframes",
+            side_effect=mock_normalize,
+        ):
+            result = qualitative.transform_qualitative_records.fn(
+                {"qualitative_data": qualitative_raw, "use_case_enum": enum_raw},
+                "run-1",
+                9,
+            )
+
+        end_use_df = result["resource_end_use_record"]
+        assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|onsite compined heat and power (chp)"
 
     def test_transform_observations_parses_ranges_and_trend(self):
         from ca_biositing.pipeline.etl.transform.analysis import qualitative
@@ -156,6 +283,9 @@ class TestQualitativeTransform:
         assert "end_use_record_key" in result.columns
         assert result["end_use_record_key"].iloc[0] == "almond hulls|animal feed"
         assert len(result) >= 7
+        trend_rows = result[result["parameter_name"] == "resource_use_trend"]
+        assert not trend_rows.empty
+        assert str(trend_rows.iloc[0]["value"]) == "1"
 
 
 class TestQualitativeSchemaFix:

@@ -32,6 +32,28 @@ def _normalize_name(value: Any) -> str:
     return text
 
 
+def _normalize_parameter_name(value: Any) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip().lower().replace("’", "'")
+    text = re.sub(r"[-\s]+", "_", text)
+    text = re.sub(r"_+", "_", text)
+    return text
+
+
+def _map_trend_to_numeric(value: Any) -> Optional[Decimal]:
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text in {"up", "increase", "increasing", "rising"}:
+        return Decimal("1")
+    if text in {"down", "decrease", "decreasing", "falling"}:
+        return Decimal("-1")
+    if text in {"steady", "stable", "flat", "no change"}:
+        return Decimal("0")
+    return None
+
+
 def _to_python_value(value: Any) -> Any:
     if value is None:
         return None
@@ -60,6 +82,19 @@ def _first_by_normalized_name(session: Session, model: Any, name: Any) -> Any:
     rows = session.exec(select(model)).all()
     for row in rows:
         if _normalize_name(getattr(row, "name", None)) == target:
+            return row
+    return None
+
+
+def _first_parameter_by_normalized_name(session: Session, name: Any) -> Any:
+    from ca_biositing.datamodels.models import Parameter
+
+    target = _normalize_parameter_name(name)
+    if target == "":
+        return None
+    rows = session.exec(select(Parameter)).all()
+    for row in rows:
+        if _normalize_parameter_name(getattr(row, "name", None)) == target:
             return row
     return None
 
@@ -125,6 +160,11 @@ def load_qualitative_payloads(
         "resource_transport_record": 0,
         "resource_end_use_record": 0,
         "observation": 0,
+    }
+    observation_skips = {
+        "missing_end_use_record": 0,
+        "missing_parameter_id": 0,
+        "missing_value_and_note": 0,
     }
 
     if not transformed_payloads:
@@ -193,9 +233,9 @@ def load_qualitative_payloads(
                 if _normalize_name(name) == "":
                     continue
 
-                existing = _first_by_normalized_name(session, Parameter, name)
+                existing = _first_parameter_by_normalized_name(session, name)
                 if existing:
-                    existing.name = _normalize_name(name)
+                    existing.name = _normalize_parameter_name(name)
                     existing.description = payload.get("description")
                     existing.calculated = payload.get("calculated")
                     existing.standard_unit_id = payload.get("standard_unit_id")
@@ -203,11 +243,13 @@ def load_qualitative_payloads(
                         existing.etl_run_id = payload.get("etl_run_id")
                     if hasattr(existing, "lineage_group_id"):
                         existing.lineage_group_id = payload.get("lineage_group_id")
+                    if getattr(existing, "created_at", None) is None:
+                        existing.created_at = now
                     existing.updated_at = now
                     session.add(existing)
                 else:
                     new_row = Parameter(
-                        name=_normalize_name(name),
+                        name=_normalize_parameter_name(name),
                         description=payload.get("description"),
                         calculated=payload.get("calculated"),
                         standard_unit_id=payload.get("standard_unit_id"),
@@ -362,6 +404,7 @@ def load_qualitative_payloads(
 
         # 5) Profile record tables
         end_use_id_by_key: dict[str, int] = {}
+        end_use_sample_keys: list[str] = []
 
         storage_df = records_payload.get("resource_storage_record")
         if isinstance(storage_df, pd.DataFrame) and not storage_df.empty:
@@ -467,6 +510,8 @@ def load_qualitative_payloads(
                     session.flush()
                     if isinstance(record_key, str) and record_key.strip():
                         end_use_id_by_key[record_key] = existing.id
+                        if len(end_use_sample_keys) < 5:
+                            end_use_sample_keys.append(record_key)
                 else:
                     record = ResourceEndUseRecord(
                         dataset_id=dataset_id,
@@ -485,16 +530,42 @@ def load_qualitative_payloads(
                     counts["resource_end_use_record"] += 1
                     if isinstance(record_key, str) and record_key.strip():
                         end_use_id_by_key[record_key] = record.id
+                        if len(end_use_sample_keys) < 5:
+                            end_use_sample_keys.append(record_key)
 
         # 6) Observation
         if isinstance(observation_df, pd.DataFrame) and not observation_df.empty:
             table_columns = {c.name for c in Observation.__table__.columns}
+            logger.info(
+                f"Qualitative key map size: {len(end_use_id_by_key)}; sample record keys: {end_use_sample_keys}"
+            )
+            observation_sample_keys: list[str] = []
             for _, row in observation_df.iterrows():
                 payload = _row_to_dict(row)
                 key = payload.get("end_use_record_key")
+                if isinstance(key, str) and len(observation_sample_keys) < 5:
+                    observation_sample_keys.append(key)
                 resolved_record_id = end_use_id_by_key.get(str(key)) if key is not None else None
                 if resolved_record_id is None:
+                    observation_skips["missing_end_use_record"] += 1
                     continue
+
+                if payload.get("parameter_id") is None and payload.get("parameter_name") is not None:
+                    parameter_row = _first_parameter_by_normalized_name(session, payload.get("parameter_name"))
+                    if parameter_row is not None:
+                        payload["parameter_id"] = getattr(parameter_row, "id", None) or getattr(
+                            parameter_row, "parameter_id", None
+                        )
+                        if payload.get("unit_id") is None:
+                            payload["unit_id"] = getattr(parameter_row, "standard_unit_id", None) or getattr(
+                                parameter_row, "unit_id", None
+                            )
+
+                normalized_param_name = _normalize_parameter_name(payload.get("parameter_name"))
+                if normalized_param_name == "resource_use_trend" and payload.get("value") is None:
+                    mapped = _map_trend_to_numeric(payload.get("note"))
+                    if mapped is not None:
+                        payload["value"] = mapped
 
                 payload["record_id"] = str(resolved_record_id)
                 payload["dataset_id"] = dataset_id
@@ -509,8 +580,10 @@ def load_qualitative_payloads(
                 }
 
                 if clean_payload.get("parameter_id") is None:
+                    observation_skips["missing_parameter_id"] += 1
                     continue
                 if clean_payload.get("value") is None and not clean_payload.get("note"):
+                    observation_skips["missing_value_and_note"] += 1
                     continue
 
                 stmt = insert(Observation.__table__).values(**clean_payload)
@@ -526,7 +599,10 @@ def load_qualitative_payloads(
                 session.execute(upsert_stmt)
                 counts["observation"] += 1
 
+            logger.info(f"Qualitative observation sample keys: {observation_sample_keys}")
+
         session.commit()
 
+    logger.info(f"Qualitative observation skip stats: {observation_skips}")
     logger.info(f"Qualitative load completed with counts: {counts}")
     return counts

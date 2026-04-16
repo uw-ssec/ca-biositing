@@ -13,7 +13,7 @@ from sqlalchemy import select, func, case, cast, String, Float, Text, literal
 
 from ca_biositing.datamodels.models.resource_information.resource import Resource
 from ca_biositing.datamodels.models.resource_information.resource_end_use_record import ResourceEndUseRecord
-from ca_biositing.datamodels.models.methods_parameters_units.method import Method
+from ca_biositing.datamodels.models.resource_information.use_case import UseCase
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
 from ca_biositing.datamodels.models.methods_parameters_units.unit import Unit
@@ -25,29 +25,39 @@ end_use_obs = select(
     func.avg(
         case(
             (
-                func.lower(Parameter.name).in_(
-                    [
-                        "percent of volume",
-                        "percent_of_volume",
-                        "percentage of volume",
-                        "volume percent",
-                    ]
-                ),
+                func.lower(Parameter.name) == "resource_use_perc_low",
                 Observation.value,
             )
         )
-    ).label("percent_of_volume"),
+    ).label("percentage_low"),
+    func.avg(
+        case(
+            (
+                func.lower(Parameter.name) == "resource_use_perc_high",
+                Observation.value,
+            )
+        )
+    ).label("percentage_high"),
+    func.avg(
+        case(
+            (
+                func.lower(Parameter.name) == "resource_value_low",
+                Observation.value,
+            )
+        )
+    ).label("value_low_usd"),
+    func.avg(
+        case(
+            (
+                func.lower(Parameter.name) == "resource_value_high",
+                Observation.value,
+            )
+        )
+    ).label("value_high_usd"),
     func.max(
         case(
             (
-                func.lower(Parameter.name).in_(
-                    [
-                        "percent of volume",
-                        "percent_of_volume",
-                        "percentage of volume",
-                        "volume percent",
-                    ]
-                ),
+                func.lower(Parameter.name) == "resource_use_perc_low",
                 Unit.name,
             )
         )
@@ -55,11 +65,19 @@ end_use_obs = select(
     func.max(
         case(
             (
-                func.lower(Parameter.name) == "trending",
-                cast(Observation.value, String),
+                func.lower(Parameter.name) == "resource_use_trend",
+                cast(Observation.note, String),
             )
         )
-    ).label("trending"),
+    ).label("trend"),
+    func.max(
+        case(
+            (
+                func.lower(Parameter.name).in_(["resource_value_low", "resource_value_high"]),
+                Unit.name,
+            )
+        )
+    ).label("value_unit"),
 ).select_from(Observation)\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
@@ -69,22 +87,20 @@ end_use_obs = select(
 mv_biomass_end_uses = select(
     ResourceEndUseRecord.resource_id,
     Resource.name.label("resource_name"),
-    func.coalesce(Method.name, literal("unknown")).label("use_case"),
-    cast(end_use_obs.c.percent_of_volume, Float).label("percentage_low"),
-    cast(literal(None), Float).label("percentage_high"),
-    cast(end_use_obs.c.trending, Text).label("trend"),
-    cast(literal(None), Float).label("value_low_usd"),
-    cast(literal(None), Float).label("value_high_usd"),
-    cast(literal(None), Text).label("value_notes"),
+    func.coalesce(UseCase.name, literal("unknown")).label("use_case"),
+    cast(func.avg(end_use_obs.c.percentage_low), Float).label("percentage_low"),
+    cast(func.avg(end_use_obs.c.percentage_high), Float).label("percentage_high"),
+    cast(func.max(end_use_obs.c.trend), Text).label("trend"),
+    cast(func.avg(end_use_obs.c.value_low_usd), Float).label("value_low_usd"),
+    cast(func.avg(end_use_obs.c.value_high_usd), Float).label("value_high_usd"),
+    cast(func.max(end_use_obs.c.value_unit), Text).label("value_notes"),
 ).select_from(ResourceEndUseRecord)\
  .join(Resource, ResourceEndUseRecord.resource_id == Resource.id)\
- .outerjoin(Method, ResourceEndUseRecord.method_id == Method.id)\
+ .outerjoin(UseCase, ResourceEndUseRecord.use_case_id == UseCase.id)\
  .outerjoin(end_use_obs, cast(ResourceEndUseRecord.id, String) == end_use_obs.c.record_id)\
  .where(ResourceEndUseRecord.resource_id.is_not(None))\
  .group_by(
     ResourceEndUseRecord.resource_id,
     Resource.name,
-    func.coalesce(Method.name, literal("unknown")),
-    end_use_obs.c.percent_of_volume,
-    end_use_obs.c.trending,
+    func.coalesce(UseCase.name, literal("unknown")),
  )

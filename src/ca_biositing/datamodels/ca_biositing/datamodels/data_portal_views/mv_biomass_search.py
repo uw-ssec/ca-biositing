@@ -16,6 +16,7 @@ from ca_biositing.datamodels.models.resource_information.resource import Resourc
 from ca_biositing.datamodels.models.resource_information.primary_ag_product import PrimaryAgProduct
 from ca_biositing.datamodels.models.resource_information.resource_transport_record import ResourceTransportRecord
 from ca_biositing.datamodels.models.resource_information.resource_storage_record import ResourceStorageRecord
+from ca_biositing.datamodels.models.external_data.resource_usda_commodity_map import ResourceUsdaCommodityMap
 from ca_biositing.datamodels.models.external_data.billion_ton import BillionTon2023Record
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
@@ -143,6 +144,15 @@ storage_notes_sq = select(
     func.max(ResourceStorageRecord.storage_description).label("storage_notes")
 ).group_by(ResourceStorageRecord.resource_id).subquery()
 
+# Fallback primary product subquery for resources whose direct FK has not yet been populated.
+resource_primary_product_sq = select(
+    ResourceUsdaCommodityMap.resource_id,
+    func.max(PrimaryAgProduct.name).label("primary_product_fallback")
+).select_from(ResourceUsdaCommodityMap)
+    .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)
+    .where(ResourceUsdaCommodityMap.resource_id.is_not(None))
+    .group_by(ResourceUsdaCommodityMap.resource_id).subquery()
+
 mv_biomass_search = select(
      Resource.id,
      Resource.name,
@@ -150,7 +160,7 @@ mv_biomass_search = select(
      Resource.description,
      ResourceClass.name.label("resource_class"),
      ResourceSubclass.name.label("resource_subclass"),
-     PrimaryAgProduct.name.label("primary_product"),
+     func.coalesce(PrimaryAgProduct.name, resource_primary_product_sq.c.primary_product_fallback).label("primary_product"),
      ResourceMorphology.morphology_uri.label("image_url"),
      Resource.uri.label("literature_uri"),
      agg_vol.c.total_annual_volume,
@@ -163,6 +173,8 @@ mv_biomass_search = select(
      resource_metrics.c.carbon_percent,
      resource_metrics.c.hydrogen_percent,
      resource_metrics.c.cn_ratio,
+    cast(transport_notes_sq.c.transport_notes, Text).label("transport_description"),
+    cast(storage_notes_sq.c.storage_notes, Text).label("storage_description"),
      transport_notes_sq.c.transport_notes,
      storage_notes_sq.c.storage_notes,
      func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
@@ -192,7 +204,7 @@ mv_biomass_search = select(
          func.coalesce(Resource.description, '') + ' ' +
          func.coalesce(ResourceClass.name, '') + ' ' +
          func.coalesce(ResourceSubclass.name, '') + ' ' +
-         func.coalesce(PrimaryAgProduct.name, '')
+         func.coalesce(PrimaryAgProduct.name, resource_primary_product_sq.c.primary_product_fallback, '')
      ).label("search_vector")
  ).select_from(Resource)\
   .outerjoin(ResourceClass, Resource.resource_class_id == ResourceClass.id)\
@@ -205,4 +217,5 @@ mv_biomass_search = select(
   .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)\
   .outerjoin(transport_notes_sq, transport_notes_sq.c.resource_id == Resource.id)\
   .outerjoin(storage_notes_sq, storage_notes_sq.c.resource_id == Resource.id)\
+    .outerjoin(resource_primary_product_sq, resource_primary_product_sq.c.resource_id == Resource.id)\
   .where(func.lower(Resource.name) != 'sargassum')

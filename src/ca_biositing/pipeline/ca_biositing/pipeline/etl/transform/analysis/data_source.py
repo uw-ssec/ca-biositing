@@ -52,8 +52,12 @@ def transform_data_sources(
     # This converts 'Index' to 'index', 'SourceName' to 'source_name', etc.
     df = cleaning_mod.standard_clean(df)
 
-    # 3. Filter empty rows (Sheet 07.7b has 50 rows but many are empty)
+    # 3. Filter empty rows (Sheet 07.7b has many placeholder rows with index but no source metadata)
     df = df[df['index'].notna() & (df['index'] != "")]
+
+    # Handle common cleaned column variants
+    if 'source_name' not in df.columns and 'sourcename' in df.columns:
+        df = df.rename(columns={'sourcename': 'source_name'})
 
     # 4. Map to Model Fields
     # Model fields: id, name, full_title, creator, date, uri
@@ -65,8 +69,16 @@ def transform_data_sources(
     }
     df = df.rename(columns=rename_map)
 
-    # Convert id to int
-    df['id'] = pd.to_numeric(df['id'], errors='coerce').astype(int)
+    # Keep only rows with a meaningful source name
+    if 'name' not in df.columns:
+        logger.warning("No 'source_name' column found after cleaning; no data sources to transform.")
+        return pd.DataFrame(columns=["id", "name", "creator", "date", "uri", "etl_run_id", "lineage_group_id"])
+    df = df[df['name'].notna() & (df['name'].astype(str).str.strip() != "")].copy()
+
+    # Convert id to int, dropping invalid ids
+    df['id'] = pd.to_numeric(df['id'], errors='coerce')
+    df = df[df['id'].notna()].copy()
+    df['id'] = df['id'].astype(int)
 
     # Handle date (it's a year string/int in the sheet)
     def clean_date(val):
