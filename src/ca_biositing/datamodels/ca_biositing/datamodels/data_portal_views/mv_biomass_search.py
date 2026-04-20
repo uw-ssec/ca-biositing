@@ -8,7 +8,7 @@ Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_search_id ON data_portal.mv_biomass_search (id)
 """
 
-from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text
+from sqlalchemy import select, func, union_all, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text
 from sqlalchemy.dialects.postgresql import array as pg_array
 from sqlalchemy.orm import aliased
 
@@ -118,7 +118,7 @@ resource_tags = select(
          ]),
          None
      ).label("tags")
- ).select_from(resource_metrics).join(thresholds, literal(True)).subquery()
+ ).select_from(resource_metrics, thresholds).subquery()
 
 # Aggregated volume from Billion Ton
 agg_vol = select(
@@ -148,10 +148,10 @@ storage_notes_sq = select(
 resource_primary_product_sq = select(
     ResourceUsdaCommodityMap.resource_id,
     func.max(PrimaryAgProduct.name).label("primary_product_fallback")
-).select_from(ResourceUsdaCommodityMap)
-    .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)
-    .where(ResourceUsdaCommodityMap.resource_id.is_not(None))
-    .group_by(ResourceUsdaCommodityMap.resource_id).subquery()
+).select_from(ResourceUsdaCommodityMap)\
+ .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)\
+ .where(ResourceUsdaCommodityMap.resource_id.is_not(None))\
+ .group_by(ResourceUsdaCommodityMap.resource_id).subquery()
 
 mv_biomass_search = select(
      Resource.id,
