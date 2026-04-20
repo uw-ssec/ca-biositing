@@ -81,9 +81,19 @@ def transform_residue_factor(
     for col in decimal_cols:
         if col in df.columns:
             # Convert to Decimal, preserving NaN
-            df[col] = df[col].apply(
-                lambda x: Decimal(str(x)) if pd.notna(x) and str(x).strip() else None
-            )
+            def safe_decimal_convert(x):
+                if pd.isna(x):
+                    return None
+                str_val = str(x).strip()
+                if not str_val or str_val.lower() in ('nan', 'none', ''):
+                    return None
+                try:
+                    return Decimal(str_val)
+                except Exception as e:
+                    logger.warning(f"Could not convert '{str_val}' to Decimal: {e}")
+                    return None
+
+            df[col] = df[col].apply(safe_decimal_convert)
 
     # ========================================
     # Step 3: Foreign Key Resolution
@@ -117,8 +127,8 @@ def transform_residue_factor(
         # Data Source Normalization (source URL → data_source_id)
         if "source" in df.columns:
             logger.info("Normalizing data_source (source URL → data_source_id)")
-            # Map URLs to DataSource IDs
-            ds_rows = session.execute(select(DataSource.id, DataSource.url)).all()
+            # Map URLs to DataSource IDs (DataSource.uri is the field name)
+            ds_rows = session.execute(select(DataSource.id, DataSource.uri)).all()
             url_to_id_map = {
                 row[1]: row[0] for row in ds_rows if row[1] is not None
             }

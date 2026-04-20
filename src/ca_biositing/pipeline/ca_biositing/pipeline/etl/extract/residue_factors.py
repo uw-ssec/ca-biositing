@@ -12,8 +12,8 @@ import pandas as pd
 from prefect import task, get_run_logger
 
 # Configuration
-GSHEET_ID = "1oJg9B3qOFk6XTbqu5cmqNT1fbJpUhZxD"
-WORKSHEET_NAME = "Data_Views"
+GSHEET_ID = "13rwxml9JEC2BJOrZ7m5tRDj2zf-6tNRHEY0KvIauNOA"
+WORKSHEET_NAME = "Data Views"
 
 @task(name="extract_residue_factors", retries=3, retry_delay_seconds=10)
 def extract_residue_factors(project_root: Optional[str] = None) -> pd.DataFrame:
