@@ -26,6 +26,8 @@ from ca_biositing.datamodels.models.aim2_records.pretreatment_record import Pret
 # Subquery for analytical averages (moisture, ash, lignin, sugar)
 # Sugar = glucose + xylose
 # QC: filtered to exclude "fail" - only include observations from analytical records that are not marked as failed
+# NOTE: This subquery filters observation records based on their parent record's QC status
+# via the resource_analysis_map which already filters by qc_pass != "fail"
 analysis_metrics = select(
     Observation.record_id,
     Observation.record_type,

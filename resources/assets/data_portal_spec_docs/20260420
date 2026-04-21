@@ -1,8 +1,8 @@
 BioCirV - Materialized Views Specification for MVP
 
-Date: 2026-02-23        
-From: Web App Engineering Team        
-To: Data Team        
+Date: 2026-02-23
+From: Web App Engineering Team
+To: Data Team
 Status: Draft - awaiting data team review
 Context
 
@@ -107,7 +107,7 @@ Yes
 Long-form qualitative description of the resource (e.g., "Almond shells are the hard outer covering...") — needs to be populated
 tags
 text[]
- 
+
 Pre-computed descriptive tags provided by the data team (e.g., "high moisture", "low moisture", "high sugar"). Should not be derived by the app — data team owns the values.
 literature_uri
 text
@@ -981,7 +981,7 @@ Deprecated Views
 
 mv_biomass_county_production (replaced by mv_usda_county_production)
 
-Replaced: 2026-03-25        
+Replaced: 2026-03-25
 Reason: Superseded by the USDA-based county production view. BillionTon 2023 scenario data is preserved in the view but no longer used by the application.
 Columns (as of Mar 24 dump):
 Column

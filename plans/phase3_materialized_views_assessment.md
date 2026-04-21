@@ -1,7 +1,7 @@
 # Phase 3: Materialized Views Assessment & Implementation Plan
 
-**Date**: 2026-04-20  
-**Status**: Assessment Complete - Ready for Implementation Planning  
+**Date**: 2026-04-20
+**Status**: Assessment Complete - Ready for Implementation Planning
 **Objective**: Update data_portal materialized views to align with spec, fix has_blank detection issue, and implement volume calculation strategy
 
 ---
@@ -40,9 +40,9 @@ These aggregate all observations INCLUDING those marked as `qc_pass = "fail"`, b
 ### Solution Approach
 
 1. **Filter resource_analysis_map & analysis_metrics at source** - Add WHERE clause to exclude `qc_pass = "fail"` observations
-   - Modify the base subquery that builds `resource_analysis_map` 
+   - Modify the base subquery that builds `resource_analysis_map`
    - Apply `AND qc_pass != "fail"` to the join between Observation and analytical records
-   
+
 2. **Propagate filter through aggregations** - Ensure the has_proximate, has_compositional, etc. flags only count valid records
 
 3. **Test with edge cases**:
@@ -69,7 +69,7 @@ Currently, volumes come from `BillionTon2023Record` via the `agg_vol` subquery. 
 For resources with primary agricultural products (e.g., corn stover, wheat straw):
 
 ```
-residue_volume = county_ag_report_record.primary_product_volume 
+residue_volume = county_ag_report_record.primary_product_volume
                  × residue_factors.factor_mid (or factor_min/max for ranges)
 ```
 
@@ -80,14 +80,14 @@ residue_volume = county_ag_report_record.primary_product_volume
 
 **Implementation steps**:
 1. Join `county_ag_report_record` to `Resource` via `primary_ag_product_id`
-2. Join `Resource` to `ResidueFactor` on `resource_id` 
+2. Join `Resource` to `ResidueFactor` on `resource_id`
 3. Filter `ResidueFactor` by `factor_type` (likely "commodity" for standard residue yield)
 4. Calculate: `estimated_residue_volume = production_volume × factor_mid`
 5. Aggregate by county to support monthly/quarterly breakdowns
 
 **SQL Pattern**:
 ```sql
-SELECT 
+SELECT
     car.geoid,
     car.county,
     car.dataset_year,
@@ -102,7 +102,7 @@ SELECT
     'dry_tons' AS biomass_unit
 FROM county_ag_report_record car
 JOIN resource r ON car.resource_id = r.id
-JOIN residue_factor rf ON r.id = rf.resource_id 
+JOIN residue_factor rf ON r.id = rf.resource_id
     AND rf.factor_type = 'commodity'
 WHERE rf.resource_id IS NOT NULL
 ```
@@ -112,8 +112,8 @@ WHERE rf.resource_id IS NOT NULL
 For orchard/perennial crops (almonds, walnuts, etc.), bearing acres are tracked separately:
 
 ```
-residue_volume = USDA_census.bearing_acres_county 
-                 × residue_factors.prune_trim_yield 
+residue_volume = USDA_census.bearing_acres_county
+                 × residue_factors.prune_trim_yield
                  × (years_in_production_cycle / 1)
 ```
 
@@ -124,7 +124,7 @@ residue_volume = USDA_census.bearing_acres_county
 
 **Implementation steps**:
 1. Identify orchard crops: those with `ResourceClass.name LIKE '%orchard%'` or similar
-2. Join `usda_census_record` to `Resource` 
+2. Join `usda_census_record` to `Resource`
 3. Join `Resource` to `ResidueFactor` on resource_id
 4. Filter for records where `prune_trim_yield IS NOT NULL`
 5. Calculate: `estimated_residue_volume = bearing_acres × prune_trim_yield`
@@ -132,7 +132,7 @@ residue_volume = USDA_census.bearing_acres_county
 
 **SQL Pattern**:
 ```sql
-SELECT 
+SELECT
     ucr.geoid,
     ucr.county,
     ucr.year,
@@ -210,8 +210,8 @@ This applies to:
 ## Implementation Roadmap
 
 ### Phase 3.1: Boolean Indicator Fix (High Priority)
-**Impact**: Medium (fixes UI display correctness)  
-**Complexity**: Medium (requires careful QC filtering propagation)  
+**Impact**: Medium (fixes UI display correctness)
+**Complexity**: Medium (requires careful QC filtering propagation)
 **Timeline**: ~1-2 sprints
 
 **Tasks**:
@@ -223,8 +223,8 @@ This applies to:
 6. Update view, refresh materialized view, verify UI behavior
 
 ### Phase 3.2: Volume Calculation Strategy (High Priority)
-**Impact**: High (enables residue volume estimation)  
-**Complexity**: High (multi-source joins, business logic)  
+**Impact**: High (enables residue volume estimation)
+**Complexity**: High (multi-source joins, business logic)
 **Timeline**: ~2-3 sprints
 
 **Tasks**:
@@ -245,8 +245,8 @@ This applies to:
 10. Add volume_source annotation for transparency
 
 ### Phase 3.3: View Alignment & Verification (Medium Priority)
-**Impact**: Medium (ensures frontend contract compliance)  
-**Complexity**: Medium (systematic review and fixes)  
+**Impact**: Medium (ensures frontend contract compliance)
+**Complexity**: Medium (systematic review and fixes)
 **Timeline**: ~1-2 sprints
 
 **Tasks**:
@@ -344,4 +344,3 @@ This applies to:
 3. **Detailed Design** - Create SQL DDL for new/updated views
 4. **Sprint Planning** - Sequence the three phases with engineering capacity
 5. **Handoff to Code Mode** - Once approved, delegate implementation to code agents
-
