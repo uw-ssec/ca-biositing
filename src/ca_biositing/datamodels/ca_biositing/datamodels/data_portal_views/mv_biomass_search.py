@@ -8,7 +8,7 @@ Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_search_id ON data_portal.mv_biomass_search (id)
 """
 
-from sqlalchemy import select, func, union_all, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text
+from sqlalchemy import select, func, union_all, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text, true
 from sqlalchemy.dialects.postgresql import array as pg_array
 from sqlalchemy.orm import aliased
 
@@ -118,7 +118,7 @@ resource_tags = select(
          ]),
          None
      ).label("tags")
- ).select_from(resource_metrics, thresholds).subquery()
+ ).select_from(resource_metrics).join(thresholds, true()).subquery()
 
 # Aggregated volume from Billion Ton
 agg_vol = select(
