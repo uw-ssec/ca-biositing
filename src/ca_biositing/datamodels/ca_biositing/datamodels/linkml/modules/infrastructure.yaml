@@ -1,0 +1,1069 @@
+id: https://w3id.org/ca_biositing/infrastructure
+name: infrastructure
+title: Infrastructure
+description: Infrastructure and facility data.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - general_analysis
+  - places
+  - resource_information
+
+classes:
+  FacilityRecord:
+    is_a: BaseEntity
+    description: Facility record.
+    slots:
+      - dataset_id
+      - facility_name
+      - location_id
+      - capacity_mw
+      - resource_id
+      - operator
+      - start_year
+      - note
+
+  InfrastructureBiodieselPlants:
+    description: Biodiesel plants infrastructure.
+    slots:
+      - biodiesel_plant_id
+      - company
+      - bbi_index
+      - city
+      - state
+      - capacity_mmg_per_y
+      - feedstock
+      - status
+      - address
+      - coordinates
+      - latitude
+      - longitude
+      - source
+    slot_usage:
+      biodiesel_plant_id:
+        identifier: true
+        range: integer
+
+  InfrastructureBiosolidsFacilities:
+    description: Biosolids facilities infrastructure.
+    slots:
+      - biosolid_facility_id
+      - report_submitted_date
+      - latitude
+      - longitude
+      - facility
+      - authority
+      - plant_type
+      - aqmd
+      - facility_address
+      - facility_city
+      - state
+      - facility_zip
+      - facility_county
+      - mailing_street_1
+      - mailing_city
+      - mailing_state
+      - mailing_zip
+      - biosolids_number
+      - biosolids_contact
+      - biosolids_contact_phone
+      - biosolids_contact_email
+      - adwf
+      - potw_biosolids_generated
+      - twtds_biosolids_treated
+      - class_b_land_app
+      - class_b_applier
+      - class_a_compost
+      - class_a_heat_dried
+      - class_a_other
+      - class_a_other_applier
+      - twtds_transfer_to_second_preparer
+      - twtds_second_preparer_name
+      - adc_or_final_c
+      - landfill
+      - landfill_name
+      - surface_disposal
+      - deepwell_injection
+      - stored
+      - longterm_treatment
+      - other
+      - name_of_other
+      - incineration
+    slot_usage:
+      biosolid_facility_id:
+        identifier: true
+        range: integer
+
+  InfrastructureCafoManureLocations:
+    description: CAFO manure locations infrastructure.
+    slots:
+      - cafo_manure_id
+      - latitude
+      - longitude
+      - owner_name
+      - facility_name
+      - address
+      - town
+      - state
+      - zip
+      - animal
+      - animal_feed_operation_type
+      - animal_units
+      - animal_count
+      - manure_total_solids
+      - source
+      - date_accessed
+    slot_usage:
+      cafo_manure_id:
+        identifier: true
+        range: integer
+
+  InfrastructureEthanolBiorefineries:
+    description: Ethanol biorefineries infrastructure.
+    slots:
+      - ethanol_biorefinery_id
+      - name
+      - city
+      - state
+      - address
+      - type
+      - capacity_mgy
+      - production_mgy
+      - constr_exp
+    slot_usage:
+      ethanol_biorefinery_id:
+        identifier: true
+        range: integer
+
+  InfrastructureLandfills:
+    description: Landfills infrastructure.
+    slots:
+      - project_id
+      - project_int_id
+      - ghgrp_id
+      - landfill_id
+      - landfill_name
+      - state
+      - physical_address
+      - city
+      - county
+      - zip_code
+      - latitude
+      - longitude
+      - ownership_type
+      - landfill_owner_orgs
+      - landfill_opened_year
+      - landfill_closure_year
+      - landfill_status
+      - waste_in_place
+      - waste_in_place_year
+      - lfg_system_in_place
+      - lfg_collected
+      - lfg_flared
+      - project_status
+      - project_name
+      - project_start_date
+      - project_shutdown_date
+      - project_type_category
+      - lfg_energy_project_type
+      - rng_delivery_method
+      - actual_mw_generation
+      - rated_mw_capacity
+      - lfg_flow_to_project
+      - direct_emission_reductions
+      - avoided_emission_reductions
+    slot_usage:
+      project_id:
+        identifier: true
+        range: string
+
+  InfrastructureLivestockAnaerobicDigesters:
+    description: Livestock anaerobic digesters infrastructure.
+    slots:
+      - digester_id
+      - project_name
+      - project_type
+      - city
+      - state
+      - digester_type
+      - profile
+      - year_operational
+      - animal_type_class
+      - animal_types
+      - pop_feeding_digester
+      - total_pop_feeding_digester
+      - cattle
+      - dairy
+      - poultry
+      - swine
+      - codigestion
+      - biogas_generation_estimate
+      - electricity_generated
+      - biogas_end_uses
+      - methane_emission_reductions
+      - latitude
+      - longitude
+    slot_usage:
+      digester_id:
+        identifier: true
+        range: integer
+
+  InfrastructureSafAndRenewableDieselPlants:
+    description: SAF and renewable diesel plants infrastructure.
+    slots:
+      - ibcc_index
+      - company
+      - city
+      - state
+      - country
+      - capacity
+      - feedstock
+      - products
+      - status
+      - address
+      - coordinates
+      - latitude
+      - longitude
+    slot_usage:
+      ibcc_index:
+        identifier: true
+        range: integer
+
+  InfrastructureWastewaterTreatmentPlants:
+    description: Wastewater treatment plants infrastructure.
+    slots:
+      - plant_id
+      - name
+      - state
+      - codigestion
+      - flow_design_adjusted
+      - flow_average
+      - biosolids
+      - excess_flow
+      - biogas_utilized
+      - flaring
+      - excess_mass_loading_rate
+      - excess_mass_loading_rate_wet
+      - methane_production
+      - energy_content
+      - electric_kw
+      - thermal_mmbtu_d
+      - electric_kwh
+      - thermal_annual_mmbtu_y
+      - anaerobic_digestion_facility
+      - county
+      - dayload_bdt
+      - dayload
+      - equivalent_generation
+      - facility_type
+      - feedstock
+      - type
+      - city
+      - latitude
+      - longitude
+      - zipcode
+    slot_usage:
+      plant_id:
+        identifier: true
+        range: integer
+
+  InfrastructureCombustionPlants:
+    description: Combustion plants infrastructure.
+    slots:
+      - combustion_fid
+      - objectid
+      - status
+      - city
+      - name
+      - county
+      - equivalent_generation
+      - np_mw
+      - cf
+      - yearload
+      - fuel
+      - notes
+      - type
+      - wkt_geom
+      - geom
+      - latitude
+      - longitude
+    slot_usage:
+      combustion_fid:
+        identifier: true
+        range: integer
+
+  InfrastructureDistrictEnergySystems:
+    description: District energy systems infrastructure.
+    slots:
+      - des_fid
+      - cbg_id
+      - name
+      - system
+      - object_id
+      - city
+      - state
+      - primary_fuel
+      - secondary_fuel
+      - usetype
+      - cap_st
+      - cap_hw
+      - cap_cw
+      - chpcg_cap
+      - excess_c
+      - excess_h
+      - type
+      - wkt_geom
+      - geom
+      - latitude
+      - longitude
+    slot_usage:
+      des_fid:
+        identifier: true
+        range: integer
+
+  InfrastructureFoodProcessingFacilities:
+    description: Food processing facilities infrastructure.
+    slots:
+      - processing_facility_id
+      - address
+      - county
+      - city
+      - company
+      - join_count
+      - master_type
+      - state
+      - subtype
+      - target_fid
+      - processing_type
+      - zip
+      - type
+      - wkt_geom
+      - geom
+      - latitude
+      - longitude
+    slot_usage:
+      processing_facility_id:
+        identifier: true
+        range: integer
+
+  InfrastructureMswToEnergyAnaerobicDigesters:
+    description: MSW to energy anaerobic digesters infrastructure.
+    slots:
+      - wte_id
+      - city
+      - county
+      - equivalent_generation
+      - feedstock
+      - dayload
+      - dayload_bdt
+      - facility_type
+      - status
+      - notes
+      - source
+      - type
+      - wkt_geom
+      - geom
+      - latitude
+      - longitude
+    slot_usage:
+      wte_id:
+        identifier: true
+        range: integer
+
+slots:
+  facility_name:
+    range: string
+    description: Name of the facility.
+
+  capacity_mw:
+    range: decimal
+    description: Capacity in MW.
+
+  operator:
+    range: string
+    description: Operator of the facility.
+
+  start_year:
+    range: integer
+    description: Start year of the facility.
+
+  biodiesel_plant_id:
+    range: integer
+    description: ID of the biodiesel plant.
+
+  company:
+    range: string
+    description: Company name.
+
+  bbi_index:
+    range: integer
+    description: BBI index.
+
+  city:
+    range: string
+    description: City.
+
+  state:
+    range: string
+    description: State.
+
+  capacity_mmg_per_y:
+    range: integer
+    description: Capacity in MMG per year.
+
+  feedstock:
+    range: string
+    description: Feedstock.
+
+  status:
+    range: string
+    description: Status.
+
+  address:
+    range: string
+    description: Address.
+
+  coordinates:
+    range: string
+    description: Coordinates.
+
+  latitude:
+    range: decimal
+    description: Latitude.
+
+  longitude:
+    range: decimal
+    description: Longitude.
+
+  source:
+    range: string
+    description: Source.
+
+  biosolid_facility_id:
+    range: integer
+    description: ID of the biosolids facility.
+
+  report_submitted_date:
+    range: date
+    description: Date report submitted.
+
+  facility:
+    range: string
+    description: Facility name.
+
+  authority:
+    range: string
+    description: Authority.
+
+  plant_type:
+    range: string
+    description: Plant type.
+
+  aqmd:
+    range: string
+    description: AQMD.
+
+  facility_address:
+    range: string
+    description: Facility address.
+
+  facility_city:
+    range: string
+    description: Facility city.
+
+  facility_zip:
+    range: string
+    description: Facility zip.
+
+  facility_county:
+    range: string
+    description: Facility county.
+
+  mailing_street_1:
+    range: string
+    description: Mailing street 1.
+
+  mailing_city:
+    range: string
+    description: Mailing city.
+
+  mailing_state:
+    range: string
+    description: Mailing state.
+
+  mailing_zip:
+    range: string
+    description: Mailing zip.
+
+  biosolids_number:
+    range: string
+    description: Biosolids number.
+
+  biosolids_contact:
+    range: string
+    description: Biosolids contact.
+
+  biosolids_contact_phone:
+    range: string
+    description: Biosolids contact phone.
+
+  biosolids_contact_email:
+    range: string
+    description: Biosolids contact email.
+
+  adwf:
+    range: decimal
+    description: ADWF.
+
+  potw_biosolids_generated:
+    range: integer
+    description: POTW biosolids generated.
+
+  twtds_biosolids_treated:
+    range: integer
+    description: TWTDS biosolids treated.
+
+  class_b_land_app:
+    range: integer
+    description: Class B land application.
+
+  class_b_applier:
+    range: string
+    description: Class B applier.
+
+  class_a_compost:
+    range: integer
+    description: Class A compost.
+
+  class_a_heat_dried:
+    range: integer
+    description: Class A heat dried.
+
+  class_a_other:
+    range: integer
+    description: Class A other.
+
+  class_a_other_applier:
+    range: string
+    description: Class A other applier.
+
+  twtds_transfer_to_second_preparer:
+    range: integer
+    description: TWTDS transfer to second preparer.
+
+  twtds_second_preparer_name:
+    range: string
+    description: TWTDS second preparer name.
+
+  adc_or_final_c:
+    range: integer
+    description: ADC or final cover.
+
+  landfill:
+    range: integer
+    description: Landfill.
+
+  landfill_name:
+    range: string
+    description: Landfill name.
+
+  surface_disposal:
+    range: integer
+    description: Surface disposal.
+
+  deepwell_injection:
+    range: string
+    description: Deepwell injection.
+
+  stored:
+    range: integer
+    description: Stored.
+
+  longterm_treatment:
+    range: integer
+    description: Longterm treatment.
+
+  other:
+    range: integer
+    description: Other.
+
+  name_of_other:
+    range: string
+    description: Name of other.
+
+  incineration:
+    range: integer
+    description: Incineration.
+
+  cafo_manure_id:
+    range: integer
+    description: ID of the CAFO manure location.
+
+  owner_name:
+    range: string
+    description: Owner name.
+
+  town:
+    range: string
+    description: Town.
+
+  zip:
+    range: string
+    description: Zip code.
+
+  animal:
+    range: string
+    description: Animal.
+
+  animal_feed_operation_type:
+    range: string
+    description: Animal feed operation type.
+
+  animal_units:
+    range: integer
+    description: Animal units.
+
+  animal_count:
+    range: integer
+    description: Animal count.
+
+  manure_total_solids:
+    range: decimal
+    description: Manure total solids.
+
+  date_accessed:
+    range: date
+    description: Date accessed.
+
+  ethanol_biorefinery_id:
+    range: integer
+    description: ID of the ethanol biorefinery.
+
+  type:
+    range: string
+    description: Type.
+
+  capacity_mgy:
+    range: integer
+    description: Capacity in MGY.
+
+  production_mgy:
+    range: integer
+    description: Production in MGY.
+
+  constr_exp:
+    range: integer
+    description: Construction/expansion.
+
+  project_id:
+    range: string
+    description: Project ID.
+
+  project_int_id:
+    range: integer
+    description: Project integer ID.
+
+  ghgrp_id:
+    range: string
+    description: GHGRP ID.
+
+  landfill_id:
+    range: integer
+    description: Landfill ID.
+
+  physical_address:
+    range: string
+    description: Physical address.
+
+  county:
+    range: string
+    description: County.
+
+  zip_code:
+    range: string
+    description: Zip code.
+
+  ownership_type:
+    range: string
+    description: Ownership type.
+
+  landfill_owner_orgs:
+    range: string
+    description: Landfill owner organizations.
+
+  landfill_opened_year:
+    range: date
+    description: Landfill opened year.
+
+  landfill_closure_year:
+    range: date
+    description: Landfill closure year.
+
+  landfill_status:
+    range: string
+    description: Landfill status.
+
+  waste_in_place:
+    range: integer
+    description: Waste in place.
+
+  waste_in_place_year:
+    range: date
+    description: Waste in place year.
+
+  lfg_system_in_place:
+    range: boolean
+    description: LFG system in place.
+
+  lfg_collected:
+    range: decimal
+    description: LFG collected.
+
+  lfg_flared:
+    range: decimal
+    description: LFG flared.
+
+  project_status:
+    range: string
+    description: Project status.
+
+  project_name:
+    range: string
+    description: Project name.
+
+  project_start_date:
+    range: date
+    description: Project start date.
+
+  project_shutdown_date:
+    range: date
+    description: Project shutdown date.
+
+  project_type_category:
+    range: string
+    description: Project type category.
+
+  lfg_energy_project_type:
+    range: string
+    description: LFG energy project type.
+
+  rng_delivery_method:
+    range: string
+    description: RNG delivery method.
+
+  actual_mw_generation:
+    range: decimal
+    description: Actual MW generation.
+
+  rated_mw_capacity:
+    range: decimal
+    description: Rated MW capacity.
+
+  lfg_flow_to_project:
+    range: decimal
+    description: LFG flow to project.
+
+  direct_emission_reductions:
+    range: decimal
+    description: Direct emission reductions.
+
+  avoided_emission_reductions:
+    range: decimal
+    description: Avoided emission reductions.
+
+  digester_id:
+    range: integer
+    description: ID of the digester.
+
+  project_type:
+    range: string
+    description: Project type.
+
+  digester_type:
+    range: string
+    description: Digester type.
+
+  profile:
+    range: string
+    description: Profile.
+
+  year_operational:
+    range: date
+    description: Year operational.
+
+  animal_type_class:
+    range: string
+    description: Animal type class.
+
+  animal_types:
+    range: string
+    description: Animal types.
+
+  pop_feeding_digester:
+    range: string
+    description: Population feeding digester.
+
+  total_pop_feeding_digester:
+    range: integer
+    description: Total population feeding digester.
+
+  cattle:
+    range: integer
+    description: Cattle.
+
+  dairy:
+    range: integer
+    description: Dairy.
+
+  poultry:
+    range: integer
+    description: Poultry.
+
+  swine:
+    range: integer
+    description: Swine.
+
+  codigestion:
+    range: string
+    description: Codigestion.
+
+  biogas_generation_estimate:
+    range: integer
+    description: Biogas generation estimate.
+
+  electricity_generated:
+    range: integer
+    description: Electricity generated.
+
+  biogas_end_uses:
+    range: string
+    description: Biogas end uses.
+
+  methane_emission_reductions:
+    range: integer
+    description: Methane emission reductions.
+
+  ibcc_index:
+    range: integer
+    description: IBCC index.
+
+  country:
+    range: string
+    description: Country.
+
+  capacity:
+    range: string
+    description: Capacity.
+
+  products:
+    range: string
+    description: Products.
+
+  plant_id:
+    range: integer
+    description: ID of the plant.
+
+  flow_design_adjusted:
+    range: decimal
+    description: Flow design adjusted.
+
+  flow_average:
+    range: decimal
+    description: Flow average.
+
+  biosolids:
+    range: decimal
+    description: Biosolids.
+
+  excess_flow:
+    range: decimal
+    description: Excess flow.
+
+  biogas_utilized:
+    range: boolean
+    description: Biogas utilized.
+
+  flaring:
+    range: boolean
+    description: Flaring.
+
+  excess_mass_loading_rate:
+    range: decimal
+    description: Excess mass loading rate.
+
+  excess_mass_loading_rate_wet:
+    range: decimal
+    description: Excess mass loading rate wet.
+
+  methane_production:
+    range: decimal
+    description: Methane production.
+
+  energy_content:
+    range: decimal
+    description: Energy content.
+
+  electric_kw:
+    range: decimal
+    description: Electric KW.
+
+  thermal_mmbtu_d:
+    range: decimal
+    description: Thermal MMBTU/d.
+
+  electric_kwh:
+    range: decimal
+    description: Electric KWh.
+
+  thermal_annual_mmbtu_y:
+    range: decimal
+    description: Thermal annual MMBTU/y.
+
+  anaerobic_digestion_facility:
+    range: string
+    description: Anaerobic digestion facility.
+
+  dayload_bdt:
+    range: decimal
+    description: Dayload BDT.
+
+  dayload:
+    range: decimal
+    description: Dayload.
+
+  equivalent_generation:
+    range: decimal
+    description: Equivalent generation.
+
+  facility_type:
+    range: string
+    description: Facility type.
+
+  zipcode:
+    range: string
+    description: Zipcode.
+
+  combustion_fid:
+    range: integer
+    description: Combustion FID.
+
+  objectid:
+    range: integer
+    description: Object ID.
+
+  np_mw:
+    range: decimal
+    description: NP MW.
+
+  cf:
+    range: decimal
+    description: CF.
+
+  yearload:
+    range: integer
+    description: Yearload.
+
+  fuel:
+    range: string
+    description: Fuel.
+
+  notes:
+    range: string
+    description: Notes.
+
+  wkt_geom:
+    range: string
+    description: WKT geometry.
+
+  geom:
+    range: string
+    description: Geometry.
+
+  des_fid:
+    range: integer
+    description: DES FID.
+
+  cbg_id:
+    range: integer
+    description: CBG ID.
+
+  system:
+    range: string
+    description: System.
+
+  object_id:
+    range: integer
+    description: Object ID.
+
+  primary_fuel:
+    range: string
+    description: Primary fuel.
+
+  secondary_fuel:
+    range: string
+    description: Secondary fuel.
+
+  usetype:
+    range: string
+    description: Use type.
+
+  cap_st:
+    range: decimal
+    description: Cap ST.
+
+  cap_hw:
+    range: decimal
+    description: Cap HW.
+
+  cap_cw:
+    range: decimal
+    description: Cap CW.
+
+  chpcg_cap:
+    range: decimal
+    description: CHPCG Cap.
+
+  excess_c:
+    range: decimal
+    description: Excess C.
+
+  excess_h:
+    range: decimal
+    description: Excess H.
+
+  processing_facility_id:
+    range: integer
+    description: Processing facility ID.
+
+  join_count:
+    range: integer
+    description: Join count.
+
+  master_type:
+    range: string
+    description: Master type.
+
+  subtype:
+    range: string
+    description: Subtype.
+
+  target_fid:
+    range: integer
+    description: Target FID.
+
+  processing_type:
+    range: string
+    description: Processing type.
+
+  wte_id:
+    range: integer
+    description: WTE ID.

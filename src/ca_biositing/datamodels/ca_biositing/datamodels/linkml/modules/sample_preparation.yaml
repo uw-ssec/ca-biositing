@@ -1,0 +1,70 @@
+id: https://w3id.org/ca_biositing/sample_preparation
+name: sample_preparation
+title: Sample Preparation
+description: Sample preparation methods and records.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ca_biositing: https://w3id.org/ca_biositing/
+
+default_prefix: ca_biositing
+default_range: string
+
+imports:
+  - linkml:types
+  - core
+  - field_sampling
+  - people
+
+classes:
+  PreparationMethod:
+    is_a: BaseEntity
+    description: Method of sample preparation.
+    slots:
+      - name
+      - description
+      - prep_method_abbrev_id
+      - prep_temp_c
+      - uri
+      - drying_step
+
+  PreparationMethodAbbreviation:
+    is_a: LookupBase
+    description: Abbreviation for preparation method.
+
+  PreparedSample:
+    is_a: BaseEntity
+    description: Sample that has been prepared.
+    slots:
+      - name
+      - field_sample_id
+      - prep_method_id
+      - prep_date
+      - preparer_id
+      - note
+
+slots:
+  prep_method_abbrev_id:
+    range: integer
+    description: Reference to PreparationMethodAbbreviation.
+
+  prep_temp_c:
+    range: decimal
+    description: Preparation temperature in Celsius.
+
+  drying_step:
+    range: boolean
+    description: Whether drying step was involved.
+
+  prep_method_id:
+    range: integer
+    description: Reference to PreparationMethod.
+
+  prep_date:
+    range: date
+    description: Date of preparation.
+
+  preparer_id:
+    range: integer
+    description: Reference to Contact (preparer).

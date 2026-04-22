@@ -11,7 +11,7 @@ metadata = Base.metadata
 
 class Geography(Base):
     """
-    Geographic region definition (e.g. county, state).
+    Geographic location.
     """
     __tablename__ = 'geography'
 
@@ -75,7 +75,7 @@ class LookupBase(Base):
 
 class LocationAddress(BaseEntity):
     """
-    Specific physical location.
+    Physical address.
     """
     __tablename__ = 'location_address'
 
