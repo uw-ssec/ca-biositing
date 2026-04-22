@@ -7,7 +7,7 @@ authors = ["SSEC Team"]
 channels = ["conda-forge"]
 name = "ca-biositing"
 platforms = ["osx-arm64", "osx-64", "linux-64", "linux-aarch64", "win-64"]
-version = "0.1.0"
+version = "2026.4.6"
 
 [environments]
 default = ["datamodels", "pipeline", "webservice", "kernel", "gis"]
@@ -290,6 +290,10 @@ pyjwt = ">=2.0,<3"
 pwdlib = { version = ">=0.2.0", extras = ["argon2"] }
 python-multipart = ">=0.0.9"
 
+[feature.webservice.tasks.generate-openapi]
+cmd = "python scripts/generate_openapi.py"
+description = "Generate static OpenAPI spec to docs/api/openapi.json."
+
 [feature.webservice.tasks.create-admin]
 cmd = "python scripts/create_admin.py"
 description = "Create an admin user for API authentication"
@@ -365,8 +369,62 @@ cmd = "bash scripts/pulumi-docker.sh up"
 description = "Deploy infrastructure changes to GCP. Set DEPLOY_ENV for target environment."
 
 [feature.cloud.tasks.cloud-destroy]
-cmd = "tofu destroy"
-cwd = "deployment/cloud/gcp/infrastructure"
+cmd = "bash scripts/pulumi-docker.sh destroy"
+description = "Destroy all managed GCP infrastructure. Set DEPLOY_ENV for target environment."
+
+[feature.cloud.tasks.cloud-outputs]
+cmd = "bash scripts/pulumi-docker.sh outputs"
+description = "Show Pulumi stack outputs. Set DEPLOY_ENV for target environment."
+
+[feature.cloud.tasks.cloud-refresh]
+cmd = "bash scripts/pulumi-docker.sh refresh"
+description = "Refresh Pulumi state from live GCP resources. Set DEPLOY_ENV for target environment."
+
+# --- CI / Linux-native tasks (no Docker wrapper) ---
+# These tasks run directly on Linux (GitHub Actions or Linux workstations).
+# They read IMAGE_TAG from the environment (default: "latest").
+
+[feature.cloud.tasks.cloud-deploy-direct]
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py up"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
+description = "Deploy infrastructure via Pulumi (direct, no Docker). Set DEPLOY_ENV for target environment. For Linux/CI use."
+
+[feature.cloud.tasks.cloud-plan-direct]
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py preview"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
+description = "Preview infrastructure changes via Pulumi (direct, no Docker). Set DEPLOY_ENV for target environment. For Linux/CI use."
+
+[feature.cloud.tasks.cloud-refresh-direct]
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py refresh"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
+description = "Refresh Pulumi state from live GCP resources (direct, no Docker). Set DEPLOY_ENV for target environment. For Linux/CI use."
+
+[feature.cloud.tasks.cloud-outputs-direct]
+cmd = "python deployment/cloud/gcp/infrastructure/deploy.py outputs"
+env = { PULUMI_CONFIG_PASSPHRASE = "" }
+description = "Show Pulumi stack outputs (direct, no Docker). Set DEPLOY_ENV for target environment. For Linux/CI use."
+
+[feature.cloud.tasks.cloud-migrate-ci]
+cmd = "bash scripts/cloud-migrate-ci.sh"
+env = { IMAGE_TAG = "latest" }
+description = "Update migration job image with IMAGE_TAG and execute. Usage: DEPLOY_ENV=production IMAGE_TAG=abc1234 pixi run cloud-migrate-ci"
+
+[feature.cloud.tasks.cloud-update-services]
+cmd = "bash scripts/cloud-update-services.sh"
+env = { IMAGE_TAG = "latest" }
+description = "Force new Cloud Run revisions with IMAGE_TAG. Usage: DEPLOY_ENV=production IMAGE_TAG=abc1234 pixi run cloud-update-services"
+
+[feature.cloud.tasks.cloud-validate]
+cmd = "bash scripts/validate-deployment.sh"
+description = "Validate deployment health. Set DEPLOY_ENV for target environment."
+
+[feature.cloud.tasks.cloud-trigger-etl]
+cmd = "bash scripts/cloud-trigger-etl.sh"
+description = "Trigger the Master ETL flow via Prefect API (fire-and-forget). For CI use."
+
+[feature.gis.pypi-dependencies]
+geopandas = "*"
+matplotlib = "*"
 
 [pypi-dependencies]
 linkml = ">=1.9.3, <2"

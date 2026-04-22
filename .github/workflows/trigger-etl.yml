@@ -1,0 +1,92 @@
+# Triggers the Master ETL flow after a successful staging deployment,
+# but only when ETL-related files were changed.
+# A separate workflow (trigger-etl-production.yml) handles production.
+name: Trigger Staging ETL
+
+on:
+  workflow_run:
+    workflows: ["Deploy Staging"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: # Allow manual triggers
+
+concurrency:
+  group: trigger-etl-staging
+  cancel-in-progress: true
+
+env:
+  GCP_PROJECT: biocirv-470318
+  GCP_REGION: us-west1
+  DEPLOY_ENV: staging
+  WIF_PROVIDER: "projects/194468397458/locations/global/workloadIdentityPools/github-actions-staging/providers/github-oidc-staging"
+  DEPLOYER_SA: "biocirv-staging-gh-deploy@biocirv-470318.iam.gserviceaccount.com"
+
+jobs:
+  check-etl-changes:
+    name: Check for ETL Changes
+    if: >-
+      (github.event_name == 'workflow_dispatch') || (github.event_name ==
+      'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      has_etl_changes: ${{ steps.check.outputs.has_etl_changes }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Check if ETL-related files changed
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "has_etl_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Manual trigger — skipping path filter"
+            exit 0
+          fi
+
+          # Compare the commit that triggered the deploy with its parent
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          CHANGED=$(git diff --name-only "${SHA}^" "${SHA}" -- \
+            'src/ca_biositing/pipeline/**' \
+            'src/ca_biositing/datamodels/**' \
+            'resources/prefect/**' \
+            'resources/docker/pipeline.dockerfile' \
+            'alembic/**' \
+          2>/dev/null || true)
+
+          if [ -n "$CHANGED" ]; then
+            echo "has_etl_changes=true" >> "$GITHUB_OUTPUT"
+            echo "ETL-related files changed:"
+            echo "$CHANGED"
+          else
+            echo "has_etl_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No ETL-related files changed — skipping ETL trigger"
+          fi
+
+  trigger-etl:
+    name: Trigger Staging ETL Pipeline
+    needs: check-etl-changes
+    if: needs.check-etl-changes.outputs.has_etl_changes == 'true'
+    runs-on: ubuntu-latest
+    environment: etl-staging
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.63.2
+          environments: deployment
+
+      - name: Trigger ETL flow run
+        run: pixi run -e deployment cloud-trigger-etl

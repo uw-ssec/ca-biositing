@@ -9,6 +9,7 @@ from typing import Optional
 class Experiment(BaseEntity, table=True):
     __tablename__ = "experiment"
 
+    name: Optional[str] = Field(default=None, unique=True)
     analyst_id: Optional[int] = Field(default=None, foreign_key="contact.id")
     exper_start_date: Optional[date] = Field(default=None)
     exper_duration: Optional[Decimal] = Field(default=None)

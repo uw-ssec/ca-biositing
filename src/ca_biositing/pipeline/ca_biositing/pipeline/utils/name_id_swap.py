@@ -105,16 +105,18 @@ def replace_name_with_id_df(
     # Flush to get IDs without ending the transaction
     db.flush()
 
-    # Re-query just-created rows
+    # Re-query just-created rows using lowercased names to match what we inserted
+    clean_new_names = [str(name).lower().strip() for name in new_names]
     refreshed = db.execute(
       select(ref_model).where(
-        getattr(ref_model, model_name_attr).in_(new_names)
+        getattr(ref_model, model_name_attr).in_(clean_new_names)
       )
     ).scalars().all()
 
     for record in refreshed:
+      # Use lowercased keys for the map to ensure matches
       name_to_id_map[
-        getattr(record, model_name_attr)
+        str(getattr(record, model_name_attr)).lower()
       ] = getattr(record, id_column_name)
 
   # 4. Replace name column with ID column using case-insensitive mapping
@@ -162,6 +164,7 @@ def normalize_dataframes(
                     logger.warning(f"Item {i+1} is not a DataFrame; skipping.")
                     continue
                 logger.info(f"Processing DataFrame #{i+1} with {len(df)} rows.")
+                logger.debug(f"Available columns in DataFrame #{i+1}: {list(df.columns)}")
                 df_norm = df.copy()
                 for col, model_info in normalize_columns.items():
                     if isinstance(model_info, tuple):
@@ -170,11 +173,18 @@ def normalize_dataframes(
                         model = model_info
                         model_name_attr = "name"
                     if col not in df_norm.columns:
-                        logger.warning(f"Column '{col}' missing in DataFrame #{i+1}; creating '{col}_id' as all-null.")
+                        logger.warning(
+                            f"⚠️  CRITICAL: Column '{col}' missing in DataFrame #{i+1}! "
+                            f"Available columns: {list(df_norm.columns)}. "
+                            f"Creating '{col}_id' as all-null, which will likely cause foreign key violations."
+                        )
                         df_norm[f"{col}_id"] = pd.NA
                         continue
                     if df_norm[col].isnull().all():
-                        logger.info(f"Column '{col}' contains only nulls; creating '{col}_id' as all-null.")
+                        logger.warning(
+                            f"⚠️  Column '{col}' contains only null values in DataFrame #{i+1}. "
+                            f"Creating '{col}_id' as all-null, which will likely cause foreign key violations."
+                        )
                         df_norm[f"{col}_id"] = pd.NA
                         df_norm = df_norm.drop(columns=[col])
                         continue

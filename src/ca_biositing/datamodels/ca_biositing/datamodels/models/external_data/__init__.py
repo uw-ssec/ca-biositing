@@ -1,4 +1,5 @@
 from .billion_ton import BillionTon2023Record
+from .county_ag_report_record import CountyAgReportRecord
 from .landiq_record import LandiqRecord
 from .landiq_resource_mapping import LandiqResourceMapping
 from .polygon import Polygon

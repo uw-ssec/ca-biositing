@@ -10,7 +10,7 @@ import logging
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import text
 
 from ca_biositing.datamodels.database import get_engine
@@ -91,19 +91,10 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 
 # Root endpoint
-@app.get("/", tags=["root"])
-def read_root() -> dict[str, str]:
-    """Root endpoint providing API information.
-
-    Returns:
-        Dictionary with API message and version
-    """
-    return {
-        "message": config.api_title,
-        "version": config.api_version,
-        "docs": "/docs",
-        "health": "/v1/health",
-    }
+@app.get("/", tags=["root"], include_in_schema=False)
+def read_root() -> RedirectResponse:
+    """Redirect root to Swagger UI."""
+    return RedirectResponse(url="/docs")
 
 
 # Legacy hello endpoint for backward compatibility

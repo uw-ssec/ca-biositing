@@ -19,6 +19,9 @@ from config import (
     SECRET_JWT_KEY,
     SECRET_ADMIN_PASSWORD,
     SECRET_RO_PREFIX,
+    SECRET_OAUTH2_CLIENT_ID,
+    SECRET_OAUTH2_CLIENT_SECRET,
+    SECRET_OAUTH2_COOKIE_SECRET,
 )
 
 
@@ -41,6 +44,10 @@ class SecretResources:
     jwt_secret_sm: gcp.secretmanager.Secret = None
     admin_password: random.RandomPassword = None
     admin_password_sm: gcp.secretmanager.Secret = None
+    oauth2_client_id_secret: gcp.secretmanager.Secret = None
+    oauth2_client_secret_secret: gcp.secretmanager.Secret = None
+    oauth2_cookie_secret: random.RandomPassword = None
+    oauth2_cookie_secret_sm: gcp.secretmanager.Secret = None
 
 
 def create_secrets(
@@ -234,6 +241,48 @@ def create_secrets(
         secret_data=admin_password.result,
     )
 
+    # OAuth2-proxy: Google OAuth client ID (version added manually post-deploy)
+    oauth2_client_id_secret = gcp.secretmanager.Secret(
+        "oauth2-client-id-secret",
+        secret_id=SECRET_OAUTH2_CLIENT_ID,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    # OAuth2-proxy: Google OAuth client secret (version added manually post-deploy)
+    oauth2_client_secret_secret = gcp.secretmanager.Secret(
+        "oauth2-client-secret-secret",
+        secret_id=SECRET_OAUTH2_CLIENT_SECRET,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    # OAuth2-proxy: cookie encryption secret (auto-generated)
+    oauth2_cookie_secret = random.RandomPassword(
+        "oauth2-cookie-secret",
+        length=32,
+        special=False,
+    )
+
+    oauth2_cookie_secret_sm = gcp.secretmanager.Secret(
+        "oauth2-cookie-secret-sm",
+        secret_id=SECRET_OAUTH2_COOKIE_SECRET,
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=secret_opts,
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "oauth2-cookie-secret-version",
+        secret=oauth2_cookie_secret_sm.id,
+        secret_data=oauth2_cookie_secret.result,
+    )
+
     return SecretResources(
         db_password=db_password,
         db_user=db_user,
@@ -252,4 +301,8 @@ def create_secrets(
         jwt_secret_sm=jwt_secret_sm,
         admin_password=admin_password,
         admin_password_sm=admin_password_sm,
+        oauth2_client_id_secret=oauth2_client_id_secret,
+        oauth2_client_secret_secret=oauth2_client_secret_secret,
+        oauth2_cookie_secret=oauth2_cookie_secret,
+        oauth2_cookie_secret_sm=oauth2_cookie_secret_sm,
     )

@@ -45,10 +45,15 @@ services:
     container_name: BioCirV_ETL_prefect_server
     env_file:
       - .env
+    environment:
+      - PREFECT_UI_API_URL=/api
+      - TZ=UTC
     ports:
       - "4200:4200"
     volumes:
       - prefectdata:/home/appuser/.prefect
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       db:
         condition: service_healthy
@@ -75,16 +80,59 @@ services:
       - ../../credentials.json:/app/credentials.json
       - ../../alembic:/app/alembic
       - ../../alembic.ini:/app/alembic.ini
+      - ../../src/ca_biositing/pipeline/ca_biositing:/app/.pixi/envs/etl/lib/python3.12/site-packages/ca_biositing
+      - ../../src/ca_biositing/datamodels/ca_biositing/datamodels:/app/.pixi/envs/etl/lib/python3.12/site-packages/ca_biositing/datamodels
+      - ../../src/ca_biositing/pipeline/ca_biositing:/app/.pixi/envs/etl/lib/python3.13/site-packages/ca_biositing
+      - ../../src/ca_biositing/datamodels/ca_biositing/datamodels:/app/.pixi/envs/etl/lib/python3.13/site-packages/ca_biositing/datamodels
     depends_on:
       prefect-server:
         condition: service_healthy
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
+      - TZ=UTC
     command: prefect worker start --type process --pool biocirv_dev_work_pool
     # healthcheck:
     #   test: ["CMD-SHELL", "prefect work-pool inspect $WORK_POOL"]
     #   timeout: 10s
     #   retries: 2
+    networks:
+      - prefect-network
+
+  prefect-auth:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
+    container_name: BioCirV_ETL_prefect_auth
+    ports:
+      - "4180:4180"
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    environment:
+      - OAUTH2_PROXY_PROVIDER=google
+      - OAUTH2_PROXY_CLIENT_ID=${OAUTH2_PROXY_CLIENT_ID}
+      - OAUTH2_PROXY_CLIENT_SECRET=${OAUTH2_PROXY_CLIENT_SECRET}
+      - OAUTH2_PROXY_COOKIE_SECRET=${OAUTH2_PROXY_COOKIE_SECRET}
+      - OAUTH2_PROXY_UPSTREAMS=http://prefect-server:4200
+      - OAUTH2_PROXY_HTTP_ADDRESS=0.0.0.0:4180
+      - OAUTH2_PROXY_REDIRECT_URL=http://localhost:4180/oauth2/callback
+      - OAUTH2_PROXY_EMAIL_DOMAINS=*
+      - OAUTH2_PROXY_REVERSE_PROXY=true
+      - OAUTH2_PROXY_COOKIE_SECURE=false
+      - OAUTH2_PROXY_COOKIE_REFRESH=1h
+      - OAUTH2_PROXY_SKIP_AUTH_ROUTES=GET=^/api/health$$
+      - OAUTH2_PROXY_SKIP_PROVIDER_BUTTON=true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4180/ping",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - prefect-network
 
