@@ -210,13 +210,13 @@ class TestQualitativeTransform:
         enum_raw = pd.DataFrame(
             {
                 "original_set_of_unique_use_case_names": ["Bioenergy/cogeneration"],
-                "use_case_name": ["Onsite Compined Heat and Power (CHP)"],
+                "use_case_name": ["Onsite Combined Heat and Power (CHP)"],
                 "description": ["Alias mapping"],
             }
         )
 
         def mock_normalize(df, _normalize_columns):
-            assert list(df["use_case"]) == ["onsite compined heat and power (chp)"]
+            assert list(df["use_case"]) == ["onsite combined heat and power (chp)"]
             out = df.copy()
             out["resource_id"] = [9]
             out["use_case_id"] = [16]
@@ -233,7 +233,7 @@ class TestQualitativeTransform:
             )
 
         end_use_df = result["resource_end_use_record"]
-        assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|onsite compined heat and power (chp)"
+        assert end_use_df.iloc[0]["end_use_record_key"] == "almond hulls|onsite combined heat and power (chp)"
 
     def test_transform_observations_parses_ranges_and_trend(self):
         from ca_biositing.pipeline.etl.transform.analysis import qualitative
