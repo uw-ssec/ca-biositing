@@ -33,6 +33,7 @@ from ca_biositing.datamodels.models.aim2_records.gasification_record import Gasi
 from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 
 from .common import analysis_metrics, resource_analysis_map, get_carbon_avg_expr, get_hydrogen_avg_expr, get_nitrogen_avg_expr, get_cn_ratio_expr
+from .mv_volume_estimation import mv_volume_estimation
 
 
 # Subquery for analytical averages (moisture, ash, lignin, sugar)
@@ -143,6 +144,18 @@ storage_notes_sq = select(
     func.max(ResourceStorageRecord.storage_description).label("storage_notes")
 ).group_by(ResourceStorageRecord.resource_id).subquery()
 
+# Volume estimation aggregation (min/max/mid across all sources and counties)
+volume_agg = select(
+    mv_volume_estimation.c.resource_id,
+    func.min(mv_volume_estimation.c.estimated_residue_volume_min).label("calculated_estimate_volume_min"),
+    func.max(mv_volume_estimation.c.estimated_residue_volume_max).label("calculated_estimate_volume_max"),
+    func.avg(case(
+        (mv_volume_estimation.c.estimated_residue_volume_mid.isnot(None), mv_volume_estimation.c.estimated_residue_volume_mid),
+        else_=None
+    )).label("calculated_estimate_volume_mid")
+).select_from(mv_volume_estimation)\
+ .group_by(mv_volume_estimation.c.resource_id).subquery()
+
 mv_biomass_search = select(
      Resource.id,
      Resource.name,
@@ -185,6 +198,10 @@ mv_biomass_search = select(
      case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar_data"),
      case((ResourceMorphology.morphology_uri != None, True), else_=False).label("has_image"),
      case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
+     # Calculated volume estimates
+     volume_agg.c.calculated_estimate_volume_min,
+     volume_agg.c.calculated_estimate_volume_max,
+     volume_agg.c.calculated_estimate_volume_mid,
      Resource.created_at,
      Resource.updated_at,
      func.to_tsvector(text("'english'"),
@@ -200,6 +217,7 @@ mv_biomass_search = select(
   .outerjoin(PrimaryAgProduct, Resource.primary_ag_product_id == PrimaryAgProduct.id)\
   .outerjoin(ResourceMorphology, ResourceMorphology.resource_id == Resource.id)\
   .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
+  .outerjoin(volume_agg, volume_agg.c.resource_id == Resource.id)\
   .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
   .outerjoin(resource_tags, resource_tags.c.resource_id == Resource.id)\
   .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)\

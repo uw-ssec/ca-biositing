@@ -35,10 +35,10 @@ analysis_metrics = select(
     Observation.value
 ).join(Parameter, Observation.parameter_id == Parameter.id)\
  .where(Observation.record_type.in_([
-     "compositional_record", "proximate_record", "ultimate_record",
-     "xrf_record", "icp_record", "calorimetry_record",
-     "xrd_record", "ftnir_record", "pretreatment_record",
-     "gasification_record", "fermentation_record"
+     "compositional analysis", "proximate analysis", "ultimate analysis",
+     "xrf analysis", "icp analysis", "calorimetry analysis",
+     "xrd analysis", "ftnir analysis", "pretreatment",
+     "gasification", "fermentation"
  ])).subquery()
 
 # Map record_id to resource_id across all analytical types
