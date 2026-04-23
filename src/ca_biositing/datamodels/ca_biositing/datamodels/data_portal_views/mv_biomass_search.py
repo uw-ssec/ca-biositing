@@ -8,7 +8,7 @@ Required index:
     CREATE UNIQUE INDEX idx_mv_biomass_search_id ON data_portal.mv_biomass_search (id)
 """
 
-from sqlalchemy import select, func, union_all, literal, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text
+from sqlalchemy import select, func, union_all, case, cast, String, Integer, Numeric, Boolean, and_, or_, Text, Float, ARRAY, text, true
 from sqlalchemy.dialects.postgresql import array as pg_array
 from sqlalchemy.orm import aliased
 
@@ -16,6 +16,7 @@ from ca_biositing.datamodels.models.resource_information.resource import Resourc
 from ca_biositing.datamodels.models.resource_information.primary_ag_product import PrimaryAgProduct
 from ca_biositing.datamodels.models.resource_information.resource_transport_record import ResourceTransportRecord
 from ca_biositing.datamodels.models.resource_information.resource_storage_record import ResourceStorageRecord
+from ca_biositing.datamodels.models.external_data.resource_usda_commodity_map import ResourceUsdaCommodityMap
 from ca_biositing.datamodels.models.external_data.billion_ton import BillionTon2023Record
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
@@ -33,7 +34,6 @@ from ca_biositing.datamodels.models.aim2_records.gasification_record import Gasi
 from ca_biositing.datamodels.models.aim2_records.pretreatment_record import PretreatmentRecord
 
 from .common import analysis_metrics, resource_analysis_map, get_carbon_avg_expr, get_hydrogen_avg_expr, get_nitrogen_avg_expr, get_cn_ratio_expr
-from .mv_volume_estimation import mv_volume_estimation
 
 
 # Subquery for analytical averages (moisture, ash, lignin, sugar)
@@ -118,7 +118,7 @@ resource_tags = select(
          ]),
          None
      ).label("tags")
- ).select_from(resource_metrics).join(thresholds, literal(True)).subquery()
+ ).select_from(resource_metrics).join(thresholds, true()).subquery()
 
 # Aggregated volume from Billion Ton
 agg_vol = select(
@@ -144,17 +144,14 @@ storage_notes_sq = select(
     func.max(ResourceStorageRecord.storage_description).label("storage_notes")
 ).group_by(ResourceStorageRecord.resource_id).subquery()
 
-# Volume estimation aggregation (min/max/mid across all sources and counties)
-volume_agg = select(
-    mv_volume_estimation.c.resource_id,
-    func.min(mv_volume_estimation.c.estimated_residue_volume_min).label("calculated_estimate_volume_min"),
-    func.max(mv_volume_estimation.c.estimated_residue_volume_max).label("calculated_estimate_volume_max"),
-    func.avg(case(
-        (mv_volume_estimation.c.estimated_residue_volume_mid.isnot(None), mv_volume_estimation.c.estimated_residue_volume_mid),
-        else_=None
-    )).label("calculated_estimate_volume_mid")
-).select_from(mv_volume_estimation)\
- .group_by(mv_volume_estimation.c.resource_id).subquery()
+# Fallback primary product subquery for resources whose direct FK has not yet been populated.
+resource_primary_product_sq = select(
+    ResourceUsdaCommodityMap.resource_id,
+    func.max(PrimaryAgProduct.name).label("primary_product_fallback")
+).select_from(ResourceUsdaCommodityMap)\
+ .join(PrimaryAgProduct, ResourceUsdaCommodityMap.primary_ag_product_id == PrimaryAgProduct.id)\
+ .where(ResourceUsdaCommodityMap.resource_id.is_not(None))\
+ .group_by(ResourceUsdaCommodityMap.resource_id).subquery()
 
 mv_biomass_search = select(
      Resource.id,
@@ -163,7 +160,7 @@ mv_biomass_search = select(
      Resource.description,
      ResourceClass.name.label("resource_class"),
      ResourceSubclass.name.label("resource_subclass"),
-     PrimaryAgProduct.name.label("primary_product"),
+     func.coalesce(PrimaryAgProduct.name, resource_primary_product_sq.c.primary_product_fallback).label("primary_product"),
      ResourceMorphology.morphology_uri.label("image_url"),
      Resource.uri.label("literature_uri"),
      agg_vol.c.total_annual_volume,
@@ -176,6 +173,8 @@ mv_biomass_search = select(
      resource_metrics.c.carbon_percent,
      resource_metrics.c.hydrogen_percent,
      resource_metrics.c.cn_ratio,
+    cast(transport_notes_sq.c.transport_notes, Text).label("transport_description"),
+    cast(storage_notes_sq.c.storage_notes, Text).label("storage_description"),
      transport_notes_sq.c.transport_notes,
      storage_notes_sq.c.storage_notes,
      func.coalesce(resource_tags.c.tags, cast(pg_array([]), ARRAY(String))).label("tags"),
@@ -198,10 +197,6 @@ mv_biomass_search = select(
      case((resource_metrics.c.sugar_content_percent > 0, True), else_=False).label("has_sugar_data"),
      case((ResourceMorphology.morphology_uri != None, True), else_=False).label("has_image"),
      case((agg_vol.c.total_annual_volume != None, True), else_=False).label("has_volume_data"),
-     # Calculated volume estimates
-     volume_agg.c.calculated_estimate_volume_min,
-     volume_agg.c.calculated_estimate_volume_max,
-     volume_agg.c.calculated_estimate_volume_mid,
      Resource.created_at,
      Resource.updated_at,
      func.to_tsvector(text("'english'"),
@@ -209,7 +204,7 @@ mv_biomass_search = select(
          func.coalesce(Resource.description, '') + ' ' +
          func.coalesce(ResourceClass.name, '') + ' ' +
          func.coalesce(ResourceSubclass.name, '') + ' ' +
-         func.coalesce(PrimaryAgProduct.name, '')
+         func.coalesce(PrimaryAgProduct.name, resource_primary_product_sq.c.primary_product_fallback, '')
      ).label("search_vector")
  ).select_from(Resource)\
   .outerjoin(ResourceClass, Resource.resource_class_id == ResourceClass.id)\
@@ -217,10 +212,10 @@ mv_biomass_search = select(
   .outerjoin(PrimaryAgProduct, Resource.primary_ag_product_id == PrimaryAgProduct.id)\
   .outerjoin(ResourceMorphology, ResourceMorphology.resource_id == Resource.id)\
   .outerjoin(agg_vol, agg_vol.c.resource_id == Resource.id)\
-  .outerjoin(volume_agg, volume_agg.c.resource_id == Resource.id)\
   .outerjoin(resource_metrics, resource_metrics.c.resource_id == Resource.id)\
   .outerjoin(resource_tags, resource_tags.c.resource_id == Resource.id)\
   .outerjoin(mv_biomass_availability, mv_biomass_availability.c.resource_id == Resource.id)\
   .outerjoin(transport_notes_sq, transport_notes_sq.c.resource_id == Resource.id)\
   .outerjoin(storage_notes_sq, storage_notes_sq.c.resource_id == Resource.id)\
+    .outerjoin(resource_primary_product_sq, resource_primary_product_sq.c.resource_id == Resource.id)\
   .where(func.lower(Resource.name) != 'sargassum')

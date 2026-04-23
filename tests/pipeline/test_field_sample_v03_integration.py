@@ -132,11 +132,11 @@ class TestFieldSampleV03Pipeline:
         assert len(result_qty) == 130, f"Expected 130 qty_field_storage, got {len(result_qty)}"
         assert len(result_prod) == 64, f"Expected 64 producers, got {len(result_prod)}"
 
-    def test_location_address_v03_transform(self, all_data_sources):
+    def test_location_address_transform(self, all_data_sources):
         """Test LocationAddress transformation (extraction of unique locations)."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
+        from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 
-        result = transform_location_address_v03(all_data_sources)
+        result = transform_location_address(all_data_sources)
 
         # Should have deduplicated locations from both sources
         assert result is not None
@@ -149,53 +149,53 @@ class TestFieldSampleV03Pipeline:
 
     def test_extract_sources_list_completeness(self):
         """Verify EXTRACT_SOURCES list is complete in transform module."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.field_sample_v03 import EXTRACT_SOURCES
+        from ca_biositing.pipeline.etl.transform.field_sampling.field_sample import EXTRACT_SOURCES
 
         expected_sources = {'sample_ids', 'sample_desc', 'qty_field_storage', 'producers'}
         assert set(EXTRACT_SOURCES) == expected_sources
 
-    def test_location_address_v03_handles_empty_data(self):
+    def test_location_address_handles_empty_data(self):
         """Verify LocationAddress transform handles empty data sources."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
+        from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 
         empty_sources = {
             'sample_desc': pd.DataFrame(),
             'producers': pd.DataFrame(),
         }
 
-        result = transform_location_address_v03(empty_sources)
+        result = transform_location_address(empty_sources)
 
         # Should return empty DataFrame, not error
         assert isinstance(result, pd.DataFrame)
         assert result.empty or len(result) == 0
 
-    def test_location_address_v03_deduplication(self, all_data_sources):
+    def test_location_address_deduplication(self, all_data_sources):
         """Verify LocationAddress deduplicates correctly."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
+        from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 
-        result = transform_location_address_v03(all_data_sources)
+        result = transform_location_address(all_data_sources)
 
         if result is not None and not result.empty:
             # Check that deduplication occurred
             # Total unique addresses should be less than sum of all locations
             assert len(result) > 0
 
-    def test_location_address_v03_location_type_tagging(self, all_data_sources):
+    def test_location_address_location_type_tagging(self, all_data_sources):
         """Verify locations are tagged with type (collection_site or facility_storage)."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
+        from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 
-        result = transform_location_address_v03(all_data_sources)
+        result = transform_location_address(all_data_sources)
 
         if result is not None and 'location_type' in result.columns:
             valid_types = {'collection_site', 'facility_storage'}
             actual_types = set(result['location_type'].dropna().unique())
             assert actual_types.issubset(valid_types)
 
-    def test_location_address_v03_is_anonymous_logic(self, all_data_sources):
+    def test_location_address_is_anonymous_logic(self, all_data_sources):
         """Verify is_anonymous flag is set based on address_line1 presence."""
-        from ca_biositing.pipeline.etl.transform.field_sampling.location_address_v03 import transform_location_address_v03
+        from ca_biositing.pipeline.etl.transform.field_sampling.location_address import transform_location_address
 
-        result = transform_location_address_v03(all_data_sources)
+        result = transform_location_address(all_data_sources)
 
         if result is not None and 'is_anonymous' in result.columns:
             # Check that is_anonymous is boolean-like (bool, object, or nullable boolean)

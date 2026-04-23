@@ -1,3 +1,5 @@
+import re
+
 import gspread
 import pandas as pd
 from gspread.exceptions import SpreadsheetNotFound, WorksheetNotFound, APIError
@@ -23,9 +25,20 @@ def gsheet_to_df(gsheet_name: str, worksheet_name: str, credentials_path: str) -
             print(f"DEBUG: Opening spreadsheet {gsheet_name}")
             spreadsheet = gc.open(gsheet_name)
         except SpreadsheetNotFound:
-            print(f"Error: Spreadsheet '{gsheet_name}' not found.")
-            print("Please make sure the spreadsheet name is correct and that you have shared it with the service account email.")
-            return None
+            # Fallback: allow passing a Google Sheet key directly.
+            # Keys are typically URL-safe tokens (often 44 chars) containing letters, digits, _ and -.
+            if re.fullmatch(r"[A-Za-z0-9_-]{20,}", gsheet_name):
+                try:
+                    print(f"DEBUG: Spreadsheet not found by title; trying open_by_key for {gsheet_name}")
+                    spreadsheet = gc.open_by_key(gsheet_name)
+                except SpreadsheetNotFound:
+                    print(f"Error: Spreadsheet '{gsheet_name}' not found by title or key.")
+                    print("Please make sure the spreadsheet name/key is correct and that you have shared it with the service account email.")
+                    return None
+            else:
+                print(f"Error: Spreadsheet '{gsheet_name}' not found.")
+                print("Please make sure the spreadsheet name is correct and that you have shared it with the service account email.")
+                return None
 
         try:
             print(f"DEBUG: Opening worksheet {worksheet_name}")

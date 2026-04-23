@@ -155,14 +155,25 @@ pixi run pre-commit-install
 # Create environment file from template
 cp resources/docker/.env.example resources/docker/.env
 
-# Start all services (PostgreSQL, Prefect server, worker)
+# 1. Start all services (PostgreSQL, Prefect server, worker)
 pixi run start-services
 
-# Deploy and run ETL flows
+# 2. Deploy ETL flows
 pixi run deploy
+
+# 3. Apply any pending database migrations
+# Note: start-services automatically applies migrations at startup via the
+# setup-db container. Run this step manually when you pull new migration
+# files without restarting services.
+pixi run migrate
+
+# 4. Run the ETL pipeline
 pixi run run-etl
 
-# Monitor via Prefect UI at http://localhost:4200
+# Monitor via Prefect UI: http://localhost:4200
+
+# Stop services
+pixi run teardown-services
 ```
 
 ### Running the Web Service
@@ -186,18 +197,15 @@ pixi run -e docs docs-serve
 
 ## Contributing
 
-See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) for general contribution
-guidelines (branching, PRs, commit style, pre-commit setup).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for general contribution guidelines
+(branching, PRs, commit style, pre-commit setup).
 
 Each namespace package also has its own contributing guide with
 component-specific details:
 
-- [`docs/datamodels/CONTRIBUTING.md`](docs/datamodels/CONTRIBUTING.md) -- Data
-  models and database schema
-- [`docs/pipeline/CONTRIBUTING.md`](docs/pipeline/CONTRIBUTING.md) -- ETL
-  pipeline and Prefect workflows
-- [`docs/webservice/CONTRIBUTING.md`](docs/webservice/CONTRIBUTING.md) --
-  FastAPI web service
+- [Datamodels](datamodels/CONTRIBUTING.md): Data models and database schema
+- [Pipeline](pipeline/CONTRIBUTING.md): ETL pipeline and Prefect workflows
+- [Webservice](webservice/CONTRIBUTING.md): FastAPI web service
 
 ## Acknowledgement
 

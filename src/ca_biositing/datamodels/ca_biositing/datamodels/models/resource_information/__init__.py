@@ -12,3 +12,4 @@ from .resource_transport_record import ResourceTransportRecord
 from .resource_storage_record import ResourceStorageRecord
 from .resource_end_use_record import ResourceEndUseRecord
 from .resource_production_record import ResourceProductionRecord
+from .use_case import UseCase

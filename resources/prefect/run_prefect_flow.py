@@ -9,6 +9,7 @@ AVAILABLE_FLOWS = {
     #"analysis_type": "ca_biositing.pipeline.flows.analysis_type.analysis_type_flow",
     "residue_factors": "ca_biositing.pipeline.flows.residue_factors_flow.residue_factors_etl_flow",
     "resource_information": "ca_biositing.pipeline.flows.resource_information.resource_information_flow",
+    "qualitative": "ca_biositing.pipeline.flows.qualitative.qualitative_etl_flow",
     "static_resource_info": "ca_biositing.pipeline.flows.static_resource_info.static_resource_info_flow",
     "samples": "ca_biositing.pipeline.flows.samples_etl.samples_etl_flow",
     "analysis_records": "ca_biositing.pipeline.flows.analysis_records.analysis_records_flow",
