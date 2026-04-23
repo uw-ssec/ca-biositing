@@ -65,6 +65,8 @@ def upgrade() -> None:
     op.create_foreign_key('fermentation_record_strain_id_fkey', 'fermentation_record', 'strain', ['strain_id'], ['id'])
     op.create_unique_constraint('strain_name_key', 'strain', ['name'])
     op.add_column('method', sa.Column('duration', sa.Float(), nullable=True))
+    op.add_column('fermentation_record', sa.Column('bioconversion_method_id', sa.Integer(), nullable=True))
+    op.create_foreign_key('fermentation_record_bioconversion_method_id_fkey', 'fermentation_record', 'method', ['bioconversion_method_id'], ['id'])
 
     op.execute("DROP INDEX IF EXISTS data_portal.idx_mv_biomass_fermentation_resource_strain")
     op.execute("DROP INDEX IF EXISTS data_portal.idx_mv_biomass_fermentation_product_name")
@@ -77,7 +79,7 @@ def upgrade() -> None:
     op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_fermentation CASCADE")
     op.execute("""
         CREATE MATERIALIZED VIEW data_portal.mv_biomass_fermentation AS
-        SELECT row_number() OVER (ORDER BY fermentation_record.resource_id, location_address.geography_id, strain.name, pm.name, em.name, parameter.name, unit.name) AS id,
+        SELECT row_number() OVER (ORDER BY fermentation_record.resource_id, location_address.geography_id, strain.name, pm.name, em.name, bm.name, parameter.name, unit.name) AS id,
                fermentation_record.resource_id,
                resource.name AS resource_name,
                location_address.geography_id AS geoid,
@@ -85,7 +87,8 @@ def upgrade() -> None:
                strain.name AS strain_name,
                pm.name AS pretreatment_method,
                em.name AS enzyme_name,
-               coalesce(pm.duration, em.duration) AS elapsed_time,
+               bm.name AS bioconversion_method,
+               coalesce(pm.duration, em.duration, bm.duration) AS elapsed_time,
                parameter.name AS product_name,
                avg(observation.value) AS avg_value,
                min(observation.value) AS min_value,
@@ -102,6 +105,7 @@ def upgrade() -> None:
         LEFT OUTER JOIN strain ON fermentation_record.strain_id = strain.id
         LEFT OUTER JOIN method AS pm ON fermentation_record.pretreatment_method_id = pm.id
         LEFT OUTER JOIN method AS em ON fermentation_record.eh_method_id = em.id
+        LEFT OUTER JOIN method AS bm ON fermentation_record.bioconversion_method_id = bm.id
         JOIN observation ON lower(observation.record_id) = lower(fermentation_record.record_id)
         JOIN parameter ON observation.parameter_id = parameter.id
         LEFT OUTER JOIN unit ON observation.unit_id = unit.id
@@ -113,7 +117,8 @@ def upgrade() -> None:
                  strain.name,
                  pm.name,
                  em.name,
-                 coalesce(pm.duration, em.duration),
+                 bm.name,
+                 coalesce(pm.duration, em.duration, bm.duration),
                  parameter.name,
                  unit.name
     """)
@@ -189,6 +194,8 @@ def downgrade() -> None:
     op.execute("""CREATE INDEX idx_mv_biomass_fermentation_product_name ON data_portal.mv_biomass_fermentation (product_name)""")
     op.execute("""CREATE INDEX idx_mv_biomass_fermentation_resource_strain ON data_portal.mv_biomass_fermentation (resource_id, strain_name)""")
 
+    op.drop_constraint('fermentation_record_bioconversion_method_id_fkey', 'fermentation_record', type_='foreignkey')
+    op.drop_column('fermentation_record', 'bioconversion_method_id')
     op.drop_column('method', 'duration')
     op.drop_constraint('strain_name_key', 'strain', type_='unique')
     op.drop_constraint('fermentation_record_strain_id_fkey', 'fermentation_record', type_='foreignkey')

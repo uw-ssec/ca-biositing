@@ -137,7 +137,7 @@ def transform_fermentation_record(
     column_mapping = {
         'resource': 'resource_id',
         'prepared_sample': 'prepared_sample_id',
-        'method_id': 'method_id',  # Keep method_id unchanged
+        'method_id': 'bioconversion_method_id',  # method_id from 03.3-BioConversionMethods → bioconversion_method_id FK
         'decon_method': 'pretreatment_method_id',  # decon_method_id → pretreatment_method_id
         'eh_method': 'eh_method_id',  # eh_method_id → eh_method_id (no change)
         'strain': 'strain_id',

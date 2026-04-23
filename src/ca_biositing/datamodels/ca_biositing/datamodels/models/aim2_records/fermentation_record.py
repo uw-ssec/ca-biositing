@@ -11,6 +11,7 @@ class FermentationRecord(Aim2RecordBase, table=True):
     strain_id: Optional[int] = Field(default=None, foreign_key="strain.id")
     pretreatment_method_id: Optional[int] = Field(default=None, foreign_key="method.id")
     eh_method_id: Optional[int] = Field(default=None, foreign_key="method.id")
+    bioconversion_method_id: Optional[int] = Field(default=None, foreign_key="method.id")
     well_position: Optional[str] = Field(default=None)
     vessel_id: Optional[int] = Field(default=None, foreign_key="decon_vessel.id")
     analyte_detection_equipment_id: Optional[int] = Field(default=None)

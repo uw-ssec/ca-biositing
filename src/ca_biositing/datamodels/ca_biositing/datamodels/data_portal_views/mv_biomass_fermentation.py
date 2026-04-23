@@ -27,10 +27,11 @@ from ca_biositing.datamodels.models.places.place import Place
 
 PM = aliased(Method, name="pm")
 EM = aliased(Method, name="em")
-ELAPSED_TIME = func.coalesce(PM.duration, EM.duration)
+BM = aliased(Method, name="bm")
+ELAPSED_TIME = func.coalesce(PM.duration, EM.duration, BM.duration)
 
 mv_biomass_fermentation = select(
-    func.row_number().over(order_by=(FermentationRecord.resource_id, LocationAddress.geography_id, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)).label("id"),
+    func.row_number().over(order_by=(FermentationRecord.resource_id, LocationAddress.geography_id, Strain.name, PM.name, EM.name, BM.name, Parameter.name, Unit.name)).label("id"),
     FermentationRecord.resource_id,
     Resource.name.label("resource_name"),
     LocationAddress.geography_id.label("geoid"),
@@ -38,6 +39,7 @@ mv_biomass_fermentation = select(
     Strain.name.label("strain_name"),
     PM.name.label("pretreatment_method"),
     EM.name.label("enzyme_name"),
+    BM.name.label("bioconversion_method"),
     ELAPSED_TIME.label("elapsed_time"),
     Parameter.name.label("product_name"),
     func.avg(Observation.value).label("avg_value"),
@@ -55,8 +57,9 @@ mv_biomass_fermentation = select(
  .outerjoin(Strain, FermentationRecord.strain_id == Strain.id)\
  .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
  .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
+ .outerjoin(BM, FermentationRecord.bioconversion_method_id == BM.id)\
  .join(Observation, func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .where(FermentationRecord.qc_pass != "fail")\
- .group_by(FermentationRecord.resource_id, Resource.name, LocationAddress.geography_id, Place.county_name, Strain.name, PM.name, EM.name, ELAPSED_TIME, Parameter.name, Unit.name)
+ .group_by(FermentationRecord.resource_id, Resource.name, LocationAddress.geography_id, Place.county_name, Strain.name, PM.name, EM.name, BM.name, ELAPSED_TIME, Parameter.name, Unit.name)
