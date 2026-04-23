@@ -162,8 +162,12 @@ tags: List[str] = Field(default_factory=list, description="Tags")
 
 ### Issue: Foreign key constraints
 
-Foreign keys are **commented out** in models for development flexibility.
-Uncomment when ready to enforce constraints.
+Foreign keys are normally declared directly in the SQLModel classes and enforced
+through Alembic migrations.
+
+If a table must be loaded before its parent rows exist, keep the field nullable
+for that bootstrap period and add the constraint in a migration once the data
+flow is ready.
 
 ```python
 parent_id: Optional[int] = Field(
@@ -172,6 +176,10 @@ parent_id: Optional[int] = Field(
     # foreign_key="parent_table.id"  # Uncomment when ready
 )
 ```
+
+In practice, "when ready" means the schema and load order are stable enough that
+the database can enforce referential integrity without blocking the ETL or
+initial backfill.
 
 ### Issue: Decimal vs Float precision
 

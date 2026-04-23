@@ -27,6 +27,7 @@ from ca_biositing.datamodels.models.places.place import Place
 
 PM = aliased(Method, name="pm")
 EM = aliased(Method, name="em")
+ELAPSED_TIME = func.coalesce(PM.duration, EM.duration)
 
 mv_biomass_fermentation = select(
     func.row_number().over(order_by=(FermentationRecord.resource_id, LocationAddress.geography_id, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)).label("id"),
@@ -37,6 +38,7 @@ mv_biomass_fermentation = select(
     Strain.name.label("strain_name"),
     PM.name.label("pretreatment_method"),
     EM.name.label("enzyme_name"),
+    ELAPSED_TIME.label("elapsed_time"),
     Parameter.name.label("product_name"),
     func.avg(Observation.value).label("avg_value"),
     func.min(Observation.value).label("min_value"),
@@ -57,4 +59,4 @@ mv_biomass_fermentation = select(
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .where(FermentationRecord.qc_pass != "fail")\
- .group_by(FermentationRecord.resource_id, Resource.name, LocationAddress.geography_id, Place.county_name, Strain.name, PM.name, EM.name, Parameter.name, Unit.name)
+ .group_by(FermentationRecord.resource_id, Resource.name, LocationAddress.geography_id, Place.county_name, Strain.name, PM.name, EM.name, ELAPSED_TIME, Parameter.name, Unit.name)

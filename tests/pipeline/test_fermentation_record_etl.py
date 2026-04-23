@@ -107,6 +107,12 @@ class TestFermentationRecordModel:
         assert field_info is not None
         assert getattr(field_info, "foreign_key", None) == "strain.id"
 
+    def test_method_model_has_duration(self):
+        """Verify Method model has duration field."""
+        from ca_biositing.datamodels.models.methods_parameters_units.method import Method
+
+        assert hasattr(Method, 'duration')
+
 
 class TestMvBiomassFermentationView:
     """Test the mv_biomass_fermentation view with new method fields."""
@@ -151,3 +157,62 @@ class TestMvBiomassFermentationView:
         source = view_file.read_text()
         # Should label EM.name as enzyme_name
         assert 'EM.name.label("enzyme_name")' in source
+
+    def test_view_source_file_labels_elapsed_time(self):
+        """Verify that mv_biomass_fermentation.py projects elapsed_time from methods."""
+        view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
+        source = view_file.read_text()
+
+        assert 'ELAPSED_TIME = func.coalesce(PM.duration, EM.duration)' in source
+        assert 'ELAPSED_TIME.label("elapsed_time")' in source
+
+
+class TestAim2BioconversionFlow:
+    """Test the Aim 2 flow startup ordering for fermentation extraction."""
+
+    def test_methods_extract_runs_before_fermentation_extract(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        methods_call = "bioconversion_methods.extract()"
+        fermentation_call = "bioconversion_data.extract()"
+
+        assert methods_call in source
+        assert fermentation_call in source
+        assert source.index(methods_call) < source.index(fermentation_call)
+
+    def test_methods_are_loaded_before_fermentation_extract(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        load_call = "load_method(method_load_df)"
+        fermentation_call = "fermentation_raw = bioconversion_data.extract()"
+
+        assert load_call in source
+        assert fermentation_call in source
+        assert source.index(load_call) < source.index(fermentation_call)
+
+    def test_method_id_column_maps_to_method_name(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        assert "method_id_col" in source
+        assert "col.lower().strip() == 'method_id'" in source
+        assert "pd.DataFrame({'name': methods_df[method_id_col]})" in source
+
+    def test_time_h_column_maps_to_duration(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        assert "col.lower().strip() == 'time_h'" in source
+        assert "method_load_df['duration'] = methods_df[time_col]" in source
+
+
+class TestMethodLoadTask:
+    """Test the method metadata loader task surface."""
+
+    def test_method_load_task_module_exists(self):
+        from ca_biositing.pipeline.etl.load.analysis import method
+
+        assert method is not None
+        assert hasattr(method, 'load_method')
