@@ -13,5 +13,6 @@ class ResourceEndUseRecord(BaseEntity, table=True):
     # foreign_key="dataset.id" / foreign_key="method.id" (commented out per repo convention)
     geoid: Optional[str] = Field(default=None, description="Place GEOID")
     resource_id: Optional[int] = Field(default=None, description="Reference to resource")
+    use_case_id: Optional[int] = Field(default=None, foreign_key="use_case.id", description="Reference to use case")
     # foreign_key="resource.id" (commented out per repo convention)
     note: Optional[str] = Field(default=None, description="Additional notes")

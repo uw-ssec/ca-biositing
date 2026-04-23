@@ -114,6 +114,31 @@ class TestCountyAgReportTransform:
             assert 'record_id' in result.columns
             assert 'value' in result.columns
 
+    def test_transform_data_sources_filters_placeholder_rows(self):
+        """Rows with an index but blank source metadata should be dropped."""
+        from ca_biositing.pipeline.etl.transform.analysis import data_source as ds_transform
+
+        raw_sources = pd.DataFrame(
+            {
+                "Index": ["001", "002", "008", "009"],
+                "SourceName": ["Merced Report", "SJ Report", "", pd.NA],
+                "Author": ["County A", "County B", "", pd.NA],
+                "Date": ["2023", "2024", "", pd.NA],
+                "URL": ["http://a", "http://b", "", pd.NA],
+            }
+        )
+
+        result = ds_transform.transform_data_sources.fn(
+            data_sources={"pp_data_sources": raw_sources},
+            etl_run_id="test-run",
+            lineage_group_id=1,
+        )
+
+        assert result is not None
+        assert len(result) == 2
+        assert list(result["id"]) == [1, 2]
+        assert list(result["name"]) == ["merced report", "sj report"]
+
 
 class TestCountyAgReportLoad:
     """Test the load step for county ag reports."""

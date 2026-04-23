@@ -10,6 +10,7 @@ import numpy as np
 from datetime import datetime, timezone
 from prefect import task, get_run_logger
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from ca_biositing.pipeline.utils.engine import get_engine
 
@@ -45,9 +46,19 @@ def load_data_sources(df: pd.DataFrame):
         with engine.connect() as conn:
             with Session(bind=conn) as session:
                 success_count = 0
+                skipped_count = 0
                 for i, record in enumerate(records):
                     # Clean record to only include valid table columns
                     clean_record = {k: v for k, v in record.items() if k in table_columns}
+
+                    # Defensive guard: never insert rows without a meaningful source identity
+                    name_value = clean_record.get('name')
+                    full_title_value = clean_record.get('full_title')
+                    has_name = name_value is not None and str(name_value).strip() != ""
+                    has_full_title = full_title_value is not None and str(full_title_value).strip() != ""
+                    if not has_name and not has_full_title:
+                        skipped_count += 1
+                        continue
 
                     # Handle timestamps
                     clean_record['updated_at'] = now
@@ -80,6 +91,21 @@ def load_data_sources(df: pd.DataFrame):
 
                 session.commit()
                 logger.info(f"Successfully upserted {success_count} data source records.")
+                if skipped_count > 0:
+                    logger.info(f"Skipped {skipped_count} blank data source records.")
+
+                # Keep SERIAL sequence in sync when explicit ids are loaded (county sheet uses fixed ids)
+                sequence_name = session.execute(
+                    text("SELECT pg_get_serial_sequence('data_source', 'id')")
+                ).scalar_one_or_none()
+                if sequence_name:
+                    session.execute(
+                        text(
+                            "SELECT setval(:seq_name, COALESCE((SELECT MAX(id) FROM data_source), 1), true)"
+                        ),
+                        {"seq_name": sequence_name},
+                    )
+                    session.commit()
 
     except Exception as e:
         logger.error(f"Failed to load data source records: {e}")
