@@ -43,11 +43,17 @@ def transform_fermentation_record(
     raw_df = cleaning_mod.clean_names_df(raw_df)
 
     # Rename bioconv_method or strain_name to strain if it exists to match normalization expectations
-    # We prioritize bioconv_method as it contains the actual strain names in this dataset
+    # We prioritize bioconv_method as it contains the actual strain names in this dataset.
+    # BioConv_Method (e.g. "1Sac-EtOH") serves dual purpose:
+    #   1. It is the strain name → normalized to strain_id via 'strain' column
+    #   2. It is also the method name → normalized to method_id via 'method_id' column
+    # We copy it to method_id before renaming to strain so both FKs are populated.
     if 'bioconv_method' in raw_df.columns:
         # If both exist, rename strain_name to something else to avoid confusion
         if 'strain_name' in raw_df.columns:
             raw_df = raw_df.rename(columns={'strain_name': 'original_strain_name'})
+        # Copy bioconv_method to method_id so it gets normalized to method.id FK
+        raw_df['method_id'] = raw_df['bioconv_method']
         raw_df = raw_df.rename(columns={'bioconv_method': 'strain'})
     elif 'strain_name' in raw_df.columns:
         raw_df = raw_df.rename(columns={'strain_name': 'strain'})
