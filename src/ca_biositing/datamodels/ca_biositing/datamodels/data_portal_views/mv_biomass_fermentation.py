@@ -57,7 +57,7 @@ mv_biomass_fermentation = select(
  .outerjoin(Strain, FermentationRecord.strain_id == Strain.id)\
  .outerjoin(PM, FermentationRecord.pretreatment_method_id == PM.id)\
  .outerjoin(EM, FermentationRecord.eh_method_id == EM.id)\
- .outerjoin(BM, FermentationRecord.bioconversion_method_id == BM.id)\
+ .outerjoin(BM, FermentationRecord.method_id == BM.id)\
  .join(Observation, func.lower(Observation.record_id) == func.lower(FermentationRecord.record_id))\
  .join(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\

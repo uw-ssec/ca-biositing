@@ -107,15 +107,15 @@ class TestFermentationRecordModel:
         assert field_info is not None
         assert getattr(field_info, "foreign_key", None) == "strain.id"
 
-    def test_fermentation_record_has_bioconversion_method_id(self):
-        """Verify FermentationRecord model has bioconversion_method_id field."""
+    def test_fermentation_record_has_method_id(self):
+        """Verify FermentationRecord inherits method_id from Aim2RecordBase (bioconversion method FK)."""
         from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
-        assert hasattr(FermentationRecord, 'bioconversion_method_id')
+        assert hasattr(FermentationRecord, 'method_id')
 
-    def test_bioconversion_method_id_is_foreign_key(self):
-        """Verify bioconversion_method_id is a foreign key to method table."""
-        from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
-        field_info = FermentationRecord.model_fields.get('bioconversion_method_id')
+    def test_method_id_is_foreign_key_to_method(self):
+        """Verify inherited method_id is a foreign key to method table."""
+        from ca_biositing.datamodels.models.base import Aim2RecordBase
+        field_info = Aim2RecordBase.model_fields.get('method_id')
         assert field_info is not None
         assert getattr(field_info, "foreign_key", None) == "method.id"
 
@@ -184,11 +184,11 @@ class TestMvBiomassFermentationView:
         source = view_file.read_text()
         assert 'BM = aliased(Method' in source
 
-    def test_view_source_file_joins_bioconversion_method_id(self):
-        """Verify that mv_biomass_fermentation.py joins on bioconversion_method_id."""
+    def test_view_source_file_joins_on_method_id(self):
+        """Verify that mv_biomass_fermentation.py joins BM alias on fermentation_record.method_id (inherited from Aim2RecordBase)."""
         view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
         source = view_file.read_text()
-        assert 'bioconversion_method_id' in source
+        assert 'FermentationRecord.method_id == BM.id' in source
 
     def test_view_source_file_labels_bioconversion_method(self):
         """Verify that mv_biomass_fermentation.py labels bioconversion_method correctly."""
@@ -230,12 +230,12 @@ class TestAim2BioconversionFlow:
         assert "col.lower().strip() == 'method_id'" in source
         assert "pd.DataFrame({'name': methods_df[method_id_col]})" in source
 
-    def test_transform_method_id_maps_to_bioconversion_method_id(self):
-        """Verify that transform_fermentation_record maps method_id to bioconversion_method_id FK."""
+    def test_transform_method_id_maps_to_method_id(self):
+        """Verify that transform_fermentation_record maps method_id to method_id (inherited Aim2RecordBase column)."""
         from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
         import inspect
         source = inspect.getsource(transform_fermentation_record.fn)
-        assert "'method_id': 'bioconversion_method_id'" in source
+        assert "'method_id': 'method_id'" in source
 
     def test_time_h_column_maps_to_duration(self):
         flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
