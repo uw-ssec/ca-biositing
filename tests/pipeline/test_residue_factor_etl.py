@@ -19,13 +19,13 @@ class TestExtractResidueFactor:
         """Test that extract module can be imported"""
         from ca_biositing.pipeline.etl.extract.residue_factors import (
             extract_residue_factors,
-            GSHEET_NAME,
+            GSHEET_ID,
             WORKSHEET_NAME,
         )
 
         assert extract_residue_factors is not None
-        assert GSHEET_NAME == "Residue Factors"
-        assert WORKSHEET_NAME == "Data_Views"
+        assert GSHEET_ID is not None
+        assert WORKSHEET_NAME == "Data Views"
 
     def test_extract_is_prefect_task(self):
         """Test that extractor is a Prefect task"""
@@ -34,7 +34,7 @@ class TestExtractResidueFactor:
         # Check that it has Prefect task attributes
         assert hasattr(extract_residue_factors, "fn")
         assert hasattr(extract_residue_factors, "name")
-        assert extract_residue_factors.name == "extract_data_views"
+        assert extract_residue_factors.name == "extract_residue_factors"
 
     def test_extract_task_properties(self):
         """Test extractor task has expected retry properties"""
