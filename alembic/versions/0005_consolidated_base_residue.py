@@ -44,6 +44,11 @@ def upgrade() -> None:
     sa.UniqueConstraint('resource_id', 'factor_type', name='uq_residue_factor_resource_id_factor_type')
     )
 
+    # Ensure resource_id is NOT NULL in resource_image
+    op.alter_column('resource_image', 'resource_id',
+               existing_type=sa.Integer(),
+               nullable=False)
+
     # Update resource_image constraints
     op.drop_constraint('resource_image_resource_id_image_url_key', 'resource_image', type_='unique')
     op.create_unique_constraint('resource_image_name_url_sort_key', 'resource_image', ['resource_name', 'image_url', 'sort_order'])
@@ -51,6 +56,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema: drop residue_factor table and restore resource_image constraints."""
+    # Restore resource_id nullability
+    op.alter_column('resource_image', 'resource_id',
+               existing_type=sa.Integer(),
+               nullable=True)
+
     op.drop_constraint('resource_image_name_url_sort_key', 'resource_image', type_='unique')
     op.create_unique_constraint('resource_image_resource_id_image_url_key', 'resource_image', ['resource_id', 'image_url'])
     op.drop_table('residue_factor')

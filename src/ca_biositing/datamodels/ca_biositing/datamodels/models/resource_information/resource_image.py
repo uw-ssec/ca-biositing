@@ -12,7 +12,7 @@ class ResourceImage(BaseEntity, table=True):
         ),
     )
 
-    resource_id: Optional[int] = Field(default=None, foreign_key="resource.id")
+    resource_id: int = Field(foreign_key="resource.id")
     resource_name: Optional[str] = Field(default=None)
     image_url: Optional[str] = Field(default=None)
     sort_order: Optional[int] = Field(default=None)
