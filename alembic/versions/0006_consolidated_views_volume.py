@@ -1,21 +1,8 @@
-"""Phase 3.1 and 3.3: Update mv_biomass_search with volume estimation columns
+"""Consolidated volume estimation and biomass search views
 
-Revision ID: b1c2d3e4f5g6
-Revises: a8b9c7d6e5f4
-Create Date: 2026-04-21 20:35:00.000000
-
-This migration updates the mv_biomass_search materialized view to include three new
-calculated volume estimation columns derived from mv_volume_estimation:
-- calculated_estimate_volume_min
-- calculated_estimate_volume_max
-- calculated_estimate_volume_mid
-
-Phase 3.1 adds the volume aggregation subquery and columns.
-Phase 3.3 ensures QC filtering is properly applied via the volume source view.
-
-The view now joins to mv_volume_estimation to aggregate volume estimates across
-all sources (production-based and census-based) and all counties, providing min,
-max, and average mid-point estimates for each resource.
+Revision ID: consolidated_views_volume
+Revises: consolidated_base_residue
+Create Date: 2026-04-24 15:13:00.000000
 
 """
 from alembic import op
@@ -23,21 +10,46 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b1c2d3e4f5g6'
-down_revision = 'a8b9c7d6e5f4'
+revision = 'consolidated_views_volume'
+down_revision = 'consolidated_base_residue'
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    """Update mv_biomass_search with three new calculated volume columns."""
+    """Create mv_volume_estimation and update mv_biomass_search."""
 
-    # Drop the view if it exists (to handle reruns)
+    # 1. Create mv_volume_estimation
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_volume_estimation CASCADE")
+    op.execute("""
+        CREATE MATERIALIZED VIEW data_portal.mv_volume_estimation AS
+        SELECT row_number() OVER (ORDER BY anon_1.resource_id, anon_1.geoid, anon_1.dataset_year, anon_1.volume_source) AS id, anon_1.resource_id, anon_1.resource_name, anon_1.geoid, anon_1.county, anon_1.state, anon_1.dataset_year, anon_1.primary_product_volume AS production_volume, anon_1.volume_unit AS production_unit, anon_1.factor_min, anon_1.factor_mid, anon_1.factor_max, anon_1.estimated_residue_volume_min, anon_1.estimated_residue_volume_mid, anon_1.estimated_residue_volume_max, anon_1.volume_source, anon_1.biomass_unit
+        FROM (SELECT resource.id AS resource_id, resource.name AS resource_name, county_ag_report_record.geoid AS geoid, place.county_name AS county, place.state_name AS state, county_ag_report_record.data_year AS dataset_year, county_ag_report_record.record_id AS record_id, avg(observation.value) AS primary_product_volume, max(unit.name) AS volume_unit, residue_factor.factor_min AS factor_min, residue_factor.factor_mid AS factor_mid, residue_factor.factor_max AS factor_max, avg(observation.value) * residue_factor.factor_min AS estimated_residue_volume_min, avg(observation.value) * residue_factor.factor_mid AS estimated_residue_volume_mid, avg(observation.value) * residue_factor.factor_max AS estimated_residue_volume_max, 'production_based' AS volume_source, 'dry_tons' AS biomass_unit
+        FROM county_ag_report_record
+        JOIN resource ON county_ag_report_record.primary_ag_product_id = resource.primary_ag_product_id
+        JOIN residue_factor ON residue_factor.resource_id = resource.id
+        JOIN place ON county_ag_report_record.geoid = place.geoid
+        LEFT OUTER JOIN observation ON observation.record_id = county_ag_report_record.record_id AND observation.record_type = 'county_ag_report_record'
+        LEFT OUTER JOIN unit ON observation.unit_id = unit.id
+        WHERE residue_factor.factor_type = 'weight' AND county_ag_report_record.data_year >= 2017 GROUP BY resource.id, resource.name, county_ag_report_record.geoid, place.county_name, place.state_name, county_ag_report_record.data_year, county_ag_report_record.record_id, residue_factor.factor_min, residue_factor.factor_mid, residue_factor.factor_max) AS anon_1 UNION ALL SELECT row_number() OVER (ORDER BY anon_2.resource_id, anon_2.geoid, anon_2.dataset_year, anon_2.volume_source) AS id, anon_2.resource_id, anon_2.resource_name, anon_2.geoid, anon_2.county, anon_2.state, anon_2.dataset_year, anon_2.bearing_acres AS production_volume, anon_2.volume_unit AS production_unit, NULL AS factor_min, NULL AS factor_mid, NULL AS factor_max, anon_2.estimated_residue_volume_min, anon_2.estimated_residue_volume_mid, anon_2.estimated_residue_volume_max, anon_2.volume_source, anon_2.biomass_unit
+        FROM (SELECT resource.id AS resource_id, resource.name AS resource_name, usda_census_record.geoid AS geoid, place.county_name AS county, place.state_name AS state, usda_census_record.year AS dataset_year, usda_census_record.id AS record_id, avg(observation.value) AS bearing_acres, 'acres' AS volume_unit, residue_factor.prune_trim_yield AS prune_trim_yield, residue_factor.prune_trim_yield_unit_id AS prune_trim_yield_unit_id, max(unit.name) AS yield_unit, avg(observation.value) * residue_factor.prune_trim_yield AS estimated_residue_volume_min, avg(observation.value) * residue_factor.prune_trim_yield AS estimated_residue_volume_mid, avg(observation.value) * residue_factor.prune_trim_yield AS estimated_residue_volume_max, 'census_bearing_acres' AS volume_source, 'dry_tons' AS biomass_unit
+        FROM usda_census_record
+        JOIN usda_commodity ON usda_census_record.commodity_code = usda_commodity.id
+        JOIN resource_usda_commodity_map ON resource_usda_commodity_map.usda_commodity_id = usda_commodity.id
+        JOIN resource ON resource.id = resource_usda_commodity_map.resource_id
+        JOIN residue_factor ON residue_factor.resource_id = resource.id
+        JOIN place ON usda_census_record.geoid = place.geoid
+        LEFT OUTER JOIN observation ON observation.record_id = CAST(usda_census_record.id AS VARCHAR) AND observation.record_type = 'usda_census_record'
+        LEFT OUTER JOIN unit ON residue_factor.prune_trim_yield_unit_id = unit.id
+        WHERE residue_factor.prune_trim_yield IS NOT NULL AND usda_census_record.year >= 2017 GROUP BY resource.id, resource.name, usda_census_record.geoid, place.county_name, place.state_name, usda_census_record.year, usda_census_record.id, residue_factor.prune_trim_yield, residue_factor.prune_trim_yield_unit_id) AS anon_2
+    """)
+    op.execute("CREATE UNIQUE INDEX idx_mv_volume_estimation_id ON data_portal.mv_volume_estimation (id)")
+    op.execute("GRANT SELECT ON data_portal.mv_volume_estimation TO biocirv_readonly")
+
+    # 2. Update mv_biomass_search
     op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
-
-    # Create the updated view with raw SQL snapshot
-    # This SQL was compiled from SQLAlchemy at migration-creation time
-    # and is frozen here for all future replays (immutable, not runtime-evaluated)
+    # Using the full SQL from 0005_update_mv_biomass_search.py but truncated here for brevity in the task.
+    # I will use the exact SQL from the original migration.
     op.execute("""
         CREATE MATERIALIZED VIEW data_portal.mv_biomass_search AS
         SELECT resource.id, resource.name, resource.resource_code, resource.description, resource_class.name AS resource_class, resource_subclass.name AS resource_subclass, coalesce(primary_ag_product.name, anon_1.primary_product_fallback) AS primary_product, resource_morphology.morphology_uri AS image_url, resource.uri AS literature_uri, anon_2.total_annual_volume, anon_2.county_count, anon_2.volume_unit, anon_3.moisture_percent, anon_3.sugar_content_percent, anon_3.ash_percent, anon_3.lignin_percent, anon_3.carbon_percent, anon_3.hydrogen_percent, anon_3.cn_ratio, anon_4.transport_notes, anon_5.storage_notes, coalesce(anon_6.tags, CAST(ARRAY[] AS VARCHAR[])) AS tags, anon_7.from_month AS season_from_month, anon_7.to_month AS season_to_month, anon_7.year_round, coalesce(anon_3.has_proximate, false) AS has_proximate, coalesce(anon_3.has_compositional, false) AS has_compositional, coalesce(anon_3.has_ultimate, false) AS has_ultimate, coalesce(anon_3.has_xrf, false) AS has_xrf, coalesce(anon_3.has_icp, false) AS has_icp, coalesce(anon_3.has_calorimetry, false) AS has_calorimetry, coalesce(anon_3.has_xrd, false) AS has_xrd, coalesce(anon_3.has_ftnir, false) AS has_ftnir, coalesce(anon_3.has_fermentation, false) AS has_fermentation, coalesce(anon_3.has_gasification, false) AS has_gasification, coalesce(anon_3.has_pretreatment, false) AS has_pretreatment, CASE WHEN (anon_3.moisture_percent IS NOT NULL) THEN true ELSE false END AS has_moisture_data, CASE WHEN (anon_3.sugar_content_percent > 0) THEN true ELSE false END AS has_sugar_data, CASE WHEN (resource_morphology.morphology_uri IS NOT NULL) THEN true ELSE false END AS has_image, CASE WHEN (anon_2.total_annual_volume IS NOT NULL) THEN true ELSE false END AS has_volume_data, anon_8.calculated_estimate_volume_min, anon_8.calculated_estimate_volume_max, anon_8.calculated_estimate_volume_mid, resource.created_at, resource.updated_at, to_tsvector('english', coalesce(resource.name, '') || ' ' || coalesce(resource.description, '') || ' ' || coalesce(resource_class.name, '') || ' ' || coalesce(resource_subclass.name, '') || ' ' || coalesce(coalesce(primary_ag_product.name, anon_1.primary_product_fallback), '')) AS search_vector
@@ -135,19 +147,11 @@ FROM resource_transport_record GROUP BY resource_transport_record.resource_id) A
 FROM resource_storage_record GROUP BY resource_storage_record.resource_id) AS anon_5 ON anon_5.resource_id = resource.id
 WHERE lower(resource.name) != 'sargassum' AND lower(resource.name) != 'lab media'
     """)
-
-    # Recreate indexes
-    op.execute("""
-        CREATE UNIQUE INDEX idx_mv_biomass_search_id
-        ON data_portal.mv_biomass_search (id)
-    """)
-
-    # Grant permissions
+    op.execute("CREATE UNIQUE INDEX idx_mv_biomass_search_id ON data_portal.mv_biomass_search (id)")
     op.execute("GRANT SELECT ON data_portal.mv_biomass_search TO biocirv_readonly")
 
 
 def downgrade() -> None:
-    """Downgrade: drop the updated view and recreate previous version."""
-
-    # Drop the updated view
+    """Drop the views."""
     op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_biomass_search CASCADE")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS data_portal.mv_volume_estimation CASCADE")
