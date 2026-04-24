@@ -126,8 +126,29 @@ pixi run migrate
 When working in a team, you may pull new migration files. The standard workflow
 is to run `pixi run migrate` after pulling the latest code.
 
-If you encounter a "multiple heads" conflict or your database gets into an
-inconsistent state, you can reset the environment.
+If you encounter a "multiple heads" conflict, resolve it with a merge revision
+instead of resetting containers.
+
+**Resolving multiple heads (recommended):**
+
+1. Inspect heads:
+   ```bash
+   pixi run alembic heads
+   ```
+2. Create a merge revision that points to all current heads:
+   ```bash
+   pixi run alembic merge -m "Merge heads" <head_1> <head_2>
+   ```
+3. Run migrations normally:
+   ```bash
+   pixi run migrate
+   ```
+
+Use `pixi run alembic upgrade heads` only for local troubleshooting. For shared
+branch history, commit a merge revision so the repository returns to a single
+head.
+
+If your database gets into an inconsistent state, you can reset the environment.
 
 **Resetting the Environment:**
 
