@@ -111,6 +111,8 @@ resource_metrics_v2 = select(
         ),
         else_=None
     ).label("sugar_content_percent"),
+    func.avg(case((observations_filtered.c.parameter == "glucose", observations_filtered.c.value))).label("glucan_percent"),
+    func.avg(case((observations_filtered.c.parameter == "xylose", observations_filtered.c.value))).label("xylan_percent"),
     func.avg(case((
         and_(analysis_sources.c.type == "ultimate analysis", func.lower(observations_filtered.c.parameter) == "carbon"),
         observations_filtered.c.value
@@ -159,7 +161,11 @@ thresholds_v2 = select(
     func.percentile_cont(0.1).within_group(resource_metrics_v2.c.lignin_percent).label("lignin_low"),
     func.percentile_cont(0.9).within_group(resource_metrics_v2.c.lignin_percent).label("lignin_high"),
     func.percentile_cont(0.1).within_group(resource_metrics_v2.c.sugar_content_percent).label("sugar_low"),
-    func.percentile_cont(0.9).within_group(resource_metrics_v2.c.sugar_content_percent).label("sugar_high")
+    func.percentile_cont(0.9).within_group(resource_metrics_v2.c.sugar_content_percent).label("sugar_high"),
+    func.percentile_cont(0.1).within_group(resource_metrics_v2.c.glucan_percent).label("glucan_low"),
+    func.percentile_cont(0.9).within_group(resource_metrics_v2.c.glucan_percent).label("glucan_high"),
+    func.percentile_cont(0.1).within_group(resource_metrics_v2.c.xylan_percent).label("xylan_low"),
+    func.percentile_cont(0.9).within_group(resource_metrics_v2.c.xylan_percent).label("xylan_high")
 ).subquery()
 
 # 4. Resource tags generation joining on true
@@ -173,8 +179,10 @@ resource_tags_v2 = select(
              case((resource_metrics_v2.c.ash_percent >= thresholds_v2.c.ash_high, "high ash"), else_=None),
              case((resource_metrics_v2.c.lignin_percent <= thresholds_v2.c.lignin_low, "low lignin"), else_=None),
              case((resource_metrics_v2.c.lignin_percent >= thresholds_v2.c.lignin_high, "high lignin"), else_=None),
-             case((resource_metrics_v2.c.sugar_content_percent <= thresholds_v2.c.sugar_low, "low sugar"), else_=None),
-             case((resource_metrics_v2.c.sugar_content_percent >= thresholds_v2.c.sugar_high, "high sugar"), else_=None)
+             case((resource_metrics_v2.c.glucan_percent <= thresholds_v2.c.glucan_low, "low glucan"), else_=None),
+             case((resource_metrics_v2.c.glucan_percent >= thresholds_v2.c.glucan_high, "high glucan"), else_=None),
+             case((resource_metrics_v2.c.xylan_percent <= thresholds_v2.c.xylan_low, "low xylan"), else_=None),
+             case((resource_metrics_v2.c.xylan_percent >= thresholds_v2.c.xylan_high, "high xylan"), else_=None)
          ]),
          None
      ).label("tags")
@@ -229,6 +237,8 @@ mv_biomass_search = select(
      agg_vol.c.volume_unit,
      resource_metrics_v2.c.moisture_percent,
      resource_metrics_v2.c.sugar_content_percent,
+     resource_metrics_v2.c.glucan_percent,
+     resource_metrics_v2.c.xylan_percent,
      resource_metrics_v2.c.ash_percent,
      resource_metrics_v2.c.lignin_percent,
      resource_metrics_v2.c.carbon_percent,
