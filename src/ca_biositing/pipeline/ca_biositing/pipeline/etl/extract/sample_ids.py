@@ -1,5 +1,5 @@
 """
-Factory extractor for 01_Sample_IDs worksheet from SampleMetadata_v03-BioCirV.
+Factory extractor for 01_Sample_IDs worksheet from SampleMetadata-BioCirV.
 
 This worksheet contains the primary sample identifiers and basic metadata:
 - Sample_name: Unique sample identifier (join key across all four worksheets)
@@ -14,7 +14,7 @@ This extractor serves as the base for left-joining other worksheets.
 
 from .factory import create_extractor
 
-GSHEET_NAME = "SampleMetadata_v03-BioCirV"
+GSHEET_NAME = "SampleMetadata-BioCirV"
 WORKSHEET_NAME = "01_Sample_IDs"
 
 # Create the extract task using the factory pattern
