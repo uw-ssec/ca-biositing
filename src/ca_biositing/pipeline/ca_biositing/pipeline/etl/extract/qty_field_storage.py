@@ -1,5 +1,5 @@
 """
-Factory extractor for 03_Qty_FieldStorage worksheet from SampleMetadata-BioCirV.
+Factory extractor for 03_Qty_FieldStorage worksheet from SampleMetadata_v03-BioCirV.
 
 This worksheet contains sample quantity and field storage information:
 - Sample_name: Unique sample identifier (join key)
@@ -21,7 +21,7 @@ This extractor provides quantity, unit, and field storage context for collected 
 
 from .factory import create_extractor
 
-GSHEET_NAME = "SampleMetadata-BioCirV"
+GSHEET_NAME = "SampleMetadata_v03-BioCirV"
 WORKSHEET_NAME = "03_Qty_FieldStorage"
 
 # Create the extract task using the factory pattern

@@ -1,5 +1,5 @@
 """
-Factory extractor for 02_Sample_Desc worksheet from SampleMetadata-BioCirV.
+Factory extractor for 02_Sample_Desc worksheet from SampleMetadata_v03-BioCirV.
 
 This worksheet contains detailed sample description and location information:
 - Sample_name: Unique sample identifier (join key)
@@ -18,7 +18,7 @@ Currently sparse (many empty fields) but provides spatial and descriptive contex
 
 from .factory import create_extractor
 
-GSHEET_NAME = "SampleMetadata-BioCirV"
+GSHEET_NAME = "SampleMetadata_v03-BioCirV"
 WORKSHEET_NAME = "02_Sample_Desc"
 
 # Create the extract task using the factory pattern
