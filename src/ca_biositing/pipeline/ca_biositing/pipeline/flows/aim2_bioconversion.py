@@ -9,12 +9,13 @@ def aim2_bioconversion_flow(*args, **kwargs):
     including Pretreatment and Fermentation Records.
     """
     from prefect import get_run_logger
-    from ca_biositing.pipeline.etl.extract import pretreatment_data, bioconversion_data, bioconversion_setup
+    from ca_biositing.pipeline.etl.extract import pretreatment_data, bioconversion_data, bioconversion_setup, bioconversion_methods
     from ca_biositing.pipeline.etl.transform.analysis.pretreatment_record import transform_pretreatment_record
     from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
     from ca_biositing.pipeline.etl.transform.analysis.observation import transform_observation
     from ca_biositing.pipeline.etl.load.analysis.pretreatment_record import load_pretreatment_record
     from ca_biositing.pipeline.etl.load.analysis.fermentation_record import load_fermentation_record
+    from ca_biositing.pipeline.etl.load.analysis.method import load_method
     from ca_biositing.pipeline.etl.load.analysis.strain import load_strain
     from ca_biositing.pipeline.etl.load.analysis.observation import load_observation
     from ca_biositing.pipeline.utils.lineage import create_etl_run_record, create_lineage_group
@@ -72,6 +73,32 @@ def aim2_bioconversion_flow(*args, **kwargs):
     )
 
     logger.info("Extracting Fermentation data...")
+    logger.info("Extracting BioConversion Methods data...")
+    methods_raw = bioconversion_methods.extract()
+
+    if methods_raw is not None and not methods_raw.empty:
+        methods_df = methods_raw.copy()
+        methods_df.columns = [str(c).strip() for c in methods_df.columns]
+
+        method_id_col = next(
+            (col for col in methods_df.columns if col.lower().strip() == 'method_id'),
+            None
+        )
+
+        if method_id_col is not None:
+            method_load_df = pd.DataFrame({'name': methods_df[method_id_col]})
+            if 'Description' in methods_df.columns:
+                method_load_df['description'] = methods_df['Description']
+            time_col = next(
+                (col for col in methods_df.columns if col.lower().strip() == 'time_h'),
+                None
+            )
+            if time_col is not None:
+                method_load_df['duration'] = methods_df[time_col]
+            load_method(method_load_df)
+        else:
+            logger.warning("BioConversion Methods sheet missing Method_id column; skipping method metadata load.")
+
     fermentation_raw = bioconversion_data.extract()
     setup_raw = bioconversion_setup.extract()
 

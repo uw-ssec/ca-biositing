@@ -107,6 +107,24 @@ class TestFermentationRecordModel:
         assert field_info is not None
         assert getattr(field_info, "foreign_key", None) == "strain.id"
 
+    def test_fermentation_record_has_method_id(self):
+        """Verify FermentationRecord inherits method_id from Aim2RecordBase (bioconversion method FK)."""
+        from ca_biositing.datamodels.models.aim2_records.fermentation_record import FermentationRecord
+        assert hasattr(FermentationRecord, 'method_id')
+
+    def test_method_id_is_foreign_key_to_method(self):
+        """Verify inherited method_id is a foreign key to method table."""
+        from ca_biositing.datamodels.models.base import Aim2RecordBase
+        field_info = Aim2RecordBase.model_fields.get('method_id')
+        assert field_info is not None
+        assert getattr(field_info, "foreign_key", None) == "method.id"
+
+    def test_method_model_has_duration(self):
+        """Verify Method model has duration field."""
+        from ca_biositing.datamodels.models.methods_parameters_units.method import Method
+
+        assert hasattr(Method, 'duration')
+
 
 class TestMvBiomassFermentationView:
     """Test the mv_biomass_fermentation view with new method fields."""
@@ -151,3 +169,87 @@ class TestMvBiomassFermentationView:
         source = view_file.read_text()
         # Should label EM.name as enzyme_name
         assert 'EM.name.label("enzyme_name")' in source
+
+    def test_view_source_file_labels_elapsed_time(self):
+        """Verify that mv_biomass_fermentation.py projects elapsed_time from all three method aliases."""
+        view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
+        source = view_file.read_text()
+
+        assert 'ELAPSED_TIME = func.coalesce(PM.duration, EM.duration, BM.duration)' in source
+        assert 'ELAPSED_TIME.label("elapsed_time")' in source
+
+    def test_view_source_file_has_bm_alias(self):
+        """Verify that mv_biomass_fermentation.py uses BM alias for bioconversion method."""
+        view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
+        source = view_file.read_text()
+        assert 'BM = aliased(Method' in source
+
+    def test_view_source_file_joins_on_method_id(self):
+        """Verify that mv_biomass_fermentation.py joins BM alias on fermentation_record.method_id (inherited from Aim2RecordBase)."""
+        view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
+        source = view_file.read_text()
+        assert 'FermentationRecord.method_id == BM.id' in source
+
+    def test_view_source_file_labels_bioconversion_method(self):
+        """Verify that mv_biomass_fermentation.py labels bioconversion_method correctly."""
+        view_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/datamodels/ca_biositing/datamodels/data_portal_views/mv_biomass_fermentation.py"
+        source = view_file.read_text()
+        assert 'BM.name.label("bioconversion_method")' in source
+
+
+class TestAim2BioconversionFlow:
+    """Test the Aim 2 flow startup ordering for fermentation extraction."""
+
+    def test_methods_extract_runs_before_fermentation_extract(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        methods_call = "bioconversion_methods.extract()"
+        fermentation_call = "bioconversion_data.extract()"
+
+        assert methods_call in source
+        assert fermentation_call in source
+        assert source.index(methods_call) < source.index(fermentation_call)
+
+    def test_methods_are_loaded_before_fermentation_extract(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        load_call = "load_method(method_load_df)"
+        fermentation_call = "fermentation_raw = bioconversion_data.extract()"
+
+        assert load_call in source
+        assert fermentation_call in source
+        assert source.index(load_call) < source.index(fermentation_call)
+
+    def test_method_id_column_maps_to_method_name(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        assert "method_id_col" in source
+        assert "col.lower().strip() == 'method_id'" in source
+        assert "pd.DataFrame({'name': methods_df[method_id_col]})" in source
+
+    def test_transform_method_id_maps_to_method_id(self):
+        """Verify that transform_fermentation_record maps method_id to method_id (inherited Aim2RecordBase column)."""
+        from ca_biositing.pipeline.etl.transform.analysis.fermentation_record import transform_fermentation_record
+        import inspect
+        source = inspect.getsource(transform_fermentation_record.fn)
+        assert "'method_id': 'method_id'" in source
+
+    def test_time_h_column_maps_to_duration(self):
+        flow_file = pathlib.Path(__file__).parent.parent.parent / "src/ca_biositing/pipeline/ca_biositing/pipeline/flows/aim2_bioconversion.py"
+        source = flow_file.read_text()
+
+        assert "col.lower().strip() == 'time_h'" in source
+        assert "method_load_df['duration'] = methods_df[time_col]" in source
+
+
+class TestMethodLoadTask:
+    """Test the method metadata loader task surface."""
+
+    def test_method_load_task_module_exists(self):
+        from ca_biositing.pipeline.etl.load.analysis import method
+
+        assert method is not None
+        assert hasattr(method, 'load_method')
