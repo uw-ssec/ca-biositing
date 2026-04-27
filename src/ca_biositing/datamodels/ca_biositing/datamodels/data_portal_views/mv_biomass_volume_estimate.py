@@ -8,7 +8,7 @@ This module provides dual-path volume estimation:
 2. Census-based: USDA census bearing_acres × prune_trim_yield for orchard crops
 
 Required index:
-    CREATE UNIQUE INDEX idx_mv_volume_estimation_id ON data_portal.mv_volume_estimation (id)
+    CREATE UNIQUE INDEX idx_mv_biomass_volume_estimate_id ON data_portal.mv_biomass_volume_estimate (id)
 """
 
 from sqlalchemy import select, func, union_all, literal, case, cast, String, and_, or_
@@ -21,6 +21,7 @@ from ca_biositing.datamodels.models.external_data.county_ag_report_record import
 from ca_biositing.datamodels.models.external_data.usda_census import UsdaCensusRecord, UsdaCommodity
 from ca_biositing.datamodels.models.external_data.resource_usda_commodity_map import ResourceUsdaCommodityMap
 from ca_biositing.datamodels.models.places.place import Place
+from ca_biositing.datamodels.models.methods_parameters_units.parameter import Parameter
 from ca_biositing.datamodels.models.methods_parameters_units.unit import Unit
 from ca_biositing.datamodels.models.general_analysis.observation import Observation
 
@@ -37,17 +38,19 @@ production_based_volumes = select(
     CountyAgReportRecord.data_year.label("dataset_year"),
     CountyAgReportRecord.record_id,
     # Aggregate observations for production volume
-    func.avg(Observation.value).label("primary_product_volume"),
+    func.avg(case((Parameter.name == "production", Observation.value))).label("primary_product_volume"),
+    # Harvested acres for the crop
+    func.avg(case((Parameter.name == "harvested acres", Observation.value))).label("county_crop_acres"),
     # Capture unit from observations
-    func.max(Unit.name).label("volume_unit"),
+    func.max(case((Parameter.name == "production", Unit.name))).label("volume_unit"),
     # Residue factor values
     ResidueFactor.factor_min,
     ResidueFactor.factor_mid,
     ResidueFactor.factor_max,
     # Calculated volumes (min, mid, max)
-    (func.avg(Observation.value) * ResidueFactor.factor_min).label("estimated_residue_volume_min"),
-    (func.avg(Observation.value) * ResidueFactor.factor_mid).label("estimated_residue_volume_mid"),
-    (func.avg(Observation.value) * ResidueFactor.factor_max).label("estimated_residue_volume_max"),
+    (func.avg(case((Parameter.name == "production", Observation.value))) * ResidueFactor.factor_min).label("estimated_residue_volume_min"),
+    (func.avg(case((Parameter.name == "production", Observation.value))) * ResidueFactor.factor_mid).label("estimated_residue_volume_mid"),
+    (func.avg(case((Parameter.name == "production", Observation.value))) * ResidueFactor.factor_max).label("estimated_residue_volume_max"),
     literal("production_based").label("volume_source"),
     literal("dry_tons").label("biomass_unit")
 ).select_from(CountyAgReportRecord)\
@@ -55,6 +58,7 @@ production_based_volumes = select(
  .join(ResidueFactor, ResidueFactor.resource_id == Resource.id)\
  .join(Place, CountyAgReportRecord.geoid == Place.geoid)\
  .outerjoin(Observation, and_(Observation.record_id == CountyAgReportRecord.record_id, Observation.record_type == "county_ag_report_record"))\
+ .outerjoin(Parameter, Observation.parameter_id == Parameter.id)\
  .outerjoin(Unit, Observation.unit_id == Unit.id)\
  .where(and_(
      ResidueFactor.factor_type == "weight",
@@ -86,6 +90,7 @@ census_based_volumes = select(
     UsdaCensusRecord.id.label("record_id"),
     # Bearing acres data
     func.avg(Observation.value).label("bearing_acres"),
+    func.avg(Observation.value).label("county_crop_acres"),
     literal("acres").label("volume_unit"),
     # Residue factor yield values
     ResidueFactor.prune_trim_yield,
@@ -124,7 +129,7 @@ census_based_volumes = select(
 
 # Combined volume estimation view
 # Uses UNION ALL to combine both paths, with precedence logic for selection
-mv_volume_estimation = select(
+mv_biomass_volume_estimate = select(
     func.row_number().over(
         order_by=(
             production_based_volumes.c.resource_id,
@@ -140,6 +145,7 @@ mv_volume_estimation = select(
     production_based_volumes.c.state,
     production_based_volumes.c.dataset_year,
     production_based_volumes.c.primary_product_volume.label("production_volume"),
+    production_based_volumes.c.county_crop_acres,
     production_based_volumes.c.volume_unit.label("production_unit"),
     production_based_volumes.c.factor_min,
     production_based_volumes.c.factor_mid,
@@ -166,6 +172,7 @@ mv_volume_estimation = select(
         census_based_volumes.c.state,
         census_based_volumes.c.dataset_year,
         census_based_volumes.c.bearing_acres.label("production_volume"),
+        census_based_volumes.c.county_crop_acres,
         census_based_volumes.c.volume_unit.label("production_unit"),
         literal(None).label("factor_min"),
         literal(None).label("factor_mid"),

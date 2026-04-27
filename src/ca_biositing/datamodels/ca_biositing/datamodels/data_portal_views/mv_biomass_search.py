@@ -41,7 +41,7 @@ from .common import (
     get_nitrogen_avg_expr,
     get_cn_ratio_expr
 )
-from .mv_volume_estimation import mv_volume_estimation
+from .mv_biomass_volume_estimate import mv_biomass_volume_estimate
 
 
 # 1. Subquery for primary product fallback from USDA mapping
@@ -214,13 +214,13 @@ storage_notes_sq = select(
 
 # Volume estimation aggregation (state-wide sum for latest data year)
 volume_agg = select(
-    mv_volume_estimation.c.resource_id,
-    func.sum(mv_volume_estimation.c.estimated_residue_volume_min).label("calculated_estimate_volume_min"),
-    func.sum(mv_volume_estimation.c.estimated_residue_volume_max).label("calculated_estimate_volume_max"),
-    func.sum(mv_volume_estimation.c.estimated_residue_volume_mid).label("calculated_estimate_volume_mid")
-).select_from(mv_volume_estimation)\
- .where(mv_volume_estimation.c.dataset_year == 2024)\
- .group_by(mv_volume_estimation.c.resource_id).subquery()
+    mv_biomass_volume_estimate.c.resource_id,
+    func.sum(mv_biomass_volume_estimate.c.estimated_residue_volume_min).label("calculated_estimate_volume_min"),
+    func.sum(mv_biomass_volume_estimate.c.estimated_residue_volume_max).label("calculated_estimate_volume_max"),
+    func.sum(mv_biomass_volume_estimate.c.estimated_residue_volume_mid).label("calculated_estimate_volume_mid")
+).select_from(mv_biomass_volume_estimate)\
+ .where(mv_biomass_volume_estimate.c.dataset_year == 2024)\
+ .group_by(mv_biomass_volume_estimate.c.resource_id).subquery()
 
 mv_biomass_search = select(
      Resource.id,
