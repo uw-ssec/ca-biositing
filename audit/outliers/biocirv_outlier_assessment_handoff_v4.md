@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Build a **small, auditable exploratory pipeline** to characterize BioCirV replicate precision and compare candidate rerun / outlier flags.
+Build a **small, auditable exploratory pipeline** to characterize BioCirV
+replicate precision and compare candidate rerun / outlier flags.
 
 The goal is **not** to choose or implement permanent production filters.
 
@@ -16,7 +17,8 @@ The analysis should answer:
 6. Are there signs that precision depends on concentration or resource / matrix?
 7. Which combinations deserve deeper human review?
 
-The first pass should prioritize broad descriptive comparison and human review, while staying easy to narrow if data-structure issues appear.
+The first pass should prioritize broad descriptive comparison and human review,
+while staying easy to narrow if data-structure issues appear.
 
 ## Scope Boundary
 
@@ -30,7 +32,8 @@ Focus first on characterization / composition-style data:
 - caloric
 - ultimate analysis
 
-Conversion / process-performance data should be handled later because it may have a different structure.
+Conversion / process-performance data should be handled later because it may
+have a different structure.
 
 Keep the target list configurable:
 
@@ -65,11 +68,14 @@ The downstream pipeline should not need to change.
 
 ## 1. Lightweight schema audit — reasoning step, not coding project
 
-Before writing analysis code, inspect the characterization datasets and answer only:
+Before writing analysis code, inspect the characterization datasets and answer
+only:
 
-> Can each analysis be mapped reasonably easily to a shared structure of `sample × analysis × parameter × value`?
+> Can each analysis be mapped reasonably easily to a shared structure of
+> `sample × analysis × parameter × value`?
 
-This is intended to be **LLM / human reasoning**, not a separate script to build and debug.
+This is intended to be **LLM / human reasoning**, not a separate script to build
+and debug.
 
 For each analysis, identify only:
 
@@ -94,17 +100,23 @@ DEFER
 ```
 
 ### COMPATIBLE
+
 Can be normalized through ordinary reshaping / renaming.
 
 ### SMALL_MAPPING
+
 Needs a small explicit mapping, such as:
+
 - different sample ID column name
 - wide parameter columns
 - units encoded in headers
 - extra metadata columns
 
 ### DEFER
-Would require substantial analysis-specific logic or has fundamentally different data, such as:
+
+Would require substantial analysis-specific logic or has fundamentally different
+data, such as:
+
 - raw spectra
 - peak arrays
 - time series
@@ -120,10 +132,12 @@ The schema audit is **optional supporting work**.
 If it starts taking too long:
 
 1. Stop the audit.
-2. Manually choose a smaller `TARGET_ANALYSES` list containing analyses whose structure is already understandable.
+2. Manually choose a smaller `TARGET_ANALYSES` list containing analyses whose
+   structure is already understandable.
 3. Normalize only those analyses.
 4. Run the MVP replicate analysis.
-5. Add additional analyses later only when they can be mapped with a small adapter.
+5. Add additional analyses later only when they can be mapped with a small
+   adapter.
 
 Record only:
 
@@ -137,7 +151,8 @@ That is sufficient.
 
 ## Stop rule
 
-Do not spend substantial time trying to make every characterization analysis compatible before producing useful results.
+Do not spend substantial time trying to make every characterization analysis
+compatible before producing useful results.
 
 The schema review should answer:
 
@@ -179,9 +194,11 @@ ultimate      carbon        46.2
 caloric       HHV           18.7
 ```
 
-The downstream replicate-QC pipeline should operate on generic `analysis_type`, `parameter`, and `value` fields rather than hard-coded analyte names.
+The downstream replicate-QC pipeline should operate on generic `analysis_type`,
+`parameter`, and `value` fields rather than hard-coded analyte names.
 
 Prefer:
+
 - a small config dictionary
 - a few adapter functions
 - `melt()` / reshape operations
@@ -195,9 +212,11 @@ BioCirV has several levels of variation. Keep them separate.
 
 ## Level 1 — Technical replicate variation
 
-The spread within one sample's replicate cluster represents analytical / measurement repeatability.
+The spread within one sample's replicate cluster represents analytical /
+measurement repeatability.
 
 Use this level for:
+
 - replicate SD
 - replicate RSD
 - Dixon Q
@@ -207,7 +226,8 @@ Use this level for:
 
 ## Level 2 — Sample-to-sample variation within a resource
 
-The spread among independent sample means reflects resource / sample heterogeneity plus residual analytical error.
+The spread among independent sample means reflects resource / sample
+heterogeneity plus residual analytical error.
 
 It is **not analytical precision**.
 
@@ -223,7 +243,8 @@ Do not use them to estimate method precision.
 2. Calculate **both SD and RSD for every eligible cluster**.
 3. Carry both forward through the first-pass analysis.
 4. Summarize cluster-level precision by `analysis_type × parameter`.
-5. Review evidence before deciding whether absolute SD, RSD, concentration dependence, or matrix effects should guide later policy.
+5. Review evidence before deciding whether absolute SD, RSD, concentration
+   dependence, or matrix effects should guide later policy.
 
 **Standardize the decision process, not necessarily one numeric cutoff.**
 
@@ -233,9 +254,11 @@ The first pass should:
 
 > **calculate broadly first; classify and narrow later.**
 
-Do **not** create an early `ABSOLUTE` vs `RELATIVE` branch that determines which downstream analysis runs.
+Do **not** create an early `ABSOLUTE` vs `RELATIVE` branch that determines which
+downstream analysis runs.
 
 For every sufficiently populated `analysis_type × parameter`:
+
 - summarize SD
 - summarize RSD
 - calculate candidate flag rates
@@ -243,7 +266,8 @@ For every sufficiently populated `analysis_type × parameter`:
 - retain resource / matrix information
 - select only a few combinations for deeper visual review
 
-The absolute-vs-relative distinction is an observation for human discussion, not an automated routing rule in the MVP.
+The absolute-vs-relative distinction is an observation for human discussion, not
+an automated routing rule in the MVP.
 
 # Step 0 — Determine the Technical Replicate Grouping Key
 
@@ -260,6 +284,7 @@ sample_id
 `resource` is normally metadata, not part of the replicate grouping key.
 
 Do not combine:
+
 - different independent samples of the same resource
 - different labs
 - different protocols
@@ -338,7 +363,8 @@ replicate_RSD
 replicate_group_id
 ```
 
-Do not use raw replicate values pooled across samples to measure resource spread.
+Do not use raw replicate values pooled across samples to measure resource
+spread.
 
 ## Output
 
@@ -428,9 +454,11 @@ percent_Dixon_flagged
 percent_ROUT_flagged
 ```
 
-Stratify by lab / method / protocol only when known differences make pooling inappropriate.
+Stratify by lab / method / protocol only when known differences make pooling
+inappropriate.
 
-Do **not** automatically classify combinations as `ABSOLUTE`, `RELATIVE`, or `CONCENTRATION_DEPENDENT`.
+Do **not** automatically classify combinations as `ABSOLUTE`, `RELATIVE`, or
+`CONCENTRATION_DEPENDENT`.
 
 ## Output
 
@@ -442,7 +470,8 @@ outputs/method_parameter_summary.csv
 
 Do **not** create two plots for every method × parameter combination.
 
-Create one whole-dataset heatmap or similarly scannable summary with one row per `analysis_type × parameter`.
+Create one whole-dataset heatmap or similarly scannable summary with one row per
+`analysis_type × parameter`.
 
 Preferred comparable metrics:
 
@@ -456,7 +485,8 @@ percent_Dixon_flagged
 percent_ROUT_flagged
 ```
 
-Do not use raw median SD as the main heatmap comparison across unrelated parameters with different units.
+Do not use raw median SD as the main heatmap comparison across unrelated
+parameters with different units.
 
 Keep SD in the underlying table.
 
@@ -469,6 +499,7 @@ outputs/precision_review_heatmap.png
 # Step 6 — Select Only 5–10 Combinations for Diagnostic Plots
 
 Select combinations using documented reasons such as:
+
 - highest median RSD
 - highest P90 RSD
 - highest `% RSD >20`
@@ -498,32 +529,32 @@ outputs/plots_selected/
 
 ## Future Enhancements Identified During Step 6 Review
 
-Recorded here per human review of the 8 selected diagnostic plots produced
-by `07_selected_diagnostics.py`. Not implemented in Step 6 itself — see
-[`STEP6_FINDINGS.md`](biocirv_outlier_assessment/STEP6_FINDINGS.md) §6 for
-full detail. Left as explicit future to-dos, not decided/implemented by the
-coding agent:
+Recorded here per human review of the 8 selected diagnostic plots produced by
+`07_selected_diagnostics.py`. Not implemented in Step 6 itself — see
+[`STEP6_FINDINGS.md`](biocirv_outlier_assessment/STEP6_FINDINGS.md) §6 for full
+detail. Left as explicit future to-dos, not decided/implemented by the coding
+agent:
 
-1. **Label high-leverage points with `replicate_group_id`.** A future
-   revision of the selected-diagnostics plotting should annotate individual
-   points with their `replicate_group_id` when either `RSD_percent > 20`
-   or `standard_deviation > 2 × median(standard_deviation)` (median taken
-   within that same `analysis_type × parameter` combination, since absolute
-   SD units differ by parameter). This lets a reviewer go directly from "that
-   point looks high" to the exact replicate group / sample / resource /
-   experiment behind it.
-2. **Differentiate the `unclear` and `concentration_dependent_mixed`
-   categories into SD-dominant / RSD-dominant / genuinely-mixed behavior.**
-   Either (a) a human reviewer works through the SD and RSD scatter plots
-   for all combinations currently labeled `unclear` (25) or
-   `concentration_dependent_mixed` (13) and records a differentiated
-   judgment per combination, or (b) the `classify_precision_model()`
-   heuristic in `06a_build_precision_model_diagnostics.py` is revisited
-   (e.g., separate SD-only and RSD-only log-log fits instead of one
-   combined slope/R² pair) to see whether adjusted decision bounds can
-   programmatically split today's grab-bag `unclear`/mixed categories.
-   Per this document's "Scientific Decisions After the MVP" section, any
-   changed thresholds remain a human decision.
+1. **Label high-leverage points with `replicate_group_id`.** A future revision
+   of the selected-diagnostics plotting should annotate individual points with
+   their `replicate_group_id` when either `RSD_percent > 20` or
+   `standard_deviation > 2 × median(standard_deviation)` (median taken within
+   that same `analysis_type × parameter` combination, since absolute SD units
+   differ by parameter). This lets a reviewer go directly from "that point looks
+   high" to the exact replicate group / sample / resource / experiment behind
+   it.
+2. **Differentiate the `unclear` and `concentration_dependent_mixed` categories
+   into SD-dominant / RSD-dominant / genuinely-mixed behavior.** Either (a) a
+   human reviewer works through the SD and RSD scatter plots for all
+   combinations currently labeled `unclear` (25) or
+   `concentration_dependent_mixed` (13) and records a differentiated judgment
+   per combination, or (b) the `classify_precision_model()` heuristic in
+   `06a_build_precision_model_diagnostics.py` is revisited (e.g., separate
+   SD-only and RSD-only log-log fits instead of one combined slope/R² pair) to
+   see whether adjusted decision bounds can programmatically split today's
+   grab-bag `unclear`/mixed categories. Per this document's "Scientific
+   Decisions After the MVP" section, any changed thresholds remain a human
+   decision.
 
 # Step 7 — Add Human-Review Interpretation
 
@@ -545,7 +576,7 @@ These are observations, not algorithm-routing categories.
 Create approximately:
 
 | Analysis type | Parameter | Replicate groups | Median RSD | P90 RSD | RSD >10% | RSD >20% | Dixon | ROUT |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
+| ------------- | --------- | ---------------: | ---------: | ------: | -------: | -------: | ----: | ---: |
 
 Also calculate overlap:
 
@@ -710,10 +741,13 @@ Do not implement during the MVP:
 
 ## Agility / schema-review guardrails
 
-- Treat the compatibility audit as **LLM / human reasoning**, not a script deliverable.
+- Treat the compatibility audit as **LLM / human reasoning**, not a script
+  deliverable.
 - Do not write a schema-audit framework unless explicitly requested.
-- Do not require every characterization analysis to be compatible before proceeding.
-- If one analysis requires significant special handling, mark it `DEFER` and continue.
+- Do not require every characterization analysis to be compatible before
+  proceeding.
+- If one analysis requires significant special handling, mark it `DEFER` and
+  continue.
 - Keep `TARGET_ANALYSES` configurable.
 - Prefer a small explicit adapter over generalized harmonization code.
 
@@ -731,7 +765,8 @@ Do not implement during the MVP:
 - Statistical flag ≠ bad data.
 - High RSD ≠ proof that one replicate is wrong.
 - Never use between-sample or between-resource spread as analytical precision.
-- Never calculate raw SD across independent samples and call it method precision.
+- Never calculate raw SD across independent samples and call it method
+  precision.
 - Do not invent final cutoffs from observed distributions.
 
 ## No premature absolute-vs-relative branching
@@ -745,7 +780,8 @@ Do not implement during the MVP:
 ## Replicate integrity
 
 - `sample_id` is essential.
-- Do not pool independent samples of one resource into a technical replicate group.
+- Do not pool independent samples of one resource into a technical replicate
+  group.
 - Do not combine labs / methods / protocols without explicit justification.
 - Preserve source record IDs.
 
@@ -754,7 +790,8 @@ Do not implement during the MVP:
 - Keep resource / matrix as metadata in the first pass.
 - Do not default to `analysis × parameter × resource` thresholds.
 - Do not interpret large resource heterogeneity as poor method precision.
-- Recommend matrix stratification only if selected diagnostics show a plausible pattern and enough data exist.
+- Recommend matrix stratification only if selected diagnostics show a plausible
+  pattern and enough data exist.
 
 ## Plotting control
 
@@ -786,7 +823,8 @@ If a step causes a time-consuming bug:
    ```
 3. Continue downstream.
 4. Prefer simple, transparent calculations.
-5. Never block the pipeline on schema harmonization, ROUT, plotting cosmetics, matrix stratification, or advanced statistics.
+5. Never block the pipeline on schema harmonization, ROUT, plotting cosmetics,
+   matrix stratification, or advanced statistics.
 
 ## Reproducibility
 
@@ -823,7 +861,8 @@ biocirv_outlier_assessment/
     └── plots_selected/
 ```
 
-`normalize_inputs.py` should remain simple. It is not intended to become a generalized ETL framework.
+`normalize_inputs.py` should remain simple. It is not intended to become a
+generalized ETL framework.
 
 # Scientific Decisions After the MVP
 
@@ -834,7 +873,8 @@ The human team will decide:
 1. whether triplicates remain the default
 2. what should trigger rerun
 3. where an RSD criterion is appropriate
-4. whether absolute SD, relative precision, or concentration dependence matters for particular methods
+4. whether absolute SD, relative precision, or concentration dependence matters
+   for particular methods
 5. whether matrix modifies analytical precision
 6. whether Dixon / ROUT adds value beyond RSD
 7. whether 2s / 3s analysis is worth a second phase
